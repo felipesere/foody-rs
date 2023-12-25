@@ -4,5 +4,6 @@ pub mod prelude;
 
 pub mod ingredients;
 pub mod notes;
+pub mod quantities;
 pub mod shoppinglists;
 pub mod users;

@@ -3,3 +3,4 @@ pub mod notes;
 pub mod users;
 pub mod ingredients;
 pub mod shoppinglists;
+pub mod quantities;
