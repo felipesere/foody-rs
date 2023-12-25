@@ -2,4 +2,5 @@
 
 pub use super::ingredients::Entity as Ingredients;
 pub use super::notes::Entity as Notes;
+pub use super::shoppinglists::Entity as Shoppinglists;
 pub use super::users::Entity as Users;
