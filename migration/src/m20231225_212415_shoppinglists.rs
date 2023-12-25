@@ -31,7 +31,4 @@ enum Shoppinglists {
     Table,
     Id,
     Name,
-    
 }
-
-

@@ -1,6 +1,7 @@
 pub mod _entities;
-pub mod notes;
-pub mod users;
 pub mod ingredients;
-pub mod shoppinglists;
+pub mod ingredients_in_shoppinglists;
+pub mod notes;
 pub mod quantities;
+pub mod shoppinglists;
+pub mod users;

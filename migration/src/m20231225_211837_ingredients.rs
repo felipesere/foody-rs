@@ -31,7 +31,4 @@ enum Ingredients {
     Table,
     Id,
     Name,
-    
 }
-
-

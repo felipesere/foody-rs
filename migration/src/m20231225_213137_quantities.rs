@@ -35,7 +35,4 @@ enum Quantities {
     Unit,
     Value,
     Text,
-    
 }
-
-
