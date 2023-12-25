@@ -13,6 +13,18 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  test_db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: loco
+      POSTGRES_PASSWORD: loco
+      POSTGRES_DB: foody_test
+    ports:
+      - 5433:5432
+    volumes:
+      - pgtestdata:/var/lib/postgresql/data
+
   adminer:
     image: adminer
     restart: always
@@ -30,4 +42,5 @@ services:
 
 volumes:
   pgdata:
+  pgtestdata:
   redisdata:
