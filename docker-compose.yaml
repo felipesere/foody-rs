@@ -20,10 +20,11 @@ services:
       - 8080:8080
 
   redis:
-    image: redis:7-alpine
+    image: redis/redis-stack:latest
     restart: always
     ports:
       - 6379:6379
+      - 8001:8001
     volumes:
       - redisdata:/data
 
