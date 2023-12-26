@@ -1,6 +1,5 @@
 #![allow(clippy::unused_async)]
-use loco_rs::controller::middleware;
-use loco_rs::prelude::*;
+use loco_rs::{controller::middleware, prelude::*};
 use serde::Serialize;
 
 use crate::models::{

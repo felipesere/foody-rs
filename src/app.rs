@@ -78,8 +78,13 @@ impl Hooks for App {
             &base.join("ingredients.yaml").display().to_string(),
         )
         .await?;
+        db::seed::<shoppinglists::ActiveModel>(
+            db,
+            &base.join("shoppinglists.yaml").display().to_string(),
+        )
+        .await?;
 
-        for table in ["users", "notes", "ingredients"] {
+        for table in ["users", "notes", "ingredients", "shoppinglists"] {
             db.query_one(Statement::from_string(
                 DbBackend::Postgres,
                 format!("SELECT setval('{table}_id_seq', (SELECT MAX(id) FROM {table}))"),

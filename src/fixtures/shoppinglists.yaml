@@ -1,0 +1,9 @@
+---
+- name: Mondays
+  created_at: "2023-11-12T12:34:56.789"
+  updated_at: "2023-11-12T12:34:56.789"
+  id: 1
+- name: Regular salad shop
+  created_at: "2023-11-12T12:34:56.789"
+  updated_at: "2023-11-12T12:34:56.789"
+  id: 2
