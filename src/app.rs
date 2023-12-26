@@ -11,7 +11,7 @@ use loco_rs::{
     Result,
 };
 use migration::Migrator;
-use sea_orm::DatabaseConnection;
+use sea_orm::{DatabaseConnection, ConnectionTrait, Statement, DbBackend};
 
 use crate::{
     controllers,
@@ -43,6 +43,7 @@ impl Hooks for App {
 
     fn routes() -> AppRoutes {
         AppRoutes::with_default_routes()
+            .add_route(controllers::ingredients::routes())
             .prefix("/api")
             .add_route(controllers::notes::routes())
             .add_route(controllers::auth::routes())
@@ -71,6 +72,11 @@ impl Hooks for App {
         db::seed::<users::ActiveModel>(db, &base.join("users.yaml").display().to_string()).await?;
         db::seed::<notes::ActiveModel>(db, &base.join("notes.yaml").display().to_string()).await?;
         db::seed::<ingredients::ActiveModel>(db, &base.join("ingredients.yaml").display().to_string()).await?;
+
+        for table in ["users", "notes", "ingredients"] {
+            db.query_one(Statement::from_string(DbBackend::Postgres, format!("SELECT setval('{table}_id_seq', (SELECT MAX(id) FROM {table}))"))).await?;
+        }
+
         Ok(())
     }
 }

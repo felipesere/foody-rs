@@ -15,3 +15,11 @@
   name: user2
   created_at: "2023-11-12T12:34:56.789"
   updated_at: "2023-11-12T12:34:56.789"
+- id: 3
+  pid: 33333333-3333-3333-3333-333333333333
+  email: jim@example.com
+  password: "$argon2id$v=19$m=19456,t=2,p=1$4deuFL+fyuU2c+NHUFjsFw$/HdbvQL4FMA2XGG3gyVlOHJNSF3FYgm+O77+MIsalKs"
+  api_key: lo-fa5af17c-b71e-46ef-8d7a-83462731bef4
+  name: jim
+  created_at: "2023-12-26T10:23:59.575"
+  updated_at: "2023-12-26T10:23:59.575"
