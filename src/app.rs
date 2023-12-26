@@ -11,11 +11,13 @@ use loco_rs::{
     Result,
 };
 use migration::Migrator;
-use sea_orm::{DatabaseConnection, ConnectionTrait, Statement, DbBackend};
+use sea_orm::{ConnectionTrait, DatabaseConnection, DbBackend, Statement};
 
 use crate::{
     controllers,
-    models::_entities::{notes, users, ingredients, shoppinglists, quantities, ingredients_in_shoppinglists},
+    models::_entities::{
+        ingredients, ingredients_in_shoppinglists, notes, quantities, shoppinglists, users,
+    },
     tasks,
     workers::downloader::DownloadWorker,
 };
@@ -71,10 +73,18 @@ impl Hooks for App {
     async fn seed(db: &DatabaseConnection, base: &Path) -> Result<()> {
         db::seed::<users::ActiveModel>(db, &base.join("users.yaml").display().to_string()).await?;
         db::seed::<notes::ActiveModel>(db, &base.join("notes.yaml").display().to_string()).await?;
-        db::seed::<ingredients::ActiveModel>(db, &base.join("ingredients.yaml").display().to_string()).await?;
+        db::seed::<ingredients::ActiveModel>(
+            db,
+            &base.join("ingredients.yaml").display().to_string(),
+        )
+        .await?;
 
         for table in ["users", "notes", "ingredients"] {
-            db.query_one(Statement::from_string(DbBackend::Postgres, format!("SELECT setval('{table}_id_seq', (SELECT MAX(id) FROM {table}))"))).await?;
+            db.query_one(Statement::from_string(
+                DbBackend::Postgres,
+                format!("SELECT setval('{table}_id_seq', (SELECT MAX(id) FROM {table}))"),
+            ))
+            .await?;
         }
 
         Ok(())
