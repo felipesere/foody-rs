@@ -15,7 +15,7 @@ use sea_orm::DatabaseConnection;
 
 use crate::{
     controllers,
-    models::_entities::{notes, users},
+    models::_entities::{notes, users, ingredients, shoppinglists, quantities, ingredients_in_shoppinglists},
     tasks,
     workers::downloader::DownloadWorker,
 };
@@ -60,12 +60,17 @@ impl Hooks for App {
     async fn truncate(db: &DatabaseConnection) -> Result<()> {
         truncate_table(db, users::Entity).await?;
         truncate_table(db, notes::Entity).await?;
+        truncate_table(db, ingredients::Entity).await?;
+        truncate_table(db, shoppinglists::Entity).await?;
+        truncate_table(db, quantities::Entity).await?;
+        truncate_table(db, ingredients_in_shoppinglists::Entity).await?;
         Ok(())
     }
 
     async fn seed(db: &DatabaseConnection, base: &Path) -> Result<()> {
         db::seed::<users::ActiveModel>(db, &base.join("users.yaml").display().to_string()).await?;
         db::seed::<notes::ActiveModel>(db, &base.join("notes.yaml").display().to_string()).await?;
+        db::seed::<ingredients::ActiveModel>(db, &base.join("ingredients.yaml").display().to_string()).await?;
         Ok(())
     }
 }
