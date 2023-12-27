@@ -59,3 +59,9 @@
   unit: gram
   value: 20
   text: ~
+- id: 11
+  created_at: "2023-11-12T12:34:56.789"
+  updated_at: "2023-11-12T12:34:56.789"
+  unit: gram
+  value: 333
+  text: ~
