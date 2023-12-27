@@ -63,16 +63,21 @@ impl Hooks for App {
     async fn truncate(db: &DatabaseConnection) -> Result<()> {
         truncate_table(db, users::Entity).await?;
         truncate_table(db, notes::Entity).await?;
+        truncate_table(db, ingredients_in_shoppinglists::Entity).await?;
+        truncate_table(db, quantities::Entity).await?;
         truncate_table(db, ingredients::Entity).await?;
         truncate_table(db, shoppinglists::Entity).await?;
-        truncate_table(db, quantities::Entity).await?;
-        truncate_table(db, ingredients_in_shoppinglists::Entity).await?;
         Ok(())
     }
 
     async fn seed(db: &DatabaseConnection, base: &Path) -> Result<()> {
         db::seed::<users::ActiveModel>(db, &base.join("users.yaml").display().to_string()).await?;
         db::seed::<notes::ActiveModel>(db, &base.join("notes.yaml").display().to_string()).await?;
+        db::seed::<quantities::ActiveModel>(
+            db,
+            &base.join("quantities.yaml").display().to_string(),
+        )
+        .await?;
         db::seed::<ingredients::ActiveModel>(
             db,
             &base.join("ingredients.yaml").display().to_string(),
@@ -83,8 +88,23 @@ impl Hooks for App {
             &base.join("shoppinglists.yaml").display().to_string(),
         )
         .await?;
+        db::seed::<ingredients_in_shoppinglists::ActiveModel>(
+            db,
+            &base
+                .join("ingredients_in_shoppinglists.yaml")
+                .display()
+                .to_string(),
+        )
+        .await?;
 
-        for table in ["users", "notes", "ingredients", "shoppinglists"] {
+        for table in [
+            "users",
+            "notes",
+            "ingredients_in_shoppinglists",
+            "quantities",
+            "ingredients",
+            "shoppinglists",
+        ] {
             db.query_one(Statement::from_string(
                 DbBackend::Postgres,
                 format!("SELECT setval('{table}_id_seq', (SELECT MAX(id) FROM {table}))"),
