@@ -1,9 +1,5 @@
-#![allow(clippy::unused_async)]
-
 use loco_rs::{controller::middleware, prelude::*};
 use serde::Serialize;
-use sea_orm::{Statement, DbBackend, FromQueryResult};
-use sea_orm::entity::prelude::*;
 
 use crate::models::ingredients::Model as Ingredient;
 use crate::models::quantities::Model as Quantity;
@@ -21,7 +17,9 @@ pub struct ShoppinglistsResponse {
 struct QuantityResponse {
     id: i32,
     unit: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     value: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     text: Option<String>,
 
 }
@@ -81,62 +79,17 @@ pub async fn all_shoppinglists(
     // check auth
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
-    let s = Statement::from_string(DbBackend::Postgres, r#"
-        SELECT
-          "shoppinglists"."created_at" AS "s_created_at",
-          "shoppinglists"."updated_at" AS "s_updated_at",
-          "shoppinglists"."id" AS "s_id",
-          "shoppinglists"."name" AS "s_name",
-          "r1"."created_at" AS "i_created_at",
-          "r1"."updated_at" AS "i_updated_at",
-          "r1"."id" AS "i_id",
-          "r1"."name" AS "i_name",
-          "q"."id" AS "q_id",
-          "q"."created_at" AS "q_created_at",
-          "q"."updated_at" AS "q_updated_at",
-          "q"."unit" AS "q_unit",
-          "q"."value" AS "q_value",
-          "q"."text" AS "q_text"
-        FROM
-          "shoppinglists"
-          JOIN "ingredients_in_shoppinglists" AS "r0" ON "r0"."shoppinglists_id" = "shoppinglists"."id"
-          JOIN "ingredients" AS "r1" ON "r0"."ingredients_id" = "r1"."id"
-          JOIN "quantities" AS "q" ON "r0"."quantities_id" = "q".id
-          ORDER BY
-            "shoppinglists"."id" ASC,
-            "r1"."id" ASC,
-            "q"."id" ASC
-        "#);
+    let mut shoppinglists = Vec::new();
+    for (list, ingredients) in Shoppinglists::find_all(&ctx.db).await? {
+        let mut shoppinglist = ShoppinglistResponse::from(list);
+        for (ingredient, quantities) in ingredients {
+            let mut converted_ingredient = IngredientResponse::from(ingredient);
 
-    let rows = &ctx.db.query_all(s.clone()).await.unwrap();
+            converted_ingredient.quantities = quantities.into_iter().map(QuantityResponse::from).collect();
+            shoppinglist.ingredients.push(converted_ingredient);
 
-    let mut shoppinglists: Vec<ShoppinglistResponse> = Vec::new();
-    for row in rows {
-
-        let new_list: ShoppinglistResponse = Shoppinglists::from_query_result(row, "s_")?.into();
-
-        let last = shoppinglists.len();
-        let list = if !shoppinglists.is_empty() && shoppinglists[last -1].id == new_list.id {
-            &mut shoppinglists[last - 1]
-        } else {
-            shoppinglists.push(new_list);
-            let last = shoppinglists.len() - 1;
-            &mut shoppinglists[last]
-        };
-
-        let i: IngredientResponse = Ingredient::from_query_result(row, "i_")?.into();
-
-        let idx = list.ingredients.iter().position(|o| o.id == i.id);
-        let ing = if let Some(idx) = idx {
-            &mut list.ingredients[idx]
-        } else {
-            list.ingredients.push(i);
-            let last = list.ingredients.len() -1;
-            &mut list.ingredients[last]
-        };
-
-        let q: QuantityResponse = Quantity::from_query_result(row, "q_")?.into();
-        ing.quantities.push(q);
+        }
+        shoppinglists.push(shoppinglist);
     }
 
     format::json(ShoppinglistsResponse {
