@@ -1,6 +1,6 @@
 use loco_rs::model::ModelError;
 use sea_orm::{
-    ActiveModelBehavior, DatabaseConnection, DbBackend, Linked, RelationDef, RelationTrait,
+    ActiveModelBehavior, DatabaseConnection, DbBackend,
     Statement, ConnectionTrait, FromQueryResult,
 };
 
@@ -8,8 +8,6 @@ use crate::models::ingredients::Model as Ingredient;
 use crate::models::quantities::Model as Quantity;
 
 pub use super::_entities::shoppinglists::{self, ActiveModel, Entity, Model, Relation};
-use super::ingredients::ingredients;
-use crate::models::_entities::ingredients_in_shoppinglists;
 
 impl ActiveModelBehavior for ActiveModel {
     // extend activemodel below (keep comment for generators)
@@ -45,7 +43,7 @@ impl Model {
                 "#,
         );
 
-        let rows = &db.query_all(s.clone()).await?;
+        let rows = &db.query_all(s).await?;
 
         let mut result: Vec<(Model, Vec<(Ingredient, Vec<Quantity>)>)> = Vec::new();
         for row in rows {
@@ -68,22 +66,5 @@ impl Model {
             };
         }
         Ok(result)
-    }
-}
-
-pub struct ShoppinglistIngredients;
-
-impl Linked for ShoppinglistIngredients {
-    type FromEntity = shoppinglists::Entity;
-
-    type ToEntity = ingredients::Entity;
-
-    fn link(&self) -> Vec<RelationDef> {
-        vec![
-            ingredients_in_shoppinglists::Relation::Shoppinglists
-                .def()
-                .rev(),
-            ingredients_in_shoppinglists::Relation::Ingredients.def(),
-        ]
     }
 }
