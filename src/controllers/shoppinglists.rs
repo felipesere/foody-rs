@@ -1,8 +1,11 @@
+use axum::extract;
 use loco_rs::{controller::middleware, prelude::*};
-use serde::Serialize;
+use sea_orm::ActiveValue::Set;
+use serde::{Serialize, Deserialize};
 
 use crate::models::ingredients::Model as Ingredient;
 use crate::models::quantities::Model as Quantity;
+use crate::models::shoppinglists;
 use crate::models::{
     shoppinglists::Model as Shoppinglists,
     users,
@@ -44,7 +47,7 @@ struct IngredientResponse {
 }
 
 #[derive(Serialize, Clone, Debug)]
-struct ShoppinglistResponse {
+pub struct ShoppinglistResponse {
     id: i32,
     name: String,
     ingredients: Vec<IngredientResponse>,
@@ -97,8 +100,29 @@ pub async fn all_shoppinglists(
     })
 }
 
+#[derive(Deserialize, Clone, Debug)]
+pub struct NewShoppinglist {
+	name: String,
+}
+
+pub async fn create_shoppinglist(
+    _auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+    extract::Json(params): extract::Json<NewShoppinglist>,
+) -> Result<axum::Json<ShoppinglistResponse>> {
+
+    let new_list = shoppinglists::ActiveModel {
+        name: Set(params.name),
+        ..Default::default()
+    };
+    let list = new_list.insert(&ctx.db).await?;
+
+    format::json(ShoppinglistResponse::from(list))
+}
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("shoppinglists")
         .add("/", get(all_shoppinglists))
+        .add("/", post(create_shoppinglist))
 }

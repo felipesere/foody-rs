@@ -12,6 +12,7 @@ pub use super::_entities::shoppinglists::{self, ActiveModel, Entity, Model, Rela
 impl ActiveModelBehavior for ActiveModel {
     // extend activemodel below (keep comment for generators)
 }
+type FullShoppinglist = Vec<(Model, Vec<(Ingredient, Vec<Quantity>)>)>;
 
 impl Model {
     pub async fn find_all(db: &DatabaseConnection) -> Result<Vec<(Model, Vec<(Ingredient, Vec<Quantity>)>)>, ModelError> {
@@ -34,25 +35,32 @@ impl Model {
                 "q"."value" as "q_value",
                 "q"."text" as "q_text"
             from "shoppinglists"
-            join
+            left join
                 "ingredients_in_shoppinglists" as "r0"
                 on "r0"."shoppinglists_id" = "shoppinglists"."id"
-            join "ingredients" as "r1" on "r0"."ingredients_id" = "r1"."id"
-            join "quantities" as "q" on "r0"."quantities_id" = "q".id
+            left join "ingredients" as "r1" on "r0"."ingredients_id" = "r1"."id"
+            left join "quantities" as "q" on "r0"."quantities_id" = "q".id
             order by "shoppinglists"."id" asc, "r1"."id" asc, "q"."id" asc
                 "#,
         );
 
         let rows = &db.query_all(s).await?;
 
-        let mut result: Vec<(Model, Vec<(Ingredient, Vec<Quantity>)>)> = Vec::new();
+        let mut result: FullShoppinglist = Vec::new();
         for row in rows {
             let list = Model::from_query_result(row, "s_")?;
-            let ingredient = Ingredient::from_query_result(row, "i_")?;
-            let quantity = Quantity::from_query_result(row, "q_")?;
+            let ingredient = Ingredient::from_query_result_optional(row, "i_")?;
+            let quantity = Quantity::from_query_result_optional(row, "q_")?;
 
             if result.is_empty() || result[result.len() - 1].0.id != list.id {
                 result.push((list, Vec::new()));
+            };
+
+            let Some(ingredient) = ingredient else {
+                continue
+            };
+            let Some(quantity) = quantity else {
+                continue
             };
             let last_list_idx = result.len();
             let list = &mut result[last_list_idx - 1];
