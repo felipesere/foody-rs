@@ -1,15 +1,15 @@
 use axum::extract;
 use loco_rs::{controller::middleware, prelude::*};
-use sea_orm::ActiveValue::Set;
-use serde::{Serialize, Deserialize};
+use sea_orm::entity::ColumnTrait;
+use sea_orm::ActiveValue::{self, Set};
+use sea_orm::QueryFilter;
+use serde::{Deserialize, Serialize};
 
-use crate::models::ingredients::Model as Ingredient;
-use crate::models::quantities::Model as Quantity;
+use crate::models::_entities::ingredients_in_shoppinglists;
+use crate::models::ingredients::{self, Model as Ingredient};
+use crate::models::quantities::{quantities, Model as Quantity};
 use crate::models::shoppinglists;
-use crate::models::{
-    shoppinglists::Model as Shoppinglists,
-    users,
-};
+use crate::models::{shoppinglists::Model as Shoppinglists, users};
 
 #[derive(Serialize)]
 pub struct ShoppinglistsResponse {
@@ -24,7 +24,6 @@ struct QuantityResponse {
     value: Option<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     text: Option<String>,
-
 }
 
 impl From<Quantity> for QuantityResponse {
@@ -38,12 +37,12 @@ impl From<Quantity> for QuantityResponse {
     }
 }
 
-
 #[derive(Serialize, Clone, Debug)]
 struct IngredientResponse {
     id: i32,
     name: String,
     quantities: Vec<QuantityResponse>,
+    in_basket: bool,
 }
 
 #[derive(Serialize, Clone, Debug)]
@@ -71,6 +70,7 @@ impl From<Ingredient> for IngredientResponse {
             id: value.id,
             name: value.name,
             quantities: Vec::new(),
+            in_basket: false,
         }
     }
 }
@@ -83,26 +83,26 @@ pub async fn all_shoppinglists(
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
     let mut shoppinglists = Vec::new();
+
     for (list, ingredients) in Shoppinglists::find_all(&ctx.db).await? {
         let mut shoppinglist = ShoppinglistResponse::from(list);
-        for (ingredient, quantities) in ingredients {
+        for (ingredient, quantities, in_basket) in ingredients {
             let mut converted_ingredient = IngredientResponse::from(ingredient);
 
-            converted_ingredient.quantities = quantities.into_iter().map(QuantityResponse::from).collect();
+            converted_ingredient.in_basket = in_basket;
+            converted_ingredient.quantities =
+                quantities.into_iter().map(QuantityResponse::from).collect();
             shoppinglist.ingredients.push(converted_ingredient);
-
         }
         shoppinglists.push(shoppinglist);
     }
 
-    format::json(ShoppinglistsResponse {
-        shoppinglists,
-    })
+    format::json(ShoppinglistsResponse { shoppinglists })
 }
 
 #[derive(Deserialize, Clone, Debug)]
 pub struct NewShoppinglist {
-	name: String,
+    name: String,
 }
 
 pub async fn create_shoppinglist(
@@ -110,7 +110,6 @@ pub async fn create_shoppinglist(
     State(ctx): State<AppContext>,
     extract::Json(params): extract::Json<NewShoppinglist>,
 ) -> Result<axum::Json<ShoppinglistResponse>> {
-
     let new_list = shoppinglists::ActiveModel {
         name: Set(params.name),
         ..Default::default()
@@ -120,9 +119,118 @@ pub async fn create_shoppinglist(
     format::json(ShoppinglistResponse::from(list))
 }
 
+#[derive(Deserialize, Clone, Debug)]
+pub struct NewIngredient {
+    ingredient: String,
+    quantity: Vec<NewQuantity>,
+}
+
+#[derive(Deserialize, Clone, Debug)]
+pub struct NewQuantity {
+    unit: String,
+    value: Option<i32>,
+    text: Option<String>,
+    _id: Option<u64>,
+}
+
+pub async fn add_ingredient(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+    Path(id): Path<i32>,
+    extract::Json(params): extract::Json<NewIngredient>,
+) -> Result<axum::Json<&'static str>> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let current = shoppinglists::Entity::find_by_id(id).one(&ctx.db).await?;
+
+    let Some(shoppinglist) = current else {
+        return Err(Error::NotFound);
+    };
+
+    let ingredient = if let Some(i) = ingredients::Entity::find()
+        .filter(ingredients::ingredients::Column::Name.eq(&params.ingredient))
+        .one(&ctx.db)
+        .await?
+    {
+        i
+    } else {
+        ingredients::ActiveModel {
+            name: ActiveValue::Set(params.ingredient),
+            ..Default::default()
+        }
+        .insert(&ctx.db)
+        .await?
+    };
+
+    if params.quantity.is_empty() {
+        return Err(Error::BadRequest(
+            "Need to provide at least one quantity".to_string(),
+        ));
+    }
+
+    let first = params.quantity.first().unwrap().clone();
+    let additional_quantity = quantities::ActiveModel {
+        unit: ActiveValue::Set(first.unit),
+        value: ActiveValue::Set(first.value),
+        text: ActiveValue::Set(first.text),
+        ..Default::default()
+    }
+    .insert(&ctx.db)
+    .await?;
+
+    ingredients_in_shoppinglists::ActiveModel {
+        in_basket: ActiveValue::Set(false),
+        shoppinglists_id: ActiveValue::Set(shoppinglist.id),
+        ingredients_id: ActiveValue::Set(ingredient.id),
+        quantities_id: ActiveValue::Set(additional_quantity.id),
+        ..Default::default()
+    }
+    .insert(&ctx.db)
+    .await?;
+
+    format::json("hi")
+}
+
+pub async fn shoppinglist(
+    auth: middleware::auth::JWT,
+    Path(id): Path<u32>,
+    State(ctx): State<AppContext>,
+) -> Result<axum::Json<ShoppinglistResponse>> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let Some((list, ingredients)) = Shoppinglists::find_one(&ctx.db, id).await? else {
+        return Err(Error::NotFound);
+    };
+
+    format::json(ShoppinglistResponse {
+        id: list.id,
+        name: list.name,
+        last_updated: list.updated_at.format("%Y-%m-%dT%H:%M:%S").to_string(),
+        ingredients: ingredients
+            .into_iter()
+            .map(|(ingredient, quants, in_basket)| IngredientResponse {
+                id: ingredient.id,
+                name: ingredient.name,
+                in_basket,
+                quantities: quants
+                    .into_iter()
+                    .map(|q| QuantityResponse {
+                        id: q.id,
+                        unit: q.unit,
+                        value: q.value,
+                        text: q.text,
+                    })
+                    .collect(),
+            })
+            .collect(),
+    })
+}
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("shoppinglists")
         .add("/", get(all_shoppinglists))
+        .add("/:id", get(shoppinglist))
         .add("/", post(create_shoppinglist))
+        .add("/:id/ingredient", post(add_ingredient))
 }
