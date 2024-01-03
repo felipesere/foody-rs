@@ -16,7 +16,8 @@ use sea_orm::{ConnectionTrait, DatabaseConnection, DbBackend, Statement};
 use crate::{
     controllers,
     models::_entities::{
-        ingredients, ingredients_in_shoppinglists, notes, quantities, shoppinglists, users,
+        ingredients, ingredients_in_recipes, ingredients_in_shoppinglists, notes, quantities,
+        recipes, shoppinglists, users,
     },
     tasks,
     workers::downloader::DownloadWorker,
@@ -65,9 +66,11 @@ impl Hooks for App {
         truncate_table(db, users::Entity).await?;
         truncate_table(db, notes::Entity).await?;
         truncate_table(db, ingredients_in_shoppinglists::Entity).await?;
+        truncate_table(db, ingredients_in_recipes::Entity).await?;
         truncate_table(db, quantities::Entity).await?;
         truncate_table(db, ingredients::Entity).await?;
         truncate_table(db, shoppinglists::Entity).await?;
+        truncate_table(db, recipes::Entity).await?;
         Ok(())
     }
 
@@ -89,10 +92,20 @@ impl Hooks for App {
             &base.join("shoppinglists.yaml").display().to_string(),
         )
         .await?;
+        db::seed::<recipes::ActiveModel>(db, &base.join("recipes.yaml").display().to_string())
+            .await?;
         db::seed::<ingredients_in_shoppinglists::ActiveModel>(
             db,
             &base
                 .join("ingredients_in_shoppinglists.yaml")
+                .display()
+                .to_string(),
+        )
+        .await?;
+        db::seed::<ingredients_in_recipes::ActiveModel>(
+            db,
+            &base
+                .join("ingredients_in_recipes.yaml")
                 .display()
                 .to_string(),
         )
@@ -102,9 +115,11 @@ impl Hooks for App {
             "users",
             "notes",
             "ingredients_in_shoppinglists",
+            "ingredients_in_recipes",
             "quantities",
             "ingredients",
             "shoppinglists",
+            "recipes",
         ] {
             db.query_one(Statement::from_string(
                 DbBackend::Postgres,

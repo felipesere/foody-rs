@@ -65,3 +65,27 @@
   unit: gram
   value: 333
   text: ~
+- id: 12
+  created_at: "2023-11-12T12:34:56.789"
+  updated_at: "2023-11-12T12:34:56.789"
+  unit: gram
+  value: 100
+  text: ~
+- id: 13
+  created_at: "2023-11-12T12:34:56.789"
+  updated_at: "2023-11-12T12:34:56.789"
+  unit: gram
+  value: 200
+  text: ~
+- id: 14
+  created_at: "2023-11-12T12:34:56.789"
+  updated_at: "2023-11-12T12:34:56.789"
+  unit: gram
+  value: 300
+  text: ~
+- id: 15
+  created_at: "2023-11-12T12:34:56.789"
+  updated_at: "2023-11-12T12:34:56.789"
+  unit: gram
+  value: 400
+  text: ~
