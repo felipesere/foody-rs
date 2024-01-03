@@ -6,3 +6,5 @@ mod quantities;
 mod shoppinglists;
 
 mod recipes;
+
+mod ingredients_in_recipes;
