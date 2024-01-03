@@ -6,5 +6,7 @@ pub mod ingredients;
 pub mod ingredients_in_shoppinglists;
 pub mod notes;
 pub mod quantities;
+pub mod recipes;
+pub mod sea_orm_active_enums;
 pub mod shoppinglists;
 pub mod users;
