@@ -18,7 +18,6 @@ impl Model {
         db: &DatabaseConnection,
         id: u32,
     ) -> Result<Option<FullShoppinglist>, ModelError> {
-        println!("HWWWWWWWWWWWWWWWWWWWW");
         let s = Statement::from_sql_and_values(
             DbBackend::Postgres,
             r#"

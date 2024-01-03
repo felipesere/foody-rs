@@ -6,6 +6,8 @@ use loco_rs::testing;
 use serde_json::json;
 use serial_test::serial;
 
+use crate::requests::prepare_data;
+
 async fn auth_token(ctx: &AppContext) -> String {
     let user = foody::models::users::users::Model::find_by_email(&ctx.db, "jim@example.com")
         .await
@@ -26,12 +28,8 @@ async fn can_list_current_shoppinglists() {
     testing::request::<App, _, _>(|mut request, ctx| async move {
         testing::seed::<App>(&ctx.db).await.unwrap();
 
-        let token = auth_token(&ctx).await;
+        prepare_data::authenticated(&mut request, &ctx).await;
 
-        request.add_header(
-            header::AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {token}")).unwrap(),
-        );
         let res = request.get("/api/shoppinglists").await;
 
         assert_eq!(res.status_code(), 200);
@@ -195,7 +193,6 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             HeaderValue::from_str(&format!("Bearer {token}")).unwrap(),
         );
 
-
         // Create a new shoppinglist that we can add things to...
         let res = request
             .post("/api/shoppinglists")
@@ -223,7 +220,6 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             .and_then(|val| val.as_i64())
             .unwrap();
 
-
         // ...then, add bananas to the list
         let res = request
             .post(&format!("/api/shoppinglists/{id}/ingredient"))
@@ -234,10 +230,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             .await;
         assert_eq!(res.status_code(), 200);
 
-        let res = request.get(&format!("/api/shoppinglists/{id}")).await;
-
-
         // ...and see that they show up on the list
+        let res = request.get(&format!("/api/shoppinglists/{id}")).await;
         assert_eq!(res.status_code(), 200);
         assert_json_snapshot!(res.json::<serde_json::Value>(),
         {
@@ -250,6 +244,46 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": 52,
               "in_basket": false,
+              "name": "bananas",
+              "quantities": [
+                {
+                  "id": 12,
+                  "unit": "count",
+                  "value": 10
+                }
+              ]
+            }
+          ],
+          "last_updated": "[date]",
+          "name": "testing-shopping-list"
+        }
+        "###);
+
+        // then we mark the ingredient as being in the basket
+        let ingredient_id = 52;
+        let res = request
+            .post(&format!(
+                "/api/shoppinglists/{id}/ingredient/{ingredient_id}/in_basket"
+            ))
+            .json(&json!({
+                "in_basket": true
+            }))
+            .await;
+        assert_eq!(res.status_code(), 200);
+        // and we see the update!
+        let res = request.get(&format!("/api/shoppinglists/{id}")).await;
+        assert_eq!(res.status_code(), 200);
+        assert_json_snapshot!(res.json::<serde_json::Value>(),
+        {
+            ".last_updated" => "[date]",
+        },
+        @r###"
+        {
+          "id": 3,
+          "ingredients": [
+            {
+              "id": 52,
+              "in_basket": true,
               "name": "bananas",
               "quantities": [
                 {

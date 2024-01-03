@@ -10,6 +10,14 @@ pub struct LoggedInUser {
     pub token: String,
 }
 
+pub async fn authenticated(request: &mut TestServer, ctx: &AppContext) {
+    let logged_in_user = init_user_login(request, ctx).await;
+
+    let (auth_key, auth_value) = auth_header(&logged_in_user.token);
+
+    request.add_header(auth_key, auth_value)
+}
+
 pub async fn init_user_login(request: &TestServer, ctx: &AppContext) -> LoggedInUser {
     let register_payload = serde_json::json!({
         "name": "loco",

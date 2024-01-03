@@ -2,7 +2,7 @@ use axum::extract;
 use loco_rs::{controller::middleware, prelude::*};
 use sea_orm::entity::ColumnTrait;
 use sea_orm::ActiveValue::{self, Set};
-use sea_orm::QueryFilter;
+use sea_orm::{Condition, QueryFilter, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::models::_entities::ingredients_in_shoppinglists;
@@ -226,6 +226,39 @@ pub async fn shoppinglist(
     })
 }
 
+#[derive(Deserialize, Debug)]
+pub struct InBasketPayload {
+    in_basket: bool,
+}
+
+pub async fn toggle_in_basket_for_item(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+    Path((id, ingredient_id)): Path<(u32, u32)>,
+    extract::Json(params): extract::Json<InBasketPayload>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let mut ing_on_list = ingredients_in_shoppinglists::Entity::find()
+        .filter(
+            Condition::all()
+                .add(ingredients_in_shoppinglists::Column::ShoppinglistsId.eq(id))
+                .add(ingredients_in_shoppinglists::Column::IngredientsId.eq(ingredient_id)),
+        )
+        .one(&ctx.db)
+        .await?
+        .ok_or_else(|| Error::NotFound)?
+        .into_active_model();
+
+    ing_on_list.set(
+        ingredients_in_shoppinglists::Column::InBasket,
+        Value::Bool(Some(params.in_basket)),
+    );
+    ing_on_list.save(&ctx.db).await?;
+
+    Ok(())
+}
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("shoppinglists")
@@ -233,4 +266,8 @@ pub fn routes() -> Routes {
         .add("/:id", get(shoppinglist))
         .add("/", post(create_shoppinglist))
         .add("/:id/ingredient", post(add_ingredient))
+        .add(
+            "/:id/ingredient/:ingredient_id/in_basket",
+            post(toggle_in_basket_for_item),
+        )
 }
