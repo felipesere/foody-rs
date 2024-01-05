@@ -11,6 +11,7 @@ mod m20231225_213137_quantities;
 mod m20231225_213554_ingredients_in_shoppinglists;
 mod m20240103_132826_recipes;
 mod m20240103_144013_ingredients_in_recipes;
+mod m20240104_160607_change_source_to_just_text;
 pub struct Migrator;
 
 #[async_trait::async_trait]
@@ -25,6 +26,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20231225_213554_ingredients_in_shoppinglists::Migration),
             Box::new(m20240103_132826_recipes::Migration),
             Box::new(m20240103_144013_ingredients_in_recipes::Migration),
+            Box::new(m20240104_160607_change_source_to_just_text::Migration),
         ]
     }
 }

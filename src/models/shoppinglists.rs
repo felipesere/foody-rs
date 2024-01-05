@@ -49,7 +49,7 @@ impl Model {
             vec![sea_orm::Value::Unsigned(Some(id))],
         );
 
-        let rows = &db.query_one(s).await?;
+        let rows = &db.query_all(s).await?;
 
         let mut result: Vec<FullShoppinglist> = Vec::new();
         for row in rows {

@@ -50,8 +50,6 @@ async fn main() -> eyre::Result<()> {
 
     tx.commit().await.unwrap();
 
-    dbg!(&x);
-
     // let active_model: articles::ActiveModel = ActiveModel {
     //     title: Set(Some("how to build apps in 3 steps".to_string())),
     //     content: Set(Some("use Loco: https://loco.rs".to_string())),

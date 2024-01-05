@@ -2,12 +2,12 @@ use axum::extract;
 use loco_rs::{controller::middleware, prelude::*};
 use sea_orm::entity::ColumnTrait;
 use sea_orm::ActiveValue::{self, Set};
-use sea_orm::{Condition, QueryFilter, Value};
+use sea_orm::{Condition, QueryFilter, Value, TransactionTrait};
 use serde::{Deserialize, Serialize};
 
 use crate::models::_entities::ingredients_in_shoppinglists;
 use crate::models::ingredients::{self, Model as Ingredient};
-use crate::models::quantities::{quantities, Model as Quantity};
+use crate::models::quantities::{Model as Quantity, self};
 use crate::models::shoppinglists;
 use crate::models::{shoppinglists::Model as Shoppinglists, users};
 
@@ -259,6 +259,38 @@ pub async fn toggle_in_basket_for_item(
     Ok(())
 }
 
+pub async fn add_recipe_to_shoppinglist(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+    Path((id, recipe_id)): Path<(i32, i32)>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+    // check that it exists
+    let _ = shoppinglists::Entity::find_by_id(id).one(&ctx.db).await?;
+
+    let (_recipe, ingredients) = crate::models::recipes::find_one(&ctx.db, recipe_id).await?.ok_or_else(|| Error::NotFound)?;
+
+    let tx = ctx.db.begin().await?;
+    for (ingredient, quantity) in ingredients {
+        let q = quantities::ActiveModel {
+            unit: ActiveValue::Set(quantity.unit),
+            value: ActiveValue::Set(quantity.value),
+            text: ActiveValue::Set(quantity.text),
+            ..Default::default()
+        }.insert(&tx).await?;
+        ingredients_in_shoppinglists::ActiveModel {
+            shoppinglists_id: ActiveValue::Set(id),
+            ingredients_id: ActiveValue::Set(ingredient.id),
+            quantities_id: ActiveValue::Set(q.id),
+            in_basket: ActiveValue::Set(false),
+            ..Default::default()
+        }.insert(&tx).await?;
+    }
+    tx.commit().await?;
+
+    Ok(())
+}
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("shoppinglists")
@@ -270,4 +302,5 @@ pub fn routes() -> Routes {
             "/:id/ingredient/:ingredient_id/in_basket",
             post(toggle_in_basket_for_item),
         )
+        .add("/:id/recipe/:recipe_id", post(add_recipe_to_shoppinglist))
 }

@@ -247,7 +247,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
               "name": "bananas",
               "quantities": [
                 {
-                  "id": 12,
+                  "id": 16,
                   "unit": "count",
                   "value": 10
                 }
@@ -287,7 +287,87 @@ async fn create_a_shoppinglist_and_add_ingredients() {
               "name": "bananas",
               "quantities": [
                 {
-                  "id": 12,
+                  "id": 16,
+                  "unit": "count",
+                  "value": 10
+                }
+              ]
+            }
+          ],
+          "last_updated": "[date]",
+          "name": "testing-shopping-list"
+        }
+        "###);
+
+        let recipe_id = 1;
+        let res = request.post(&format!("/api/shoppinglists/{id}/recipe/{recipe_id}")).await;
+        assert_eq!(res.status_code(), 200);
+
+        let res = request.get(&format!("/api/shoppinglists/{id}")).await;
+        assert_eq!(res.status_code(), 200);
+        assert_json_snapshot!(res.json::<serde_json::Value>(),
+        {
+            ".last_updated" => "[date]",
+        },
+        @r###"
+        {
+          "id": 3,
+          "ingredients": [
+            {
+              "id": 1,
+              "in_basket": false,
+              "name": "red onion",
+              "quantities": [
+                {
+                  "id": 17,
+                  "unit": "gram",
+                  "value": 100
+                }
+              ]
+            },
+            {
+              "id": 13,
+              "in_basket": false,
+              "name": "red pepper",
+              "quantities": [
+                {
+                  "id": 18,
+                  "unit": "gram",
+                  "value": 200
+                }
+              ]
+            },
+            {
+              "id": 17,
+              "in_basket": false,
+              "name": "garlic",
+              "quantities": [
+                {
+                  "id": 19,
+                  "unit": "gram",
+                  "value": 300
+                }
+              ]
+            },
+            {
+              "id": 49,
+              "in_basket": false,
+              "name": "chicken thighs",
+              "quantities": [
+                {
+                  "id": 20,
+                  "unit": "gram",
+                  "value": 400
+                }
+              ]
+            },
+            {
+              "id": 52,
+              "in_basket": true,
+              "name": "bananas",
+              "quantities": [
+                {
+                  "id": 16,
                   "unit": "count",
                   "value": 10
                 }
@@ -301,14 +381,3 @@ async fn create_a_shoppinglist_and_add_ingredients() {
     })
     .await;
 }
-
-// #[tokio::test]
-// #[serial]
-// async fn can_request_root() {
-//     testing::request::<App, _, _>(|request, _ctx| async move {
-//         let res = request.get("/shoppinglists").await;
-//         assert_eq!(res.status_code(), 200);
-//         assert_eq!(res.text(), "hello");
-//     })
-//     .await;
-// }

@@ -3,6 +3,6 @@
   created_at: "2023-11-12T12:34:56.789"
   updated_at: "2023-11-12T12:34:56.789"
   name: "fancy thing"
-  source: "Book"
+  source: "book"
   book_title: "Green roasting tin"
   book_page: 12
