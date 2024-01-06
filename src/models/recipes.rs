@@ -1,4 +1,4 @@
-use super::_entities::recipes::{Model as Recipes, ActiveModel, self};
+use super::_entities::recipes::{Model as Recipes, ActiveModel};
 use super::_entities::ingredients::Model as Ingredient;
 use super::_entities::quantities::Model as Quantity;
 use loco_rs::model::ModelError;

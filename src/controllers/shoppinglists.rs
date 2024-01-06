@@ -6,7 +6,8 @@ use sea_orm::{Condition, QueryFilter, Value, TransactionTrait};
 use serde::{Deserialize, Serialize};
 
 use crate::models::_entities::ingredients_in_shoppinglists;
-use crate::models::ingredients::{self, Model as Ingredient};
+use crate::models::ingredients::ingredients::Column;
+use crate::models::ingredients::{Model as Ingredient, self};
 use crate::models::quantities::{Model as Quantity, self};
 use crate::models::shoppinglists;
 use crate::models::{shoppinglists::Model as Shoppinglists, users};
@@ -138,7 +139,7 @@ pub async fn add_ingredient(
     State(ctx): State<AppContext>,
     Path(id): Path<i32>,
     extract::Json(params): extract::Json<NewIngredient>,
-) -> Result<axum::Json<&'static str>> {
+) -> Result<()> {
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
     let current = shoppinglists::Entity::find_by_id(id).one(&ctx.db).await?;
@@ -148,7 +149,7 @@ pub async fn add_ingredient(
     };
 
     let ingredient = if let Some(i) = ingredients::Entity::find()
-        .filter(ingredients::ingredients::Column::Name.eq(&params.ingredient))
+        .filter(Column::Name.eq(&params.ingredient))
         .one(&ctx.db)
         .await?
     {
@@ -188,7 +189,33 @@ pub async fn add_ingredient(
     .insert(&ctx.db)
     .await?;
 
-    format::json("hi")
+    Ok(())
+}
+
+#[derive(Deserialize, Debug)]
+pub struct RemoveIngredient {
+		ingredient: String,
+}
+
+pub async fn remove_ingredient(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+    Path(id): Path<i32>,
+    extract::Json(params): extract::Json<RemoveIngredient>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+    let _current = shoppinglists::Entity::find_by_id(id).one(&ctx.db).await?.ok_or_else(|| Error::NotFound)?;
+
+    let ingredient = ingredients::Entity::find()
+        .filter(Column::Name.eq(params.ingredient))
+        .one(&ctx.db).await?
+        .ok_or_else(|| Error::NotFound)?;
+
+    ingredients_in_shoppinglists::Entity::delete_many().filter(Condition::all()
+        .add(ingredients_in_shoppinglists::Column::ShoppinglistsId.eq(id))
+        .add(ingredients_in_shoppinglists::Column::IngredientsId.eq(ingredient.id))).exec(&ctx.db).await?;
+
+    Ok(())
 }
 
 pub async fn shoppinglist(
@@ -298,6 +325,7 @@ pub fn routes() -> Routes {
         .add("/:id", get(shoppinglist))
         .add("/", post(create_shoppinglist))
         .add("/:id/ingredient", post(add_ingredient))
+        .add("/:id/ingredient", delete(remove_ingredient))
         .add(
             "/:id/ingredient/:ingredient_id/in_basket",
             post(toggle_in_basket_for_item),
