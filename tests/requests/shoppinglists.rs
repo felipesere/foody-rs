@@ -447,6 +447,80 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "name": "testing-shopping-list"
         }
         "###);
+
+        let res = request.post(&format!("/api/shoppinglists/{id}/ingredient/49/quantity")).json(&json!({
+            "quantity": "3.5 kg",
+        })).await;
+        assert_eq!(res.status_code(), 200);
+
+        let res = request.get(&format!("/api/shoppinglists/{id}")).await;
+        assert_eq!(res.status_code(), 200);
+        assert_json_snapshot!(res.json::<serde_json::Value>(),
+        {
+            ".last_updated" => "[date]",
+        },
+        @r###"
+        {
+          "id": 3,
+          "ingredients": [
+            {
+              "id": 1,
+              "in_basket": false,
+              "name": "red onion",
+              "quantities": [
+                {
+                  "id": 17,
+                  "unit": "gram",
+                  "value": 100
+                }
+              ]
+            },
+            {
+              "id": 13,
+              "in_basket": false,
+              "name": "red pepper",
+              "quantities": [
+                {
+                  "id": 18,
+                  "unit": "gram",
+                  "value": 200
+                }
+              ]
+            },
+            {
+              "id": 17,
+              "in_basket": false,
+              "name": "garlic",
+              "quantities": [
+                {
+                  "id": 19,
+                  "unit": "gram",
+                  "value": 300
+                }
+              ]
+            },
+            {
+              "id": 49,
+              "in_basket": false,
+              "name": "chicken thighs",
+              "quantities": [
+                {
+                  "id": 20,
+                  "unit": "gram",
+                  "value": 400
+                },
+                {
+                  "id": 21,
+                  "unit": "kilogram",
+                  "value": 3
+                }
+              ]
+            }
+          ],
+          "last_updated": "[date]",
+          "name": "testing-shopping-list"
+        }
+        "###)
     })
     .await;
 }

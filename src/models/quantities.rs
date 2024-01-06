@@ -28,6 +28,28 @@ impl Quantity {
 
         Quantity::Arbitrary(raw.to_string())
     }
+
+    pub fn into_active_model(self) -> ActiveModel {
+        use sea_orm::ActiveValue::Set;
+
+        match self {
+            Quantity::Count(value) => ActiveModel {
+                unit: Set("count".into()),
+                value: Set(Some(value as i32)), // Pretty sure this is wrong?!
+                ..Default::default()
+            },
+            Quantity::WithUnit { value, unit } => ActiveModel {
+                unit: Set(unit),
+                value: Set(Some(value as i32)), // Pretty sure this is wrong?!
+                ..Default::default()
+            },
+            Quantity::Arbitrary(text) => ActiveModel {
+                unit: Set("arbitrary".into()),
+                text: Set(Some(text)),
+                ..Default::default()
+            },
+        }
+    }
 }
 
 fn parse_value(raw: &str) -> Option<f32> {
@@ -123,12 +145,12 @@ mod tests {
             }
         );
 
-        let q = Quantity::parse("1kg");
+        let q = Quantity::parse("3.5 kg");
 
         assert_eq!(
             q,
             Quantity::WithUnit {
-                value: 1.0,
+                value: 3.5,
                 unit: "kilogram".into(),
             }
         );

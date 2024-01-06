@@ -318,6 +318,36 @@ pub async fn add_recipe_to_shoppinglist(
     Ok(())
 }
 
+#[derive(Deserialize, Debug)]
+pub struct AddQuantity {
+    quantity: String,
+}
+
+pub async fn add_quantity_to_ingredient(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+    Path((id, ingredient_id)): Path<(i32, i32)>,
+    extract::Json(params): extract::Json<AddQuantity>
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+    let _ = shoppinglists::Entity::find_by_id(id).one(&ctx.db).await?;
+
+    let quantity = crate::models::quantities::Quantity::parse(&params.quantity)
+        .into_active_model()
+        .insert(&ctx.db)
+        .await?;
+
+    ingredients_in_shoppinglists::ActiveModel {
+        shoppinglists_id: ActiveValue::Set(id),
+        ingredients_id: ActiveValue::Set(ingredient_id),
+        quantities_id: ActiveValue::Set(quantity.id),
+        in_basket: ActiveValue::Set(false),
+        ..Default::default()
+    }.insert(&ctx.db).await?;
+
+    Ok(())
+}
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("shoppinglists")
@@ -331,4 +361,5 @@ pub fn routes() -> Routes {
             post(toggle_in_basket_for_item),
         )
         .add("/:id/recipe/:recipe_id", post(add_recipe_to_shoppinglist))
+	      .add("/:id/ingredient/:ingredient_id/quantity", post(add_quantity_to_ingredient))
 }
