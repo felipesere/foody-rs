@@ -249,7 +249,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": 16,
                   "unit": "count",
-                  "value": 10
+                  "value": 10.0
                 }
               ]
             }
@@ -289,7 +289,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": 16,
                   "unit": "count",
-                  "value": 10
+                  "value": 10.0
                 }
               ]
             }
@@ -321,7 +321,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": 17,
                   "unit": "gram",
-                  "value": 100
+                  "value": 100.0
                 }
               ]
             },
@@ -333,7 +333,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": 18,
                   "unit": "gram",
-                  "value": 200
+                  "value": 200.0
                 }
               ]
             },
@@ -345,7 +345,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": 19,
                   "unit": "gram",
-                  "value": 300
+                  "value": 300.0
                 }
               ]
             },
@@ -357,7 +357,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": 20,
                   "unit": "gram",
-                  "value": 400
+                  "value": 400.0
                 }
               ]
             },
@@ -369,7 +369,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": 16,
                   "unit": "count",
-                  "value": 10
+                  "value": 10.0
                 }
               ]
             }
@@ -402,7 +402,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": 17,
                   "unit": "gram",
-                  "value": 100
+                  "value": 100.0
                 }
               ]
             },
@@ -414,7 +414,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": 18,
                   "unit": "gram",
-                  "value": 200
+                  "value": 200.0
                 }
               ]
             },
@@ -426,7 +426,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": 19,
                   "unit": "gram",
-                  "value": 300
+                  "value": 300.0
                 }
               ]
             },
@@ -438,7 +438,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": 20,
                   "unit": "gram",
-                  "value": 400
+                  "value": 400.0
                 }
               ]
             }
@@ -471,7 +471,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": 17,
                   "unit": "gram",
-                  "value": 100
+                  "value": 100.0
                 }
               ]
             },
@@ -483,7 +483,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": 18,
                   "unit": "gram",
-                  "value": 200
+                  "value": 200.0
                 }
               ]
             },
@@ -495,7 +495,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": 19,
                   "unit": "gram",
-                  "value": 300
+                  "value": 300.0
                 }
               ]
             },
@@ -507,12 +507,12 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": 20,
                   "unit": "gram",
-                  "value": 400
+                  "value": 400.0
                 },
                 {
                   "id": 21,
                   "unit": "kilogram",
-                  "value": 3
+                  "value": 3.5
                 }
               ]
             }

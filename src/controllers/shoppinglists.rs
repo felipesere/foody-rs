@@ -22,7 +22,7 @@ struct QuantityResponse {
     id: i32,
     unit: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    value: Option<i32>,
+    value: Option<f32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     text: Option<String>,
 }
@@ -129,7 +129,7 @@ pub struct NewIngredient {
 #[derive(Deserialize, Clone, Debug)]
 pub struct NewQuantity {
     unit: String,
-    value: Option<i32>,
+    value: Option<f32>,
     text: Option<String>,
     _id: Option<u64>,
 }

@@ -3,7 +3,7 @@
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "quantities")]
 pub struct Model {
     pub created_at: DateTime,
@@ -11,7 +11,8 @@ pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
     pub unit: String,
-    pub value: Option<i32>,
+    #[sea_orm(column_type = "Float", nullable)]
+    pub value: Option<f32>,
     pub text: Option<String>,
 }
 

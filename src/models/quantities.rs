@@ -35,12 +35,12 @@ impl Quantity {
         match self {
             Quantity::Count(value) => ActiveModel {
                 unit: Set("count".into()),
-                value: Set(Some(value as i32)), // Pretty sure this is wrong?!
+                value: Set(Some(value)), // Pretty sure this is wrong?!
                 ..Default::default()
             },
             Quantity::WithUnit { value, unit } => ActiveModel {
                 unit: Set(unit),
-                value: Set(Some(value as i32)), // Pretty sure this is wrong?!
+                value: Set(Some(value)), // Pretty sure this is wrong?!
                 ..Default::default()
             },
             Quantity::Arbitrary(text) => ActiveModel {
