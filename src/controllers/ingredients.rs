@@ -7,14 +7,14 @@ use crate::models::{
     users,
 };
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct IngredientResponse {
     id: i32,
     name: String,
     tags: Vec<Tag>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 struct Tag {
     id: i32,
     name: String,

@@ -1,7 +1,7 @@
+use sea_orm::sea_query::ColumnDef;
 use sea_orm_migration::prelude::*;
 use sea_orm_migration::sea_orm::EnumIter;
 use sea_orm_migration::sea_query::extension::postgres::Type;
-use sea_orm::sea_query::ColumnDef;
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -26,10 +26,15 @@ enum Recipes {
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-
         // drop the old column
-        manager.alter_table(Table::alter().table(Recipes::Table)
-                .drop_column(Recipes::Source).to_owned()).await?;
+        manager
+            .alter_table(
+                Table::alter()
+                    .table(Recipes::Table)
+                    .drop_column(Recipes::Source)
+                    .to_owned(),
+            )
+            .await?;
 
         // drop the old type
         manager
@@ -37,8 +42,14 @@ impl MigrationTrait for Migration {
             .await?;
 
         // bring it back, with nulls
-        manager.alter_table(Table::alter().table(Recipes::Table)
-                .add_column(ColumnDef::new(Recipes::Source).string()).to_owned()).await?;
+        manager
+            .alter_table(
+                Table::alter()
+                    .table(Recipes::Table)
+                    .add_column(ColumnDef::new(Recipes::Source).string())
+                    .to_owned(),
+            )
+            .await?;
 
         let update_books = Query::update()
             .table(Recipes::Table)
@@ -54,15 +65,19 @@ impl MigrationTrait for Migration {
             .to_owned();
         manager.exec_stmt(update_websites).await?;
 
-        manager.alter_table(Table::alter().table(Recipes::Table)
-                .modify_column(ColumnDef::new(Recipes::Source).string().not_null()).to_owned()).await?;
+        manager
+            .alter_table(
+                Table::alter()
+                    .table(Recipes::Table)
+                    .modify_column(ColumnDef::new(Recipes::Source).string().not_null())
+                    .to_owned(),
+            )
+            .await?;
 
         Ok(())
-
     }
 
     async fn down(&self, _manager: &SchemaManager) -> Result<(), DbErr> {
         Ok(())
     }
 }
-

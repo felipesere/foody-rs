@@ -46,6 +46,7 @@ impl Hooks for App {
 
     fn routes() -> AppRoutes {
         AppRoutes::with_default_routes()
+            .add_route(controllers::recipes::routes())
             .add_route(controllers::shoppinglists::routes())
             .add_route(controllers::ingredients::routes())
             .prefix("/api")

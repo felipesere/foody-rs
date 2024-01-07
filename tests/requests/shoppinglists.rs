@@ -300,7 +300,9 @@ async fn create_a_shoppinglist_and_add_ingredients() {
         "###);
 
         let recipe_id = 1;
-        let res = request.post(&format!("/api/shoppinglists/{id}/recipe/{recipe_id}")).await;
+        let res = request
+            .post(&format!("/api/shoppinglists/{id}/recipe/{recipe_id}"))
+            .await;
         assert_eq!(res.status_code(), 200);
 
         let res = request.get(&format!("/api/shoppinglists/{id}")).await;
@@ -379,9 +381,12 @@ async fn create_a_shoppinglist_and_add_ingredients() {
         }
         "###);
 
-        let res = request.delete(&format!("/api/shoppinglists/{id}/ingredient")).json(&json!({
-            "ingredient": "bananas",
-        })).await;
+        let res = request
+            .delete(&format!("/api/shoppinglists/{id}/ingredient"))
+            .json(&json!({
+                "ingredient": "bananas",
+            }))
+            .await;
         assert_eq!(res.status_code(), 200);
 
         let res = request.get(&format!("/api/shoppinglists/{id}")).await;
@@ -448,9 +453,12 @@ async fn create_a_shoppinglist_and_add_ingredients() {
         }
         "###);
 
-        let res = request.post(&format!("/api/shoppinglists/{id}/ingredient/49/quantity")).json(&json!({
-            "quantity": "3.5 kg",
-        })).await;
+        let res = request
+            .post(&format!("/api/shoppinglists/{id}/ingredient/49/quantity"))
+            .json(&json!({
+                "quantity": "3.5 kg",
+            }))
+            .await;
         assert_eq!(res.status_code(), 200);
 
         let res = request.get(&format!("/api/shoppinglists/{id}")).await;
@@ -522,7 +530,9 @@ async fn create_a_shoppinglist_and_add_ingredients() {
         }
         "###);
 
-        let res = request.delete(&format!("/api/shoppinglists/{id}/quantity/21")).await;
+        let res = request
+            .delete(&format!("/api/shoppinglists/{id}/quantity/21"))
+            .await;
         assert_eq!(res.status_code(), 200);
 
         let res = request.get(&format!("/api/shoppinglists/{id}")).await;

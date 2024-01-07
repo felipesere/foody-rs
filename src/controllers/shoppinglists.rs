@@ -2,13 +2,13 @@ use axum::extract;
 use loco_rs::{controller::middleware, prelude::*};
 use sea_orm::entity::ColumnTrait;
 use sea_orm::ActiveValue::{self, Set};
-use sea_orm::{Condition, QueryFilter, Value, TransactionTrait};
+use sea_orm::{Condition, QueryFilter, TransactionTrait, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::models::_entities::ingredients_in_shoppinglists;
 use crate::models::ingredients::ingredients::Column;
-use crate::models::ingredients::{Model as Ingredient, self};
-use crate::models::quantities::{Model as Quantity, self};
+use crate::models::ingredients::{self, Model as Ingredient};
+use crate::models::quantities::{self, Model as Quantity};
 use crate::models::shoppinglists;
 use crate::models::{shoppinglists::Model as Shoppinglists, users};
 
@@ -18,13 +18,13 @@ pub struct ShoppinglistsResponse {
 }
 
 #[derive(Serialize, Clone, Debug)]
-struct QuantityResponse {
-    id: i32,
-    unit: String,
+pub struct QuantityResponse {
+    pub id: i32,
+    pub unit: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    value: Option<f32>,
+    pub value: Option<f32>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    text: Option<String>,
+    pub text: Option<String>,
 }
 
 impl From<Quantity> for QuantityResponse {
@@ -194,7 +194,7 @@ pub async fn add_ingredient(
 
 #[derive(Deserialize, Debug)]
 pub struct RemoveIngredient {
-		ingredient: String,
+    ingredient: String,
 }
 
 pub async fn remove_ingredient(
@@ -204,16 +204,25 @@ pub async fn remove_ingredient(
     extract::Json(params): extract::Json<RemoveIngredient>,
 ) -> Result<()> {
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
-    let _current = shoppinglists::Entity::find_by_id(id).one(&ctx.db).await?.ok_or_else(|| Error::NotFound)?;
+    let _current = shoppinglists::Entity::find_by_id(id)
+        .one(&ctx.db)
+        .await?
+        .ok_or_else(|| Error::NotFound)?;
 
     let ingredient = ingredients::Entity::find()
         .filter(Column::Name.eq(params.ingredient))
-        .one(&ctx.db).await?
+        .one(&ctx.db)
+        .await?
         .ok_or_else(|| Error::NotFound)?;
 
-    ingredients_in_shoppinglists::Entity::delete_many().filter(Condition::all()
-        .add(ingredients_in_shoppinglists::Column::ShoppinglistsId.eq(id))
-        .add(ingredients_in_shoppinglists::Column::IngredientsId.eq(ingredient.id))).exec(&ctx.db).await?;
+    ingredients_in_shoppinglists::Entity::delete_many()
+        .filter(
+            Condition::all()
+                .add(ingredients_in_shoppinglists::Column::ShoppinglistsId.eq(id))
+                .add(ingredients_in_shoppinglists::Column::IngredientsId.eq(ingredient.id)),
+        )
+        .exec(&ctx.db)
+        .await?;
 
     Ok(())
 }
@@ -295,7 +304,9 @@ pub async fn add_recipe_to_shoppinglist(
     // check that it exists
     let _ = shoppinglists::Entity::find_by_id(id).one(&ctx.db).await?;
 
-    let (_recipe, ingredients) = crate::models::recipes::find_one(&ctx.db, recipe_id).await?.ok_or_else(|| Error::NotFound)?;
+    let (_recipe, ingredients) = crate::models::recipes::find_one(&ctx.db, recipe_id)
+        .await?
+        .ok_or_else(|| Error::NotFound)?;
 
     let tx = ctx.db.begin().await?;
     for (ingredient, quantity) in ingredients {
@@ -304,14 +315,18 @@ pub async fn add_recipe_to_shoppinglist(
             value: ActiveValue::Set(quantity.value),
             text: ActiveValue::Set(quantity.text),
             ..Default::default()
-        }.insert(&tx).await?;
+        }
+        .insert(&tx)
+        .await?;
         ingredients_in_shoppinglists::ActiveModel {
             shoppinglists_id: ActiveValue::Set(id),
             ingredients_id: ActiveValue::Set(ingredient.id),
             quantities_id: ActiveValue::Set(q.id),
             in_basket: ActiveValue::Set(false),
             ..Default::default()
-        }.insert(&tx).await?;
+        }
+        .insert(&tx)
+        .await?;
     }
     tx.commit().await?;
 
@@ -327,7 +342,7 @@ pub async fn add_quantity_to_ingredient(
     auth: middleware::auth::JWT,
     State(ctx): State<AppContext>,
     Path((id, ingredient_id)): Path<(i32, i32)>,
-    extract::Json(params): extract::Json<AddQuantity>
+    extract::Json(params): extract::Json<AddQuantity>,
 ) -> Result<()> {
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
     let _ = shoppinglists::Entity::find_by_id(id).one(&ctx.db).await?;
@@ -343,7 +358,9 @@ pub async fn add_quantity_to_ingredient(
         quantities_id: ActiveValue::Set(quantity.id),
         in_basket: ActiveValue::Set(false),
         ..Default::default()
-    }.insert(&ctx.db).await?;
+    }
+    .insert(&ctx.db)
+    .await?;
 
     Ok(())
 }
@@ -358,11 +375,18 @@ pub async fn remove_quantity_from_shoppinglist(
 
     let tx = ctx.db.begin().await?;
 
-    ingredients_in_shoppinglists::Entity::delete_many().filter(Condition::all()
-        .add(ingredients_in_shoppinglists::Column::ShoppinglistsId.eq(id))
-        .add(ingredients_in_shoppinglists::Column::QuantitiesId.eq(quantity_id))).exec(&tx).await?;
+    ingredients_in_shoppinglists::Entity::delete_many()
+        .filter(
+            Condition::all()
+                .add(ingredients_in_shoppinglists::Column::ShoppinglistsId.eq(id))
+                .add(ingredients_in_shoppinglists::Column::QuantitiesId.eq(quantity_id)),
+        )
+        .exec(&tx)
+        .await?;
 
-    quantities::Entity::delete_by_id(quantity_id).exec(&tx).await?;
+    quantities::Entity::delete_by_id(quantity_id)
+        .exec(&tx)
+        .await?;
 
     tx.commit().await?;
 
@@ -382,6 +406,12 @@ pub fn routes() -> Routes {
             post(toggle_in_basket_for_item),
         )
         .add("/:id/recipe/:recipe_id", post(add_recipe_to_shoppinglist))
-	      .add("/:id/ingredient/:ingredient_id/quantity", post(add_quantity_to_ingredient))
-	      .add("/:id/quantity/:quantity_id", delete(remove_quantity_from_shoppinglist))
+        .add(
+            "/:id/ingredient/:ingredient_id/quantity",
+            post(add_quantity_to_ingredient),
+        )
+        .add(
+            "/:id/quantity/:quantity_id",
+            delete(remove_quantity_from_shoppinglist),
+        )
 }
