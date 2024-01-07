@@ -520,6 +520,73 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "last_updated": "[date]",
           "name": "testing-shopping-list"
         }
+        "###);
+
+        let res = request.delete(&format!("/api/shoppinglists/{id}/quantity/21")).await;
+        assert_eq!(res.status_code(), 200);
+
+        let res = request.get(&format!("/api/shoppinglists/{id}")).await;
+        assert_eq!(res.status_code(), 200);
+        assert_json_snapshot!(res.json::<serde_json::Value>(),
+        {
+            ".last_updated" => "[date]",
+        },
+        @r###"
+        {
+          "id": 3,
+          "ingredients": [
+            {
+              "id": 1,
+              "in_basket": false,
+              "name": "red onion",
+              "quantities": [
+                {
+                  "id": 17,
+                  "unit": "gram",
+                  "value": 100.0
+                }
+              ]
+            },
+            {
+              "id": 13,
+              "in_basket": false,
+              "name": "red pepper",
+              "quantities": [
+                {
+                  "id": 18,
+                  "unit": "gram",
+                  "value": 200.0
+                }
+              ]
+            },
+            {
+              "id": 17,
+              "in_basket": false,
+              "name": "garlic",
+              "quantities": [
+                {
+                  "id": 19,
+                  "unit": "gram",
+                  "value": 300.0
+                }
+              ]
+            },
+            {
+              "id": 49,
+              "in_basket": false,
+              "name": "chicken thighs",
+              "quantities": [
+                {
+                  "id": 20,
+                  "unit": "gram",
+                  "value": 400.0
+                }
+              ]
+            }
+          ],
+          "last_updated": "[date]",
+          "name": "testing-shopping-list"
+        }
         "###)
     })
     .await;

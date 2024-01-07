@@ -348,6 +348,27 @@ pub async fn add_quantity_to_ingredient(
     Ok(())
 }
 
+pub async fn remove_quantity_from_shoppinglist(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+    Path((id, quantity_id)): Path<(i32, i32)>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+    let _ = shoppinglists::Entity::find_by_id(id).one(&ctx.db).await?;
+
+    let tx = ctx.db.begin().await?;
+
+    ingredients_in_shoppinglists::Entity::delete_many().filter(Condition::all()
+        .add(ingredients_in_shoppinglists::Column::ShoppinglistsId.eq(id))
+        .add(ingredients_in_shoppinglists::Column::QuantitiesId.eq(quantity_id))).exec(&tx).await?;
+
+    quantities::Entity::delete_by_id(quantity_id).exec(&tx).await?;
+
+    tx.commit().await?;
+
+    Ok(())
+}
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("shoppinglists")
@@ -362,4 +383,5 @@ pub fn routes() -> Routes {
         )
         .add("/:id/recipe/:recipe_id", post(add_recipe_to_shoppinglist))
 	      .add("/:id/ingredient/:ingredient_id/quantity", post(add_quantity_to_ingredient))
+	      .add("/:id/quantity/:quantity_id", delete(remove_quantity_from_shoppinglist))
 }
