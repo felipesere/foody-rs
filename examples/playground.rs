@@ -1,13 +1,6 @@
-use eyre::Context;
-use foody::{
-    app::App,
-    models::_entities::{ingredients, ingredients_in_shoppinglists, quantities, shoppinglists},
-};
-use loco_rs::{cli::playground, prelude::*};
-use sea_orm::TransactionTrait;
-
 #[tokio::main]
 async fn main() -> eyre::Result<()> {
+    /*
     let ctx = playground::<App>().await.context("playground")?;
 
     let tx = ctx.db.begin().await?;
@@ -60,6 +53,7 @@ async fn main() -> eyre::Result<()> {
     // let res = articles::Entity::find().all(&ctx.db).await.unwrap();
     // println!("{:?}", res);
     println!("welcome to playground. edit me at `examples/playground.rs`");
+    */
 
     Ok(())
 }
