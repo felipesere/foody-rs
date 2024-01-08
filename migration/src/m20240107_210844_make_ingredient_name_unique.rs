@@ -16,16 +16,27 @@ enum Ingredients {
 #[async_trait::async_trait]
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        manager.alter_table(
-            Table::alter().table(Ingredients::Table)
-            .modify_column(ColumnDef::new(Ingredients::Name).string().unique_key().borrow_mut()).to_owned()
-            ).await
+        manager
+            .alter_table(
+                Table::alter()
+                    .table(Ingredients::Table)
+                    .modify_column(
+                        ColumnDef::new(Ingredients::Name)
+                            .string()
+                            .unique_key()
+                            .borrow_mut(),
+                    )
+                    .to_owned(),
+            )
+            .await
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
-        let drop_index = Statement::from_string(DatabaseBackend::Postgres, "ALTER TABLE ingredients DROP CONSTRAINT ingredients_name_key");
+        let drop_index = Statement::from_string(
+            DatabaseBackend::Postgres,
+            "ALTER TABLE ingredients DROP CONSTRAINT ingredients_name_key",
+        );
         let conn = manager.get_connection();
         conn.execute(drop_index).await.map(|_| ())
     }
 }
-

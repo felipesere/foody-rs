@@ -1,8 +1,8 @@
 #![allow(clippy::unused_async)]
 use axum::extract;
 use loco_rs::{controller::middleware, prelude::*};
-use sea_orm::{TransactionTrait, SqlErr};
-use serde::{Serialize, Deserialize};
+use sea_orm::{SqlErr, TransactionTrait};
+use serde::{Deserialize, Serialize};
 
 use crate::models::{
     ingredients::{self, Model as Ingredient},
@@ -72,25 +72,26 @@ pub async fn add_ingredient(
     let ingredient_outcome = ingredients::ActiveModel {
         name: sea_orm::ActiveValue::Set(params.name),
         ..Default::default()
-    }.insert(&tx).await;
+    }
+    .insert(&tx)
+    .await;
 
     match ingredient_outcome {
         Ok(_) => {
             tx.commit().await?;
             Ok(())
-        },
+        }
         Err(other_err) => {
             match other_err.sql_err() {
                 Some(SqlErr::UniqueConstraintViolation(_)) => {
                     tx.commit().await?;
-                    return Ok(())
-                },
-                _ => {},
-
+                    return Ok(());
+                }
+                _ => {}
             }
             tx.rollback().await?;
             Err(loco_rs::Error::DB(other_err))
-        },
+        }
     }
 }
 
