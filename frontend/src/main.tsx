@@ -2,21 +2,40 @@ import {StrictMode} from 'react'
 import ReactDOM from 'react-dom/client'
 import {Link, Outlet, RootRoute, Route, Router, RouterProvider} from "@tanstack/react-router";
 import {TanStackRouterDevtools} from "@tanstack/router-devtools";
+import "./app.css";
+import {IndexPage} from "./indexPage.tsx";
+import {IngredientsPage} from "./ingredientsPage.tsx";
+import {Recipes} from "./recipesPage.tsx";
 
 const rootRoute = new RootRoute({
     component: () => (
         <>
-            <div className="p-2 flex gap-2">
-                <Link to="/" className="[&.active]:font-bold">
-                    Home
-                </Link>{' '}
-                <Link to="/about" className="[&.active]:font-bold">
-                    About
-                </Link>
+            <div className={"stack"}>
+                <nav className="content-grid bottom-line dotted-bg" style={{"--density": 3} as any}>
+                    <ul role="list" className="horizontal space-between">
+                        <li>
+                            <Link
+                                className="small-padding black-border active uppercase"
+                                to={"/"}
+                            >Shopping</Link>
+                        </li>
+                        <li>
+                            <Link
+                                className="small-padding black-border uppercase"
+                                to={"/ingredients"}
+                            >Ingredients</Link
+                            >
+                        </li>
+                        <li>
+                            <Link className="small-padding black-border uppercase"
+                                  to={"/recipes"}
+                            >Recipes</Link>
+                        </li>
+                    </ul>
+                </nav>
+                <Outlet/>
             </div>
-            <hr />
-            <Outlet />
-            <TanStackRouterDevtools />
+            <TanStackRouterDevtools/>
         </>
     ),
 })
@@ -24,26 +43,24 @@ const rootRoute = new RootRoute({
 const indexRoute = new Route({
     getParentRoute: () => rootRoute,
     path: '/',
-    component: function Index() {
-        return (
-            <div className="p-2">
-                <h3>Welcome Home!</h3>
-            </div>
-        )
-    },
+    component: IndexPage,
 })
 
-const aboutRoute = new Route({
+const ingredientsRoute = new Route({
     getParentRoute: () => rootRoute,
-    path: '/about',
-    component: function About() {
-        return <div className="p-2">Hello from About!</div>
-    },
+    path: '/ingredients',
+    component: IngredientsPage,
 })
 
-const routeTree = rootRoute.addChildren([indexRoute, aboutRoute])
+const recipesRoute = new Route({
+    getParentRoute: () => rootRoute,
+    path: '/recipes',
+    component: Recipes,
+})
 
-const router = new Router({ routeTree })
+const routeTree = rootRoute.addChildren([indexRoute, ingredientsRoute, recipesRoute])
+
+const router = new Router({routeTree})
 
 declare module '@tanstack/react-router' {
     interface Register {
@@ -53,10 +70,10 @@ declare module '@tanstack/react-router' {
 
 const rootElement = document.getElementById('root')!;
 if (!rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement)
-  root.render(
-      <StrictMode>
-        <RouterProvider router={router} />
-      </StrictMode>,
-  )
+    const root = ReactDOM.createRoot(rootElement)
+    root.render(
+        <StrictMode>
+            <RouterProvider router={router}/>
+        </StrictMode>,
+    )
 }
