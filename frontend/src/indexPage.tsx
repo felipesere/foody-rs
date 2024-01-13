@@ -37,7 +37,7 @@ export function IndexPage() {
     ];
     return (
         <div className="content-grid">
-            <ul role="list" className="shoppinglist stack grid">
+            <ul role="list" className="shoppinglist">
                 {ingredients.map((ingredient) => <Ingredient key={ingredient.name} ingredient={ingredient}/>)}
             </ul>
         </div>

@@ -15,19 +15,29 @@ const rootRoute = new RootRoute({
                     <ul role="list" className="horizontal space-between">
                         <li>
                             <Link
-                                className="small-padding black-border active uppercase"
+                                activeProps={{
+                                    className: "active",
+                                }}
+                                className="small-padding black-border uppercase"
                                 to={"/"}
                             >Shopping</Link>
                         </li>
                         <li>
                             <Link
+                                activeProps={{
+                                    className: "active",
+                                }}
                                 className="small-padding black-border uppercase"
                                 to={"/ingredients"}
                             >Ingredients</Link
                             >
                         </li>
                         <li>
-                            <Link className="small-padding black-border uppercase"
+                            <Link
+                                activeProps={{
+                                    className: "active",
+                                }}
+                                className="small-padding black-border uppercase"
                                   to={"/recipes"}
                             >Recipes</Link>
                         </li>
