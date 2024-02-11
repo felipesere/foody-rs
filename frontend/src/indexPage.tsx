@@ -1,5 +1,5 @@
 import {useState} from "react";
-import * as classNames from "classnames";
+import classNames from "classnames";
 
 export function IndexPage() {
     const ingredients = [

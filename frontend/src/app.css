@@ -121,11 +121,16 @@ body {
 }
 
 .content-grid {
+  --max-content-width: 69.735rem;
   display: grid;
   grid-template-columns:
     [full-width-start] minmax(1rem, 1fr)
-    [content-start] min(100% - 2rem, 69.735rem) [content-end]
+    [content-start] min(100% - 2rem, var(--max-content-width)) [content-end]
     minmax(1rem, 1fr) [full-width-end];
+}
+
+.half-width {
+  --max-content-width: 50%;
 }
 
 .content-grid > * {
@@ -341,13 +346,13 @@ input[type="button"] {
   cursor: pointer;
 }
 
-input[type="text"] {
+input[type="text"],
+input[type="password"] {
   outline: none;
-  font-size: 0.6rem;
+  font-size: 1rem; /* 16px? */
   border: 2px solid black;
-  max-width: 50px;
-  padding: 0 4px 0 0;
-  text-align: right;
+  height: 39px;
+  padding: 0.5rem;
 }
 
 input:focus {
