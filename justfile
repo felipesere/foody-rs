@@ -4,6 +4,31 @@ default:
 run: frontend-build
   cargo loco start
 
+pg-start:
+ docker-compose up -d
+
+# Run migration: 
+# environment is one of `dev` or `test`
+# direction is one `up` or `down`
+pg-migrate environment direction:
+  #!/usr/bin/env bash
+  set -euxo pipefail
+  if [ "{{environment}}" == "development" ]; then
+    PORT=5432
+  else
+    PORT=5433
+  fi
+  cd migration
+  DATABASE_URL=postgres://loco:loco@localhost:${PORT}/foody_{{environment}} cargo run -- {{direction}}
+
+# Seed the database on a given environment
+pg-seed environment:
+  cargo loco task --environment {{environment}} seed_data
+
+# Reset the database on a given environment
+pg-reset environment:
+  cargo loco db reset --environment {{environment}}
+
 frontend-build: frontend-install
   cd frontend; npm run build
 
