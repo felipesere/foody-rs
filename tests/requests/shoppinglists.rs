@@ -47,7 +47,7 @@ async fn can_list_current_shoppinglists() {
                     {
                       "id": 1,
                       "unit": "count",
-                      "value": 1
+                      "value": 1.0
                     }
                   ]
                 },
@@ -59,7 +59,7 @@ async fn can_list_current_shoppinglists() {
                     {
                       "id": 5,
                       "unit": "grams",
-                      "value": 150
+                      "value": 150.0
                     }
                   ]
                 },
@@ -83,7 +83,7 @@ async fn can_list_current_shoppinglists() {
                     {
                       "id": 7,
                       "unit": "grams",
-                      "value": 250
+                      "value": 250.0
                     }
                   ]
                 },
@@ -95,7 +95,7 @@ async fn can_list_current_shoppinglists() {
                     {
                       "id": 8,
                       "unit": "millilitre",
-                      "value": 600
+                      "value": 600.0
                     }
                   ]
                 },
@@ -107,7 +107,7 @@ async fn can_list_current_shoppinglists() {
                     {
                       "id": 9,
                       "unit": "count",
-                      "value": 1
+                      "value": 1.0
                     }
                   ]
                 },
@@ -119,7 +119,7 @@ async fn can_list_current_shoppinglists() {
                     {
                       "id": 2,
                       "unit": "count",
-                      "value": 2
+                      "value": 2.0
                     }
                   ]
                 },
@@ -131,7 +131,7 @@ async fn can_list_current_shoppinglists() {
                     {
                       "id": 3,
                       "unit": "count",
-                      "value": 2
+                      "value": 2.0
                     }
                   ]
                 },
@@ -143,12 +143,12 @@ async fn can_list_current_shoppinglists() {
                     {
                       "id": 10,
                       "unit": "gram",
-                      "value": 20
+                      "value": 20.0
                     },
                     {
                       "id": 11,
                       "unit": "gram",
-                      "value": 333
+                      "value": 333.0
                     }
                   ]
                 },
@@ -160,7 +160,7 @@ async fn can_list_current_shoppinglists() {
                     {
                       "id": 4,
                       "unit": "count",
-                      "value": 6
+                      "value": 6.0
                     }
                   ]
                 }
