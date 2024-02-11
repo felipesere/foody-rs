@@ -17,4 +17,6 @@ just pg-migrate development up
 just pg-migrate test up 
 
 just pg-seed test
+
+just run # will launch the app
 ```
