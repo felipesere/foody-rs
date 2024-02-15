@@ -29,6 +29,9 @@ pg-seed environment:
 pg-reset environment:
   cargo loco db reset --environment {{environment}}
 
+frontend-dev: frontend-install
+  cd frontend; npm run dev
+
 frontend-build: frontend-install
   cd frontend; npm run build
 
