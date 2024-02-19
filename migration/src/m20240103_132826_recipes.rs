@@ -50,9 +50,10 @@ impl MigrationTrait for Migration {
     }
 }
 
+#[allow(clippy::enum_variant_names)]
 #[derive(Iden, EnumIter)]
 pub enum Source {
-    Source, // wtf?
+    Source,
     #[iden = "book"]
     Book,
     #[iden = "website"]

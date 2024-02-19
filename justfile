@@ -1,6 +1,12 @@
 default:
   @just --list
 
+lint: rust-lint
+
+rust-lint:
+  cargo clippy --all-features -- -D warnings -W clippy::pedantic -W clippy::nursery -W rust-2018-idioms
+
+
 run: frontend-build
   cargo loco start
 
