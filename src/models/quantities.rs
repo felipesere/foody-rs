@@ -14,9 +14,9 @@ pub enum Quantity {
 }
 
 impl Quantity {
-    pub fn parse(raw: &str) -> Quantity {
+    pub fn parse(raw: &str) -> Self {
         if let Some(value) = parse_value(raw) {
-            return Quantity::Count(value);
+            return Self::Count(value);
         }
         if let Some(weight) = parse_weight(raw) {
             return weight;
@@ -26,24 +26,24 @@ impl Quantity {
             return volume;
         }
 
-        Quantity::Arbitrary(raw.to_string())
+        Self::Arbitrary(raw.to_string())
     }
 
     pub fn into_active_model(self) -> ActiveModel {
         use sea_orm::ActiveValue::Set;
 
         match self {
-            Quantity::Count(value) => ActiveModel {
+            Self::Count(value) => ActiveModel {
                 unit: Set("count".into()),
                 value: Set(Some(value)), // Pretty sure this is wrong?!
                 ..Default::default()
             },
-            Quantity::WithUnit { value, unit } => ActiveModel {
+            Self::WithUnit { value, unit } => ActiveModel {
                 unit: Set(unit),
                 value: Set(Some(value)), // Pretty sure this is wrong?!
                 ..Default::default()
             },
-            Quantity::Arbitrary(text) => ActiveModel {
+            Self::Arbitrary(text) => ActiveModel {
                 unit: Set("arbitrary".into()),
                 text: Set(Some(text)),
                 ..Default::default()
@@ -53,7 +53,7 @@ impl Quantity {
 }
 
 fn parse_value(raw: &str) -> Option<f32> {
-    if let Some((left, right)) = raw.split_once("/") {
+    if let Some((left, right)) = raw.split_once('/') {
         let x: f32 = left.parse().ok()?;
         let y: f32 = right.parse().ok()?;
 

@@ -25,7 +25,7 @@ struct Tag {
 
 impl From<Ingredient> for IngredientResponse {
     fn from(value: Ingredient) -> Self {
-        IngredientResponse {
+        Self {
             id: value.id,
             name: value.name,
             tags: Vec::new(),
@@ -82,12 +82,9 @@ pub async fn add_ingredient(
             Ok(())
         }
         Err(other_err) => {
-            match other_err.sql_err() {
-                Some(SqlErr::UniqueConstraintViolation(_)) => {
-                    tx.commit().await?;
-                    return Ok(());
-                }
-                _ => {}
+            if let Some(SqlErr::UniqueConstraintViolation(_)) = other_err.sql_err() {
+                tx.commit().await?;
+                return Ok(());
             }
             tx.rollback().await?;
             Err(loco_rs::Error::DB(other_err))

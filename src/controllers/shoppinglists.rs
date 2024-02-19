@@ -29,7 +29,7 @@ pub struct QuantityResponse {
 
 impl From<Quantity> for QuantityResponse {
     fn from(value: Quantity) -> Self {
-        QuantityResponse {
+        Self {
             id: value.id,
             unit: value.unit,
             value: value.value,
@@ -56,7 +56,7 @@ pub struct ShoppinglistResponse {
 
 impl From<Shoppinglists> for ShoppinglistResponse {
     fn from(value: Shoppinglists) -> Self {
-        ShoppinglistResponse {
+        Self {
             id: value.id,
             name: value.name,
             ingredients: Vec::new(),
@@ -67,7 +67,7 @@ impl From<Shoppinglists> for ShoppinglistResponse {
 
 impl From<Ingredient> for IngredientResponse {
     fn from(value: Ingredient) -> Self {
-        IngredientResponse {
+        Self {
             id: value.id,
             name: value.name,
             quantities: Vec::new(),
