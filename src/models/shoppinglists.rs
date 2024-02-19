@@ -53,7 +53,7 @@ impl Model {
 
         let mut result: Vec<FullShoppinglist> = Vec::new();
         for row in rows {
-            let list = Model::from_query_result(row, "s_")?;
+            let list = Self::from_query_result(row, "s_")?;
             let ingredient = Ingredient::from_query_result_optional(row, "i_")?;
             let quantity = Quantity::from_query_result_optional(row, "q_")?;
             let in_basket = row.try_get::<Option<bool>>("iis_", "in_basket")?;
@@ -80,6 +80,10 @@ impl Model {
         Ok(Some(result.remove(0)))
     }
 
+    /// Retrieves all possible shoppinglists
+    ///
+    /// # Errors
+    /// See [`ModelError`]
     pub async fn find_all(db: &DatabaseConnection) -> Result<Vec<FullShoppinglist>, ModelError> {
         let s = Statement::from_string(
             DbBackend::Postgres,
@@ -114,7 +118,7 @@ impl Model {
 
         let mut result: Vec<FullShoppinglist> = Vec::new();
         for row in rows {
-            let list = Model::from_query_result(row, "s_")?;
+            let list = Self::from_query_result(row, "s_")?;
             let ingredient = Ingredient::from_query_result_optional(row, "i_")?;
             let quantity = Quantity::from_query_result_optional(row, "q_")?;
             let in_basket = row.try_get::<Option<bool>>("iis_", "in_basket")?;

@@ -6,6 +6,7 @@ use sea_orm_migration::sea_query::extension::postgres::Type;
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 
+#[allow(clippy::enum_variant_names)]
 #[derive(Iden, EnumIter)]
 pub enum Source {
     Source, // wtf?
