@@ -1,5 +1,5 @@
 import {useState} from "react";
-import classNames from "classnames";
+import classnames from "classnames";
 
 export function IndexPage() {
     const ingredients = [
@@ -92,7 +92,7 @@ function Ingredient({ingredient}: { ingredient: Ingredient }) {
             </div>
             <div className={"card__extras"}>
                 <p className={"light-text"}>{ingredient.aisle}</p>
-                <button className={classNames("bottom", {
+                <button className={classnames("bottom", {
                     "double-border": open,
                     "shadow": !open,
                 })} onClick={() => {
