@@ -1,5 +1,5 @@
 import {useState} from "react";
-import classNames from "classnames";
+import classnames from "classnames";
 
 type Recipe = {
     id: number
@@ -736,7 +736,7 @@ function RecipeView(props: RecipeProps) {
                 </div>
             ) : null}
             <div className="h-stack">
-                <button className={classNames({
+                <button className={classnames({
                     "double-border": open,
                     "shadow": !open,
                 })} onClick={() => {
