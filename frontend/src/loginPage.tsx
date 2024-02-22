@@ -33,32 +33,35 @@ export function LoginPage() {
                         validators={{
                             onBlur: z.string().email()
                         }}
-                        children={(emailFiled) =>
+                        children={(emailField) =>
                             <div className={"form_group"}>
-                                <label htmlFor={emailFiled.name}>Username</label>
+                                <label htmlFor={emailField.name}>Username</label>
                                 <div className={"hint"}></div>
                                 <input type={"text"}
-                                       name={emailFiled.name}
-                                       id={emailFiled.name}
-                                       value={emailFiled.state.value}
-                                       onBlur={emailFiled.handleBlur}
-                                       onChange={(e) => emailFiled.handleChange(e.target.value)}
+                                       autoComplete={"username"}
+                                       name={emailField.name}
+                                       id={emailField.name}
+                                       value={emailField.state.value}
+                                       onBlur={emailField.handleBlur}
+                                       onChange={(e) => emailField.handleChange(e.target.value)}
                                        className={""}
                                 />
-                                {emailFiled.state.meta.errorMap["onBlur"] ? (<em>{emailFiled.state.meta.errorMap["onBlur"]}</em>) : null}
+                                {emailField.state.meta.errorMap["onBlur"] ? (
+                                    <em>{emailField.state.meta.errorMap["onBlur"]}</em>) : null}
                             </div>}
                     />
                     <form.Field
                         name="password"
-                        children={(password_field) =>
+                        children={(passwordField) =>
                             <div className={"form_group"}>
-                                <label htmlFor={password_field.name}> Password</label>
+                                <label htmlFor={passwordField.name}> Password</label>
                                 <div className={"hint"}></div>
                                 <input type={"password"}
-                                       name={password_field.name}
-                                       id={password_field.name}
-                                       value={password_field.state.value}
-                                       onChange={(e) => password_field.handleChange(e.target.value)}
+                                       autoComplete={"current-password"}
+                                       name={passwordField.name}
+                                       id={passwordField.name}
+                                       value={passwordField.state.value}
+                                       onChange={(e) => passwordField.handleChange(e.target.value)}
                                        className={""}/>
                             </div>}
                     />
