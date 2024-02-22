@@ -20,11 +20,8 @@ const rootRoute = createRootRoute({
   component: () => (
     <>
       <div className={"stack"}>
-        <nav
-          className="content-grid bottom-line dotted-bg"
-          style={{ "--density": 3 } as any}
-        >
-          <ul role="list" className="horizontal space-between">
+        <nav className="content-grid bottom-line dotted-bg density-low">
+          <ul className="horizontal space-between">
             <li>
               <Link
                 activeProps={{
@@ -120,8 +117,8 @@ declare module "@tanstack/react-router" {
 
 const queryClient = new QueryClient();
 
-const rootElement = document.getElementById("root")!;
-if (!rootElement.innerHTML) {
+const rootElement = document.getElementById("root");
+if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <StrictMode>

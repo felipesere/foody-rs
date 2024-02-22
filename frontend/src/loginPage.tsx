@@ -38,7 +38,7 @@ export function LoginPage() {
             children={(emailField) => (
               <div className={"form_group"}>
                 <label htmlFor={emailField.name}>Username</label>
-                <div className={"hint"}></div>
+                <div className={"hint"} />
                 <input
                   type={"text"}
                   autoComplete={"username"}
@@ -49,8 +49,8 @@ export function LoginPage() {
                   onChange={(e) => emailField.handleChange(e.target.value)}
                   className={""}
                 />
-                {emailField.state.meta.errorMap["onBlur"] ? (
-                  <em>{emailField.state.meta.errorMap["onBlur"]}</em>
+                {emailField.state.meta.errorMap.onBlur ? (
+                  <em>{emailField.state.meta.errorMap.onBlur}</em>
                 ) : null}
               </div>
             )}
@@ -60,7 +60,7 @@ export function LoginPage() {
             children={(passwordField) => (
               <div className={"form_group"}>
                 <label htmlFor={passwordField.name}> Password</label>
-                <div className={"hint"}></div>
+                <div className={"hint"} />
                 <input
                   type={"password"}
                   autoComplete={"current-password"}

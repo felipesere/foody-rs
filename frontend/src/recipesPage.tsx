@@ -1,15 +1,24 @@
 import classnames from "classnames";
 import { useState } from "react";
 
-type Recipe = {
+type Book = {
   id: number;
-  source: "book" | "website";
   name: string;
-  title?: string;
-  page?: number;
-  url?: string;
+  source: "book";
+  title: string;
+  page: number;
   ingredients: Ingredient[];
 };
+
+type Website = {
+  id: number;
+  source: "website";
+  name: string;
+  url: string;
+  ingredients: Ingredient[];
+};
+
+type Recipe = Book | Website;
 
 type Ingredient = {
   id: number;
@@ -705,7 +714,7 @@ export function Recipes() {
   ];
   return (
     <div className="content-grid container">
-      <ul role="list" className="recipes">
+      <ul className="recipes">
         {recipes.map((recipe) => (
           <RecipeView key={recipe.name} recipe={recipe} />
         ))}
@@ -724,18 +733,18 @@ function RecipeView(props: RecipeProps) {
     <li className="small-padding black-border">
       <p className="heavy-text">{props.recipe.name}</p>
       <div>
-        {props.recipe.source == "book" ? (
-          <BookSource title={props.recipe.title!} page={props.recipe.page!} />
+        {props.recipe.source === "book" ? (
+          <BookSource title={props.recipe.title} page={props.recipe.page} />
         ) : null}
-        {props.recipe.source == "website" ? (
-          <WebsiteSource url={props.recipe.url!} />
+        {props.recipe.source === "website" ? (
+          <WebsiteSource url={props.recipe.url} />
         ) : null}
       </div>
       {open ? (
         <div>
           <hr />
           <p className="uppercase">Ingredients:</p>
-          <ul role="list">
+          <ul>
             {props.recipe.ingredients.map((ingredient) => (
               <IngredientView key={ingredient.name} ingredient={ingredient} />
             ))}
@@ -748,14 +757,19 @@ function RecipeView(props: RecipeProps) {
             "double-border": open,
             shadow: !open,
           })}
+          type={"submit"}
           onClick={() => {
             setOpen((o) => !o);
           }}
         >
           Details
         </button>
-        <button className="secondary shadow">Add</button>
-        <button className="danger shadow">Delete</button>
+        <button type="submit" className="secondary shadow">
+          Add
+        </button>
+        <button type="submit" className="danger shadow">
+          Delete
+        </button>
       </div>
     </li>
   );
@@ -765,7 +779,7 @@ function IngredientView({ ingredient }: { ingredient: Ingredient }) {
   return (
     <li className="horizontal space-between">
       <p className="text-light ellipsis">{ingredient.name}</p>
-      <div className="dotted-line"></div>
+      <div className="dotted-line" />
       <p className="text-light" style={{ flex: "none" }}>
         {ingredient.quantity[0].value} {ingredient.quantity[0].unit}
       </p>

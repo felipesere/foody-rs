@@ -37,7 +37,7 @@ export function IndexPage() {
   ];
   return (
     <div className="content-grid">
-      <ul role="list" className="shoppinglist">
+      <ul className="shoppinglist">
         {ingredients.map((ingredient) => (
           <Ingredient key={ingredient.name} ingredient={ingredient} />
         ))}
@@ -79,7 +79,7 @@ function Ingredient({ ingredient }: { ingredient: Ingredient }) {
           )}
           {open && (
             <>
-              <ol role="list" className="details__extended">
+              <ol className="details__extended">
                 {ingredient.parts.map((part) => (
                   <Part key={part.name} part={part} isEditing={edit} />
                 ))}
@@ -87,6 +87,7 @@ function Ingredient({ ingredient }: { ingredient: Ingredient }) {
               <button
                 className={"bottom shadow"}
                 onClick={() => setEdit((e) => !e)}
+                type={"submit"}
               >
                 {edit ? "Save" : "Edit"}
               </button>
@@ -101,6 +102,7 @@ function Ingredient({ ingredient }: { ingredient: Ingredient }) {
             "double-border": open,
             shadow: !open,
           })}
+          type={"submit"}
           onClick={() => {
             setOpen((o) => !o);
             setEdit(() => false);

@@ -33,8 +33,8 @@ p {
 }
 
 /* Remove list styles on ul, ol elements with a list role, which suggests default styling will be removed */
-ul[role="list"],
-ol[role="list"] {
+ul,
+ol {
   list-style: none;
   padding-inline-start: 0;
   margin-block-start: 0;
@@ -405,6 +405,10 @@ button.danger {
   background-size: calc(var(--density) * 1px) calc(var(--density) * 1px);
   background-position: calc(var(--density) * -0.5px)
     calc(var(--density) * -0.5px);
+}
+
+.density-low {
+  --density: 3;
 }
 
 .stripped-bg {
