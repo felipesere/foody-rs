@@ -4,7 +4,7 @@ import { z } from "zod";
 import { useLogin } from "./models/api.ts";
 
 export function LoginPage() {
-  let login = useLogin();
+  const login = useLogin();
 
   const form = useForm({
     defaultValues: {
@@ -12,7 +12,7 @@ export function LoginPage() {
       password: "",
     },
     onSubmit: async ({ value }) => {
-      let v = await login.mutateAsync(value);
+      const v = await login.mutateAsync(value);
       console.log(v);
     },
     validatorAdapter: zodValidator,

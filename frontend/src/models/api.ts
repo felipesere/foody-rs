@@ -13,7 +13,7 @@ const LoginResponseSchema = z.object({
 export function useLogin() {
   return useMutation({
     mutationFn: async (params: LoginParms) => {
-      let response = await fetch("http://localhost:3000/api/auth/login", {
+      const response = await fetch("http://localhost:3000/api/auth/login", {
         body: JSON.stringify(params),
         method: "POST",
         headers: {
@@ -21,7 +21,7 @@ export function useLogin() {
           Accept: "application/json",
         },
       });
-      let body = await response.json();
+      const body = await response.json();
       return LoginResponseSchema.parse(body);
     },
   });

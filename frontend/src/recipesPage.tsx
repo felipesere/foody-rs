@@ -1,5 +1,5 @@
-import { useState } from "react";
 import classnames from "classnames";
+import { useState } from "react";
 
 type Recipe = {
   id: number;
@@ -784,7 +784,7 @@ function BookSource(props: { title: string; page: number }) {
 
 function WebsiteSource(props: { url: string }) {
   return (
-    <a target="_blank" href={props.url}>
+    <a target="_blank" href={props.url} rel="noreferrer">
       {new URL(props.url).hostname}
     </a>
   );

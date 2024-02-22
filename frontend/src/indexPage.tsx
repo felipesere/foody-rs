@@ -1,5 +1,5 @@
-import { useState } from "react";
 import classnames from "classnames";
+import { useState } from "react";
 
 export function IndexPage() {
   const ingredients = [
@@ -59,8 +59,8 @@ type Part = {
 };
 
 function Ingredient({ ingredient }: { ingredient: Ingredient }) {
-  let [open, setOpen] = useState(false);
-  let [edit, setEdit] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [edit, setEdit] = useState(false);
 
   return (
     <li className="subgrid shadow black-border small-padding">

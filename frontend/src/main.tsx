@@ -1,20 +1,20 @@
-import { StrictMode } from "react";
-import ReactDOM from "react-dom/client";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
-  createRootRoute,
-  createRoute,
-  createRouter,
   Link,
   Outlet,
   RouterProvider,
+  createRootRoute,
+  createRoute,
+  createRouter,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
+import { StrictMode } from "react";
+import ReactDOM from "react-dom/client";
 import "./app.css";
 import { IndexPage } from "./indexPage.tsx";
 import { IngredientsPage } from "./ingredientsPage.tsx";
-import { Recipes } from "./recipesPage.tsx";
 import { LoginPage } from "./loginPage.tsx";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Recipes } from "./recipesPage.tsx";
 
 const rootRoute = createRootRoute({
   component: () => (
