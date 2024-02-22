@@ -16,7 +16,6 @@
     "@tanstack/router-devtools": "^1.3.5",
     "@tanstack/zod-form-adapter": "^0.13.6",
     "classnames": "^2.5.1",
-    "ky": "^1.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "zod": "^3.22.4"
