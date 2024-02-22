@@ -346,6 +346,13 @@ input[type="button"] {
   cursor: pointer;
 }
 
+button:disabled,
+input[type="button"]:disabled {
+  color: white;
+  background-color: var(--dark-gray);
+  cursor: not-allowed;
+}
+
 input[type="text"],
 input[type="password"] {
   outline: none;
