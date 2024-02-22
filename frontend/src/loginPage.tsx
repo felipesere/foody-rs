@@ -11,7 +11,11 @@ export function LoginPage() {
             email: '',
             password: '',
         },
-        onSubmit: async ({value}) => login.mutate(value),
+        onSubmit: async ({value}) => {
+            let v = await login.mutateAsync(value);
+            console.log(v)
+
+        },
         validatorAdapter: zodValidator
     })
 
