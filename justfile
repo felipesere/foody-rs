@@ -2,9 +2,13 @@ default:
   @just --list
 
 lint: rust-lint
+fmt: frontend-fmt
 
 rust-lint:
   cargo clippy --all-features -- -D warnings -W clippy::nursery -W rust-2018-idioms
+
+frontend-fmt:
+  cd frontend; npm run fmt
 
 
 run: frontend-build
