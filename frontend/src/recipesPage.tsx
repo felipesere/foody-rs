@@ -33,7 +33,7 @@ type Quantity = {
   id: number;
 };
 
-export function Recipes() {
+export function RecipesPage() {
   const recipes: Recipe[] = [
     {
       id: 32,

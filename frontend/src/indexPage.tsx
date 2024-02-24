@@ -61,14 +61,26 @@ type Part = {
 function Ingredient({ ingredient }: { ingredient: Ingredient }) {
   const [open, setOpen] = useState(false);
   const [edit, setEdit] = useState(false);
+  const [checked, setChecked] = useState(false);
 
   return (
     <li className="subgrid shadow black-border small-padding">
       <div className="card__content">
         <div className="vertical">
           <div className="horizontal">
-            <input className="checkbox" type="checkbox" />
-            <p className="ingredient heavy-text">{ingredient.name}</p>
+            <input
+              className="checkbox"
+              type="checkbox"
+              checked={checked}
+              onChange={() => setChecked((checked) => !checked)}
+            />
+            <p
+              className={classnames("ingredient", "heavy-text", {
+                strikethrough: checked,
+              })}
+            >
+              {ingredient.name}
+            </p>
           </div>
           <hr />
           {!open && (

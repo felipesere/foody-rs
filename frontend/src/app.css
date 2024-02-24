@@ -153,6 +153,10 @@ body {
   font-size: 24px;
 }
 
+.strikethrough {
+  text-decoration: line-through;
+}
+
 nav {
   padding-top: 1rem;
 }

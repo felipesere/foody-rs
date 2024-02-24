@@ -6,6 +6,7 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
+  LinkProps,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { StrictMode } from "react";
@@ -14,7 +15,21 @@ import "./app.css";
 import { IndexPage } from "./indexPage.tsx";
 import { IngredientsPage } from "./ingredientsPage.tsx";
 import { LoginPage } from "./loginPage.tsx";
-import { Recipes } from "./recipesPage.tsx";
+import { RecipesPage } from "./recipesPage.tsx";
+
+function NavLink(params: { name: string; to: LinkProps["to"] }) {
+  return (
+    <Link
+      activeProps={{
+        className: "active",
+      }}
+      className="small-padding black-border uppercase"
+      to={params.to}
+    >
+      {params.name}
+    </Link>
+  );
+}
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -23,49 +38,16 @@ const rootRoute = createRootRoute({
         <nav className="content-grid bottom-line dotted-bg density-low">
           <ul className="horizontal space-between">
             <li>
-              <Link
-                activeProps={{
-                  className: "active",
-                }}
-                className="small-padding black-border uppercase"
-                to={"/"}
-              >
-                Shopping
-              </Link>
+              <NavLink name={"Shopping"} to={"/"} />
             </li>
             <li>
-              <Link
-                activeProps={{
-                  className: "active",
-                }}
-                className="small-padding black-border uppercase"
-                to={"/ingredients"}
-              >
-                Ingredients
-              </Link>
+              <NavLink name={"Ingredients"} to={"/ingredients"} />
             </li>
             <li>
-              <Link
-                activeProps={{
-                  className: "active",
-                }}
-                className="small-padding black-border uppercase"
-                to={"/recipes"}
-              >
-                Recipes
-              </Link>
+              <NavLink name={"Recipes"} to={"/recipes"} />
             </li>
-
             <li>
-              <Link
-                activeProps={{
-                  className: "active",
-                }}
-                className="small-padding black-border uppercase"
-                to={"/login"}
-              >
-                Login
-              </Link>
+              <NavLink name={"Login"} to={"/login"} />
             </li>
           </ul>
         </nav>
@@ -91,7 +73,7 @@ const ingredientsRoute = createRoute({
 const recipesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/recipes",
-  component: Recipes,
+  component: RecipesPage,
 });
 
 const loginRoute = createRoute({
