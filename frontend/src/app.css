@@ -172,12 +172,6 @@ a {
   background-color: white;
 }
 
-/*
-a:hover {
-  background-color: var(--gray);
-}
- */
-
 .heavy-text {
   font-weight: 900;
   letter-spacing: 1px;
@@ -223,37 +217,8 @@ a:hover {
   align-items: center;
 }
 
-.active {
-  background-color: blue;
-}
-
 .shoppinglist {
-  display: grid;
-  max-width: 400px;
-  gap: 1rem;
   grid-template-columns: [column-1] 220px [column-2] 1fr;
-}
-
-.span-2-columns {
-  grid-column: span 2;
-}
-
-.card {
-  display: flex;
-  flex-direction: row;
-}
-
-.card__extras {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.shoppinglist > .subgrid {
-  grid-column: span 2;
-
-  display: grid;
-  grid-template-columns: subgrid;
 }
 
 /* ################### */
@@ -281,27 +246,16 @@ a:hover {
   margin-right: 1rem;
 }
 
-.ml-1 {
-  margin-left: 1rem;
-}
-
+// keep for now,
 .shadow {
   --shadow-size: 3;
   box-shadow: calc(var(--shadow-size) * 1px) calc(var(--shadow-size) * 1px) 0px
     0px var(--gray);
 }
 
+// weird, but keep for now
 .shadow.danger {
   box-shadow: none;
-}
-
-.card__content {
-  flex-grow: 1;
-}
-
-.ingredient {
-  text-transform: capitalize;
-  margin-left: 1rem;
 }
 
 hr {
@@ -373,18 +327,10 @@ input[type="password"] {
   padding: 0.5rem;
 }
 
-input.inline-editing {
-  border: none;
-}
-
 input:focus {
   padding: 0 2px 0 0;
   border: 4px inset black;
   border-radius: 0;
-}
-
-.details__extended > * + * {
-  margin-top: 0.5rem;
 }
 
 button.secondary {
