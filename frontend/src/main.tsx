@@ -1,12 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Link,
+  LinkProps,
   Outlet,
   RouterProvider,
   createRootRoute,
   createRoute,
   createRouter,
-  LinkProps,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { StrictMode } from "react";

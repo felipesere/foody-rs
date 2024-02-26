@@ -234,6 +234,10 @@ a:hover {
   grid-template-columns: [column-1] 220px [column-2] 1fr;
 }
 
+.span-2-columns {
+  grid-column: span 2;
+}
+
 .card {
   display: flex;
   flex-direction: row;
@@ -275,6 +279,10 @@ a:hover {
 
 .recipe_book_title {
   margin-right: 1rem;
+}
+
+.ml-1 {
+  margin-left: 1rem;
 }
 
 .shadow {
@@ -364,6 +372,10 @@ input[type="password"] {
   border: 2px solid black;
   height: 39px;
   padding: 0.5rem;
+}
+
+input.inline-editing {
+  border: none;
 }
 
 input:focus {

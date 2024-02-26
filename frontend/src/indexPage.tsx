@@ -60,11 +60,15 @@ type Part = {
 
 function Ingredient({ ingredient }: { ingredient: Ingredient }) {
   const [open, setOpen] = useState(false);
-  const [edit, setEdit] = useState(false);
   const [checked, setChecked] = useState(false);
 
   return (
-    <li className="subgrid shadow black-border small-padding">
+    <li
+      className={classnames(
+        "shadow black-border small-padding span-2-columns",
+        { subgrid: !open },
+      )}
+    >
       <div className="card__content">
         <div className="vertical">
           <div className="horizontal">
@@ -90,25 +94,19 @@ function Ingredient({ ingredient }: { ingredient: Ingredient }) {
             </div>
           )}
           {open && (
-            <>
-              <ol className="details__extended">
+            <div className={"details__extended"}>
+              <p>Parts:</p>
+              <ol>
                 {ingredient.parts.map((part) => (
-                  <Part key={part.name} part={part} isEditing={edit} />
+                  <Part key={part.name} part={part} />
                 ))}
               </ol>
-              <button
-                className={"bottom shadow"}
-                onClick={() => setEdit((e) => !e)}
-                type={"submit"}
-              >
-                {edit ? "Save" : "Edit"}
-              </button>
-            </>
+            </div>
           )}
         </div>
       </div>
       <div className={"card__extras"}>
-        <p className={"light-text"}>{ingredient.aisle}</p>
+        {!open ? <p className={"light-text"}>{ingredient.aisle}</p> : null}
         <button
           className={classnames("bottom", {
             "double-border": open,
@@ -117,7 +115,6 @@ function Ingredient({ ingredient }: { ingredient: Ingredient }) {
           type={"submit"}
           onClick={() => {
             setOpen((o) => !o);
-            setEdit(() => false);
           }}
         >
           Details
@@ -129,18 +126,26 @@ function Ingredient({ ingredient }: { ingredient: Ingredient }) {
 
 type PartProps = {
   part: Part;
-  isEditing: boolean;
 };
 
 function Part(props: PartProps) {
+  const [checked, setChecked] = useState(false);
   return (
-    <span className="light-text horizontal space-between">
-      <p>{props.part.name}</p>
-      {props.isEditing ? (
-        <input type="text" placeholder={props.part.quantity} />
-      ) : (
-        <p>{props.part.quantity}</p>
-      )}
-    </span>
+    <li className="light-text horizontal space-between">
+      <input
+        type={"checkbox"}
+        checked={checked}
+        onChange={() => setChecked((checked) => !checked)}
+      />
+      <p
+        className={classnames("text-light ellipsis ml-1", {
+          strikethrough: checked,
+        })}
+      >
+        {props.part.name}
+      </p>
+      <div className="dotted-line" />
+      <p className="text-light">{props.part.quantity}</p>
+    </li>
   );
 }
