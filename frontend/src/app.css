@@ -142,7 +142,9 @@ body {
 }
 
 .bottom-line {
-  border-bottom: solid 2px black;
+  border-bottom-width: 2px;
+  border-bottom-style: solid;
+  border-bottom-color: black;
 }
 
 .small-text {
@@ -170,13 +172,11 @@ a {
   background-color: white;
 }
 
+/*
 a:hover {
   background-color: var(--gray);
 }
-
-.uppercase {
-  text-transform: uppercase;
-}
+ */
 
 .heavy-text {
   font-weight: 900;
@@ -224,7 +224,7 @@ a:hover {
 }
 
 .active {
-  background-color: var(--light-gray);
+  background-color: blue;
 }
 
 .shoppinglist {

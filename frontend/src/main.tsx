@@ -11,19 +11,21 @@ import {
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
-import "./app.css";
 import { IndexPage } from "./indexPage.tsx";
 import { IngredientsPage } from "./ingredientsPage.tsx";
 import { LoginPage } from "./loginPage.tsx";
 import { RecipesPage } from "./recipesPage.tsx";
 
+import "./app.css";
+import "./index.css"
+
 function NavLink(params: { name: string; to: LinkProps["to"] }) {
   return (
     <Link
       activeProps={{
-        className: "active",
+        className: "bg-gray-200",
       }}
-      className="small-padding black-border uppercase"
+      className="p-2 border-black border-b-2 border-solid uppercase"
       to={params.to}
     >
       {params.name}
@@ -34,9 +36,9 @@ function NavLink(params: { name: string; to: LinkProps["to"] }) {
 const rootRoute = createRootRoute({
   component: () => (
     <>
-      <div className={"stack"}>
-        <nav className="content-grid bottom-line dotted-bg density-low">
-          <ul className="horizontal space-between">
+      <div className={"space-y-4"}>
+        <nav className="border-solid border-black border-b-2 dotted-bg content-grid  density-low">
+          <ul className="flex flex-row justify-between">
             <li>
               <NavLink name={"Shopping"} to={"/"} />
             </li>
