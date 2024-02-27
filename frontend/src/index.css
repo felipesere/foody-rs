@@ -6,3 +6,91 @@
     container-type: inline-size;
 }
 
+.content-grid {
+    --max-content-width: 69.735rem;
+    display: grid;
+    grid-template-columns:
+    [full-width-start] minmax(1rem, 1fr)
+    [content-start] min(100% - 2rem, var(--max-content-width)) [content-end]
+    minmax(1rem, 1fr) [full-width-end];
+}
+
+.content-grid > * {
+    grid-column: content;
+}
+
+.shadow {
+    --shadow-size: 3;
+    box-shadow: calc(var(--shadow-size) * 1px) calc(var(--shadow-size) * 1px) 0px
+    0px #ced4da;
+}
+
+input[type="checkbox"] {
+    /* Add if not using autoprefixer */
+    -webkit-appearance: none;
+    appearance: none;
+    /* For iOS < 15 to remove gradient background */
+    background-color: #fff;
+    /* Not removed via appearance */
+    margin: 0;
+
+    font: inherit;
+    color: currentColor;
+    width: 1.15em;
+    height: 1.15em;
+    border: 0.2em solid currentColor;
+    border-radius: 0em;
+    /* nudging to align with label, which I may not have: */
+    transform: translateY(+0.2em);
+
+    display: grid;
+    place-content: center;
+}
+
+input[type="checkbox"]::before {
+    content: "";
+    width: 0.65em;
+    height: 0.65em;
+    transform: scale(0);
+    box-shadow: inset 1em 1em black;
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+
+input[type="checkbox"]:checked::before {
+    transform: scale(1);
+}
+
+button,
+input[type="button"] {
+    color: black;
+    border: 2px solid black;
+    background-color: #ced4da;
+    cursor: pointer;
+}
+
+button:disabled,
+input[type="button"]:disabled {
+    color: white;
+    background-color: #495057;
+    cursor: not-allowed;
+}
+
+.dotted-line {
+    background-image: linear-gradient(
+            to right,
+            black 20%,
+            rgba(255, 255, 255, 0) 0%
+    );
+    background-size: 10px 2px;
+    background-position: bottom 0.25lh left;
+}
+
+.dotted-bg {
+    --density: 3;
+    background: white;
+    background-image: radial-gradient(black 1px, transparent 0);
+    background-size: calc(var(--density) * 1px) calc(var(--density) * 1px);
+    background-position: calc(var(--density) * -0.5px)
+    calc(var(--density) * -0.5px);
+}
+
