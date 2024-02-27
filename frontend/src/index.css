@@ -2,29 +2,41 @@
 @tailwind components;
 @tailwind utilities;
 
-.sized-container {
-    container-type: inline-size;
-}
-
+/* this creates a grid.
+ It is defined by ${name}-start and ${name}.
+ There are 2 areas:
+   * "content" in the middle
+   * "full-width" from end to end
+  |  full-width   | content                | full-width |
+  |  1rem...1fr   | min(100%-2rem, ~70rem) | 1rem...1fr |
+ */
 .content-grid {
     --max-content-width: 69.735rem;
     display: grid;
     grid-template-columns:
     [full-width-start] minmax(1rem, 1fr)
-    [content-start] min(100% - 2rem, var(--max-content-width)) [content-end]
+        [content-start] min(100% - 2rem, var(--max-content-width)) [content-end]
     minmax(1rem, 1fr) [full-width-end];
 }
 
+/*
+ Places the item into the main "content" area.
+ In future, this could be swapped to "full-width" to have wider content.
+ */
 .content-grid > * {
     grid-column: content;
 }
 
+/*
+  Fancy "block-like" shadow.
+  The ones from Tailwind are soft and don't fit the ascii-art theme
+ */
 .shadow {
     --shadow-size: 3;
-    box-shadow: calc(var(--shadow-size) * 1px) calc(var(--shadow-size) * 1px) 0px
-    0px #ced4da;
+    box-shadow: calc(var(--shadow-size) * 1px) calc(var(--shadow-size) * 1px) 0 0 #ced4da;
 }
 
+/* Fancy black and white Checkbox */
 input[type="checkbox"] {
     /* Add if not using autoprefixer */
     -webkit-appearance: none;
@@ -47,6 +59,7 @@ input[type="checkbox"] {
     place-content: center;
 }
 
+/*  This is the unchecked state, so its scaled down to 0... */
 input[type="checkbox"]::before {
     content: "";
     width: 0.65em;
@@ -56,10 +69,12 @@ input[type="checkbox"]::before {
     clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
 }
 
+/* And this is the checked version which resets the scale back to 1 */
 input[type="checkbox"]:checked::before {
     transform: scale(1);
 }
 
+/* Broad styles for all buttons */
 button,
 input[type="button"] {
     color: black;
@@ -75,6 +90,10 @@ input[type="button"]:disabled {
     cursor: not-allowed;
 }
 
+/*
+  Dotted line to conect items.
+  These remaining parameters were hard to define in Tailwind
+ */
 .dotted-line {
     background-image: linear-gradient(
             to right,
@@ -85,12 +104,15 @@ input[type="button"]:disabled {
     background-position: bottom 0.25lh left;
 }
 
+/*
+ Dotted background for the navbar.
+ You can vary the `--density` parameter to get more white or more black.
+*/
 .dotted-bg {
     --density: 3;
     background: white;
     background-image: radial-gradient(black 1px, transparent 0);
     background-size: calc(var(--density) * 1px) calc(var(--density) * 1px);
-    background-position: calc(var(--density) * -0.5px)
-    calc(var(--density) * -0.5px);
+    background-position: calc(var(--density) * -0.5px) calc(var(--density) * -0.5px);
 }
 

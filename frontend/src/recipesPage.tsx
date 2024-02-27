@@ -714,7 +714,7 @@ export function RecipesPage() {
     },
   ];
   return (
-    <div className="content-grid sized-container">
+    <div className="content-grid">
       <ul className="grid gap-4">
         {recipes.map((recipe) => (
           <RecipeView key={recipe.name} recipe={recipe} />
