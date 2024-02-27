@@ -65,9 +65,6 @@ input[type="checkbox"]::before {
   height: 0.65em;
   transform: scale(0);
   box-shadow: inset 1em 1em black;
-  /* Optional: */
-  transition: 120ms transform ease-in-out;
-  transform-origin: bottom left;
   clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
 }
 
@@ -97,12 +94,6 @@ input[type="password"] {
   border: 2px solid black;
   height: 39px;
   padding: 0.5rem;
-}
-
-input:focus {
-  padding: 0 2px 0 0;
-  border: 4px inset black;
-  border-radius: 0;
 }
 
 .dotted-line {
