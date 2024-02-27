@@ -106,20 +106,6 @@ body {
   --loose: 11;
 }
 
-.horizontal {
-  display: flex;
-  flex-direction: row;
-}
-
-.vertical {
-  display: flex;
-  flex-direction: column;
-}
-
-.space-between {
-  justify-content: space-between;
-}
-
 .content-grid {
   --max-content-width: 69.735rem;
   display: grid;
@@ -129,85 +115,14 @@ body {
     minmax(1rem, 1fr) [full-width-end];
 }
 
-.half-width {
-  --max-content-width: 50%;
-}
-
 .content-grid > * {
   grid-column: content;
-}
-
-.content-grid > .full-width {
-  grid-column: full-width;
-}
-
-.bottom-line {
-  border-bottom-width: 2px;
-  border-bottom-style: solid;
-  border-bottom-color: black;
-}
-
-.small-text {
-  font-size: 8px;
-}
-
-.large-text {
-  font-size: 24px;
-}
-
-.strikethrough {
-  text-decoration: line-through;
-}
-
-nav {
-  padding-top: 1rem;
-}
-
-nav > ul {
-  margin-bottom: 1rem;
 }
 
 a {
   color: black;
   background-color: white;
 }
-
-.heavy-text {
-  font-weight: 900;
-  letter-spacing: 1px;
-}
-
-.light-text {
-  font-weight: 300;
-  color: var(--dark-gray);
-}
-
-.ellipsis {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.black-border {
-  border: 2px solid black;
-}
-
-.double-border {
-  border: 4px double black;
-}
-
-.small-padding {
-  padding: 0.5rem;
-}
-
-.stack > * + * {
-  margin-top: 1rem;
-}
-
-.h-stack > * + * {
-  margin-left: 1rem;
-}
-
 
 .cluster {
   display: flex;
@@ -217,52 +132,13 @@ a {
   align-items: center;
 }
 
-.shoppinglist {
-  grid-template-columns: [column-1] 220px [column-2] 1fr;
-}
-
 /* ################### */
-
-.recipes {
-  display: grid;
-  gap: 1rem;
-  grid-auto-columns: 2fr max-content 100px;
-}
-
-.container {
-  container-type: inline-size;
-}
-
-@container (min-width: 700px) {
-  .recipes .subgrid {
-    grid-column: span 3;
-
-    display: grid;
-    grid-template-columns: subgrid;
-  }
-}
-
-.recipe_book_title {
-  margin-right: 1rem;
-}
 
 // keep for now,
 .shadow {
   --shadow-size: 3;
   box-shadow: calc(var(--shadow-size) * 1px) calc(var(--shadow-size) * 1px) 0px
     0px var(--gray);
-}
-
-// weird, but keep for now
-.shadow.danger {
-  box-shadow: none;
-}
-
-hr {
-  width: 100%;
-  border-top: 1px solid black;
-  color: black;
-  text-align: center;
 }
 
 input[type="checkbox"] {
@@ -331,15 +207,6 @@ input:focus {
   padding: 0 2px 0 0;
   border: 4px inset black;
   border-radius: 0;
-}
-
-button.secondary {
-  background-color: var(--light-gray);
-}
-
-button.danger {
-  background-color: var(--danger-gray);
-  color: white;
 }
 
 .dotted-line {

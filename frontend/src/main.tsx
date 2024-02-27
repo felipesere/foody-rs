@@ -25,7 +25,7 @@ function NavLink(params: { name: string; to: LinkProps["to"] }) {
       activeProps={{
         className: "bg-gray-200",
       }}
-      className="p-2 border-black border-b-2 border-solid uppercase"
+      className="p-2 border-black border-2 border-solid uppercase"
       to={params.to}
     >
       {params.name}
@@ -37,8 +37,8 @@ const rootRoute = createRootRoute({
   component: () => (
     <>
       <div className={"space-y-4"}>
-        <nav className="border-solid border-black border-b-2 dotted-bg content-grid  density-low">
-          <ul className="flex flex-row justify-between">
+        <nav className="pt-4 border-solid border-black border-b-2 dotted-bg content-grid  density-low">
+          <ul className="mb-4 flex flex-row justify-between">
             <li>
               <NavLink name={"Shopping"} to={"/"} />
             </li>

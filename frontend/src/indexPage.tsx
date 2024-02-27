@@ -37,7 +37,7 @@ export function IndexPage() {
   ];
   return (
     <div className="content-grid">
-      <ul className="grid max-w-md gap-4 shoppinglist">
+      <ul className="grid max-w-md gap-4">
         {ingredients.map((ingredient) => (
           <Ingredient key={ingredient.name} ingredient={ingredient} />
         ))}
@@ -86,7 +86,7 @@ function Ingredient({ ingredient }: { ingredient: Ingredient }) {
               {ingredient.name}
             </p>
           </div>
-          <hr />
+          <hr className={"w-full border-t border-solid border-black"} />
           {!open && (
             <div className="flex flex-row justify-between font-light">
               <p>Quantity:</p>
