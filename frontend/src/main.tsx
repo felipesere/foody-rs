@@ -17,7 +17,7 @@ import { LoginPage } from "./loginPage.tsx";
 import { RecipesPage } from "./recipesPage.tsx";
 
 import "./app.css";
-import "./index.css"
+import "./index.css";
 
 function NavLink(params: { name: string; to: LinkProps["to"] }) {
   return (

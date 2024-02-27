@@ -79,9 +79,12 @@ function Ingredient({ ingredient }: { ingredient: Ingredient }) {
               onChange={() => setChecked((checked) => !checked)}
             />
             <p
-              className={classnames("capitalize ml-2 font-black tracking-wider", {
-                'line-through': checked,
-              })}
+              className={classnames(
+                "capitalize ml-2 font-black tracking-wider",
+                {
+                  "line-through": checked,
+                },
+              )}
             >
               {ingredient.name}
             </p>
@@ -139,7 +142,7 @@ function Part(props: PartProps) {
       />
       <p
         className={classnames("text-ellipsis ml-2", {
-          'line-through': checked,
+          "line-through": checked,
         })}
       >
         {props.part.name}

@@ -37,9 +37,12 @@ export function LoginPage() {
             }}
             children={(emailField) => (
               <div>
-                <label className={"block"} htmlFor={emailField.name}>Username</label>
+                <label className={"block"} htmlFor={emailField.name}>
+                  Username
+                </label>
                 <input
                   type={"text"}
+                  className={"p-2 outline-0 border-black border-2 border-solid"}
                   autoComplete={"username"}
                   name={emailField.name}
                   id={emailField.name}
@@ -57,9 +60,12 @@ export function LoginPage() {
             name="password"
             children={(passwordField) => (
               <div>
-                <label className={"block"} htmlFor={passwordField.name}> Password</label>
+                <label className={"block"} htmlFor={passwordField.name}>
+                  Password
+                </label>
                 <input
                   type={"password"}
+                  className={"p-2 outline-0 border-black border-2 border-solid"}
                   autoComplete={"current-password"}
                   name={passwordField.name}
                   id={passwordField.name}
@@ -72,7 +78,12 @@ export function LoginPage() {
           <form.Subscribe
             selector={(state) => [state.canSubmit]}
             children={([canSubmit]) => (
-              <button className={"px-2"} type={"submit"} id={"submit"} disabled={!canSubmit}>
+              <button
+                className={"px-2"}
+                type={"submit"}
+                id={"submit"}
+                disabled={!canSubmit}
+              >
                 Sign In
               </button>
             )}

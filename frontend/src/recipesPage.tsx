@@ -778,7 +778,9 @@ function RecipeView(props: RecipeProps) {
 function IngredientView({ ingredient }: { ingredient: Ingredient }) {
   return (
     <li className="flex flex-row justify-between">
-      <p className="font-light text-gray-700 whitespace-nowrap overflow-hidden overflow-ellipsis">{ingredient.name}</p>
+      <p className="font-light text-gray-700 whitespace-nowrap overflow-hidden overflow-ellipsis">
+        {ingredient.name}
+      </p>
       <div className="dotted-line" />
       <p className="text-light" style={{ flex: "none" }}>
         {ingredient.quantity[0].value} {ingredient.quantity[0].unit}
