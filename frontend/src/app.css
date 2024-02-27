@@ -1,10 +1,3 @@
-/* Actual stuff... */
-
-body {
-  /* font-family: Helvetica, Sans-Serif, serif; */
-  font-family: "SF Mono", sans-serif;
-}
-
 .content-grid {
   --max-content-width: 69.735rem;
   display: grid;
@@ -18,9 +11,6 @@ body {
   grid-column: content;
 }
 
-/* ################### */
-
-// keep for now,
 .shadow {
   --shadow-size: 3;
   box-shadow: calc(var(--shadow-size) * 1px) calc(var(--shadow-size) * 1px) 0px
@@ -78,9 +68,6 @@ input[type="button"]:disabled {
 }
 
 .dotted-line {
-  flex: auto;
-
-  background: white;
   background-image: linear-gradient(
     to right,
     black 20%,
@@ -88,32 +75,13 @@ input[type="button"]:disabled {
   );
   background-size: 10px 2px;
   background-position: bottom 0.25lh left;
-  background-repeat: repeat-x;
-  margin-left: 2px;
-  margin-right: 2px;
 }
 
-/* Background */
 .dotted-bg {
-  --density: 10;
+  --density: 3;
   background: white;
   background-image: radial-gradient(black 1px, transparent 0);
   background-size: calc(var(--density) * 1px) calc(var(--density) * 1px);
   background-position: calc(var(--density) * -0.5px)
     calc(var(--density) * -0.5px);
-}
-
-.density-low {
-  --density: 3;
-}
-
-.stripped-bg {
-  --density: 10;
-  background: repeating-linear-gradient(
-    -45deg,
-    black,
-    black 1px,
-    white 1px,
-    white calc(var(--density) * 1px)
-  );
 }

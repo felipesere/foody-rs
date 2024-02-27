@@ -1,5 +1,6 @@
 import classnames from "classnames";
 import { useState } from "react";
+import { DottedLine } from "./misc/dottedLine.tsx";
 
 type Book = {
   id: number;
@@ -781,7 +782,7 @@ function IngredientView({ ingredient }: { ingredient: Ingredient }) {
       <p className="font-light text-gray-700 whitespace-nowrap overflow-hidden overflow-ellipsis">
         {ingredient.name}
       </p>
-      <div className="dotted-line" />
+      <DottedLine />
       <p className="text-light" style={{ flex: "none" }}>
         {ingredient.quantity[0].value} {ingredient.quantity[0].unit}
       </p>

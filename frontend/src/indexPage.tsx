@@ -1,5 +1,6 @@
 import classnames from "classnames";
 import { useState } from "react";
+import { DottedLine } from "./misc/dottedLine.tsx";
 
 export function IndexPage() {
   const ingredients = [
@@ -147,7 +148,7 @@ function Part(props: PartProps) {
       >
         {props.part.name}
       </p>
-      <div className="dotted-line" />
+      <DottedLine />
       <p>{props.part.quantity}</p>
     </li>
   );

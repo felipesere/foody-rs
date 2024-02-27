@@ -37,7 +37,7 @@ const rootRoute = createRootRoute({
   component: () => (
     <>
       <div className={"space-y-4"}>
-        <nav className="pt-4 border-solid border-black border-b-2 dotted-bg content-grid  density-low">
+        <nav className="content-grid pt-4 border-solid border-black border-b-2 dotted-bg">
           <ul className="mb-4 flex flex-row justify-between">
             <li>
               <NavLink name={"Shopping"} to={"/"} />
