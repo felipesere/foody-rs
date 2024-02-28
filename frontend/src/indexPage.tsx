@@ -1,5 +1,6 @@
 import classnames from "classnames";
 import { useState } from "react";
+import { DottedLine } from "./misc/dottedLine.tsx";
 
 export function IndexPage() {
   const ingredients = [
@@ -37,7 +38,7 @@ export function IndexPage() {
   ];
   return (
     <div className="content-grid">
-      <ul className="shoppinglist">
+      <ul className="grid max-w-md gap-4">
         {ingredients.map((ingredient) => (
           <Ingredient key={ingredient.name} ingredient={ingredient} />
         ))}
@@ -60,14 +61,18 @@ type Part = {
 
 function Ingredient({ ingredient }: { ingredient: Ingredient }) {
   const [open, setOpen] = useState(false);
-  const [edit, setEdit] = useState(false);
   const [checked, setChecked] = useState(false);
 
   return (
-    <li className="subgrid shadow black-border small-padding">
-      <div className="card__content">
-        <div className="vertical">
-          <div className="horizontal">
+    <li
+      className={classnames(
+        "shadow border-black border-solid border-2 p-2 col-span-2",
+        { "grid grid-cols-subgrid": !open },
+      )}
+    >
+      <div className="flex-grow">
+        <div className="flex flex-col">
+          <div className="flex flex-row">
             <input
               className="checkbox"
               type="checkbox"
@@ -75,49 +80,45 @@ function Ingredient({ ingredient }: { ingredient: Ingredient }) {
               onChange={() => setChecked((checked) => !checked)}
             />
             <p
-              className={classnames("ingredient", "heavy-text", {
-                strikethrough: checked,
-              })}
+              className={classnames(
+                "capitalize ml-2 font-black tracking-wider",
+                {
+                  "line-through": checked,
+                },
+              )}
             >
               {ingredient.name}
             </p>
           </div>
-          <hr />
+          <hr className={"w-full border-t border-solid border-black"} />
           {!open && (
-            <div className="horizontal space-between light-text">
+            <div className="flex flex-row justify-between font-light">
               <p>Quantity:</p>
               <p>{ingredient.quantity}</p>
             </div>
           )}
           {open && (
-            <>
-              <ol className="details__extended">
+            <div>
+              <p>Parts:</p>
+              <ol>
                 {ingredient.parts.map((part) => (
-                  <Part key={part.name} part={part} isEditing={edit} />
+                  <Part key={part.name} part={part} />
                 ))}
               </ol>
-              <button
-                className={"bottom shadow"}
-                onClick={() => setEdit((e) => !e)}
-                type={"submit"}
-              >
-                {edit ? "Save" : "Edit"}
-              </button>
-            </>
+            </div>
           )}
         </div>
       </div>
-      <div className={"card__extras"}>
-        <p className={"light-text"}>{ingredient.aisle}</p>
+      <div className={"flex flex-col justify-between"}>
+        {!open ? <p className={"font-light"}>{ingredient.aisle}</p> : null}
         <button
-          className={classnames("bottom", {
-            "double-border": open,
+          className={classnames({
+            "border-black border-double border-4": open,
             shadow: !open,
           })}
           type={"submit"}
           onClick={() => {
             setOpen((o) => !o);
-            setEdit(() => false);
           }}
         >
           Details
@@ -129,18 +130,26 @@ function Ingredient({ ingredient }: { ingredient: Ingredient }) {
 
 type PartProps = {
   part: Part;
-  isEditing: boolean;
 };
 
 function Part(props: PartProps) {
+  const [checked, setChecked] = useState(false);
   return (
-    <span className="light-text horizontal space-between">
-      <p>{props.part.name}</p>
-      {props.isEditing ? (
-        <input type="text" placeholder={props.part.quantity} />
-      ) : (
-        <p>{props.part.quantity}</p>
-      )}
-    </span>
+    <li className="font-light flex flex-row justify-between">
+      <input
+        type={"checkbox"}
+        checked={checked}
+        onChange={() => setChecked((checked) => !checked)}
+      />
+      <p
+        className={classnames("text-ellipsis ml-2", {
+          "line-through": checked,
+        })}
+      >
+        {props.part.name}
+      </p>
+      <DottedLine />
+      <p>{props.part.quantity}</p>
+    </li>
   );
 }

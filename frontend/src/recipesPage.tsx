@@ -1,5 +1,6 @@
 import classnames from "classnames";
 import { useState } from "react";
+import { DottedLine } from "./misc/dottedLine.tsx";
 
 type Book = {
   id: number;
@@ -713,8 +714,8 @@ export function RecipesPage() {
     },
   ];
   return (
-    <div className="content-grid container">
-      <ul className="recipes">
+    <div className="content-grid">
+      <ul className="grid gap-4">
         {recipes.map((recipe) => (
           <RecipeView key={recipe.name} recipe={recipe} />
         ))}
@@ -730,8 +731,8 @@ type RecipeProps = {
 function RecipeView(props: RecipeProps) {
   const [open, setOpen] = useState(false);
   return (
-    <li className="small-padding black-border">
-      <p className="heavy-text">{props.recipe.name}</p>
+    <li className="p-2 border-black border-solid border-2">
+      <p className="font-black tracking-wider">{props.recipe.name}</p>
       <div>
         {props.recipe.source === "book" ? (
           <BookSource title={props.recipe.title} page={props.recipe.page} />
@@ -742,7 +743,7 @@ function RecipeView(props: RecipeProps) {
       </div>
       {open ? (
         <div>
-          <hr />
+          <hr className={"w-full border-t border-solid border-black"} />
           <p className="uppercase">Ingredients:</p>
           <ul>
             {props.recipe.ingredients.map((ingredient) => (
@@ -751,9 +752,9 @@ function RecipeView(props: RecipeProps) {
           </ul>
         </div>
       ) : null}
-      <div className="h-stack">
+      <div className="space-x-4">
         <button
-          className={classnames({
+          className={classnames("px-2", {
             "double-border": open,
             shadow: !open,
           })}
@@ -764,10 +765,10 @@ function RecipeView(props: RecipeProps) {
         >
           Details
         </button>
-        <button type="submit" className="secondary shadow">
+        <button type="submit" className="px-2 text-black bg-gray-300 shadow">
           Add
         </button>
-        <button type="submit" className="danger shadow">
+        <button type="submit" className="px-2 text-white bg-gray-700 shadow">
           Delete
         </button>
       </div>
@@ -777,9 +778,11 @@ function RecipeView(props: RecipeProps) {
 
 function IngredientView({ ingredient }: { ingredient: Ingredient }) {
   return (
-    <li className="horizontal space-between">
-      <p className="text-light ellipsis">{ingredient.name}</p>
-      <div className="dotted-line" />
+    <li className="flex flex-row justify-between">
+      <p className="font-light text-gray-700 whitespace-nowrap overflow-hidden overflow-ellipsis">
+        {ingredient.name}
+      </p>
+      <DottedLine />
       <p className="text-light" style={{ flex: "none" }}>
         {ingredient.quantity[0].value} {ingredient.quantity[0].unit}
       </p>
@@ -789,8 +792,8 @@ function IngredientView({ ingredient }: { ingredient: Ingredient }) {
 
 function BookSource(props: { title: string; page: number }) {
   return (
-    <div className="horizontal">
-      <p className="recipe_book_title">{props.title}</p>
+    <div className="flex flex-row">
+      <p className="mr-4">{props.title}</p>
       <p>{`p.${props.page}`}</p>
     </div>
   );

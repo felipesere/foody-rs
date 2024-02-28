@@ -23,7 +23,7 @@ export function LoginPage() {
       <h3>Login</h3>
       <form.Provider>
         <form
-          className={"stack"}
+          className={"space-y-4"}
           onSubmit={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -36,18 +36,19 @@ export function LoginPage() {
               onBlur: z.string().email(),
             }}
             children={(emailField) => (
-              <div className={"form_group"}>
-                <label htmlFor={emailField.name}>Username</label>
-                <div className={"hint"} />
+              <div>
+                <label className={"block"} htmlFor={emailField.name}>
+                  Username
+                </label>
                 <input
                   type={"text"}
+                  className={"p-2 outline-0 border-black border-2 border-solid"}
                   autoComplete={"username"}
                   name={emailField.name}
                   id={emailField.name}
                   value={emailField.state.value}
                   onBlur={emailField.handleBlur}
                   onChange={(e) => emailField.handleChange(e.target.value)}
-                  className={""}
                 />
                 {emailField.state.meta.errorMap.onBlur ? (
                   <em>{emailField.state.meta.errorMap.onBlur}</em>
@@ -58,17 +59,18 @@ export function LoginPage() {
           <form.Field
             name="password"
             children={(passwordField) => (
-              <div className={"form_group"}>
-                <label htmlFor={passwordField.name}> Password</label>
-                <div className={"hint"} />
+              <div>
+                <label className={"block"} htmlFor={passwordField.name}>
+                  Password
+                </label>
                 <input
                   type={"password"}
+                  className={"p-2 outline-0 border-black border-2 border-solid"}
                   autoComplete={"current-password"}
                   name={passwordField.name}
                   id={passwordField.name}
                   value={passwordField.state.value}
                   onChange={(e) => passwordField.handleChange(e.target.value)}
-                  className={""}
                 />
               </div>
             )}
@@ -76,8 +78,12 @@ export function LoginPage() {
           <form.Subscribe
             selector={(state) => [state.canSubmit]}
             children={([canSubmit]) => (
-              <button type={"submit"} id={"submit"} disabled={!canSubmit}>
-                {" "}
+              <button
+                className={"px-2"}
+                type={"submit"}
+                id={"submit"}
+                disabled={!canSubmit}
+              >
                 Sign In
               </button>
             )}

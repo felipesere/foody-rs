@@ -1,11 +1,15 @@
 default:
   @just --list
 
-lint: rust-lint
+lint: rust-lint frontend-lint
 fmt: frontend-fmt
 
 rust-lint:
   cargo clippy --all-features -- -D warnings -W clippy::nursery -W rust-2018-idioms
+
+frontend-lint:
+  cd frontend; npx biome check .
+
 
 frontend-fmt:
   cd frontend; npm run fmt
@@ -17,7 +21,7 @@ run: frontend-build
 pg-start:
  docker-compose up -d
 
-# Run migration: 
+# Run migration:
 # environment is one of `dev` or `test`
 # direction is one `up` or `down`
 pg-migrate environment direction:
