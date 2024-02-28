@@ -11,10 +11,10 @@ import {
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
-import { IndexPage } from "./indexPage.tsx";
 import { IngredientsPage } from "./ingredientsPage.tsx";
 import { LoginPage } from "./loginPage.tsx";
 import { RecipesPage } from "./recipesPage.tsx";
+import { ShoppingPage } from "./shoppingPage.tsx";
 
 import "./index.css";
 
@@ -62,7 +62,7 @@ const rootRoute = createRootRoute({
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  component: IndexPage,
+  component: ShoppingPage,
 });
 
 const ingredientsRoute = createRoute({

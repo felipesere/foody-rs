@@ -2,7 +2,7 @@ import classnames from "classnames";
 import { useState } from "react";
 import { DottedLine } from "./misc/dottedLine.tsx";
 
-export function IndexPage() {
+export function ShoppingPage() {
   const ingredients = [
     {
       name: "aubergine",
