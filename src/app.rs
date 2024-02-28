@@ -2,7 +2,14 @@ use std::path::Path;
 
 use async_trait::async_trait;
 use loco_rs::{
-    app::{AppContext, Hooks}, boot::{create_app, BootResult, StartMode}, controller::AppRoutes, db::{self, truncate_table}, environment::Environment, task::Tasks, worker::{AppWorker, Processor}, Result
+    app::{AppContext, Hooks},
+    boot::{create_app, BootResult, StartMode},
+    controller::AppRoutes,
+    db::{self, truncate_table},
+    environment::Environment,
+    task::Tasks,
+    worker::{AppWorker, Processor},
+    Result,
 };
 use migration::Migrator;
 use sea_orm::{ConnectionTrait, DatabaseConnection, DbBackend, Statement};
