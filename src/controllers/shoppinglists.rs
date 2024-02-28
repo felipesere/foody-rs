@@ -79,7 +79,7 @@ impl From<Ingredient> for IngredientResponse {
 pub async fn all_shoppinglists(
     auth: middleware::auth::JWT,
     State(ctx): State<AppContext>,
-) -> Result<axum::Json<ShoppinglistsResponse>> {
+) -> Result<Json<ShoppinglistsResponse>> {
     // check auth
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
@@ -110,7 +110,7 @@ pub async fn create_shoppinglist(
     _auth: middleware::auth::JWT,
     State(ctx): State<AppContext>,
     extract::Json(params): extract::Json<NewShoppinglist>,
-) -> Result<axum::Json<ShoppinglistResponse>> {
+) -> Result<Json<ShoppinglistResponse>> {
     let new_list = shoppinglists::ActiveModel {
         name: Set(params.name),
         ..Default::default()
@@ -231,7 +231,7 @@ pub async fn shoppinglist(
     auth: middleware::auth::JWT,
     Path(id): Path<u32>,
     State(ctx): State<AppContext>,
-) -> Result<axum::Json<ShoppinglistResponse>> {
+) -> Result<Json<ShoppinglistResponse>> {
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
     let Some((list, ingredients)) = Shoppinglists::find_one(&ctx.db, id).await? else {

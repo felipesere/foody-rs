@@ -6,6 +6,7 @@ use loco_rs::{
     boot::{create_app, BootResult, StartMode},
     controller::AppRoutes,
     db::{self, truncate_table},
+    environment::Environment,
     task::Tasks,
     worker::{AppWorker, Processor},
     Result,
@@ -40,11 +41,11 @@ impl Hooks for App {
         )
     }
 
-    async fn boot(mode: StartMode, environment: &str) -> Result<BootResult> {
+    async fn boot(mode: StartMode, environment: &Environment) -> Result<BootResult> {
         create_app::<Self, Migrator>(mode, environment).await
     }
 
-    fn routes() -> AppRoutes {
+    fn routes(_ctx: &AppContext) -> AppRoutes {
         AppRoutes::with_default_routes()
             .add_route(controllers::recipes::routes())
             .add_route(controllers::shoppinglists::routes())

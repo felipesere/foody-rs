@@ -32,7 +32,7 @@ pub struct IngredientResponse {
 pub async fn all_recipes(
     auth: middleware::auth::JWT,
     State(ctx): State<AppContext>,
-) -> Result<axum::Json<RecipesResponse>> {
+) -> Result<Json<RecipesResponse>> {
     // check auth
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
@@ -69,7 +69,7 @@ pub async fn recipe(
     auth: middleware::auth::JWT,
     Path(id): Path<i32>,
     State(ctx): State<AppContext>,
-) -> Result<axum::Json<RecipeResponse>> {
+) -> Result<Json<RecipeResponse>> {
     // check auth
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
