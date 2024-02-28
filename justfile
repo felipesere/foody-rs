@@ -2,10 +2,13 @@ default:
   @just --list
 
 lint: rust-lint frontend-lint
-fmt: frontend-fmt
+fmt: rust-fmt frontend-fmt
 
 rust-lint:
   cargo clippy --all-features -- -D warnings -W clippy::nursery -W rust-2018-idioms
+
+rust-fmt:
+  cargo fmt
 
 frontend-lint:
   cd frontend; npx biome check .
