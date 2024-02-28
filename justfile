@@ -10,10 +10,8 @@ rust-lint:
 frontend-lint:
   cd frontend; npx biome check .
 
-
 frontend-fmt:
   cd frontend; npm run fmt
-
 
 run: frontend-build
   cargo loco start
