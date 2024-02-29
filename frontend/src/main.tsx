@@ -22,9 +22,12 @@ function NavLink(params: { name: string; to: LinkProps["to"] }) {
   return (
     <Link
       activeProps={{
-        className: "bg-gray-200",
+        className: "bg-gray-200 hover:bg-gray-300",
       }}
-      className="p-2 bg-white text-black border-black border-2 border-solid uppercase"
+      inactiveProps={{
+        className: "bg-white hover:bg-gray-100",
+      }}
+      className="p-2 text-black border-black border-2 border-solid uppercase"
       to={params.to}
     >
       {params.name}

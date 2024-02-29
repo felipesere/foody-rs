@@ -112,10 +112,12 @@ function Ingredient({ ingredient }: { ingredient: Ingredient }) {
       <div className={"flex flex-col justify-between"}>
         {!open ? <p className={"font-light"}>{ingredient.aisle}</p> : null}
         <button
-          className={classnames({
-            "border-black border-double border-4": open,
-            shadow: !open,
-          })}
+          className={classnames(
+            "border-black border-double border-4 hover:bg-gray-100",
+            {
+              shadow: !open,
+            },
+          )}
           type={"submit"}
           onClick={() => {
             setOpen((o) => !o);
