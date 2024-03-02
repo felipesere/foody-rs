@@ -22,10 +22,10 @@ export type UserProfile = z.infer<typeof UserPorfileSchema>;
 
 export function useUser() {
   const client = useQueryClient();
+  const token = client.getQueryData(["user", "token"]);
   return useQuery({
     queryKey: ["user", "profile"],
     queryFn: async () => {
-      const token = client.getQueryData(["user", "token"]);
       console.log(`making a request with token: ${token}`);
       const response = await fetch("http://localhost:3000/api/user/current", {
         method: "GET",
@@ -37,6 +37,7 @@ export function useUser() {
       const body = await response.json();
       return UserPorfileSchema.parse(body);
     },
+    enabled: !!token,
   });
 }
 
@@ -44,7 +45,6 @@ export function useLogin() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: async (params: LoginParms) => {
-      // await client.invalidateQueries({queryKey: ["user"]})
       const response = await fetch("http://localhost:3000/api/auth/login", {
         body: JSON.stringify(params),
         method: "POST",
@@ -58,6 +58,7 @@ export function useLogin() {
     },
     onSuccess: (value: LoginResponse, _) => {
       client.setQueryData(["user", "token"], () => value.token);
+      client.invalidateQueries({ queryKey: ["user", "profile"] });
     },
   });
 }
