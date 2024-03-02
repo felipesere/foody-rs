@@ -12,13 +12,13 @@ const LoginResponseSchema = z.object({
 
 export type LoginResponse = z.infer<typeof LoginResponseSchema>;
 
-const UserPorfileSchema = z.object({
+const UserProfileSchema = z.object({
   email: z.string(),
   name: z.string(),
   pid: z.string(),
 });
 
-export type UserProfile = z.infer<typeof UserPorfileSchema>;
+export type UserProfile = z.infer<typeof UserProfileSchema>;
 
 export function useUser() {
   const client = useQueryClient();
@@ -35,7 +35,7 @@ export function useUser() {
         },
       });
       const body = await response.json();
-      return UserPorfileSchema.parse(body);
+      return UserProfileSchema.parse(body);
     },
     enabled: !!token,
   });
