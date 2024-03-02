@@ -3,7 +3,6 @@ import { useUser } from "./models/api.ts";
 
 export function Navbar() {
   const user = useUser();
-  console.log(user.data);
   return (
     <nav className="content-grid pt-4 border-solid border-black border-b-2 dotted-bg">
       <ul className="mb-4 flex flex-row justify-between">
@@ -18,7 +17,7 @@ export function Navbar() {
         </li>
         <li>
           {user.data ? (
-            <button type={"button"}>{user.data.name}</button>
+            <NavLink name={user.data.name} to={"/login"} /> // TODO: somewhere else!
           ) : (
             <NavLink name={"Login"} to={"/login"} />
           )}

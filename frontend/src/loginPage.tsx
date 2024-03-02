@@ -12,8 +12,7 @@ export function LoginPage() {
       password: "",
     },
     onSubmit: async ({ value }) => {
-      const v = await login.mutateAsync(value);
-      console.log(v);
+      await login.mutateAsync(value);
     },
     validatorAdapter: zodValidator,
   });
