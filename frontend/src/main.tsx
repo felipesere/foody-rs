@@ -1,7 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
-  Link,
-  LinkProps,
   Outlet,
   RouterProvider,
   createRootRoute,
@@ -16,50 +14,22 @@ import { LoginPage } from "./loginPage.tsx";
 import { RecipesPage } from "./recipesPage.tsx";
 import { ShoppingPage } from "./shoppingPage.tsx";
 
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import "./index.css";
-
-function NavLink(params: { name: string; to: LinkProps["to"] }) {
-  return (
-    <Link
-      activeProps={{
-        className: "bg-gray-200 hover:bg-gray-300",
-      }}
-      inactiveProps={{
-        className: "bg-white hover:bg-gray-100",
-      }}
-      className="p-2 text-black border-black border-2 border-solid uppercase"
-      to={params.to}
-    >
-      {params.name}
-    </Link>
-  );
-}
+import { Navbar } from "./navbar.tsx";
 
 const rootRoute = createRootRoute({
-  component: () => (
-    <>
-      <div className={"space-y-4"}>
-        <nav className="content-grid pt-4 border-solid border-black border-b-2 dotted-bg">
-          <ul className="mb-4 flex flex-row justify-between">
-            <li>
-              <NavLink name={"Shopping"} to={"/"} />
-            </li>
-            <li>
-              <NavLink name={"Ingredients"} to={"/ingredients"} />
-            </li>
-            <li>
-              <NavLink name={"Recipes"} to={"/recipes"} />
-            </li>
-            <li>
-              <NavLink name={"Login"} to={"/login"} />
-            </li>
-          </ul>
-        </nav>
-        <Outlet />
-      </div>
-      <TanStackRouterDevtools />
-    </>
-  ),
+  component: () => {
+    return (
+      <>
+        <div className={"space-y-4"}>
+          <Navbar />
+          <Outlet />
+        </div>
+        <TanStackRouterDevtools />
+      </>
+    );
+  },
 });
 
 const indexRoute = createRoute({
@@ -101,7 +71,7 @@ declare module "@tanstack/react-router" {
   }
 }
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({});
 
 const rootElement = document.getElementById("root");
 if (rootElement && !rootElement.innerHTML) {
@@ -110,6 +80,7 @@ if (rootElement && !rootElement.innerHTML) {
     <StrictMode>
       <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />
+        <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     </StrictMode>,
   );
