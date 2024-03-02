@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 
 type LoginParms = { email: string; password: string };
@@ -10,7 +10,41 @@ const LoginResponseSchema = z.object({
   is_verified: z.boolean(),
 });
 
+export type LoginResponse = z.infer<typeof LoginResponseSchema>;
+
+const UserProfileSchema = z.object({
+  email: z.string(),
+  name: z.string(),
+  pid: z.string(),
+});
+
+export type UserProfile = z.infer<typeof UserProfileSchema>;
+
+export function useUser() {
+  const client = useQueryClient();
+  return useQuery({
+    queryKey: ["user", "profile"],
+    queryFn: async () => {
+      const token = client.getQueryData(["user", "token"]);
+      if (!token) {
+        return null;
+      }
+      console.log(`making a request with token: ${token}`);
+      const response = await fetch("http://localhost:3000/api/user/current", {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const body = await response.json();
+      return UserProfileSchema.parse(body);
+    },
+  });
+}
+
 export function useLogin() {
+  const client = useQueryClient();
   return useMutation({
     mutationFn: async (params: LoginParms) => {
       const response = await fetch("http://localhost:3000/api/auth/login", {
@@ -23,6 +57,10 @@ export function useLogin() {
       });
       const body = await response.json();
       return LoginResponseSchema.parse(body);
+    },
+    onSuccess: (value: LoginResponse, _) => {
+      client.setQueryData(["user", "token"], value.token);
+      void client.invalidateQueries({ queryKey: ["user", "profile"] });
     },
   });
 }
