@@ -22,22 +22,24 @@ export type UserProfile = z.infer<typeof UserProfileSchema>;
 
 export function useUser() {
   const client = useQueryClient();
-  const token = client.getQueryData(["user", "token"]);
   return useQuery({
     queryKey: ["user", "profile"],
     queryFn: async () => {
-      console.log(`making a request with token: ${token}`);
-      const response = await fetch("http://localhost:3000/api/user/current", {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const body = await response.json();
-      return UserProfileSchema.parse(body);
+      const token = client.getQueryData(["user", "token"]);
+      if (token) {
+        console.log(`making a request with token: ${token}`);
+        const response = await fetch("http://localhost:3000/api/user/current", {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const body = await response.json();
+        return UserProfileSchema.parse(body);
+      }
+      return null;
     },
-    enabled: !!token,
   });
 }
 
@@ -57,8 +59,8 @@ export function useLogin() {
       return LoginResponseSchema.parse(body);
     },
     onSuccess: (value: LoginResponse, _) => {
-      client.setQueryData(["user", "token"], () => value.token);
-      client.invalidateQueries({ queryKey: ["user", "profile"] });
+      client.setQueryData(["user", "token"], value.token);
+      void client.invalidateQueries({ queryKey: ["user", "profile"] });
     },
   });
 }
