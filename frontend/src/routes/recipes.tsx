@@ -1,6 +1,7 @@
+import { createFileRoute } from "@tanstack/react-router";
 import classnames from "classnames";
 import { useState } from "react";
-import { DottedLine } from "./misc/dottedLine.tsx";
+import { DottedLine } from "../misc/dottedLine.tsx";
 
 type Book = {
   id: number;
@@ -10,7 +11,6 @@ type Book = {
   page: number;
   ingredients: Ingredient[];
 };
-
 type Website = {
   id: number;
   source: "website";
@@ -18,15 +18,12 @@ type Website = {
   url: string;
   ingredients: Ingredient[];
 };
-
 type Recipe = Book | Website;
-
 type Ingredient = {
   id: number;
   name: string;
   quantity: Quantity[];
 };
-
 type Quantity = {
   unit: string;
   value?: number;
@@ -806,3 +803,7 @@ function WebsiteSource(props: { url: string }) {
     </a>
   );
 }
+
+export const Route = createFileRoute("/recipes")({
+  component: RecipesPage,
+});
