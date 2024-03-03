@@ -11,52 +11,62 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as RecipesImport } from './routes/recipes'
 import { Route as LoginImport } from './routes/login'
-import { Route as IngredientsImport } from './routes/ingredients'
-import { Route as IndexImport } from './routes/index'
+import { Route as AuthImport } from './routes/_auth'
+import { Route as AuthIndexImport } from './routes/_auth.index'
+import { Route as AuthRecipesImport } from './routes/_auth.recipes'
+import { Route as AuthIngredientsImport } from './routes/_auth.ingredients'
 
 // Create/Update Routes
-
-const RecipesRoute = RecipesImport.update({
-  path: '/recipes',
-  getParentRoute: () => rootRoute,
-} as any)
 
 const LoginRoute = LoginImport.update({
   path: '/login',
   getParentRoute: () => rootRoute,
 } as any)
 
-const IngredientsRoute = IngredientsImport.update({
-  path: '/ingredients',
+const AuthRoute = AuthImport.update({
+  id: '/_auth',
   getParentRoute: () => rootRoute,
 } as any)
 
-const IndexRoute = IndexImport.update({
+const AuthIndexRoute = AuthIndexImport.update({
   path: '/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthRecipesRoute = AuthRecipesImport.update({
+  path: '/recipes',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthIngredientsRoute = AuthIngredientsImport.update({
+  path: '/ingredients',
+  getParentRoute: () => AuthRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      preLoaderRoute: typeof IndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/ingredients': {
-      preLoaderRoute: typeof IngredientsImport
+    '/_auth': {
+      preLoaderRoute: typeof AuthImport
       parentRoute: typeof rootRoute
     }
     '/login': {
       preLoaderRoute: typeof LoginImport
       parentRoute: typeof rootRoute
     }
-    '/recipes': {
-      preLoaderRoute: typeof RecipesImport
-      parentRoute: typeof rootRoute
+    '/_auth/ingredients': {
+      preLoaderRoute: typeof AuthIngredientsImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/recipes': {
+      preLoaderRoute: typeof AuthRecipesImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/': {
+      preLoaderRoute: typeof AuthIndexImport
+      parentRoute: typeof AuthImport
     }
   }
 }
@@ -64,10 +74,12 @@ declare module '@tanstack/react-router' {
 // Create and export the route tree
 
 export const routeTree = rootRoute.addChildren([
-  IndexRoute,
-  IngredientsRoute,
+  AuthRoute.addChildren([
+    AuthIngredientsRoute,
+    AuthRecipesRoute,
+    AuthIndexRoute,
+  ]),
   LoginRoute,
-  RecipesRoute,
 ])
 
 /* prettier-ignore-end */

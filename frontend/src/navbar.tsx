@@ -16,11 +16,7 @@ export function Navbar() {
           <NavLink name={"Recipes"} to={"/recipes"} />
         </li>
         <li>
-          {user.data ? (
-            <NavLink name={user.data.name} to={"/login"} /> // TODO: somewhere else!
-          ) : (
-            <NavLink name={"Login"} to={"/login"} />
-          )}
+            <NavLink name={ user.data ? user.data.name : "Login"} to={"/login"} />
         </li>
       </ul>
     </nav>

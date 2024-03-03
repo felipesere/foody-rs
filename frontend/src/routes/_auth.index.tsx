@@ -3,7 +3,7 @@ import classnames from "classnames";
 import { useState } from "react";
 import { DottedLine } from "../misc/dottedLine.tsx";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_auth/")({
   component: ShoppingPage,
 });
 
