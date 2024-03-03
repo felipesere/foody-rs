@@ -1,6 +1,11 @@
+import { createFileRoute } from "@tanstack/react-router";
 import classnames from "classnames";
 import { useState } from "react";
-import { DottedLine } from "./misc/dottedLine.tsx";
+import { DottedLine } from "../misc/dottedLine.tsx";
+
+export const Route = createFileRoute("/")({
+  component: ShoppingPage,
+});
 
 export function ShoppingPage() {
   const ingredients = [
@@ -46,7 +51,6 @@ export function ShoppingPage() {
     </div>
   );
 }
-
 type Ingredient = {
   name: string;
   aisle: string;
@@ -58,11 +62,10 @@ type Part = {
   name: string;
   quantity: string;
 };
-
 function Ingredient({ ingredient }: { ingredient: Ingredient }) {
   const [open, setOpen] = useState(false);
-  const [checked, setChecked] = useState(false);
 
+  const [checked, setChecked] = useState(false);
   return (
     <li
       className={classnames(
@@ -133,7 +136,6 @@ function Ingredient({ ingredient }: { ingredient: Ingredient }) {
 type PartProps = {
   part: Part;
 };
-
 function Part(props: PartProps) {
   const [checked, setChecked] = useState(false);
   return (

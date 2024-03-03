@@ -1,7 +1,12 @@
 import { useForm } from "@tanstack/react-form";
+import { createFileRoute } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-form-adapter";
 import { z } from "zod";
-import { useLogin } from "./models/api.ts";
+import { useLogin } from "../models/api.ts";
+
+export const Route = createFileRoute("/login")({
+  component: LoginPage,
+});
 
 export function LoginPage() {
   const login = useLogin();
@@ -16,7 +21,6 @@ export function LoginPage() {
     },
     validatorAdapter: zodValidator,
   });
-
   return (
     <div className="content-grid">
       <h3>Login</h3>
