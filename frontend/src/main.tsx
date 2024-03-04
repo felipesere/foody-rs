@@ -13,7 +13,7 @@ const router = createRouter({
   context: {
     queryClient,
   },
-  routeTree
+  routeTree,
 });
 
 declare module "@tanstack/react-router" {
@@ -21,7 +21,6 @@ declare module "@tanstack/react-router" {
     router: typeof router;
   }
 }
-
 
 const rootElement = document.getElementById("root");
 if (rootElement && !rootElement.innerHTML) {

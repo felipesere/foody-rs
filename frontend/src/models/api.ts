@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 
 type LoginParms = { email: string; password: string };
@@ -43,8 +44,10 @@ export function useUser() {
   });
 }
 
-export function useLogin() {
+export function useLogin(params: { redirectTo: string | undefined }) {
   const client = useQueryClient();
+  const navigate = useNavigate();
+
   return useMutation({
     mutationFn: async (params: LoginParms) => {
       const response = await fetch("http://localhost:3000/api/auth/login", {
@@ -61,6 +64,9 @@ export function useLogin() {
     onSuccess: (value: LoginResponse, _) => {
       client.setQueryData(["user", "token"], value.token);
       void client.invalidateQueries({ queryKey: ["user", "profile"] });
+      if (params.redirectTo) {
+        navigate({ to: params.redirectTo, search: {} });
+      }
     },
   });
 }
