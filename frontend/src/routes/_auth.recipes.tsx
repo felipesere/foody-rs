@@ -31,6 +31,10 @@ type Quantity = {
   id: number;
 };
 
+export const Route = createFileRoute("/_auth/recipes")({
+  component: RecipesPage,
+});
+
 export function RecipesPage() {
   const recipes: Recipe[] = [
     {
@@ -803,7 +807,3 @@ function WebsiteSource(props: { url: string }) {
     </a>
   );
 }
-
-export const Route = createFileRoute("/recipes")({
-  component: RecipesPage,
-});

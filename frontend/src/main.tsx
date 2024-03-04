@@ -7,15 +7,20 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import "./index.css";
 import { routeTree } from "./routeTree.gen";
 
-const router = createRouter({ routeTree });
+const queryClient = new QueryClient();
+
+const router = createRouter({
+  context: {
+    queryClient,
+  },
+  routeTree,
+});
 
 declare module "@tanstack/react-router" {
   interface Register {
     router: typeof router;
   }
 }
-
-const queryClient = new QueryClient();
 
 const rootElement = document.getElementById("root");
 if (rootElement && !rootElement.innerHTML) {

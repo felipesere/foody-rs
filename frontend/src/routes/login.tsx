@@ -4,12 +4,19 @@ import { zodValidator } from "@tanstack/zod-form-adapter";
 import { z } from "zod";
 import { useLogin } from "../models/api.ts";
 
+const RedirectAfterLoginSchema = z.object({
+  redirect: z.string().optional(),
+});
+
 export const Route = createFileRoute("/login")({
   component: LoginPage,
+  validateSearch: RedirectAfterLoginSchema,
 });
 
 export function LoginPage() {
-  const login = useLogin();
+  const { redirect } = Route.useSearch();
+
+  const login = useLogin({ redirectTo: redirect });
 
   const form = useForm({
     defaultValues: {
