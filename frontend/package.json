@@ -14,7 +14,7 @@
     "@tanstack/react-form": "^0.13.6",
     "@tanstack/react-query": "^5.24.1",
     "@tanstack/react-query-devtools": "^5.24.1",
-    "@tanstack/react-router": "^1.3.5",
+    "@tanstack/react-router": "^1.18.3",
     "@tanstack/router-devtools": "^1.17.4",
     "@tanstack/router-vite-plugin": "^1.18.1",
     "@tanstack/zod-form-adapter": "^0.13.6",
