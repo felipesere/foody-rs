@@ -2,7 +2,7 @@ import { useForm } from "@tanstack/react-form";
 import { createFileRoute } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-form-adapter";
 import { z } from "zod";
-import { useLogin } from "../models/api.ts";
+import { useLogin, useLogout, useUser } from "../models/api.ts";
 
 const RedirectAfterLoginSchema = z.object({
   redirect: z.string().optional(),
@@ -14,6 +14,43 @@ export const Route = createFileRoute("/login")({
 });
 
 export function LoginPage() {
+  const { token } = Route.useRouteContext();
+  return (
+    <div className="content-grid">
+      {token ? <UserDetails token={token} /> : <Login />}
+    </div>
+  );
+}
+
+function UserDetails(props: { token: string }) {
+  const user = useUser(props.token);
+  const logout = useLogout();
+
+  const greeting = user.data ? (
+    <p>
+      Hello, <span className={"capitalize"}>{user.data.name}</span>!
+    </p>
+  ) : (
+    <p>Hello!</p>
+  );
+
+  return (
+    <div>
+      {greeting}
+      <button
+        disabled={!user.data}
+        className={"px-2"}
+        type={"submit"}
+        onClick={async () => {
+          await logout();
+        }}
+      >
+        Sign out
+      </button>
+    </div>
+  );
+}
+function Login() {
   const { redirect } = Route.useSearch();
 
   const login = useLogin({ redirectTo: redirect });

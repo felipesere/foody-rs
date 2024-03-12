@@ -1,11 +1,21 @@
 import { QueryClient } from "@tanstack/react-query";
 import { Outlet, createRootRouteWithContext } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
+import { loadToken } from "../models/api.ts";
 import { Navbar } from "../navbar.tsx";
 
-export const Route = createRootRouteWithContext<{
+type Context = {
   queryClient: QueryClient;
-}>()({
+};
+
+export const Route = createRootRouteWithContext<Context>()({
+  beforeLoad: () => {
+    const maybeToken = loadToken();
+
+    return {
+      token: maybeToken,
+    };
+  },
   component: () => {
     return (
       <>

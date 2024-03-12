@@ -21,15 +21,10 @@ const UserProfileSchema = z.object({
 
 export type UserProfile = z.infer<typeof UserProfileSchema>;
 
-export function useUser() {
-  const client = useQueryClient();
+export function useUser(token: string) {
   return useQuery({
-    queryKey: ["user", "profile"],
+    queryKey: ["user", "profile", token],
     queryFn: async () => {
-      const token = client.getQueryData(["user", "token"]);
-      if (!token) {
-        return null;
-      }
       console.log(`making a request with token: ${token}`);
       const response = await fetch("http://localhost:3000/api/user/current", {
         method: "GET",
@@ -49,7 +44,10 @@ export function useLogin(params: { redirectTo: string | undefined }) {
   const navigate = useNavigate();
 
   return useMutation({
+    mutationKey: ["user", "token"],
     mutationFn: async (params: LoginParms) => {
+      console.log("Doing a login...");
+      deleteToken();
       const response = await fetch("http://localhost:3000/api/auth/login", {
         body: JSON.stringify(params),
         method: "POST",
@@ -58,15 +56,46 @@ export function useLogin(params: { redirectTo: string | undefined }) {
           Accept: "application/json",
         },
       });
+      if (!response.ok) {
+        throw new Error("Login failed");
+      }
       const body = await response.json();
       return LoginResponseSchema.parse(body);
     },
     onSuccess: (value: LoginResponse, _) => {
-      client.setQueryData(["user", "token"], value.token);
       void client.invalidateQueries({ queryKey: ["user", "profile"] });
-      if (params.redirectTo) {
-        navigate({ to: params.redirectTo, search: {} });
-      }
+      saveToken(value.token);
+      client.setQueryData(["user", "token"], value.token);
+      navigate({ to: params.redirectTo || "/", search: {}, replace: true });
+    },
+    onError: (error, _variables) => {
+      console.log(`Failed to do the login: ${error}`);
     },
   });
+}
+
+export function useLogout(): () => Promise<void> {
+  const navigate = useNavigate();
+  console.log("preparing logout");
+  const queryClient = useQueryClient();
+  return async () => {
+    console.log("logging out...");
+    deleteToken();
+    await queryClient.setQueryData(["user", "token"], false);
+    await queryClient.invalidateQueries({ queryKey: ["user", "profile"] });
+    await navigate({ to: "/", replace: true });
+  };
+}
+
+// consider if we want to add a timestamp into this to
+// prevent storing it forever
+function saveToken(token: string) {
+  window.localStorage.setItem("__user_token", token);
+}
+
+function deleteToken() {
+  window.localStorage.removeItem("__user_token");
+}
+export function loadToken() {
+  return window.localStorage.getItem("__user_token");
 }

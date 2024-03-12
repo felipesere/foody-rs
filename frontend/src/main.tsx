@@ -3,11 +3,33 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 
+import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { persistQueryClient } from "@tanstack/react-query-persist-client";
 import "./index.css";
 import { routeTree } from "./routeTree.gen";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      gcTime: 1000 * 60 * 60 * 24 * 7, // 1week
+    },
+  },
+});
+
+const localStoragePersister = createSyncStoragePersister({
+  storage: window.localStorage,
+});
+
+persistQueryClient({
+  queryClient,
+  persister: localStoragePersister,
+  dehydrateOptions: {
+    shouldDehydrateQuery: (query) => {
+      return query.meta?.persist || false;
+    },
+  },
+});
 
 const router = createRouter({
   context: {
@@ -20,6 +42,14 @@ declare module "@tanstack/react-router" {
   interface Register {
     router: typeof router;
   }
+}
+
+interface Meta {
+  persist?: boolean;
+}
+
+declare module "@tanstack/react-query" {
+  interface QueryMeta extends Meta {}
 }
 
 const rootElement = document.getElementById("root");
