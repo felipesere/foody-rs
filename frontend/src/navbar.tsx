@@ -1,8 +1,11 @@
-import { Link, LinkProps } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
+import type { LinkProps } from "@tanstack/react-router";
 import { useUser } from "./models/api.ts";
+import { Route as RootRoute } from "./routes/__root.tsx";
 
 export function Navbar() {
-  const user = useUser();
+  const { token } = RootRoute.useRouteContext();
+
   return (
     <nav className="content-grid pt-4 border-solid border-black border-b-2 dotted-bg">
       <ul className="mb-4 flex flex-row justify-between">
@@ -16,14 +19,27 @@ export function Navbar() {
           <NavLink name={"Recipes"} to={"/recipes"} />
         </li>
         <li>
-          <NavLink name={user.data ? user.data.name : "Login"} to={"/login"} />
+          {token ? (
+            <UserOrLogin token={token} />
+          ) : (
+            <NavLink name={"Login"} to={"/login"} />
+          )}
         </li>
       </ul>
     </nav>
   );
 }
 
-function NavLink(params: { name: string; to: LinkProps["to"] }) {
+function UserOrLogin(props: { token: string }) {
+  const user = useUser(props.token);
+  return <NavLink name={user.data ? user.data.name : "Login"} to={"/login"} />;
+}
+
+function NavLink(params: {
+  name: string;
+  to: LinkProps["to"];
+  className?: LinkProps["className"];
+}) {
   return (
     <Link
       activeProps={{
@@ -32,7 +48,7 @@ function NavLink(params: { name: string; to: LinkProps["to"] }) {
       inactiveProps={{
         className: "bg-white hover:bg-gray-100",
       }}
-      className="p-2 text-black border-black border-2 border-solid uppercase"
+      className={`p-2 text-black border-black border-2 border-solid uppercase ${params.className}`}
       to={params.to}
     >
       {params.name}

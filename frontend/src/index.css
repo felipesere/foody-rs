@@ -115,4 +115,3 @@ input[type="button"]:disabled {
     background-size: calc(var(--density) * 1px) calc(var(--density) * 1px);
     background-position: calc(var(--density) * -0.5px) calc(var(--density) * -0.5px);
 }
-
