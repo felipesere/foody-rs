@@ -1,4 +1,5 @@
-import { Link, LinkProps } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
+import type { LinkProps } from "@tanstack/react-router";
 import { useUser } from "./models/api.ts";
 import { Route as RootRoute } from "./routes/__root.tsx";
 
