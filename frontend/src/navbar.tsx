@@ -31,12 +31,7 @@ export function Navbar() {
 
 function UserOrLogin(props: { token: string }) {
   const user = useUser(props.token);
-  return (
-    <NavLink
-      name={user.data ? user.data.name : "Login"}
-      to={"/login"}
-    />
-  );
+  return <NavLink name={user.data ? user.data.name : "Login"} to={"/login"} />;
 }
 
 function NavLink(params: {
