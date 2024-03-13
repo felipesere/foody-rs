@@ -33,7 +33,6 @@ function UserOrLogin(props: { token: string }) {
   const user = useUser(props.token);
   return (
     <NavLink
-      className={user.isLoading ? "absolute spinner" : ""}
       name={user.data ? user.data.name : "Login"}
       to={"/login"}
     />
