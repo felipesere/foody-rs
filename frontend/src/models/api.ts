@@ -61,7 +61,11 @@ export function useLogin(params: { redirectTo: string | undefined }) {
     onSuccess: async (value: LoginResponse, _) => {
       await client.invalidateQueries({ queryKey: ["user", "profile"] });
       saveToken(value.token);
-      return navigate({ to: params.redirectTo || "/", search: {}, replace: true })
+      return navigate({
+        to: params.redirectTo || "/",
+        search: {},
+        replace: true,
+      });
     },
     onError: (error, _variables) => {
       console.log(`Failed to do the login: ${error}`);
