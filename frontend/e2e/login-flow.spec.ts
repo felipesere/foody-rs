@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test('can do login and redirect back to starting page', async ({ page }) => {
     // No clue how to correctly parametrise this...
-    await page.goto('http://localhost:3000/');
+    await page.goto('/');
 
     await page.getByText("Recipes").click();
 
