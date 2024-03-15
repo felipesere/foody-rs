@@ -13,11 +13,14 @@ const LoginResponseSchema = z.object({
 
 export type LoginResponse = z.infer<typeof LoginResponseSchema>;
 
-const UserProfileSchema = z.object({
+export const UserProfileSchema = z.object({
   email: z.string(),
   name: z.string(),
   pid: z.string(),
 });
+
+
+export type UserProfile = z.infer<typeof UserProfileSchema>
 
 export function useUser(token: string) {
   return useQuery({
