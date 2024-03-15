@@ -13,17 +13,19 @@ const LoginResponseSchema = z.object({
 
 export type LoginResponse = z.infer<typeof LoginResponseSchema>;
 
-const UserProfileSchema = z.object({
+export const UserProfileSchema = z.object({
   email: z.string(),
   name: z.string(),
   pid: z.string(),
 });
 
+export type UserProfile = z.infer<typeof UserProfileSchema>;
+
 export function useUser(token: string) {
   return useQuery({
     queryKey: ["user", "profile", token],
     queryFn: async () => {
-      const response = await fetch("http://localhost:3000/api/user/current", {
+      const response = await fetch("/api/user/current", {
         method: "GET",
         headers: {
           Accept: "application/json",
@@ -44,7 +46,7 @@ export function useLogin(params: { redirectTo: string | undefined }) {
     mutationKey: ["user", "token"],
     mutationFn: async (params: LoginParams) => {
       deleteToken();
-      const response = await fetch("http://localhost:3000/api/auth/login", {
+      const response = await fetch("/api/auth/login", {
         body: JSON.stringify(params),
         method: "POST",
         headers: {
