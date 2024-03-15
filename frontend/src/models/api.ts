@@ -19,8 +19,7 @@ export const UserProfileSchema = z.object({
   pid: z.string(),
 });
 
-
-export type UserProfile = z.infer<typeof UserProfileSchema>
+export type UserProfile = z.infer<typeof UserProfileSchema>;
 
 export function useUser(token: string) {
   return useQuery({
