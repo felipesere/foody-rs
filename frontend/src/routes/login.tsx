@@ -2,7 +2,7 @@ import { useForm } from "@tanstack/react-form";
 import { createFileRoute } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-form-adapter";
 import { z } from "zod";
-import { useLogin, useLogout, useUser } from "../models/api.ts";
+import { useLogin, useLogout, useUser } from "../apis/user.ts";
 
 const RedirectAfterLoginSchema = z.object({
   redirect: z.string().optional(),

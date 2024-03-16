@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { LinkProps } from "@tanstack/react-router";
-import { useUser } from "./models/api.ts";
+import { useUser } from "./apis/user.ts";
 import { Route as RootRoute } from "./routes/__root.tsx";
 
 export function Navbar() {

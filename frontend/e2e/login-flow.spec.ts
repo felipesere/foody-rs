@@ -1,5 +1,5 @@
 import {test, expect, Page} from '@playwright/test';
-import {LoginResponse, UserProfile} from "../src/models/api";
+import {LoginResponse, UserProfile} from "../src/apis/user";
 
 test('can do login and redirect back to starting page', async ({ page }) => {
     const jim = {

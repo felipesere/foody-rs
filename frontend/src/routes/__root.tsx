@@ -1,7 +1,7 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { Outlet, createRootRouteWithContext } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
-import { loadToken } from "../models/api.ts";
+import { loadToken } from "../apis/user.ts";
 import { Navbar } from "../navbar.tsx";
 
 type Context = {
