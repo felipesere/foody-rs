@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useAllIngredients, Ingredient } from "../apis/ingredients.ts";
+import { Ingredient, useAllIngredients } from "../apis/ingredients.ts";
 
 export const Route = createFileRoute("/_auth/ingredients")({
   component: IngredientsPage,
@@ -9,7 +9,6 @@ function IngredientsPage() {
   const { token } = Route.useRouteContext();
   const { data: ingredients } = useAllIngredients(token);
 
-  console.log(ingredients)
   return (
     <div className="content-grid">
       <ul className="grid gap-4">
