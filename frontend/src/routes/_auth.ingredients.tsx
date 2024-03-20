@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Ingredient, useAllIngredients } from "../apis/ingredients.ts";
+import { type Ingredient, useAllIngredients } from "../apis/ingredients.ts";
 
 export const Route = createFileRoute("/_auth/ingredients")({
   component: IngredientsPage,

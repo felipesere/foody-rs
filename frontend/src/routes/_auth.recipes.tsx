@@ -2,10 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import classnames from "classnames";
 import { useState } from "react";
 import {
-  Book,
-  Ingredient,
-  Recipe,
-  Website,
+  type Book,
+  type Ingredient,
+  type Recipe,
+  type Website,
   useAllRecipes,
 } from "../apis/recipes.ts";
 import { DottedLine } from "../misc/dottedLine.tsx";
