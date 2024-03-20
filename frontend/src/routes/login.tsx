@@ -1,5 +1,5 @@
 import { useForm } from "@tanstack/react-form";
-import { createFileRoute } from "@tanstack/react-router";
+import { type LinkProps, createFileRoute } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-form-adapter";
 import { z } from "zod";
 import { useLogin, useLogout, useUser } from "../apis/user.ts";
@@ -53,7 +53,8 @@ function UserDetails(props: { token: string }) {
 function Login() {
   const { redirect } = Route.useSearch();
 
-  const login = useLogin({ redirectTo: redirect });
+  // this `as` cast is a bit gnarly but I don't know how to automatically derive a zod validator
+  const login = useLogin({ redirectTo: redirect as LinkProps["to"] });
 
   const form = useForm({
     defaultValues: {

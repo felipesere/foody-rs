@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+import type { LinkProps } from "@tanstack/react-router";
 import { z } from "zod";
 
 type LoginParams = { email: string; password: string };
@@ -38,7 +39,7 @@ export function useUser(token: string) {
   });
 }
 
-export function useLogin(params: { redirectTo: string | undefined }) {
+export function useLogin(params: { redirectTo: LinkProps["to"] | undefined }) {
   const client = useQueryClient();
   const navigate = useNavigate();
 
