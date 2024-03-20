@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{collections::HashMap, fs::File, path::Path};
 
 use async_trait::async_trait;
 use loco_rs::{
@@ -12,7 +12,10 @@ use loco_rs::{
     Result,
 };
 use migration::Migrator;
-use sea_orm::{ConnectionTrait, DatabaseConnection, DbBackend, Statement};
+use sea_orm::{
+    ActiveModelBehavior, ActiveModelTrait, ActiveValue, ConnectionTrait, DatabaseConnection,
+    DbBackend, Statement,
+};
 
 use crate::{
     controllers,
@@ -77,58 +80,119 @@ impl Hooks for App {
     }
 
     async fn seed(db: &DatabaseConnection, base: &Path) -> Result<()> {
-        db::seed::<users::ActiveModel>(db, &base.join("users.yaml").display().to_string()).await?;
-        db::seed::<notes::ActiveModel>(db, &base.join("notes.yaml").display().to_string()).await?;
-        db::seed::<quantities::ActiveModel>(
-            db,
-            &base.join("quantities.yaml").display().to_string(),
-        )
-        .await?;
-        db::seed::<ingredients::ActiveModel>(
-            db,
-            &base.join("ingredients.yaml").display().to_string(),
-        )
-        .await?;
-        db::seed::<shoppinglists::ActiveModel>(
-            db,
-            &base.join("shoppinglists.yaml").display().to_string(),
-        )
-        .await?;
-        db::seed::<recipes::ActiveModel>(db, &base.join("recipes.yaml").display().to_string())
-            .await?;
-        db::seed::<ingredients_in_shoppinglists::ActiveModel>(
-            db,
-            &base
-                .join("ingredients_in_shoppinglists.yaml")
-                .display()
-                .to_string(),
-        )
-        .await?;
-        db::seed::<ingredients_in_recipes::ActiveModel>(
-            db,
-            &base
-                .join("ingredients_in_recipes.yaml")
-                .display()
-                .to_string(),
-        )
-        .await?;
+        #[derive(serde::Deserialize)]
+        struct Quantity {
+            unit: String,
+            value: Option<f32>,
+            text: Option<String>,
+        }
 
-        for table in [
-            "users",
-            "notes",
-            "ingredients_in_shoppinglists",
-            "ingredients_in_recipes",
-            "quantities",
-            "ingredients",
-            "shoppinglists",
-            "recipes",
-        ] {
+        #[derive(serde::Deserialize)]
+        struct Recipe {
+            name: String,
+            source: String,
+            book_page: Option<i32>,
+            book_title: Option<String>,
+            website_url: Option<String>,
+            ingredients: HashMap<String, Quantity>,
+        }
+
+        #[derive(serde::Deserialize)]
+        struct ListItem {
+            in_basket: bool,
+            unit: String,
+            value: Option<f32>,
+            text: Option<String>,
+        }
+
+        #[derive(serde::Deserialize)]
+        struct Data {
+            recipes: Vec<Recipe>,
+            ingredients: Vec<String>,
+            shoppinglists: HashMap<String, HashMap<String, ListItem>>,
+        }
+
+        let data_yaml = File::open(base.join("data.yaml"))?;
+        let data: Data = serde_yaml::from_reader(data_yaml)?;
+
+        use ActiveValue as AV;
+        let mut ingredients = HashMap::new();
+        for ingredient in data.ingredients {
+            let mut i = ingredients::ActiveModel::new();
+            i.name = AV::set(ingredient);
+            let i = i.insert(db).await?;
+            ingredients.insert(i.name.clone(), i);
+        }
+
+        for recipe in data.recipes {
+            let mut model = recipes::ActiveModel::new();
+            model.name = AV::set(recipe.name);
+            model.book_title = recipe
+                .book_title
+                .map_or_else(AV::not_set, |bt| AV::set(Some(bt)));
+            model.book_page = recipe
+                .book_page
+                .map_or_else(AV::not_set, |p| AV::set(Some(p)));
+            model.website_url = recipe
+                .website_url
+                .map_or_else(AV::not_set, |w| AV::set(Some(w)));
+            model.source = AV::set(recipe.source);
+            let model = model.insert(db).await.unwrap();
+
+            for (name, quantity) in recipe.ingredients {
+                let mut q = quantities::ActiveModel::new();
+                q.value = quantity
+                    .value
+                    .map_or_else(AV::not_set, |v| AV::set(Some(v)));
+                q.text = quantity.text.map_or_else(AV::not_set, |t| AV::set(Some(t)));
+                q.unit = AV::set(quantity.unit);
+                let quantity = q.insert(db).await.unwrap();
+
+                let mut in_recipe = ingredients_in_recipes::ActiveModel::new();
+                in_recipe.ingredients_id = AV::set(ingredients[&name].id);
+                in_recipe.quantities_id = AV::set(quantity.id);
+                in_recipe.recipes_id = AV::set(model.id);
+                in_recipe.insert(db).await.unwrap();
+            }
+        }
+
+        for (name, is) in data.shoppinglists {
+            let mut model = shoppinglists::ActiveModel::new();
+            model.name = AV::set(name);
+            let model = model.insert(db).await.unwrap();
+
+            for (name, quantity) in is {
+                let mut q = quantities::ActiveModel::new();
+                q.value = quantity
+                    .value
+                    .map_or_else(AV::not_set, |v| AV::set(Some(v)));
+                q.text = quantity.text.map_or_else(AV::not_set, |t| AV::set(Some(t)));
+                q.unit = AV::set(quantity.unit);
+                let q = q.insert(db).await.unwrap();
+
+                let mut iis = ingredients_in_shoppinglists::ActiveModel::new();
+                iis.in_basket = AV::set(quantity.in_basket);
+                iis.quantities_id = AV::set(q.id);
+
+                if !ingredients.contains_key(&name) {
+                    panic!("{name} not an ingredient");
+                }
+
+                iis.ingredients_id = AV::set(ingredients[&name].id);
+                iis.shoppinglists_id = AV::set(model.id);
+                iis.insert(db).await.unwrap();
+            }
+        }
+
+        db::seed::<users::ActiveModel>(db, &base.join("users.yaml").display().to_string()).await?;
+        for table in ["users"] {
             db.query_one(Statement::from_string(
                 DbBackend::Postgres,
                 format!("SELECT setval('{table}_id_seq', (SELECT MAX(id) FROM {table}))"),
             ))
             .await?;
         }
+        db::seed::<notes::ActiveModel>(db, &base.join("notes.yaml").display().to_string()).await?;
 
         Ok(())
     }

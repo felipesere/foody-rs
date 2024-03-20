@@ -33,146 +33,148 @@ async fn can_list_current_shoppinglists() {
         let res = request.get("/api/shoppinglists").await;
 
         assert_eq!(res.status_code(), 200);
-        assert_json_snapshot!(res.json::<serde_json::Value>(), @r###"
+        assert_json_snapshot!(res.json::<serde_json::Value>(),
+        {
+            ".**.id" => "[redacted]",
+            ".**.last_updated" => "[redacted]",
+            ".shoppinglists" => insta::sorted_redaction(),
+        },
+
+        @r###"
         {
           "shoppinglists": [
             {
-              "id": 1,
+              "id": "[redacted]",
+              "ingredients": [],
+              "last_updated": "[redacted]",
+              "name": "Regular salad shop"
+            },
+            {
+              "id": "[redacted]",
               "ingredients": [
                 {
-                  "id": 1,
-                  "in_basket": false,
-                  "name": "red onion",
-                  "quantities": [
-                    {
-                      "id": 1,
-                      "unit": "count",
-                      "value": 1.0
-                    }
-                  ]
-                },
-                {
-                  "id": 5,
-                  "in_basket": false,
-                  "name": "chorizo",
-                  "quantities": [
-                    {
-                      "id": 5,
-                      "unit": "grams",
-                      "value": 150.0
-                    }
-                  ]
-                },
-                {
-                  "id": 6,
-                  "in_basket": false,
-                  "name": "saffron",
-                  "quantities": [
-                    {
-                      "id": 6,
-                      "text": "1 pinch",
-                      "unit": "arbitrary"
-                    }
-                  ]
-                },
-                {
-                  "id": 8,
-                  "in_basket": false,
-                  "name": "paella rice",
-                  "quantities": [
-                    {
-                      "id": 7,
-                      "unit": "grams",
-                      "value": 250.0
-                    }
-                  ]
-                },
-                {
-                  "id": 9,
+                  "id": "[redacted]",
                   "in_basket": false,
                   "name": "chicken stock",
                   "quantities": [
                     {
-                      "id": 8,
+                      "id": "[redacted]",
                       "unit": "millilitre",
                       "value": 600.0
                     }
                   ]
                 },
                 {
-                  "id": 10,
+                  "id": "[redacted]",
+                  "in_basket": false,
+                  "name": "chicken thighs",
+                  "quantities": [
+                    {
+                      "id": "[redacted]",
+                      "unit": "count",
+                      "value": 6.0
+                    }
+                  ]
+                },
+                {
+                  "id": "[redacted]",
+                  "in_basket": false,
+                  "name": "chorizo",
+                  "quantities": [
+                    {
+                      "id": "[redacted]",
+                      "unit": "grams",
+                      "value": 150.0
+                    }
+                  ]
+                },
+                {
+                  "id": "[redacted]",
+                  "in_basket": false,
+                  "name": "garlic",
+                  "quantities": [
+                    {
+                      "id": "[redacted]",
+                      "unit": "count",
+                      "value": 2.0
+                    }
+                  ]
+                },
+                {
+                  "id": "[redacted]",
                   "in_basket": false,
                   "name": "lemon",
                   "quantities": [
                     {
-                      "id": 9,
+                      "id": "[redacted]",
                       "unit": "count",
                       "value": 1.0
                     }
                   ]
                 },
                 {
-                  "id": 13,
+                  "id": "[redacted]",
                   "in_basket": false,
-                  "name": "red pepper",
+                  "name": "paella rice",
                   "quantities": [
                     {
-                      "id": 2,
-                      "unit": "count",
-                      "value": 2.0
+                      "id": "[redacted]",
+                      "unit": "grams",
+                      "value": 250.0
                     }
                   ]
                 },
                 {
-                  "id": 17,
-                  "in_basket": false,
-                  "name": "garlic",
-                  "quantities": [
-                    {
-                      "id": 3,
-                      "unit": "count",
-                      "value": 2.0
-                    }
-                  ]
-                },
-                {
-                  "id": 24,
+                  "id": "[redacted]",
                   "in_basket": false,
                   "name": "parsley",
                   "quantities": [
                     {
-                      "id": 10,
+                      "id": "[redacted]",
                       "unit": "gram",
                       "value": 20.0
-                    },
-                    {
-                      "id": 11,
-                      "unit": "gram",
-                      "value": 333.0
                     }
                   ]
                 },
                 {
-                  "id": 49,
+                  "id": "[redacted]",
                   "in_basket": false,
-                  "name": "chicken thighs",
+                  "name": "red onion",
                   "quantities": [
                     {
-                      "id": 4,
+                      "id": "[redacted]",
                       "unit": "count",
-                      "value": 6.0
+                      "value": 1.0
+                    }
+                  ]
+                },
+                {
+                  "id": "[redacted]",
+                  "in_basket": false,
+                  "name": "red pepper",
+                  "quantities": [
+                    {
+                      "id": "[redacted]",
+                      "unit": "count",
+                      "value": 2.0
+                    }
+                  ]
+                },
+                {
+                  "id": "[redacted]",
+                  "in_basket": false,
+                  "name": "saffron",
+                  "quantities": [
+                    {
+                      "id": "[redacted]",
+                      "text": "1 pinch",
+                      "unit": "arbitrary"
                     }
                   ]
                 }
               ],
-              "last_updated": "2023-11-12T12:34:56",
+              "last_updated": "[redacted]",
               "name": "Mondays"
-            },
-            {
-              "id": 2,
-              "ingredients": [],
-              "last_updated": "2023-11-12T12:34:56",
-              "name": "Regular salad shop"
             }
           ]
         }
@@ -187,11 +189,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
     testing::request::<App, _, _>(|mut request, ctx| async move {
         testing::seed::<App>(&ctx.db).await.unwrap();
 
-        let token = auth_token(&ctx).await;
-        request.add_header(
-            header::AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {token}")).unwrap(),
-        );
+        prepare_data::authenticated(&mut request, &ctx).await;
 
         // Create a new shoppinglist that we can add things to...
         let res = request
@@ -204,10 +202,11 @@ async fn create_a_shoppinglist_and_add_ingredients() {
         assert_json_snapshot!(created_shoppinglist,
         {
             ".last_updated" => "[date]",
+            ".id" => "[redacted]",
         },
         @r###"
         {
-          "id": 3,
+          "id": "[redacted]",
           "ingredients": [],
           "last_updated": "[date]",
           "name": "testing-shopping-list"
@@ -233,21 +232,31 @@ async fn create_a_shoppinglist_and_add_ingredients() {
         // ...and see that they show up on the list
         let res = request.get(&format!("/api/shoppinglists/{id}")).await;
         assert_eq!(res.status_code(), 200);
-        assert_json_snapshot!(res.json::<serde_json::Value>(),
+
+        let list = res.json::<serde_json::Value>();
+        let bananas = list
+            .get("ingredients")
+            .and_then(|v| v.as_array())
+            .and_then(|ingredients| ingredients.get(0))
+            .and_then(|bananas| bananas.get("id"))
+            .and_then(|id| id.as_i64())
+            .unwrap();
+        assert_json_snapshot!(&list,
         {
             ".last_updated" => "[date]",
+            ".**.id" => "[redactored]",
         },
         @r###"
         {
-          "id": 3,
+          "id": "[redactored]",
           "ingredients": [
             {
-              "id": 52,
+              "id": "[redactored]",
               "in_basket": false,
               "name": "bananas",
               "quantities": [
                 {
-                  "id": 16,
+                  "id": "[redactored]",
                   "unit": "count",
                   "value": 10.0
                 }
@@ -260,10 +269,9 @@ async fn create_a_shoppinglist_and_add_ingredients() {
         "###);
 
         // then we mark the ingredient as being in the basket
-        let ingredient_id = 52;
         let res = request
             .post(&format!(
-                "/api/shoppinglists/{id}/ingredient/{ingredient_id}/in_basket"
+                "/api/shoppinglists/{id}/ingredient/{bananas}/in_basket"
             ))
             .json(&json!({
                 "in_basket": true
@@ -276,18 +284,19 @@ async fn create_a_shoppinglist_and_add_ingredients() {
         assert_json_snapshot!(res.json::<serde_json::Value>(),
         {
             ".last_updated" => "[date]",
+            ".**.id" => "[redactored]",
         },
         @r###"
         {
-          "id": 3,
+          "id": "[redactored]",
           "ingredients": [
             {
-              "id": 52,
+              "id": "[redactored]",
               "in_basket": true,
               "name": "bananas",
               "quantities": [
                 {
-                  "id": 16,
+                  "id": "[redactored]",
                   "unit": "count",
                   "value": 10.0
                 }
@@ -299,9 +308,25 @@ async fn create_a_shoppinglist_and_add_ingredients() {
         }
         "###);
 
-        let recipe_id = 1;
+        let res = request.get(&format!("/api/recipes")).await;
+        assert_eq!(res.status_code(), 200);
+        let recipes = res.json::<serde_json::Value>();
+        let leek_and_potato_id = recipes
+            .get("recipes")
+            .and_then(|recipes| recipes.as_array())
+            .and_then(|recipes| {
+                recipes.iter().find(|r| {
+                    r.get("name").and_then(|n| n.as_str()) == Some("leek and parmesan tart")
+                })
+            })
+            .and_then(|r| r.get("id"))
+            .and_then(|id| id.as_i64())
+            .unwrap();
+
         let res = request
-            .post(&format!("/api/shoppinglists/{id}/recipe/{recipe_id}"))
+            .post(&format!(
+                "/api/shoppinglists/{id}/recipe/{leek_and_potato_id}"
+            ))
             .await;
         assert_eq!(res.status_code(), 200);
 
@@ -310,68 +335,69 @@ async fn create_a_shoppinglist_and_add_ingredients() {
         assert_json_snapshot!(res.json::<serde_json::Value>(),
         {
             ".last_updated" => "[date]",
+            ".**.id" => "[redacted]",
         },
         @r###"
         {
-          "id": 3,
+          "id": "[redacted]",
           "ingredients": [
             {
-              "id": 1,
-              "in_basket": false,
-              "name": "red onion",
+              "id": "[redacted]",
+              "in_basket": true,
+              "name": "bananas",
               "quantities": [
                 {
-                  "id": 17,
+                  "id": "[redacted]",
+                  "unit": "count",
+                  "value": 10.0
+                }
+              ]
+            },
+            {
+              "id": "[redacted]",
+              "in_basket": false,
+              "name": "double cream",
+              "quantities": [
+                {
+                  "id": "[redacted]",
+                  "unit": "tablespoon",
+                  "value": 2.0
+                }
+              ]
+            },
+            {
+              "id": "[redacted]",
+              "in_basket": false,
+              "name": "leeks",
+              "quantities": [
+                {
+                  "id": "[redacted]",
+                  "text": "3 small",
+                  "unit": "arbitrary"
+                }
+              ]
+            },
+            {
+              "id": "[redacted]",
+              "in_basket": false,
+              "name": "parmesan shavings",
+              "quantities": [
+                {
+                  "id": "[redacted]",
                   "unit": "gram",
                   "value": 100.0
                 }
               ]
             },
             {
-              "id": 13,
+              "id": "[redacted]",
               "in_basket": false,
-              "name": "red pepper",
+              "name": "puff pastry",
               "quantities": [
                 {
-                  "id": 18,
-                  "unit": "gram",
-                  "value": 200.0
-                }
-              ]
-            },
-            {
-              "id": 17,
-              "in_basket": false,
-              "name": "garlic",
-              "quantities": [
-                {
-                  "id": 19,
-                  "unit": "gram",
-                  "value": 300.0
-                }
-              ]
-            },
-            {
-              "id": 49,
-              "in_basket": false,
-              "name": "chicken thighs",
-              "quantities": [
-                {
-                  "id": 20,
-                  "unit": "gram",
-                  "value": 400.0
-                }
-              ]
-            },
-            {
-              "id": 52,
-              "in_basket": true,
-              "name": "bananas",
-              "quantities": [
-                {
-                  "id": 16,
-                  "unit": "count",
-                  "value": 10.0
+                  "id": "[redacted]",
+                  "text": "1 sheet",
+                  "unit": "arbitrary"
                 }
               ]
             }
@@ -391,59 +417,61 @@ async fn create_a_shoppinglist_and_add_ingredients() {
 
         let res = request.get(&format!("/api/shoppinglists/{id}")).await;
         assert_eq!(res.status_code(), 200);
-        assert_json_snapshot!(res.json::<serde_json::Value>(),
+        let list = res.json::<serde_json::Value>();
+        assert_json_snapshot!(list,
         {
             ".last_updated" => "[date]",
+            ".**.id" => "[redactor]",
         },
         @r###"
         {
-          "id": 3,
+          "id": "[redactor]",
           "ingredients": [
             {
-              "id": 1,
+              "id": "[redactor]",
               "in_basket": false,
-              "name": "red onion",
+              "name": "double cream",
               "quantities": [
                 {
-                  "id": 17,
+                  "id": "[redactor]",
+                  "unit": "tablespoon",
+                  "value": 2.0
+                }
+              ]
+            },
+            {
+              "id": "[redactor]",
+              "in_basket": false,
+              "name": "leeks",
+              "quantities": [
+                {
+                  "id": "[redactor]",
+                  "text": "3 small",
+                  "unit": "arbitrary"
+                }
+              ]
+            },
+            {
+              "id": "[redactor]",
+              "in_basket": false,
+              "name": "parmesan shavings",
+              "quantities": [
+                {
+                  "id": "[redactor]",
                   "unit": "gram",
                   "value": 100.0
                 }
               ]
             },
             {
-              "id": 13,
+              "id": "[redactor]",
               "in_basket": false,
-              "name": "red pepper",
+              "name": "puff pastry",
               "quantities": [
                 {
-                  "id": 18,
-                  "unit": "gram",
-                  "value": 200.0
-                }
-              ]
-            },
-            {
-              "id": 17,
-              "in_basket": false,
-              "name": "garlic",
-              "quantities": [
-                {
-                  "id": 19,
-                  "unit": "gram",
-                  "value": 300.0
-                }
-              ]
-            },
-            {
-              "id": 49,
-              "in_basket": false,
-              "name": "chicken thighs",
-              "quantities": [
-                {
-                  "id": 20,
-                  "unit": "gram",
-                  "value": 400.0
+                  "id": "[redactor]",
+                  "text": "1 sheet",
+                  "unit": "arbitrary"
                 }
               ]
             }
@@ -453,8 +481,22 @@ async fn create_a_shoppinglist_and_add_ingredients() {
         }
         "###);
 
+        let parmesan_shavings = list
+            .get("ingredients")
+            .and_then(|ingredients| ingredients.as_array())
+            .and_then(|ingredients| {
+                ingredients.iter().find(|i| {
+                    i.get("name").and_then(|name| name.as_str()) == Some("parmesan shavings")
+                })
+            })
+            .and_then(|parmesan| parmesan.get("id"))
+            .and_then(|id| id.as_i64())
+            .unwrap();
+
         let res = request
-            .post(&format!("/api/shoppinglists/{id}/ingredient/49/quantity"))
+            .post(&format!(
+                "/api/shoppinglists/{id}/ingredient/{parmesan_shavings}/quantity"
+            ))
             .json(&json!({
                 "quantity": "3.5 kg",
             }))
@@ -466,61 +508,62 @@ async fn create_a_shoppinglist_and_add_ingredients() {
         assert_json_snapshot!(res.json::<serde_json::Value>(),
         {
             ".last_updated" => "[date]",
+            ".**.id" => "[redacted]",
         },
         @r###"
         {
-          "id": 3,
+          "id": "[redacted]",
           "ingredients": [
             {
-              "id": 1,
+              "id": "[redacted]",
               "in_basket": false,
-              "name": "red onion",
+              "name": "double cream",
               "quantities": [
                 {
-                  "id": 17,
+                  "id": "[redacted]",
+                  "unit": "tablespoon",
+                  "value": 2.0
+                }
+              ]
+            },
+            {
+              "id": "[redacted]",
+              "in_basket": false,
+              "name": "leeks",
+              "quantities": [
+                {
+                  "id": "[redacted]",
+                  "text": "3 small",
+                  "unit": "arbitrary"
+                }
+              ]
+            },
+            {
+              "id": "[redacted]",
+              "in_basket": false,
+              "name": "parmesan shavings",
+              "quantities": [
+                {
+                  "id": "[redacted]",
                   "unit": "gram",
                   "value": 100.0
-                }
-              ]
-            },
-            {
-              "id": 13,
-              "in_basket": false,
-              "name": "red pepper",
-              "quantities": [
-                {
-                  "id": 18,
-                  "unit": "gram",
-                  "value": 200.0
-                }
-              ]
-            },
-            {
-              "id": 17,
-              "in_basket": false,
-              "name": "garlic",
-              "quantities": [
-                {
-                  "id": 19,
-                  "unit": "gram",
-                  "value": 300.0
-                }
-              ]
-            },
-            {
-              "id": 49,
-              "in_basket": false,
-              "name": "chicken thighs",
-              "quantities": [
-                {
-                  "id": 20,
-                  "unit": "gram",
-                  "value": 400.0
                 },
                 {
-                  "id": 21,
+                  "id": "[redacted]",
                   "unit": "kilogram",
                   "value": 3.5
+                }
+              ]
+            },
+            {
+              "id": "[redacted]",
+              "in_basket": false,
+              "name": "puff pastry",
+              "quantities": [
+                {
+                  "id": "[redacted]",
+                  "text": "1 sheet",
+                  "unit": "arbitrary"
                 }
               ]
             }
@@ -540,56 +583,62 @@ async fn create_a_shoppinglist_and_add_ingredients() {
         assert_json_snapshot!(res.json::<serde_json::Value>(),
         {
             ".last_updated" => "[date]",
+            ".**.id" => "[redacted]",
         },
         @r###"
         {
-          "id": 3,
+          "id": "[redacted]",
           "ingredients": [
             {
-              "id": 1,
+              "id": "[redacted]",
               "in_basket": false,
-              "name": "red onion",
+              "name": "double cream",
               "quantities": [
                 {
-                  "id": 17,
+                  "id": "[redacted]",
+                  "unit": "tablespoon",
+                  "value": 2.0
+                }
+              ]
+            },
+            {
+              "id": "[redacted]",
+              "in_basket": false,
+              "name": "leeks",
+              "quantities": [
+                {
+                  "id": "[redacted]",
+                  "text": "3 small",
+                  "unit": "arbitrary"
+                }
+              ]
+            },
+            {
+              "id": "[redacted]",
+              "in_basket": false,
+              "name": "parmesan shavings",
+              "quantities": [
+                {
+                  "id": "[redacted]",
                   "unit": "gram",
                   "value": 100.0
+                },
+                {
+                  "id": "[redacted]",
+                  "unit": "kilogram",
+                  "value": 3.5
                 }
               ]
             },
             {
-              "id": 13,
+              "id": "[redacted]",
               "in_basket": false,
-              "name": "red pepper",
+              "name": "puff pastry",
               "quantities": [
                 {
-                  "id": 18,
-                  "unit": "gram",
-                  "value": 200.0
-                }
-              ]
-            },
-            {
-              "id": 17,
-              "in_basket": false,
-              "name": "garlic",
-              "quantities": [
-                {
-                  "id": 19,
-                  "unit": "gram",
-                  "value": 300.0
-                }
-              ]
-            },
-            {
-              "id": 49,
-              "in_basket": false,
-              "name": "chicken thighs",
-              "quantities": [
-                {
-                  "id": 20,
-                  "unit": "gram",
-                  "value": 400.0
+                  "id": "[redacted]",
+                  "text": "1 sheet",
+                  "unit": "arbitrary"
                 }
               ]
             }

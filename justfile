@@ -37,6 +37,8 @@ pg-migrate environment direction:
   cd migration
   DATABASE_URL=postgres://loco:loco@localhost:${PORT}/foody_{{environment}} cargo run -- {{direction}}
 
+pg-reseed environment: (pg-reset environment) (pg-seed environment)
+
 # Seed the database on a given environment
 pg-seed environment:
   cargo loco task --environment {{environment}} seed_data
