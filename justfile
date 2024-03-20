@@ -13,6 +13,7 @@ rust-fmt:
 frontend-lint:
   cd frontend; npx biome check --apply .
   cd frontend; npx biome check .
+  cd frontend; npm run tsc
 
 frontend-fmt:
   cd frontend; npm run fmt
