@@ -38,7 +38,6 @@ function UserOrLogin(props: { token: string }) {
 function NavLink(params: {
   name: string;
   to: LinkProps["to"];
-  className?: LinkProps["className"];
 }) {
   return (
     <Link
@@ -48,7 +47,7 @@ function NavLink(params: {
       inactiveProps={{
         className: "bg-white hover:bg-gray-100",
       }}
-      className={`p-2 text-black border-black border-2 border-solid uppercase ${params.className}`}
+      className={"p-2 text-black border-black border-2 border-solid uppercase"}
       to={params.to}
     >
       {params.name}
