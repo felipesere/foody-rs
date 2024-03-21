@@ -14,6 +14,7 @@ mod m20240103_144013_ingredients_in_recipes;
 mod m20240104_160607_change_source_to_just_text;
 mod m20240107_090816_change_quanitty_value_to_float;
 mod m20240107_210844_make_ingredient_name_unique;
+mod m20240321_201052_alert_ingredients_in_shoppinglist_track_recipes;
 pub struct Migrator;
 
 #[async_trait::async_trait]
@@ -31,6 +32,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20240104_160607_change_source_to_just_text::Migration),
             Box::new(m20240107_090816_change_quanitty_value_to_float::Migration),
             Box::new(m20240107_210844_make_ingredient_name_unique::Migration),
+            Box::new(m20240321_201052_alert_ingredients_in_shoppinglist_track_recipes::Migration),
         ]
     }
 }
