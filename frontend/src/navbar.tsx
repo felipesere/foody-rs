@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import type { LinkProps } from "@tanstack/react-router";
 import { useUser } from "./apis/user.ts";
 import { Route as RootRoute } from "./routes/__root.tsx";
 
@@ -35,9 +34,10 @@ function UserOrLogin(props: { token: string }) {
   return <NavLink name={user.data ? user.data.name : "Login"} to={"/login"} />;
 }
 
-function NavLink(params: {
+function NavLink(props: {
   name: string;
-  to: LinkProps["to"];
+  // I would much rather use a type-safe variant here
+  to: string;
 }) {
   return (
     <Link
@@ -48,9 +48,9 @@ function NavLink(params: {
         className: "bg-white hover:bg-gray-100",
       }}
       className={"p-2 text-black border-black border-2 border-solid uppercase"}
-      to={params.to}
+      to={props.to}
     >
-      {params.name}
+      {props.name}
     </Link>
   );
 }
