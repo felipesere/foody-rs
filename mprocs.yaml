@@ -1,0 +1,8 @@
+procs:
+  postgres:
+    cmd: ["docker", "compose", "up"]
+  backend:
+    cmd: ["cargo", "loco", "run"]
+  frontend:
+    cwd: "./frontend"
+    cmd: ["npm", "run", "dev"]
