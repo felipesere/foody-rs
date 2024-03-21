@@ -304,7 +304,7 @@ pub async fn add_recipe_to_shoppinglist(
     // check that it exists
     let _ = shoppinglists::Entity::find_by_id(id).one(&ctx.db).await?;
 
-    let (_recipe, ingredients) = crate::models::recipes::find_one(&ctx.db, recipe_id)
+    let (recipe, ingredients) = crate::models::recipes::find_one(&ctx.db, recipe_id)
         .await?
         .ok_or_else(|| Error::NotFound)?;
 
@@ -322,6 +322,7 @@ pub async fn add_recipe_to_shoppinglist(
             shoppinglists_id: ActiveValue::Set(id),
             ingredients_id: ActiveValue::Set(ingredient.id),
             quantities_id: ActiveValue::Set(q.id),
+            recipe_id: ActiveValue::Set(Some(recipe.id)),
             in_basket: ActiveValue::Set(false),
             ..Default::default()
         }
