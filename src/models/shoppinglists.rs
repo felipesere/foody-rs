@@ -31,6 +31,7 @@ impl Model {
                 "r1"."id" as "i_id",
                 "r1"."name" as "i_name",
                 "r0"."in_basket" as "iis_in_basket",
+                "r0"."recipe_id" as "iss_recipe_id",
                 "q"."id" as "q_id",
                 "q"."created_at" as "q_created_at",
                 "q"."updated_at" as "q_updated_at",
@@ -57,6 +58,7 @@ impl Model {
             let ingredient = Ingredient::from_query_result_optional(row, "i_")?;
             let quantity = Quantity::from_query_result_optional(row, "q_")?;
             let in_basket = row.try_get::<Option<bool>>("iis_", "in_basket")?;
+            let recipe_id = row.try_get::<Option<u32>>("iis_", "recipe_id")?;
 
             if result.is_empty() || result[result.len() - 1].0.id != list.id {
                 result.push((list, Vec::new()));
@@ -98,6 +100,7 @@ impl Model {
                 "r1"."id" as "i_id",
                 "r1"."name" as "i_name",
                 "r0"."in_basket" as "iis_in_basket",
+                "r0"."recipe_id" as "iss_recipe_id",
                 "q"."id" as "q_id",
                 "q"."created_at" as "q_created_at",
                 "q"."updated_at" as "q_updated_at",

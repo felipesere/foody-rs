@@ -1,15 +1,15 @@
 use axum::extract;
 use loco_rs::{controller::middleware, prelude::*};
+use migration::Expr;
 use sea_orm::entity::ColumnTrait;
 use sea_orm::ActiveValue::{self, Set};
-use sea_orm::{Condition, QueryFilter, TransactionTrait, Value};
+use sea_orm::{Condition, QueryFilter, TransactionTrait};
 use serde::{Deserialize, Serialize};
 
-use crate::models::_entities::ingredients_in_shoppinglists;
 use crate::models::ingredients::ingredients::Column;
 use crate::models::ingredients::{self, Model as Ingredient};
 use crate::models::quantities::{self, Model as Quantity};
-use crate::models::shoppinglists;
+use crate::models::{ingredients_in_shoppinglists, shoppinglists};
 use crate::models::{shoppinglists::Model as Shoppinglists, users};
 
 #[derive(Serialize)]
@@ -39,7 +39,7 @@ impl From<Quantity> for QuantityResponse {
 }
 
 #[derive(Serialize, Clone, Debug)]
-struct IngredientResponse {
+struct ListItem {
     id: i32,
     name: String,
     quantities: Vec<QuantityResponse>,
@@ -50,7 +50,7 @@ struct IngredientResponse {
 pub struct ShoppinglistResponse {
     id: i32,
     name: String,
-    ingredients: Vec<IngredientResponse>,
+    ingredients: Vec<ListItem>,
     last_updated: String,
 }
 
@@ -65,7 +65,7 @@ impl From<Shoppinglists> for ShoppinglistResponse {
     }
 }
 
-impl From<Ingredient> for IngredientResponse {
+impl From<Ingredient> for ListItem {
     fn from(value: Ingredient) -> Self {
         Self {
             id: value.id,
@@ -88,7 +88,7 @@ pub async fn all_shoppinglists(
     for (list, ingredients) in Shoppinglists::find_all(&ctx.db).await? {
         let mut shoppinglist = ShoppinglistResponse::from(list);
         for (ingredient, quantities, in_basket) in ingredients {
-            let mut converted_ingredient = IngredientResponse::from(ingredient);
+            let mut converted_ingredient = ListItem::from(ingredient);
 
             converted_ingredient.in_basket = in_basket;
             converted_ingredient.quantities =
@@ -244,7 +244,7 @@ pub async fn shoppinglist(
         last_updated: list.updated_at.format("%Y-%m-%dT%H:%M:%S").to_string(),
         ingredients: ingredients
             .into_iter()
-            .map(|(ingredient, quants, in_basket)| IngredientResponse {
+            .map(|(ingredient, quants, in_basket)| ListItem {
                 id: ingredient.id,
                 name: ingredient.name,
                 in_basket,
@@ -275,22 +275,18 @@ pub async fn toggle_in_basket_for_item(
 ) -> Result<()> {
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
-    let mut ing_on_list = ingredients_in_shoppinglists::Entity::find()
+    ingredients_in_shoppinglists::Entity::update_many()
         .filter(
             Condition::all()
                 .add(ingredients_in_shoppinglists::Column::ShoppinglistsId.eq(id))
                 .add(ingredients_in_shoppinglists::Column::IngredientsId.eq(ingredient_id)),
         )
-        .one(&ctx.db)
-        .await?
-        .ok_or_else(|| Error::NotFound)?
-        .into_active_model();
-
-    ing_on_list.set(
-        ingredients_in_shoppinglists::Column::InBasket,
-        Value::Bool(Some(params.in_basket)),
-    );
-    ing_on_list.save(&ctx.db).await?;
+        .col_expr(
+            ingredients_in_shoppinglists::Column::InBasket,
+            Expr::value(params.in_basket),
+        )
+        .exec(&ctx.db)
+        .await?;
 
     Ok(())
 }
