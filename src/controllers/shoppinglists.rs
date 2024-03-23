@@ -42,7 +42,13 @@ impl From<Quantity> for QuantityResponse {
 struct ListItem {
     id: i32,
     name: String,
-    quantities: Vec<QuantityResponse>,
+    quantities: Vec<ItemQuantity>,
+}
+
+#[derive(Serialize, Clone, Debug)]
+struct ItemQuantity {
+    #[serde(flatten)]
+    quantity: QuantityResponse,
     in_basket: bool,
 }
 
@@ -71,7 +77,6 @@ impl From<Ingredient> for ListItem {
             id: value.id,
             name: value.name,
             quantities: Vec::new(),
-            in_basket: false,
         }
     }
 }
@@ -90,9 +95,13 @@ pub async fn all_shoppinglists(
         for (ingredient, quantities, in_basket) in ingredients {
             let mut converted_ingredient = ListItem::from(ingredient);
 
-            converted_ingredient.in_basket = in_basket;
-            converted_ingredient.quantities =
-                quantities.into_iter().map(QuantityResponse::from).collect();
+            converted_ingredient.quantities = quantities
+                .into_iter()
+                .map(|i| ItemQuantity {
+                    quantity: QuantityResponse::from(i),
+                    in_basket,
+                })
+                .collect();
             shoppinglist.ingredients.push(converted_ingredient);
         }
         shoppinglists.push(shoppinglist);
@@ -247,14 +256,16 @@ pub async fn shoppinglist(
             .map(|(ingredient, quants, in_basket)| ListItem {
                 id: ingredient.id,
                 name: ingredient.name,
-                in_basket,
                 quantities: quants
                     .into_iter()
-                    .map(|q| QuantityResponse {
-                        id: q.id,
-                        unit: q.unit,
-                        value: q.value,
-                        text: q.text,
+                    .map(|q| ItemQuantity {
+                        quantity: QuantityResponse {
+                            id: q.id,
+                            unit: q.unit,
+                            value: q.value,
+                            text: q.text,
+                        },
+                        in_basket,
                     })
                     .collect(),
             })

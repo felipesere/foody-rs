@@ -54,11 +54,11 @@ async fn can_list_current_shoppinglists() {
               "ingredients": [
                 {
                   "id": "[redacted]",
-                  "in_basket": false,
                   "name": "chicken stock",
                   "quantities": [
                     {
                       "id": "[redacted]",
+                      "in_basket": false,
                       "unit": "millilitre",
                       "value": 600.0
                     }
@@ -66,11 +66,11 @@ async fn can_list_current_shoppinglists() {
                 },
                 {
                   "id": "[redacted]",
-                  "in_basket": false,
                   "name": "chicken thighs",
                   "quantities": [
                     {
                       "id": "[redacted]",
+                      "in_basket": false,
                       "unit": "count",
                       "value": 6.0
                     }
@@ -78,11 +78,11 @@ async fn can_list_current_shoppinglists() {
                 },
                 {
                   "id": "[redacted]",
-                  "in_basket": false,
                   "name": "chorizo",
                   "quantities": [
                     {
                       "id": "[redacted]",
+                      "in_basket": false,
                       "unit": "grams",
                       "value": 150.0
                     }
@@ -90,11 +90,11 @@ async fn can_list_current_shoppinglists() {
                 },
                 {
                   "id": "[redacted]",
-                  "in_basket": false,
                   "name": "garlic",
                   "quantities": [
                     {
                       "id": "[redacted]",
+                      "in_basket": false,
                       "unit": "count",
                       "value": 2.0
                     }
@@ -102,11 +102,11 @@ async fn can_list_current_shoppinglists() {
                 },
                 {
                   "id": "[redacted]",
-                  "in_basket": false,
                   "name": "lemon",
                   "quantities": [
                     {
                       "id": "[redacted]",
+                      "in_basket": false,
                       "unit": "count",
                       "value": 1.0
                     }
@@ -114,11 +114,11 @@ async fn can_list_current_shoppinglists() {
                 },
                 {
                   "id": "[redacted]",
-                  "in_basket": false,
                   "name": "paella rice",
                   "quantities": [
                     {
                       "id": "[redacted]",
+                      "in_basket": false,
                       "unit": "grams",
                       "value": 250.0
                     }
@@ -126,11 +126,11 @@ async fn can_list_current_shoppinglists() {
                 },
                 {
                   "id": "[redacted]",
-                  "in_basket": false,
                   "name": "parsley",
                   "quantities": [
                     {
                       "id": "[redacted]",
+                      "in_basket": false,
                       "unit": "gram",
                       "value": 20.0
                     }
@@ -138,11 +138,11 @@ async fn can_list_current_shoppinglists() {
                 },
                 {
                   "id": "[redacted]",
-                  "in_basket": false,
                   "name": "red onion",
                   "quantities": [
                     {
                       "id": "[redacted]",
+                      "in_basket": false,
                       "unit": "count",
                       "value": 1.0
                     }
@@ -150,11 +150,11 @@ async fn can_list_current_shoppinglists() {
                 },
                 {
                   "id": "[redacted]",
-                  "in_basket": false,
                   "name": "red pepper",
                   "quantities": [
                     {
                       "id": "[redacted]",
+                      "in_basket": false,
                       "unit": "count",
                       "value": 2.0
                     }
@@ -162,11 +162,11 @@ async fn can_list_current_shoppinglists() {
                 },
                 {
                   "id": "[redacted]",
-                  "in_basket": false,
                   "name": "saffron",
                   "quantities": [
                     {
                       "id": "[redacted]",
+                      "in_basket": false,
                       "text": "1 pinch",
                       "unit": "arbitrary"
                     }
@@ -252,11 +252,11 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "ingredients": [
             {
               "id": "[redactored]",
-              "in_basket": false,
               "name": "bananas",
               "quantities": [
                 {
                   "id": "[redactored]",
+                  "in_basket": false,
                   "unit": "count",
                   "value": 10.0
                 }
@@ -292,11 +292,11 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "ingredients": [
             {
               "id": "[redactored]",
-              "in_basket": true,
               "name": "bananas",
               "quantities": [
                 {
                   "id": "[redactored]",
+                  "in_basket": true,
                   "unit": "count",
                   "value": 10.0
                 }
@@ -343,11 +343,11 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "ingredients": [
             {
               "id": "[redacted]",
-              "in_basket": true,
               "name": "bananas",
               "quantities": [
                 {
                   "id": "[redacted]",
+                  "in_basket": true,
                   "unit": "count",
                   "value": 10.0
                 }
@@ -355,11 +355,11 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redacted]",
-              "in_basket": false,
               "name": "double cream",
               "quantities": [
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
                   "unit": "tablespoon",
                   "value": 2.0
                 }
@@ -367,11 +367,11 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redacted]",
-              "in_basket": false,
               "name": "leeks",
               "quantities": [
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
                   "text": "3 small",
                   "unit": "arbitrary"
                 }
@@ -379,11 +379,11 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redacted]",
-              "in_basket": false,
               "name": "parmesan shavings",
               "quantities": [
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
                   "unit": "gram",
                   "value": 100.0
                 }
@@ -391,11 +391,11 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redacted]",
-              "in_basket": false,
               "name": "puff pastry",
               "quantities": [
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
                   "text": "1 sheet",
                   "unit": "arbitrary"
                 }
@@ -429,11 +429,11 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "ingredients": [
             {
               "id": "[redactor]",
-              "in_basket": false,
               "name": "double cream",
               "quantities": [
                 {
                   "id": "[redactor]",
+                  "in_basket": false,
                   "unit": "tablespoon",
                   "value": 2.0
                 }
@@ -441,11 +441,11 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redactor]",
-              "in_basket": false,
               "name": "leeks",
               "quantities": [
                 {
                   "id": "[redactor]",
+                  "in_basket": false,
                   "text": "3 small",
                   "unit": "arbitrary"
                 }
@@ -453,11 +453,11 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redactor]",
-              "in_basket": false,
               "name": "parmesan shavings",
               "quantities": [
                 {
                   "id": "[redactor]",
+                  "in_basket": false,
                   "unit": "gram",
                   "value": 100.0
                 }
@@ -465,11 +465,11 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redactor]",
-              "in_basket": false,
               "name": "puff pastry",
               "quantities": [
                 {
                   "id": "[redactor]",
+                  "in_basket": false,
                   "text": "1 sheet",
                   "unit": "arbitrary"
                 }
@@ -516,11 +516,11 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "ingredients": [
             {
               "id": "[redacted]",
-              "in_basket": false,
               "name": "double cream",
               "quantities": [
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
                   "unit": "tablespoon",
                   "value": 2.0
                 }
@@ -528,11 +528,11 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redacted]",
-              "in_basket": false,
               "name": "leeks",
               "quantities": [
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
                   "text": "3 small",
                   "unit": "arbitrary"
                 }
@@ -540,16 +540,17 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redacted]",
-              "in_basket": false,
               "name": "parmesan shavings",
               "quantities": [
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
                   "unit": "gram",
                   "value": 100.0
                 },
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
                   "unit": "kilogram",
                   "value": 3.5
                 }
@@ -557,11 +558,11 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redacted]",
-              "in_basket": false,
               "name": "puff pastry",
               "quantities": [
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
                   "text": "1 sheet",
                   "unit": "arbitrary"
                 }
@@ -591,11 +592,11 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "ingredients": [
             {
               "id": "[redacted]",
-              "in_basket": false,
               "name": "double cream",
               "quantities": [
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
                   "unit": "tablespoon",
                   "value": 2.0
                 }
@@ -603,11 +604,11 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redacted]",
-              "in_basket": false,
               "name": "leeks",
               "quantities": [
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
                   "text": "3 small",
                   "unit": "arbitrary"
                 }
@@ -615,16 +616,17 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redacted]",
-              "in_basket": false,
               "name": "parmesan shavings",
               "quantities": [
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
                   "unit": "gram",
                   "value": 100.0
                 },
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
                   "unit": "kilogram",
                   "value": 3.5
                 }
@@ -632,11 +634,11 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redacted]",
-              "in_basket": false,
               "name": "puff pastry",
               "quantities": [
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
                   "text": "1 sheet",
                   "unit": "arbitrary"
                 }
