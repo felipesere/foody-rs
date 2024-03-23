@@ -10,7 +10,7 @@ use crate::models::ingredients::ingredients::Column;
 use crate::models::ingredients::{self, Model as Ingredient};
 use crate::models::quantities::{self, Model as Quantity};
 use crate::models::{ingredients_in_shoppinglists, shoppinglists};
-use crate::models::{shoppinglists::Model as Shoppinglists, users};
+use crate::models::{shoppinglists::Shoppinglist, users};
 
 #[derive(Serialize)]
 pub struct ShoppinglistsResponse {
@@ -60,8 +60,8 @@ pub struct ShoppinglistResponse {
     last_updated: String,
 }
 
-impl From<Shoppinglists> for ShoppinglistResponse {
-    fn from(value: Shoppinglists) -> Self {
+impl From<Shoppinglist> for ShoppinglistResponse {
+    fn from(value: Shoppinglist) -> Self {
         Self {
             id: value.id,
             name: value.name,
@@ -90,15 +90,15 @@ pub async fn all_shoppinglists(
 
     let mut shoppinglists = Vec::new();
 
-    for (list, ingredients) in Shoppinglists::find_all(&ctx.db).await? {
+    for (list, ingredients) in Shoppinglist::find_all(&ctx.db).await? {
         let mut shoppinglist = ShoppinglistResponse::from(list);
-        for (ingredient, quantities, in_basket) in ingredients {
+        for (ingredient, quantities) in ingredients {
             let mut converted_ingredient = ListItem::from(ingredient);
 
             converted_ingredient.quantities = quantities
                 .into_iter()
-                .map(|i| ItemQuantity {
-                    quantity: QuantityResponse::from(i),
+                .map(|(in_basket, quantity)| ItemQuantity {
+                    quantity: QuantityResponse::from(quantity),
                     in_basket,
                 })
                 .collect();
@@ -243,7 +243,7 @@ pub async fn shoppinglist(
 ) -> Result<Json<ShoppinglistResponse>> {
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
-    let Some((list, ingredients)) = Shoppinglists::find_one(&ctx.db, id).await? else {
+    let Some((list, ingredients)) = Shoppinglist::find_one(&ctx.db, id).await? else {
         return Err(Error::NotFound);
     };
 
@@ -253,12 +253,12 @@ pub async fn shoppinglist(
         last_updated: list.updated_at.format("%Y-%m-%dT%H:%M:%S").to_string(),
         ingredients: ingredients
             .into_iter()
-            .map(|(ingredient, quants, in_basket)| ListItem {
+            .map(|(ingredient, quantities)| ListItem {
                 id: ingredient.id,
                 name: ingredient.name,
-                quantities: quants
+                quantities: quantities
                     .into_iter()
-                    .map(|q| ItemQuantity {
+                    .map(|(in_basket, q)| ItemQuantity {
                         quantity: QuantityResponse {
                             id: q.id,
                             unit: q.unit,

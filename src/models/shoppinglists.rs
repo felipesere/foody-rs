@@ -6,14 +6,16 @@ use sea_orm::{
 use crate::models::ingredients::Model as Ingredient;
 use crate::models::quantities::Model as Quantity;
 
-pub use super::_entities::shoppinglists::{self, ActiveModel, Entity, Model, Relation};
+pub use super::_entities::shoppinglists::{
+    self, ActiveModel, Entity, Model as Shoppinglist, Relation,
+};
 
 impl ActiveModelBehavior for ActiveModel {
     // extend activemodel below (keep comment for generators)
 }
-type FullShoppinglist = (Model, Vec<(Ingredient, Vec<Quantity>, bool)>);
+type FullShoppinglist = (Shoppinglist, Vec<(Ingredient, Vec<(bool, Quantity)>)>);
 
-impl Model {
+impl Shoppinglist {
     pub(crate) async fn find_one(
         db: &DatabaseConnection,
         id: u32,
@@ -73,10 +75,11 @@ impl Model {
             let ingredients = &mut list.1;
 
             let idx = ingredients.iter().position(|o| o.0.id == ingredient.id);
+            let item = (in_basket.unwrap_or(false), quantity);
             if let Some(idx) = idx {
-                ingredients[idx].1.push(quantity);
+                ingredients[idx].1.push(item);
             } else {
-                ingredients.push((ingredient, vec![quantity], in_basket.unwrap_or(false)));
+                ingredients.push((ingredient, vec![item]));
             };
         }
         Ok(Some(result.remove(0)))
@@ -137,12 +140,13 @@ impl Model {
             let last_list_idx = result.len();
             let list = &mut result[last_list_idx - 1];
             let ingredients = &mut list.1;
+            let item = (in_basket.unwrap_or(false), quantity);
 
             let idx = ingredients.iter().position(|o| o.0.id == ingredient.id);
             if let Some(idx) = idx {
-                ingredients[idx].1.push(quantity);
+                ingredients[idx].1.push(item);
             } else {
-                ingredients.push((ingredient, vec![quantity], in_basket.unwrap_or(false)));
+                ingredients.push((ingredient, vec![item]));
             };
         }
         Ok(result)
