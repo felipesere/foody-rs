@@ -9,12 +9,15 @@ use serde::{Deserialize, Serialize};
 use crate::models::ingredients::ingredients::Column;
 use crate::models::ingredients::{self, Model as Ingredient};
 use crate::models::quantities::{self, Model as Quantity};
-use crate::models::{ingredients_in_shoppinglists, shoppinglists};
-use crate::models::{shoppinglists::Shoppinglist, users};
+use crate::models::users;
+use crate::models::{
+    ingredients_in_shoppinglists,
+    shoppinglists::{self, Shoppinglist},
+};
 
 #[derive(Serialize)]
 pub struct ShoppinglistsResponse {
-    shoppinglists: Vec<ShoppinglistResponse>,
+    shoppinglists: Vec<MinimalShoppinglistResponse>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -61,6 +64,23 @@ pub struct ShoppinglistResponse {
     last_updated: String,
 }
 
+#[derive(Serialize, Clone, Debug)]
+pub struct MinimalShoppinglistResponse {
+    id: i32,
+    name: String,
+    last_updated: String,
+}
+
+impl From<Shoppinglist> for MinimalShoppinglistResponse {
+    fn from(value: Shoppinglist) -> Self {
+        Self {
+            id: value.id,
+            name: value.name,
+            last_updated: value.updated_at.format("%Y-%m-%dT%H:%M:%S").to_string(),
+        }
+    }
+}
+
 impl From<Shoppinglist> for ShoppinglistResponse {
     fn from(value: Shoppinglist) -> Self {
         Self {
@@ -89,26 +109,12 @@ pub async fn all_shoppinglists(
     // check auth
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
-    let mut shoppinglists = Vec::new();
-
-    for (list, ingredients) in Shoppinglist::find_all(&ctx.db).await? {
-        let mut shoppinglist = ShoppinglistResponse::from(list);
-        for (ingredient, quantities) in ingredients {
-            let mut converted_ingredient = ListItem::from(ingredient);
-
-            converted_ingredient.quantities = quantities
-                .into_iter()
-                .map(|(in_basket, quantity, recipe_id)| ItemQuantity {
-                    quantity: QuantityResponse::from(quantity),
-                    in_basket,
-                    recipe_id,
-                })
-                .collect();
-            shoppinglist.ingredients.push(converted_ingredient);
-        }
-        shoppinglists.push(shoppinglist);
-    }
-
+    let shoppinglists = shoppinglists::Entity::find()
+        .all(&ctx.db)
+        .await?
+        .into_iter()
+        .map(MinimalShoppinglistResponse::from)
+        .collect();
     format::json(ShoppinglistsResponse { shoppinglists })
 }
 
