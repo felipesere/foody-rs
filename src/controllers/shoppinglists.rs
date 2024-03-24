@@ -76,7 +76,7 @@ impl From<Shoppinglist> for MinimalShoppinglistResponse {
         Self {
             id: value.id,
             name: value.name,
-            last_updated: value.updated_at.format("%Y-%m-%dT%H:%M:%S").to_string(),
+            last_updated: value.updated_at.format("%Y-%m-%dT%H:%M:%SZ").to_string(),
         }
     }
 }
@@ -87,7 +87,7 @@ impl From<Shoppinglist> for ShoppinglistResponse {
             id: value.id,
             name: value.name,
             ingredients: Vec::new(),
-            last_updated: value.updated_at.format("%Y-%m-%dT%H:%M:%S").to_string(),
+            last_updated: value.updated_at.format("%Y-%m-%dT%H:%M:%SZ").to_string(),
         }
     }
 }
