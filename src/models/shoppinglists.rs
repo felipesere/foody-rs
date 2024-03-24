@@ -13,7 +13,10 @@ pub use super::_entities::shoppinglists::{
 impl ActiveModelBehavior for ActiveModel {
     // extend activemodel below (keep comment for generators)
 }
-type FullShoppinglist = (Shoppinglist, Vec<(Ingredient, Vec<(bool, Quantity)>)>);
+type FullShoppinglist = (
+    Shoppinglist,
+    Vec<(Ingredient, Vec<(bool, Quantity, Option<u32>)>)>,
+);
 
 impl Shoppinglist {
     pub(crate) async fn find_one(
@@ -75,7 +78,7 @@ impl Shoppinglist {
             let ingredients = &mut list.1;
 
             let idx = ingredients.iter().position(|o| o.0.id == ingredient.id);
-            let item = (in_basket.unwrap_or(false), quantity);
+            let item = (in_basket.unwrap_or(false), quantity, recipe_id);
             if let Some(idx) = idx {
                 ingredients[idx].1.push(item);
             } else {
@@ -128,6 +131,7 @@ impl Shoppinglist {
             let ingredient = Ingredient::from_query_result_optional(row, "i_")?;
             let quantity = Quantity::from_query_result_optional(row, "q_")?;
             let in_basket = row.try_get::<Option<bool>>("iis_", "in_basket")?;
+            let recipe_id = row.try_get::<Option<u32>>("iis_", "recipe_id")?;
 
             if result.is_empty() || result[result.len() - 1].0.id != list.id {
                 result.push((list, Vec::new()));
@@ -140,7 +144,7 @@ impl Shoppinglist {
             let last_list_idx = result.len();
             let list = &mut result[last_list_idx - 1];
             let ingredients = &mut list.1;
-            let item = (in_basket.unwrap_or(false), quantity);
+            let item = (in_basket.unwrap_or(false), quantity, recipe_id);
 
             let idx = ingredients.iter().position(|o| o.0.id == ingredient.id);
             if let Some(idx) = idx {

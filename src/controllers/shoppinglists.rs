@@ -49,6 +49,7 @@ struct ListItem {
 struct ItemQuantity {
     #[serde(flatten)]
     quantity: QuantityResponse,
+    recipe_id: Option<u32>,
     in_basket: bool,
 }
 
@@ -97,9 +98,10 @@ pub async fn all_shoppinglists(
 
             converted_ingredient.quantities = quantities
                 .into_iter()
-                .map(|(in_basket, quantity)| ItemQuantity {
+                .map(|(in_basket, quantity, recipe_id)| ItemQuantity {
                     quantity: QuantityResponse::from(quantity),
                     in_basket,
+                    recipe_id,
                 })
                 .collect();
             shoppinglist.ingredients.push(converted_ingredient);
@@ -258,7 +260,7 @@ pub async fn shoppinglist(
                 name: ingredient.name,
                 quantities: quantities
                     .into_iter()
-                    .map(|(in_basket, q)| ItemQuantity {
+                    .map(|(in_basket, q, recipe_id)| ItemQuantity {
                         quantity: QuantityResponse {
                             id: q.id,
                             unit: q.unit,
@@ -266,6 +268,7 @@ pub async fn shoppinglist(
                             text: q.text,
                         },
                         in_basket,
+                        recipe_id,
                     })
                     .collect(),
             })

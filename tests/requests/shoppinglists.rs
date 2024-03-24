@@ -59,6 +59,7 @@ async fn can_list_current_shoppinglists() {
                     {
                       "id": "[redacted]",
                       "in_basket": false,
+                      "recipe_id": null,
                       "unit": "millilitre",
                       "value": 600.0
                     }
@@ -71,6 +72,7 @@ async fn can_list_current_shoppinglists() {
                     {
                       "id": "[redacted]",
                       "in_basket": false,
+                      "recipe_id": null,
                       "unit": "count",
                       "value": 6.0
                     }
@@ -83,6 +85,7 @@ async fn can_list_current_shoppinglists() {
                     {
                       "id": "[redacted]",
                       "in_basket": false,
+                      "recipe_id": null,
                       "unit": "grams",
                       "value": 150.0
                     }
@@ -95,6 +98,7 @@ async fn can_list_current_shoppinglists() {
                     {
                       "id": "[redacted]",
                       "in_basket": false,
+                      "recipe_id": null,
                       "unit": "count",
                       "value": 2.0
                     }
@@ -107,6 +111,7 @@ async fn can_list_current_shoppinglists() {
                     {
                       "id": "[redacted]",
                       "in_basket": false,
+                      "recipe_id": null,
                       "unit": "count",
                       "value": 1.0
                     }
@@ -119,6 +124,7 @@ async fn can_list_current_shoppinglists() {
                     {
                       "id": "[redacted]",
                       "in_basket": false,
+                      "recipe_id": null,
                       "unit": "grams",
                       "value": 250.0
                     }
@@ -131,6 +137,7 @@ async fn can_list_current_shoppinglists() {
                     {
                       "id": "[redacted]",
                       "in_basket": false,
+                      "recipe_id": null,
                       "unit": "gram",
                       "value": 20.0
                     }
@@ -143,6 +150,7 @@ async fn can_list_current_shoppinglists() {
                     {
                       "id": "[redacted]",
                       "in_basket": false,
+                      "recipe_id": null,
                       "unit": "count",
                       "value": 1.0
                     }
@@ -155,6 +163,7 @@ async fn can_list_current_shoppinglists() {
                     {
                       "id": "[redacted]",
                       "in_basket": false,
+                      "recipe_id": null,
                       "unit": "count",
                       "value": 2.0
                     }
@@ -167,6 +176,7 @@ async fn can_list_current_shoppinglists() {
                     {
                       "id": "[redacted]",
                       "in_basket": false,
+                      "recipe_id": null,
                       "text": "1 pinch",
                       "unit": "arbitrary"
                     }
@@ -257,6 +267,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": "[redactored]",
                   "in_basket": false,
+                  "recipe_id": null,
                   "unit": "count",
                   "value": 10.0
                 }
@@ -297,6 +308,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": "[redactored]",
                   "in_basket": true,
+                  "recipe_id": null,
                   "unit": "count",
                   "value": 10.0
                 }
@@ -348,6 +360,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": "[redacted]",
                   "in_basket": true,
+                  "recipe_id": null,
                   "unit": "count",
                   "value": 10.0
                 }
@@ -360,6 +373,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": "[redacted]",
                   "in_basket": false,
+                  "recipe_id": null,
                   "unit": "tablespoon",
                   "value": 2.0
                 }
@@ -372,6 +386,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": "[redacted]",
                   "in_basket": false,
+                  "recipe_id": null,
                   "text": "3 small",
                   "unit": "arbitrary"
                 }
@@ -384,6 +399,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": "[redacted]",
                   "in_basket": false,
+                  "recipe_id": null,
                   "unit": "gram",
                   "value": 100.0
                 }
@@ -396,6 +412,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": "[redacted]",
                   "in_basket": false,
+                  "recipe_id": null,
                   "text": "1 sheet",
                   "unit": "arbitrary"
                 }
@@ -434,6 +451,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": "[redactor]",
                   "in_basket": false,
+                  "recipe_id": null,
                   "unit": "tablespoon",
                   "value": 2.0
                 }
@@ -446,6 +464,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": "[redactor]",
                   "in_basket": false,
+                  "recipe_id": null,
                   "text": "3 small",
                   "unit": "arbitrary"
                 }
@@ -458,6 +477,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": "[redactor]",
                   "in_basket": false,
+                  "recipe_id": null,
                   "unit": "gram",
                   "value": 100.0
                 }
@@ -470,6 +490,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": "[redactor]",
                   "in_basket": false,
+                  "recipe_id": null,
                   "text": "1 sheet",
                   "unit": "arbitrary"
                 }
@@ -521,6 +542,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": "[redacted]",
                   "in_basket": false,
+                  "recipe_id": null,
                   "unit": "tablespoon",
                   "value": 2.0
                 }
@@ -533,6 +555,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": "[redacted]",
                   "in_basket": false,
+                  "recipe_id": null,
                   "text": "3 small",
                   "unit": "arbitrary"
                 }
@@ -545,12 +568,14 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": "[redacted]",
                   "in_basket": false,
+                  "recipe_id": null,
                   "unit": "gram",
                   "value": 100.0
                 },
                 {
                   "id": "[redacted]",
                   "in_basket": false,
+                  "recipe_id": null,
                   "unit": "kilogram",
                   "value": 3.5
                 }
@@ -563,6 +588,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": "[redacted]",
                   "in_basket": false,
+                  "recipe_id": null,
                   "text": "1 sheet",
                   "unit": "arbitrary"
                 }
@@ -597,6 +623,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": "[redacted]",
                   "in_basket": false,
+                  "recipe_id": null,
                   "unit": "tablespoon",
                   "value": 2.0
                 }
@@ -609,6 +636,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": "[redacted]",
                   "in_basket": false,
+                  "recipe_id": null,
                   "text": "3 small",
                   "unit": "arbitrary"
                 }
@@ -621,12 +649,14 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": "[redacted]",
                   "in_basket": false,
+                  "recipe_id": null,
                   "unit": "gram",
                   "value": 100.0
                 },
                 {
                   "id": "[redacted]",
                   "in_basket": false,
+                  "recipe_id": null,
                   "unit": "kilogram",
                   "value": 3.5
                 }
@@ -639,6 +669,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 {
                   "id": "[redacted]",
                   "in_basket": false,
+                  "recipe_id": null,
                   "text": "1 sheet",
                   "unit": "arbitrary"
                 }
