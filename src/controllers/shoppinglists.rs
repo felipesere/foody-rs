@@ -17,7 +17,7 @@ pub struct ShoppinglistsResponse {
     shoppinglists: Vec<ShoppinglistResponse>,
 }
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct QuantityResponse {
     pub id: i32,
     pub unit: String,
@@ -49,7 +49,7 @@ struct ListItem {
 struct ItemQuantity {
     #[serde(flatten)]
     quantity: QuantityResponse,
-    recipe_id: Option<u32>,
+    recipe_id: Option<i32>,
     in_basket: bool,
 }
 
@@ -260,13 +260,8 @@ pub async fn shoppinglist(
                 name: ingredient.name,
                 quantities: quantities
                     .into_iter()
-                    .map(|(in_basket, q, recipe_id)| ItemQuantity {
-                        quantity: QuantityResponse {
-                            id: q.id,
-                            unit: q.unit,
-                            value: q.value,
-                            text: q.text,
-                        },
+                    .map(|(in_basket, quantity, recipe_id)| ItemQuantity {
+                        quantity: quantity.into(),
                         in_basket,
                         recipe_id,
                     })
@@ -308,11 +303,13 @@ pub async fn toggle_in_basket_for_item(
 pub async fn add_recipe_to_shoppinglist(
     auth: middleware::auth::JWT,
     State(ctx): State<AppContext>,
-    Path((id, recipe_id)): Path<(i32, i32)>,
+    Path((shoppinglist_id, recipe_id)): Path<(i32, i32)>,
 ) -> Result<()> {
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
     // check that it exists
-    let _ = shoppinglists::Entity::find_by_id(id).one(&ctx.db).await?;
+    let _ = shoppinglists::Entity::find_by_id(shoppinglist_id)
+        .one(&ctx.db)
+        .await?;
 
     let (recipe, ingredients) = crate::models::recipes::find_one(&ctx.db, recipe_id)
         .await?
@@ -320,7 +317,7 @@ pub async fn add_recipe_to_shoppinglist(
 
     let tx = ctx.db.begin().await?;
     for (ingredient, quantity) in ingredients {
-        let q = quantities::ActiveModel {
+        let quantity = quantities::ActiveModel {
             unit: ActiveValue::Set(quantity.unit),
             value: ActiveValue::Set(quantity.value),
             text: ActiveValue::Set(quantity.text),
@@ -328,10 +325,18 @@ pub async fn add_recipe_to_shoppinglist(
         }
         .insert(&tx)
         .await?;
+        tracing::debug!(
+            "Adding {}({}) from {}({}) to {}",
+            ingredient.name,
+            ingredient.id,
+            recipe.name,
+            recipe_id,
+            shoppinglist_id
+        );
         ingredients_in_shoppinglists::ActiveModel {
-            shoppinglists_id: ActiveValue::Set(id),
+            shoppinglists_id: ActiveValue::Set(shoppinglist_id),
             ingredients_id: ActiveValue::Set(ingredient.id),
-            quantities_id: ActiveValue::Set(q.id),
+            quantities_id: ActiveValue::Set(quantity.id),
             recipe_id: ActiveValue::Set(Some(recipe.id)),
             in_basket: ActiveValue::Set(false),
             ..Default::default()

@@ -15,7 +15,7 @@ impl ActiveModelBehavior for ActiveModel {
 }
 type FullShoppinglist = (
     Shoppinglist,
-    Vec<(Ingredient, Vec<(bool, Quantity, Option<u32>)>)>,
+    Vec<(Ingredient, Vec<(bool, Quantity, Option<i32>)>)>,
 );
 
 impl Shoppinglist {
@@ -36,7 +36,7 @@ impl Shoppinglist {
                 "r1"."id" as "i_id",
                 "r1"."name" as "i_name",
                 "r0"."in_basket" as "iis_in_basket",
-                "r0"."recipe_id" as "iss_recipe_id",
+                "r0"."recipe_id" as "iis_recipe_id",
                 "q"."id" as "q_id",
                 "q"."created_at" as "q_created_at",
                 "q"."updated_at" as "q_updated_at",
@@ -56,14 +56,14 @@ impl Shoppinglist {
         );
 
         let rows = &db.query_all(s).await?;
-
         let mut result: Vec<FullShoppinglist> = Vec::new();
         for row in rows {
             let list = Self::from_query_result(row, "s_")?;
             let ingredient = Ingredient::from_query_result_optional(row, "i_")?;
             let quantity = Quantity::from_query_result_optional(row, "q_")?;
             let in_basket = row.try_get::<Option<bool>>("iis_", "in_basket")?;
-            let recipe_id = row.try_get::<Option<u32>>("iis_", "recipe_id")?;
+
+            let recipe_id = row.try_get::<Option<i32>>("iis_", "recipe_id")?;
 
             if result.is_empty() || result[result.len() - 1].0.id != list.id {
                 result.push((list, Vec::new()));
@@ -106,7 +106,7 @@ impl Shoppinglist {
                 "r1"."id" as "i_id",
                 "r1"."name" as "i_name",
                 "r0"."in_basket" as "iis_in_basket",
-                "r0"."recipe_id" as "iss_recipe_id",
+                "r0"."recipe_id" as "iis_recipe_id",
                 "q"."id" as "q_id",
                 "q"."created_at" as "q_created_at",
                 "q"."updated_at" as "q_updated_at",
@@ -120,7 +120,7 @@ impl Shoppinglist {
             left join "ingredients" as "r1" on "r0"."ingredients_id" = "r1"."id"
             left join "quantities" as "q" on "r0"."quantities_id" = "q".id
             order by "shoppinglists"."id" asc, "r1"."id" asc, "q"."id" asc
-                "#,
+            "#,
         );
 
         let rows = &db.query_all(s).await?;
@@ -131,7 +131,7 @@ impl Shoppinglist {
             let ingredient = Ingredient::from_query_result_optional(row, "i_")?;
             let quantity = Quantity::from_query_result_optional(row, "q_")?;
             let in_basket = row.try_get::<Option<bool>>("iis_", "in_basket")?;
-            let recipe_id = row.try_get::<Option<u32>>("iis_", "recipe_id")?;
+            let recipe_id = row.try_get::<Option<i32>>("iis_", "recipe_id")?;
 
             if result.is_empty() || result[result.len() - 1].0.id != list.id {
                 result.push((list, Vec::new()));
