@@ -1,12 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 
-const QuantitySchema = z.object({
+export const QuantitySchema = z.object({
   unit: z.string(),
   value: z.number().optional(),
   text: z.string().optional(),
   id: z.number(),
 });
+export type Quantity = z.infer<typeof QuantitySchema>;
+
+export function format(q: Quantity): string {
+  if (q.unit === "arbitrary" && q.text) {
+    return q.text;
+  }
+  return `${q.value}${q.unit}`;
+}
 
 const IngredientSchema = z.object({
   id: z.number(),

@@ -1,84 +1,79 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import classnames from "classnames";
 import { useState } from "react";
+import { useAllRecipes } from "../apis/recipes.ts";
+import { useShoppinglist } from "../apis/shoppinglists.ts";
+import type { ItemQuantity } from "../apis/shoppinglists.ts";
+import type { Ingredient } from "../apis/shoppinglists.ts";
+import { combineQuantities, humanize } from "../quantities.ts";
 import { DottedLine } from "../misc/dottedLine.tsx";
-import { useAllShoppinglists } from "../apis/shoppinglists.ts";
 
 export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId")({
   component: ShoppingPage,
 });
 
 export function ShoppingPage() {
+  const { shoppinglistId } = Route.useParams();
   const { token } = Route.useRouteContext();
-  const data = useAllShoppinglists(token);
-  console.log(data.data);
-  console.log(data.error);
-  const ingredients = [
-    {
-      name: "aubergine",
-      quantity: "6x",
-      parts: [
-        { name: "parmigiana", quantity: "4x" },
-        { name: "fried aubergine", quantity: "1x" },
-        { name: "manual", quantity: "1x" },
-      ],
-      aisle: "vegetables",
-    },
-    {
-      name: "apples",
-      quantity: "12x",
-      parts: [{ name: "manual", quantity: "12x" }],
-      aisle: "vegetables",
-    },
-    {
-      name: "tomatoes",
-      quantity: "1kg",
-      parts: [
-        { name: "gnocci al tomato", quantity: "500g" },
-        { name: "manual", quantity: "500g" },
-      ],
-      aisle: "vegetables",
-    },
-    {
-      name: "milk",
-      quantity: "2 pints",
-      parts: [{ name: "pancakes", quantity: "2 pints" }],
-      aisle: "dairy",
-    },
-  ];
+  const shoppinglist = useShoppinglist(token, shoppinglistId);
+  const recipes = useAllRecipes(token);
+
+  if (shoppinglist.isLoading || recipes.isLoading) {
+    return <p>Loading</p>;
+  }
+
+  if (shoppinglist.isError || recipes.isError) {
+    return <p>Failed to load shoppinglist or recipes</p>;
+  }
+
+  if (shoppinglist.data?.ingredients.length === 0) {
+    return <p>List has no items</p>;
+  }
+
+  const allRecipes =
+    recipes.data?.recipes.reduce(
+      (acc, recipe) => {
+        acc[recipe.id] = recipe.name;
+        return acc;
+      },
+      {} as Record<number, string>,
+    ) || {};
+
   return (
     <div className="content-grid">
       <ul className="grid max-w-md gap-4">
-        {ingredients.map((ingredient) => (
-          <Ingredient key={ingredient.name} ingredient={ingredient} />
-        ))}
+        {shoppinglist.data?.ingredients.map((ingredient) => {
+          return (
+            <IngredientView
+              key={ingredient.name}
+              ingredient={ingredient}
+              allRecipes={allRecipes}
+            />
+          );
+        })}
       </ul>
     </div>
   );
 }
-type Ingredient = {
-  name: string;
-  aisle: string;
-  quantity: string;
-  parts: Part[];
-};
 
-type Part = {
-  name: string;
-  quantity: string;
-};
-function Ingredient({ ingredient }: { ingredient: Ingredient }) {
+function IngredientView({
+  ingredient,
+  allRecipes,
+}: { ingredient: Ingredient; allRecipes: Record<number, string> }) {
   const [open, setOpen] = useState(false);
-
   const [checked, setChecked] = useState(false);
+
+  // TODO: proper math on tallying the quantities
+  const totalQuantity = combineQuantities(ingredient.quantities);
   return (
     <li
       className={classnames(
         "shadow border-black border-solid border-2 p-2 col-span-2",
-        { "grid grid-cols-subgrid": !open },
+        { "grid grid-cols-subgrid": true },
+        // { "grid grid-cols-subgrid": !open },
       )}
     >
-      <div className="flex-grow">
+      <div>
         <div className="flex flex-col">
           <div className="flex flex-row">
             <input
@@ -102,15 +97,15 @@ function Ingredient({ ingredient }: { ingredient: Ingredient }) {
           {!open && (
             <div className="flex flex-row justify-between font-light">
               <p>Quantity:</p>
-              <p>{ingredient.quantity}</p>
+              <p>{totalQuantity}</p>
             </div>
           )}
           {open && (
             <div>
               <p>Parts:</p>
               <ol>
-                {ingredient.parts.map((part) => (
-                  <Part key={part.name} part={part} />
+                {ingredient.quantities.map((q) => (
+                  <Part key={q.id} part={q} recipes={allRecipes} />
                 ))}
               </ol>
             </div>
@@ -118,7 +113,7 @@ function Ingredient({ ingredient }: { ingredient: Ingredient }) {
         </div>
       </div>
       <div className={"flex flex-col justify-between"}>
-        {!open ? <p className={"font-light"}>{ingredient.aisle}</p> : null}
+        <p className={"font-light"}>Some aisle</p>
         <button
           className={classnames(
             "border-black border-double border-4 hover:bg-gray-100",
@@ -139,26 +134,40 @@ function Ingredient({ ingredient }: { ingredient: Ingredient }) {
 }
 
 type PartProps = {
-  part: Part;
+  part: ItemQuantity;
+  recipes: Record<number, string>;
 };
 function Part(props: PartProps) {
   const [checked, setChecked] = useState(false);
+
+  const css = classnames(
+    "overflow-hidden text-nowrap text-ellipsis",
+    {
+      "line-through": checked,
+    },
+  );
+
+  const recipe = props.part.recipe_id ? (
+    <Link className={css} to={"/recipes"}>
+      {props.recipes[props.part.recipe_id]}
+    </Link>
+  ) : (
+    <p className={css}>manual</p>
+  );
+
   return (
-    <li className="font-light flex flex-row justify-between">
+    <li className="flex flex-row font-light">
       <input
+        className={"flex-shrink-0 flex-grow-0"}
         type={"checkbox"}
         checked={checked}
         onChange={() => setChecked((checked) => !checked)}
       />
-      <p
-        className={classnames("text-ellipsis ml-2", {
-          "line-through": checked,
-        })}
-      >
-        {props.part.name}
-      </p>
-      <DottedLine />
-      <p>{props.part.quantity}</p>
+      <div className={"flex flex-shrink ml-2 min-w-0"}>
+        {recipe}
+        <DottedLine />
+      </div>
+      <p className="flex-grow-0 flex-shrink-0">{humanize(props.part)}</p>
     </li>
   );
 }

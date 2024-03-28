@@ -258,7 +258,7 @@ pub async fn shoppinglist(
     format::json(ShoppinglistResponse {
         id: list.id,
         name: list.name,
-        last_updated: list.updated_at.format("%Y-%m-%dT%H:%M:%S").to_string(),
+        last_updated: list.updated_at.format("%Y-%m-%dT%H:%M:%SZ").to_string(),
         ingredients: ingredients
             .into_iter()
             .map(|(ingredient, quantities)| ListItem {
