@@ -13,6 +13,7 @@ import {
 import { createFileRoute } from "@tanstack/react-router";
 import classnames from "classnames";
 import { useState } from "react";
+import { toast } from "sonner";
 import {
   type Book,
   type Ingredient,
@@ -95,9 +96,17 @@ function RecipeView(props: RecipeProps) {
         </button>
         <AddToShoppinglist
           token={token}
-          onSelect={(shoppinglistId) =>
-            addRecipe.mutate({ shoppinglistId, recipeId })
-          }
+          onSelect={(shoppinglist) => {
+            addRecipe.mutate({ shoppinglistId: shoppinglist.id, recipeId });
+            toast(
+              `Added "${props.recipe.name}" to shoppinglist "${shoppinglist.name}"`,
+              {
+                position: "top-right",
+                closeButton: true,
+              },
+            );
+            console.log("Added a toast!");
+          }}
         />
         <button type="submit" className="px-2 text-white bg-gray-700 shadow">
           Delete
@@ -107,9 +116,11 @@ function RecipeView(props: RecipeProps) {
   );
 }
 
+type ShoppinglistIdentifier = Pick<Shoppinglist, "id" | "name">;
+
 type Props = {
   token: string;
-  onSelect: (id: Shoppinglist["id"]) => void;
+  onSelect: (id: ShoppinglistIdentifier) => void;
 };
 
 function AddToShoppinglist(props: Props) {
@@ -180,7 +191,7 @@ function PickShoppinglist(props: Props) {
             type={"submit"}
             onClick={(e) => {
               e?.preventDefault();
-              props.onSelect(list.id);
+              props.onSelect(list);
             }}
             className={"px-2 bg-white shadow"}
           >
