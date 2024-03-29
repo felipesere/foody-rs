@@ -1,3 +1,15 @@
+import {
+  FloatingFocusManager,
+  autoUpdate,
+  flip,
+  offset,
+  shift,
+  useClick,
+  useDismiss,
+  useFloating,
+  useInteractions,
+  useRole,
+} from "@floating-ui/react";
 import { createFileRoute } from "@tanstack/react-router";
 import classnames from "classnames";
 import { useState } from "react";
@@ -6,8 +18,11 @@ import {
   type Ingredient,
   type Recipe,
   type Website,
+  addRecipeToShoppinglist,
   useAllRecipes,
 } from "../apis/recipes.ts";
+import { useAllShoppinglists } from "../apis/shoppinglists.ts";
+import type { Shoppinglist } from "../apis/shoppinglists.ts";
 import { DottedLine } from "../misc/dottedLine.tsx";
 
 export const Route = createFileRoute("/_auth/recipes")({
@@ -24,7 +39,7 @@ export function RecipesPage() {
       <ul className="grid gap-4">
         {recipes ? (
           recipes.recipes.map((recipe) => (
-            <RecipeView key={recipe.name} recipe={recipe} />
+            <RecipeView key={recipe.id} recipe={recipe} />
           ))
         ) : (
           <p>Loading</p>
@@ -39,7 +54,11 @@ type RecipeProps = {
 };
 
 function RecipeView(props: RecipeProps) {
+  const { token } = Route.useRouteContext();
   const [open, setOpen] = useState(false);
+  const addRecipe = addRecipeToShoppinglist(token);
+  const recipeId = props.recipe.id;
+
   return (
     <li className="p-2 border-black border-solid border-2">
       <p className="font-black uppercase tracking-wider">{props.recipe.name}</p>
@@ -74,14 +93,102 @@ function RecipeView(props: RecipeProps) {
         >
           Details
         </button>
-        <button type="submit" className="px-2 text-black bg-gray-300 shadow">
-          Add
-        </button>
+        <AddToShoppinglist
+          token={token}
+          onSelect={(shoppinglistId) =>
+            addRecipe.mutate({ shoppinglistId, recipeId })
+          }
+        />
         <button type="submit" className="px-2 text-white bg-gray-700 shadow">
           Delete
         </button>
       </div>
     </li>
+  );
+}
+
+type Props = {
+  token: string;
+  onSelect: (id: Shoppinglist["id"]) => void;
+};
+
+function AddToShoppinglist(props: Props) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const { refs, floatingStyles, context } = useFloating({
+    open: isOpen,
+    onOpenChange: setIsOpen,
+    middleware: [offset(3), flip(), shift()],
+    whileElementsMounted: autoUpdate,
+  });
+
+  const click = useClick(context);
+  const dismiss = useDismiss(context);
+  const role = useRole(context);
+
+  // Merge all the interactions into prop getters
+  const { getReferenceProps, getFloatingProps } = useInteractions([
+    click,
+    dismiss,
+    role,
+  ]);
+
+  return (
+    <>
+      <button
+        ref={refs.setReference}
+        {...getReferenceProps()}
+        type="submit"
+        className="px-2 text-black bg-gray-300 shadow"
+      >
+        Add
+      </button>
+      {isOpen && (
+        <FloatingFocusManager context={context} modal={false}>
+          <div
+            ref={refs.setFloating}
+            style={floatingStyles}
+            {...getFloatingProps()}
+            className={"bg-gray-200 p-2 border-solid border-black border-2"}
+          >
+            <PickShoppinglist
+              token={props.token}
+              onSelect={(id) => {
+                props.onSelect(id);
+                setIsOpen(false);
+              }}
+            />
+          </div>
+        </FloatingFocusManager>
+      )}
+    </>
+  );
+}
+
+function PickShoppinglist(props: Props) {
+  const { isLoading, data } = useAllShoppinglists(props.token);
+
+  if (isLoading || !data) {
+    return <p>Loading...</p>;
+  }
+
+  return (
+    <ol className={"space-y-2"}>
+      {data.shoppinglists.map((list) => (
+        <li key={list.id}>
+          <button
+            type={"submit"}
+            onClick={(e) => {
+              e?.preventDefault();
+              props.onSelect(list.id);
+            }}
+            className={"px-2 bg-white shadow"}
+          >
+            {list.name}
+          </button>
+        </li>
+      ))}
+    </ol>
   );
 }
 

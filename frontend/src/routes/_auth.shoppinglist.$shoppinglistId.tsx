@@ -1,12 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import classnames from "classnames";
 import { useState } from "react";
 import { useAllRecipes } from "../apis/recipes.ts";
 import { useShoppinglist } from "../apis/shoppinglists.ts";
 import type { ItemQuantity } from "../apis/shoppinglists.ts";
 import type { Ingredient } from "../apis/shoppinglists.ts";
-import { combineQuantities, humanize } from "../quantities.ts";
 import { DottedLine } from "../misc/dottedLine.tsx";
+import { combineQuantities, humanize } from "../quantities.ts";
 
 export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId")({
   component: ShoppingPage,
@@ -140,12 +140,9 @@ type PartProps = {
 function Part(props: PartProps) {
   const [checked, setChecked] = useState(false);
 
-  const css = classnames(
-    "overflow-hidden text-nowrap text-ellipsis",
-    {
-      "line-through": checked,
-    },
-  );
+  const css = classnames("overflow-hidden text-nowrap text-ellipsis", {
+    "line-through": checked,
+  });
 
   const recipe = props.part.recipe_id ? (
     <Link className={css} to={"/recipes"}>

@@ -49,6 +49,8 @@ const ShoppinglistSchema = z.object({
   ingredients: z.array(IngredientSchema),
 });
 
+export type Shoppinglist = z.infer<typeof ShoppinglistSchema>;
+
 export function useShoppinglist(token: string, shoppinglistId: string) {
   return useQuery({
     queryKey: ["shoppinglist", shoppinglistId],

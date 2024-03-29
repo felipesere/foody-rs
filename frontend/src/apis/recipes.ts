@@ -1,5 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
+import type { Shoppinglist } from "./shoppinglists.ts";
 
 export const QuantitySchema = z.object({
   unit: z.string(),
@@ -8,13 +9,6 @@ export const QuantitySchema = z.object({
   id: z.number(),
 });
 export type Quantity = z.infer<typeof QuantitySchema>;
-
-export function format(q: Quantity): string {
-  if (q.unit === "arbitrary" && q.text) {
-    return q.text;
-  }
-  return `${q.value}${q.unit}`;
-}
 
 const IngredientSchema = z.object({
   id: z.number(),
@@ -52,6 +46,35 @@ export type Ingredient = z.infer<typeof IngredientSchema>;
 export const RecipesSchema = z.object({
   recipes: z.array(RecipeSchema),
 });
+
+export type AddRecipeParams = {
+  recipeId: Recipe["id"];
+  shoppinglistId: Shoppinglist["id"];
+};
+
+export function addRecipeToShoppinglist(token: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ recipeId, shoppinglistId }: AddRecipeParams) => {
+      // TODO: Error handling
+      await fetch(
+        `http://localhost:3000/api/shoppinglists/${shoppinglistId}/recipe/${recipeId}`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+    },
+    onSettled: (_data, _err, { shoppinglistId }) => {
+      return client.invalidateQueries({
+        queryKey: ["shoppinglist", shoppinglistId],
+      });
+    },
+  });
+}
 
 export function useAllRecipes(token: string) {
   return useQuery({
