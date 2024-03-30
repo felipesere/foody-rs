@@ -1,28 +1,28 @@
 use loco_rs::controller::middleware;
 use loco_rs::prelude::*;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::models::users::users;
 
 use super::shoppinglists::QuantityResponse;
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct RecipesResponse {
-    recipes: Vec<RecipeResponse>,
+    pub recipes: Vec<RecipeResponse>,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct RecipeResponse {
-    id: i32,
-    source: String,
-    name: String,
-    url: Option<String>,
-    title: Option<String>,
-    page: Option<i32>,
-    ingredients: Vec<IngredientResponse>,
+    pub id: i32,
+    pub source: String,
+    pub name: String,
+    pub url: Option<String>,
+    pub title: Option<String>,
+    pub page: Option<i32>,
+    pub ingredients: Vec<IngredientResponse>,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct IngredientResponse {
     id: i32,
     name: String,

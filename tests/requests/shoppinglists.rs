@@ -1,25 +1,21 @@
-use axum::http::{header, HeaderValue};
 use foody::app::App;
+use foody::controllers::recipes::RecipesResponse;
 use insta::assert_json_snapshot;
-use loco_rs::app::AppContext;
+use insta::internals::Redaction;
 use loco_rs::testing;
 use serde_json::json;
 use serial_test::serial;
 
 use crate::requests::prepare_data;
 
-async fn auth_token(ctx: &AppContext) -> String {
-    let user = foody::models::users::users::Model::find_by_email(&ctx.db, "jim@example.com")
-        .await
-        .unwrap();
-
-    let jwt_secret = ctx.config.get_jwt_config().unwrap();
-
-    let token = user
-        .generate_jwt(&jwt_secret.secret, &jwt_secret.expiration)
-        .unwrap();
-
-    token
+fn replace_value_with(replacement: &'static str) -> Redaction {
+    insta::dynamic_redaction(|value, _path| {
+        if !value.is_nil() {
+            replacement.into()
+        } else {
+            value
+        }
+    })
 }
 
 #[tokio::test]
@@ -45,136 +41,13 @@ async fn can_list_current_shoppinglists() {
           "shoppinglists": [
             {
               "id": "[redacted]",
-              "ingredients": [],
               "last_updated": "[redacted]",
-              "name": "Regular salad shop"
+              "name": "Mondays"
             },
             {
               "id": "[redacted]",
-              "ingredients": [
-                {
-                  "id": "[redacted]",
-                  "in_basket": false,
-                  "name": "chicken stock",
-                  "quantities": [
-                    {
-                      "id": "[redacted]",
-                      "unit": "millilitre",
-                      "value": 600.0
-                    }
-                  ]
-                },
-                {
-                  "id": "[redacted]",
-                  "in_basket": false,
-                  "name": "chicken thighs",
-                  "quantities": [
-                    {
-                      "id": "[redacted]",
-                      "unit": "count",
-                      "value": 6.0
-                    }
-                  ]
-                },
-                {
-                  "id": "[redacted]",
-                  "in_basket": false,
-                  "name": "chorizo",
-                  "quantities": [
-                    {
-                      "id": "[redacted]",
-                      "unit": "grams",
-                      "value": 150.0
-                    }
-                  ]
-                },
-                {
-                  "id": "[redacted]",
-                  "in_basket": false,
-                  "name": "garlic",
-                  "quantities": [
-                    {
-                      "id": "[redacted]",
-                      "unit": "count",
-                      "value": 2.0
-                    }
-                  ]
-                },
-                {
-                  "id": "[redacted]",
-                  "in_basket": false,
-                  "name": "lemon",
-                  "quantities": [
-                    {
-                      "id": "[redacted]",
-                      "unit": "count",
-                      "value": 1.0
-                    }
-                  ]
-                },
-                {
-                  "id": "[redacted]",
-                  "in_basket": false,
-                  "name": "paella rice",
-                  "quantities": [
-                    {
-                      "id": "[redacted]",
-                      "unit": "grams",
-                      "value": 250.0
-                    }
-                  ]
-                },
-                {
-                  "id": "[redacted]",
-                  "in_basket": false,
-                  "name": "parsley",
-                  "quantities": [
-                    {
-                      "id": "[redacted]",
-                      "unit": "gram",
-                      "value": 20.0
-                    }
-                  ]
-                },
-                {
-                  "id": "[redacted]",
-                  "in_basket": false,
-                  "name": "red onion",
-                  "quantities": [
-                    {
-                      "id": "[redacted]",
-                      "unit": "count",
-                      "value": 1.0
-                    }
-                  ]
-                },
-                {
-                  "id": "[redacted]",
-                  "in_basket": false,
-                  "name": "red pepper",
-                  "quantities": [
-                    {
-                      "id": "[redacted]",
-                      "unit": "count",
-                      "value": 2.0
-                    }
-                  ]
-                },
-                {
-                  "id": "[redacted]",
-                  "in_basket": false,
-                  "name": "saffron",
-                  "quantities": [
-                    {
-                      "id": "[redacted]",
-                      "text": "1 pinch",
-                      "unit": "arbitrary"
-                    }
-                  ]
-                }
-              ],
               "last_updated": "[redacted]",
-              "name": "Mondays"
+              "name": "Regular salad shop"
             }
           ]
         }
@@ -252,11 +125,12 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "ingredients": [
             {
               "id": "[redactored]",
-              "in_basket": false,
               "name": "bananas",
               "quantities": [
                 {
                   "id": "[redactored]",
+                  "in_basket": false,
+                  "recipe_id": null,
                   "unit": "count",
                   "value": 10.0
                 }
@@ -292,11 +166,12 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "ingredients": [
             {
               "id": "[redactored]",
-              "in_basket": true,
               "name": "bananas",
               "quantities": [
                 {
                   "id": "[redactored]",
+                  "in_basket": true,
+                  "recipe_id": null,
                   "unit": "count",
                   "value": 10.0
                 }
@@ -336,6 +211,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
         {
             ".last_updated" => "[date]",
             ".**.id" => "[redacted]",
+            ".**.recipe_id" => replace_value_with("[recipe_id]"),
         },
         @r###"
         {
@@ -343,11 +219,12 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "ingredients": [
             {
               "id": "[redacted]",
-              "in_basket": true,
               "name": "bananas",
               "quantities": [
                 {
                   "id": "[redacted]",
+                  "in_basket": true,
+                  "recipe_id": null,
                   "unit": "count",
                   "value": 10.0
                 }
@@ -355,11 +232,12 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redacted]",
-              "in_basket": false,
               "name": "double cream",
               "quantities": [
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
                   "unit": "tablespoon",
                   "value": 2.0
                 }
@@ -367,11 +245,12 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redacted]",
-              "in_basket": false,
               "name": "leeks",
               "quantities": [
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
                   "text": "3 small",
                   "unit": "arbitrary"
                 }
@@ -379,11 +258,12 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redacted]",
-              "in_basket": false,
               "name": "parmesan shavings",
               "quantities": [
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
                   "unit": "gram",
                   "value": 100.0
                 }
@@ -391,11 +271,12 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redacted]",
-              "in_basket": false,
               "name": "puff pastry",
               "quantities": [
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
                   "text": "1 sheet",
                   "unit": "arbitrary"
                 }
@@ -422,6 +303,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
         {
             ".last_updated" => "[date]",
             ".**.id" => "[redactor]",
+            ".**.recipe_id" => replace_value_with("[recipe_id]"),
         },
         @r###"
         {
@@ -429,11 +311,12 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "ingredients": [
             {
               "id": "[redactor]",
-              "in_basket": false,
               "name": "double cream",
               "quantities": [
                 {
                   "id": "[redactor]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
                   "unit": "tablespoon",
                   "value": 2.0
                 }
@@ -441,11 +324,12 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redactor]",
-              "in_basket": false,
               "name": "leeks",
               "quantities": [
                 {
                   "id": "[redactor]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
                   "text": "3 small",
                   "unit": "arbitrary"
                 }
@@ -453,11 +337,12 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redactor]",
-              "in_basket": false,
               "name": "parmesan shavings",
               "quantities": [
                 {
                   "id": "[redactor]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
                   "unit": "gram",
                   "value": 100.0
                 }
@@ -465,11 +350,12 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redactor]",
-              "in_basket": false,
               "name": "puff pastry",
               "quantities": [
                 {
                   "id": "[redactor]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
                   "text": "1 sheet",
                   "unit": "arbitrary"
                 }
@@ -509,6 +395,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
         {
             ".last_updated" => "[date]",
             ".**.id" => "[redacted]",
+            ".**.recipe_id" => replace_value_with("[recipe_id]"),
         },
         @r###"
         {
@@ -516,11 +403,12 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "ingredients": [
             {
               "id": "[redacted]",
-              "in_basket": false,
               "name": "double cream",
               "quantities": [
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
                   "unit": "tablespoon",
                   "value": 2.0
                 }
@@ -528,11 +416,12 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redacted]",
-              "in_basket": false,
               "name": "leeks",
               "quantities": [
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
                   "text": "3 small",
                   "unit": "arbitrary"
                 }
@@ -540,16 +429,19 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redacted]",
-              "in_basket": false,
               "name": "parmesan shavings",
               "quantities": [
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
                   "unit": "gram",
                   "value": 100.0
                 },
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": null,
                   "unit": "kilogram",
                   "value": 3.5
                 }
@@ -557,11 +449,12 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redacted]",
-              "in_basket": false,
               "name": "puff pastry",
               "quantities": [
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
                   "text": "1 sheet",
                   "unit": "arbitrary"
                 }
@@ -584,6 +477,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
         {
             ".last_updated" => "[date]",
             ".**.id" => "[redacted]",
+            ".**.recipe_id" => replace_value_with("[recipe_id]"),
         },
         @r###"
         {
@@ -591,11 +485,12 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "ingredients": [
             {
               "id": "[redacted]",
-              "in_basket": false,
               "name": "double cream",
               "quantities": [
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
                   "unit": "tablespoon",
                   "value": 2.0
                 }
@@ -603,11 +498,12 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redacted]",
-              "in_basket": false,
               "name": "leeks",
               "quantities": [
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
                   "text": "3 small",
                   "unit": "arbitrary"
                 }
@@ -615,16 +511,19 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redacted]",
-              "in_basket": false,
               "name": "parmesan shavings",
               "quantities": [
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
                   "unit": "gram",
                   "value": 100.0
                 },
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": null,
                   "unit": "kilogram",
                   "value": 3.5
                 }
@@ -632,11 +531,12 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redacted]",
-              "in_basket": false,
               "name": "puff pastry",
               "quantities": [
                 {
                   "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
                   "text": "1 sheet",
                   "unit": "arbitrary"
                 }
@@ -646,7 +546,158 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "last_updated": "[date]",
           "name": "testing-shopping-list"
         }
-        "###)
+        "###);
+
+        let res = request.get(&format!("/api/recipes")).await;
+        assert_eq!(res.status_code(), 200);
+        let recipes = res.json::<RecipesResponse>();
+        let pumpking_soup_id = recipes
+            .recipes
+            .into_iter()
+            .find_map(|r| {
+                if r.name == "pumpkin soup" {
+                    Some(r.id)
+                } else {
+                    None
+                }
+            })
+            .unwrap();
+
+        let res = request
+            .post(&format!(
+                "/api/shoppinglists/{id}/recipe/{pumpking_soup_id}"
+            ))
+            .await;
+        assert_eq!(res.status_code(), 200);
+
+        let res = request.get(&format!("/api/shoppinglists/{id}")).await;
+        assert_eq!(res.status_code(), 200);
+        assert_json_snapshot!(res.json::<serde_json::Value>(),
+        {
+            ".last_updated" => "[date]",
+            ".**.id" => "[redacted]",
+            ".**.recipe_id" => replace_value_with("[recipe_id]"),
+        },
+        @r###"
+        {
+          "id": "[redacted]",
+          "ingredients": [
+            {
+              "id": "[redacted]",
+              "name": "cashew nuts",
+              "quantities": [
+                {
+                  "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
+                  "unit": "gram",
+                  "value": 50.0
+                }
+              ]
+            },
+            {
+              "id": "[redacted]",
+              "name": "double cream",
+              "quantities": [
+                {
+                  "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
+                  "unit": "tablespoon",
+                  "value": 2.0
+                }
+              ]
+            },
+            {
+              "id": "[redacted]",
+              "name": "ginger",
+              "quantities": [
+                {
+                  "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
+                  "unit": "gram",
+                  "value": 10.0
+                }
+              ]
+            },
+            {
+              "id": "[redacted]",
+              "name": "leeks",
+              "quantities": [
+                {
+                  "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
+                  "text": "3 small",
+                  "unit": "arbitrary"
+                }
+              ]
+            },
+            {
+              "id": "[redacted]",
+              "name": "parmesan shavings",
+              "quantities": [
+                {
+                  "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
+                  "unit": "gram",
+                  "value": 100.0
+                },
+                {
+                  "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": null,
+                  "unit": "kilogram",
+                  "value": 3.5
+                }
+              ]
+            },
+            {
+              "id": "[redacted]",
+              "name": "potatoes",
+              "quantities": [
+                {
+                  "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
+                  "unit": "gram",
+                  "value": 100.0
+                }
+              ]
+            },
+            {
+              "id": "[redacted]",
+              "name": "puff pastry",
+              "quantities": [
+                {
+                  "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
+                  "text": "1 sheet",
+                  "unit": "arbitrary"
+                }
+              ]
+            },
+            {
+              "id": "[redacted]",
+              "name": "pumpkin",
+              "quantities": [
+                {
+                  "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
+                  "unit": "gram",
+                  "value": 400.0
+                }
+              ]
+            }
+          ],
+          "last_updated": "[date]",
+          "name": "testing-shopping-list"
+        }
+        "###);
     })
     .await;
 }

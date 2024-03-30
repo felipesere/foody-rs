@@ -1,23 +1,26 @@
 use axum::extract;
 use loco_rs::{controller::middleware, prelude::*};
+use migration::Expr;
 use sea_orm::entity::ColumnTrait;
 use sea_orm::ActiveValue::{self, Set};
-use sea_orm::{Condition, QueryFilter, TransactionTrait, Value};
+use sea_orm::{Condition, QueryFilter, TransactionTrait};
 use serde::{Deserialize, Serialize};
 
-use crate::models::_entities::ingredients_in_shoppinglists;
 use crate::models::ingredients::ingredients::Column;
 use crate::models::ingredients::{self, Model as Ingredient};
 use crate::models::quantities::{self, Model as Quantity};
-use crate::models::shoppinglists;
-use crate::models::{shoppinglists::Model as Shoppinglists, users};
+use crate::models::users;
+use crate::models::{
+    ingredients_in_shoppinglists,
+    shoppinglists::{self, Shoppinglist},
+};
 
 #[derive(Serialize)]
 pub struct ShoppinglistsResponse {
-    shoppinglists: Vec<ShoppinglistResponse>,
+    shoppinglists: Vec<MinimalShoppinglistResponse>,
 }
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct QuantityResponse {
     pub id: i32,
     pub unit: String,
@@ -39,10 +42,17 @@ impl From<Quantity> for QuantityResponse {
 }
 
 #[derive(Serialize, Clone, Debug)]
-struct IngredientResponse {
+struct ListItem {
     id: i32,
     name: String,
-    quantities: Vec<QuantityResponse>,
+    quantities: Vec<ItemQuantity>,
+}
+
+#[derive(Serialize, Clone, Debug)]
+struct ItemQuantity {
+    #[serde(flatten)]
+    quantity: QuantityResponse,
+    recipe_id: Option<i32>,
     in_basket: bool,
 }
 
@@ -50,28 +60,44 @@ struct IngredientResponse {
 pub struct ShoppinglistResponse {
     id: i32,
     name: String,
-    ingredients: Vec<IngredientResponse>,
+    ingredients: Vec<ListItem>,
     last_updated: String,
 }
 
-impl From<Shoppinglists> for ShoppinglistResponse {
-    fn from(value: Shoppinglists) -> Self {
+#[derive(Serialize, Clone, Debug)]
+pub struct MinimalShoppinglistResponse {
+    id: i32,
+    name: String,
+    last_updated: String,
+}
+
+impl From<Shoppinglist> for MinimalShoppinglistResponse {
+    fn from(value: Shoppinglist) -> Self {
         Self {
             id: value.id,
             name: value.name,
-            ingredients: Vec::new(),
-            last_updated: value.updated_at.format("%Y-%m-%dT%H:%M:%S").to_string(),
+            last_updated: value.updated_at.format("%Y-%m-%dT%H:%M:%SZ").to_string(),
         }
     }
 }
 
-impl From<Ingredient> for IngredientResponse {
+impl From<Shoppinglist> for ShoppinglistResponse {
+    fn from(value: Shoppinglist) -> Self {
+        Self {
+            id: value.id,
+            name: value.name,
+            ingredients: Vec::new(),
+            last_updated: value.updated_at.format("%Y-%m-%dT%H:%M:%SZ").to_string(),
+        }
+    }
+}
+
+impl From<Ingredient> for ListItem {
     fn from(value: Ingredient) -> Self {
         Self {
             id: value.id,
             name: value.name,
             quantities: Vec::new(),
-            in_basket: false,
         }
     }
 }
@@ -83,21 +109,12 @@ pub async fn all_shoppinglists(
     // check auth
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
-    let mut shoppinglists = Vec::new();
-
-    for (list, ingredients) in Shoppinglists::find_all(&ctx.db).await? {
-        let mut shoppinglist = ShoppinglistResponse::from(list);
-        for (ingredient, quantities, in_basket) in ingredients {
-            let mut converted_ingredient = IngredientResponse::from(ingredient);
-
-            converted_ingredient.in_basket = in_basket;
-            converted_ingredient.quantities =
-                quantities.into_iter().map(QuantityResponse::from).collect();
-            shoppinglist.ingredients.push(converted_ingredient);
-        }
-        shoppinglists.push(shoppinglist);
-    }
-
+    let shoppinglists = shoppinglists::Entity::find()
+        .all(&ctx.db)
+        .await?
+        .into_iter()
+        .map(MinimalShoppinglistResponse::from)
+        .collect();
     format::json(ShoppinglistsResponse { shoppinglists })
 }
 
@@ -148,6 +165,7 @@ pub async fn add_ingredient(
         return Err(Error::NotFound);
     };
 
+    // TODO: Super goody to use the name here and allow "creation"?
     let ingredient = if let Some(i) = ingredients::Entity::find()
         .filter(Column::Name.eq(&params.ingredient))
         .one(&ctx.db)
@@ -234,27 +252,25 @@ pub async fn shoppinglist(
 ) -> Result<Json<ShoppinglistResponse>> {
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
-    let Some((list, ingredients)) = Shoppinglists::find_one(&ctx.db, id).await? else {
+    let Some((list, ingredients)) = Shoppinglist::find_one(&ctx.db, id).await? else {
         return Err(Error::NotFound);
     };
 
     format::json(ShoppinglistResponse {
         id: list.id,
         name: list.name,
-        last_updated: list.updated_at.format("%Y-%m-%dT%H:%M:%S").to_string(),
+        last_updated: list.updated_at.format("%Y-%m-%dT%H:%M:%SZ").to_string(),
         ingredients: ingredients
             .into_iter()
-            .map(|(ingredient, quants, in_basket)| IngredientResponse {
+            .map(|(ingredient, quantities)| ListItem {
                 id: ingredient.id,
                 name: ingredient.name,
-                in_basket,
-                quantities: quants
+                quantities: quantities
                     .into_iter()
-                    .map(|q| QuantityResponse {
-                        id: q.id,
-                        unit: q.unit,
-                        value: q.value,
-                        text: q.text,
+                    .map(|(in_basket, quantity, recipe_id)| ItemQuantity {
+                        quantity: quantity.into(),
+                        in_basket,
+                        recipe_id,
                     })
                     .collect(),
             })
@@ -275,22 +291,18 @@ pub async fn toggle_in_basket_for_item(
 ) -> Result<()> {
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
-    let mut ing_on_list = ingredients_in_shoppinglists::Entity::find()
+    ingredients_in_shoppinglists::Entity::update_many()
         .filter(
             Condition::all()
                 .add(ingredients_in_shoppinglists::Column::ShoppinglistsId.eq(id))
                 .add(ingredients_in_shoppinglists::Column::IngredientsId.eq(ingredient_id)),
         )
-        .one(&ctx.db)
-        .await?
-        .ok_or_else(|| Error::NotFound)?
-        .into_active_model();
-
-    ing_on_list.set(
-        ingredients_in_shoppinglists::Column::InBasket,
-        Value::Bool(Some(params.in_basket)),
-    );
-    ing_on_list.save(&ctx.db).await?;
+        .col_expr(
+            ingredients_in_shoppinglists::Column::InBasket,
+            Expr::value(params.in_basket),
+        )
+        .exec(&ctx.db)
+        .await?;
 
     Ok(())
 }
@@ -298,19 +310,21 @@ pub async fn toggle_in_basket_for_item(
 pub async fn add_recipe_to_shoppinglist(
     auth: middleware::auth::JWT,
     State(ctx): State<AppContext>,
-    Path((id, recipe_id)): Path<(i32, i32)>,
+    Path((shoppinglist_id, recipe_id)): Path<(i32, i32)>,
 ) -> Result<()> {
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
     // check that it exists
-    let _ = shoppinglists::Entity::find_by_id(id).one(&ctx.db).await?;
+    let _ = shoppinglists::Entity::find_by_id(shoppinglist_id)
+        .one(&ctx.db)
+        .await?;
 
-    let (_recipe, ingredients) = crate::models::recipes::find_one(&ctx.db, recipe_id)
+    let (recipe, ingredients) = crate::models::recipes::find_one(&ctx.db, recipe_id)
         .await?
         .ok_or_else(|| Error::NotFound)?;
 
     let tx = ctx.db.begin().await?;
     for (ingredient, quantity) in ingredients {
-        let q = quantities::ActiveModel {
+        let quantity = quantities::ActiveModel {
             unit: ActiveValue::Set(quantity.unit),
             value: ActiveValue::Set(quantity.value),
             text: ActiveValue::Set(quantity.text),
@@ -318,10 +332,19 @@ pub async fn add_recipe_to_shoppinglist(
         }
         .insert(&tx)
         .await?;
+        tracing::debug!(
+            "Adding {}({}) from {}({}) to {}",
+            ingredient.name,
+            ingredient.id,
+            recipe.name,
+            recipe_id,
+            shoppinglist_id
+        );
         ingredients_in_shoppinglists::ActiveModel {
-            shoppinglists_id: ActiveValue::Set(id),
+            shoppinglists_id: ActiveValue::Set(shoppinglist_id),
             ingredients_id: ActiveValue::Set(ingredient.id),
-            quantities_id: ActiveValue::Set(q.id),
+            quantities_id: ActiveValue::Set(quantity.id),
+            recipe_id: ActiveValue::Set(Some(recipe.id)),
             in_basket: ActiveValue::Set(false),
             ..Default::default()
         }

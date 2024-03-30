@@ -14,6 +14,7 @@ pub struct Model {
     pub shoppinglists_id: i32,
     pub ingredients_id: i32,
     pub quantities_id: i32,
+    pub recipe_id: Option<i32>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
@@ -35,6 +36,14 @@ pub enum Relation {
     )]
     Quantities,
     #[sea_orm(
+        belongs_to = "super::recipes::Entity",
+        from = "Column::RecipeId",
+        to = "super::recipes::Column::Id",
+        on_update = "NoAction",
+        on_delete = "NoAction"
+    )]
+    Recipes,
+    #[sea_orm(
         belongs_to = "super::shoppinglists::Entity",
         from = "Column::ShoppinglistsId",
         to = "super::shoppinglists::Column::Id",
@@ -53,6 +62,12 @@ impl Related<super::ingredients::Entity> for Entity {
 impl Related<super::quantities::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Quantities.def()
+    }
+}
+
+impl Related<super::recipes::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Recipes.def()
     }
 }
 

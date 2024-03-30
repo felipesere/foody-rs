@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
+import { Toaster } from "sonner";
 
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
@@ -60,6 +61,15 @@ if (rootElement && !rootElement.innerHTML) {
       <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />
         <ReactQueryDevtools initialIsOpen={false} />
+        <Toaster
+          toastOptions={{
+            classNames: {
+              toast: "bg-white border-solid border-black border-2 px-2 py-4",
+            },
+          }}
+          position={"top-right"}
+          closeButton
+        />
       </QueryClientProvider>
     </StrictMode>,
   );

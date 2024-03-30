@@ -16,6 +16,7 @@ import { Route as AuthImport } from './routes/_auth'
 import { Route as AuthIndexImport } from './routes/_auth.index'
 import { Route as AuthRecipesImport } from './routes/_auth.recipes'
 import { Route as AuthIngredientsImport } from './routes/_auth.ingredients'
+import { Route as AuthShoppinglistShoppinglistIdImport } from './routes/_auth.shoppinglist.$shoppinglistId'
 
 // Create/Update Routes
 
@@ -44,6 +45,12 @@ const AuthIngredientsRoute = AuthIngredientsImport.update({
   getParentRoute: () => AuthRoute,
 } as any)
 
+const AuthShoppinglistShoppinglistIdRoute =
+  AuthShoppinglistShoppinglistIdImport.update({
+    path: '/shoppinglist/$shoppinglistId',
+    getParentRoute: () => AuthRoute,
+  } as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -68,6 +75,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthIndexImport
       parentRoute: typeof AuthImport
     }
+    '/_auth/shoppinglist/$shoppinglistId': {
+      preLoaderRoute: typeof AuthShoppinglistShoppinglistIdImport
+      parentRoute: typeof AuthImport
+    }
   }
 }
 
@@ -78,6 +89,7 @@ export const routeTree = rootRoute.addChildren([
     AuthIngredientsRoute,
     AuthRecipesRoute,
     AuthIndexRoute,
+    AuthShoppinglistShoppinglistIdRoute,
   ]),
   LoginRoute,
 ])

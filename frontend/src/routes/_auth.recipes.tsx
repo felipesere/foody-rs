@@ -1,14 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import classnames from "classnames";
 import { useState } from "react";
+import { toast } from "sonner";
 import {
   type Book,
   type Ingredient,
   type Recipe,
   type Website,
+  addRecipeToShoppinglist,
   useAllRecipes,
 } from "../apis/recipes.ts";
-import { DottedLine } from "../misc/dottedLine.tsx";
+import { AddToShoppinglist } from "../components/addToShoppinglist.tsx";
+import { DottedLine } from "../components/dottedLine.tsx";
 
 export const Route = createFileRoute("/_auth/recipes")({
   component: RecipesPage,
@@ -24,7 +27,7 @@ export function RecipesPage() {
       <ul className="grid gap-4">
         {recipes ? (
           recipes.recipes.map((recipe) => (
-            <RecipeView key={recipe.name} recipe={recipe} />
+            <RecipeView key={recipe.id} recipe={recipe} />
           ))
         ) : (
           <p>Loading</p>
@@ -39,7 +42,11 @@ type RecipeProps = {
 };
 
 function RecipeView(props: RecipeProps) {
+  const { token } = Route.useRouteContext();
   const [open, setOpen] = useState(false);
+  const addRecipe = addRecipeToShoppinglist(token);
+  const recipeId = props.recipe.id;
+
   return (
     <li className="p-2 border-black border-solid border-2">
       <p className="font-black uppercase tracking-wider">{props.recipe.name}</p>
@@ -74,9 +81,15 @@ function RecipeView(props: RecipeProps) {
         >
           Details
         </button>
-        <button type="submit" className="px-2 text-black bg-gray-300 shadow">
-          Add
-        </button>
+        <AddToShoppinglist
+          token={token}
+          onSelect={(shoppinglist) => {
+            addRecipe.mutate({ shoppinglistId: shoppinglist.id, recipeId });
+            toast(
+              `Added "${props.recipe.name}" to shoppinglist "${shoppinglist.name}"`,
+            );
+          }}
+        />
         <button type="submit" className="px-2 text-white bg-gray-700 shadow">
           Delete
         </button>
