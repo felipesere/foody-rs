@@ -5,7 +5,7 @@ import { useAllRecipes } from "../apis/recipes.ts";
 import { useShoppinglist } from "../apis/shoppinglists.ts";
 import type { ItemQuantity } from "../apis/shoppinglists.ts";
 import type { Ingredient } from "../apis/shoppinglists.ts";
-import { DottedLine } from "../misc/dottedLine.tsx";
+import { DottedLine } from "../components/dottedLine.tsx";
 import { combineQuantities, humanize } from "../quantities.ts";
 
 export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId")({
