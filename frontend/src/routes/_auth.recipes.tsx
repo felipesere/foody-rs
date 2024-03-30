@@ -87,12 +87,7 @@ function RecipeView(props: RecipeProps) {
             addRecipe.mutate({ shoppinglistId: shoppinglist.id, recipeId });
             toast(
               `Added "${props.recipe.name}" to shoppinglist "${shoppinglist.name}"`,
-              {
-                position: "top-right",
-                closeButton: true,
-              },
             );
-            console.log("Added a toast!");
           }}
         />
         <button type="submit" className="px-2 text-white bg-gray-700 shadow">

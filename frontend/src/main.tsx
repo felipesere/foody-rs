@@ -67,6 +67,8 @@ if (rootElement && !rootElement.innerHTML) {
               toast: "bg-white border-solid border-black border-2 px-2 py-4",
             },
           }}
+          position={"top-right"}
+          closeButton
         />
       </QueryClientProvider>
     </StrictMode>,
