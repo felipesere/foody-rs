@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { z } from "zod";
 import { http } from "./http.ts";
 import { QuantitySchema } from "./recipes.ts";
@@ -64,6 +65,38 @@ export function useShoppinglist(token: string, shoppinglistId: string) {
         .json();
 
       return ShoppinglistSchema.parse(body);
+    },
+  });
+}
+
+type CreateShoppinglist = {
+  name: string;
+};
+
+export function useCreateShoppinglist(token: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: CreateShoppinglist) => {
+      await http
+        .post("api/shoppinglists", {
+          json: {
+            name: params.name,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .json();
+    },
+    onSuccess: (_opts, params, _ctx) => {
+      toast.success(`Created a new shoppinglist ${params.name}`);
+      client.invalidateQueries({ queryKey: ["shoppinglists"] });
+    },
+    onError: (err, params) => {
+      console.log(
+        `Failed to create shoppinglist: ${JSON.stringify(err, null, 2)}`,
+      );
+      toast.error(`Failed to create shoppinglist ${params.name}`);
     },
   });
 }
