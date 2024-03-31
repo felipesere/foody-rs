@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
+import { http } from "./http.ts";
 
 type LoginParams = { email: string; password: string };
 
@@ -25,14 +26,13 @@ export function useUser(token: string) {
   return useQuery({
     queryKey: ["user", "profile", token],
     queryFn: async () => {
-      const response = await fetch("http://localhost:3000/api/user/current", {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const body = await response.json();
+      const body = await http
+        .get("api/user/current", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .json();
       return UserProfileSchema.parse(body);
     },
   });
@@ -46,18 +46,14 @@ export function useLogin(params: { redirectTo: string | undefined }) {
     mutationKey: ["user", "token"],
     mutationFn: async (params: LoginParams) => {
       deleteToken();
-      const response = await fetch("http://localhost:3000/api/auth/login", {
-        body: JSON.stringify(params),
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-      });
-      if (!response.ok) {
-        throw new Error("Login failed");
-      }
-      const body = await response.json();
+      const body = await http
+        .post("api/auth/login", {
+          json: {
+            email: params.email,
+            password: params.password,
+          },
+        })
+        .json();
       return LoginResponseSchema.parse(body);
     },
     onSuccess: async (value: LoginResponse, _) => {

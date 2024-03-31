@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
+import { http } from "./http.ts";
 import { QuantitySchema } from "./recipes.ts";
 
 const MinimalShoppinglistSchema = z.object({
@@ -15,15 +16,14 @@ export function useAllShoppinglists(token: string) {
   return useQuery({
     queryKey: ["shoppinglists"],
     queryFn: async () => {
-      const response = await fetch("http://localhost:3000/api/shoppinglists", {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const body = await http
+        .get("api/shoppinglists", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .json();
 
-      const body = await response.json();
       return AllShoppinglistsSchema.parse(body);
     },
   });
@@ -55,18 +55,14 @@ export function useShoppinglist(token: string, shoppinglistId: string) {
   return useQuery({
     queryKey: ["shoppinglist", shoppinglistId],
     queryFn: async () => {
-      const response = await fetch(
-        `http://localhost:3000/api/shoppinglists/${shoppinglistId}`,
-        {
-          method: "GET",
+      const body = await http
+        .get(`api/shoppinglists/${shoppinglistId}`, {
           headers: {
-            Accept: "application/json",
             Authorization: `Bearer ${token}`,
           },
-        },
-      );
+        })
+        .json();
 
-      const body = await response.json();
       return ShoppinglistSchema.parse(body);
     },
   });

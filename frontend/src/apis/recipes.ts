@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
+import { http } from "./http.ts";
 import type { Shoppinglist } from "./shoppinglists.ts";
 
 export const QuantitySchema = z.object({
@@ -56,13 +57,10 @@ export function addRecipeToShoppinglist(token: string) {
   const client = useQueryClient();
   return useMutation({
     mutationFn: async ({ recipeId, shoppinglistId }: AddRecipeParams) => {
-      // TODO: Error handling
-      await fetch(
-        `http://localhost:3000/api/shoppinglists/${shoppinglistId}/recipe/${recipeId}`,
+      return http.post(
+        `api/shoppinglists/${shoppinglistId}/recipe/${recipeId}`,
         {
-          method: "POST",
           headers: {
-            Accept: "application/json",
             Authorization: `Bearer ${token}`,
           },
         },
@@ -80,15 +78,14 @@ export function useAllRecipes(token: string) {
   return useQuery({
     queryKey: ["recipes"],
     queryFn: async () => {
-      const response = await fetch("http://localhost:3000/api/recipes", {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const body = await http
+        .get("api/recipes", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .json();
 
-      const body = await response.json();
       return RecipesSchema.parse(body);
     },
   });

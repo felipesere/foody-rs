@@ -23,6 +23,7 @@
     "@tanstack/router-vite-plugin": "^1.18.1",
     "@tanstack/zod-form-adapter": "^0.16.0",
     "classnames": "^2.5.1",
+    "ky": "^1.2.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "sonner": "^1.4.41",
