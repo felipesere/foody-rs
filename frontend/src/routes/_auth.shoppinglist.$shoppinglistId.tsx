@@ -42,15 +42,13 @@ export function ShoppingPage() {
   return (
     <div className="content-grid">
       <ul className="grid max-w-md gap-4">
-        {shoppinglist.data?.ingredients.map((ingredient) => {
-          return (
-            <IngredientView
-              key={ingredient.name}
-              ingredient={ingredient}
-              allRecipes={allRecipes}
-            />
-          );
-        })}
+        {shoppinglist.data?.ingredients.map((ingredient) => (
+          <IngredientView
+            key={ingredient.name}
+            ingredient={ingredient}
+            allRecipes={allRecipes}
+          />
+        ))}
       </ul>
     </div>
   );
@@ -63,14 +61,12 @@ function IngredientView({
   const [open, setOpen] = useState(false);
   const [checked, setChecked] = useState(false);
 
-  // TODO: proper math on tallying the quantities
   const totalQuantity = combineQuantities(ingredient.quantities);
   return (
     <li
       className={classnames(
         "shadow border-black border-solid border-2 p-2 col-span-2",
         { "grid grid-cols-subgrid": true },
-        // { "grid grid-cols-subgrid": !open },
       )}
     >
       <div>
@@ -105,7 +101,7 @@ function IngredientView({
               <p>Parts:</p>
               <ol>
                 {ingredient.quantities.map((q) => (
-                  <Part key={q.id} part={q} recipes={allRecipes} />
+                  <Part key={q.id} quantity={q} recipes={allRecipes} />
                 ))}
               </ol>
             </div>
@@ -134,22 +130,22 @@ function IngredientView({
 }
 
 type PartProps = {
-  part: ItemQuantity;
+  quantity: ItemQuantity;
   recipes: Record<number, string>;
 };
-function Part(props: PartProps) {
+function Part({ quantity, recipes }: PartProps) {
   const [checked, setChecked] = useState(false);
 
-  const css = classnames("overflow-hidden text-nowrap text-ellipsis", {
+  const className = classnames("overflow-hidden text-nowrap text-ellipsis", {
     "line-through": checked,
   });
 
-  const recipe = props.part.recipe_id ? (
-    <Link className={css} to={"/recipes"}>
-      {props.recipes[props.part.recipe_id]}
+  const recipe = quantity.recipe_id ? (
+    <Link className={className} to={"/recipes"}>
+      {recipes[quantity.recipe_id]}
     </Link>
   ) : (
-    <p className={css}>manual</p>
+    <p className={className}>manual</p>
   );
 
   return (
@@ -164,7 +160,7 @@ function Part(props: PartProps) {
         {recipe}
         <DottedLine />
       </div>
-      <p className="flex-grow-0 flex-shrink-0">{humanize(props.part)}</p>
+      <p className="flex-grow-0 flex-shrink-0">{humanize(quantity)}</p>
     </li>
   );
 }
