@@ -84,12 +84,51 @@ export function useLogout(): () => Promise<void> {
 // consider if we want to add a timestamp into this to
 // prevent storing it forever
 function saveToken(token: string) {
-  window.localStorage.setItem("__user_token", token);
+  const data = {
+    created: new Date().toISOString(),
+    token,
+  };
+
+  window.localStorage.setItem("__user_token", JSON.stringify(data));
 }
 
 function deleteToken() {
   window.localStorage.removeItem("__user_token");
 }
+
+const tokenDataSchema = z.object({
+  created: z.coerce.date(),
+  token: z.string(),
+});
+const DAYS = 24 * 60 * 60 * 1000; /* ms */
+
 export function loadToken() {
-  return window.localStorage.getItem("__user_token");
+  const data = window.localStorage.getItem("__user_token");
+  if (!data) {
+    return undefined;
+  }
+  let jsonData: unknown;
+  try {
+    jsonData = JSON.parse(data);
+  } catch (e) {
+    console.log(`Failed to parse token as JSON: ${e}`);
+    deleteToken();
+    return undefined;
+  }
+
+  const actualData = tokenDataSchema.safeParse(jsonData);
+  if (actualData.success) {
+    const { created, token } = actualData.data;
+
+    const now = new Date().getTime();
+    if (now - created.getTime() > 2 * DAYS) {
+      console.log("Token is old, removing");
+      deleteToken();
+      return undefined;
+    }
+    return token;
+  }
+  console.log(actualData.error);
+  deleteToken();
+  return undefined;
 }
