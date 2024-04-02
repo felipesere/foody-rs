@@ -1,12 +1,12 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import classnames from "classnames";
 import { useCombobox } from "downshift";
-import { useState } from "react";
+import Fuse from "fuse.js";
+import { useMemo, useState } from "react";
 import { useAllIngredients } from "../apis/ingredients.ts";
 import { useAllRecipes } from "../apis/recipes.ts";
+import type { Ingredient, ItemQuantity } from "../apis/shoppinglists.ts";
 import { useShoppinglist } from "../apis/shoppinglists.ts";
-import type { ItemQuantity } from "../apis/shoppinglists.ts";
-import type { Ingredient } from "../apis/shoppinglists.ts";
 import { DottedLine } from "../components/dottedLine.tsx";
 import { combineQuantities, humanize } from "../quantities.ts";
 
@@ -18,6 +18,14 @@ function FindIngredient(props: { token: string }) {
   const ingredients = useAllIngredients(props.token);
   const [inputItems, setInputItems] = useState(ingredients.data || []);
 
+  const searchIndex = useMemo(() => {
+    return new Fuse(ingredients.data || [], {
+      shouldSort: true,
+      threshold: 0.3,
+      keys: ["name"],
+    });
+  }, [ingredients.data]);
+
   const {
     isOpen,
     getInputProps,
@@ -28,11 +36,9 @@ function FindIngredient(props: { token: string }) {
   } = useCombobox({
     items: ingredients.data || [],
     onInputValueChange: ({ inputValue }) => {
-      setInputItems(
-        (ingredients.data || []).filter(({ name }) =>
-          name.toLowerCase().startsWith(inputValue.toLowerCase()),
-        ),
-      );
+      const x = searchIndex.search(inputValue).map((res) => res.item);
+      console.log(x);
+      setInputItems(x);
     },
   });
   return (
