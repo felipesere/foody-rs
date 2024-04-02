@@ -1,6 +1,8 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import classnames from "classnames";
+import { useCombobox } from "downshift";
 import { useState } from "react";
+import { useAllIngredients } from "../apis/ingredients.ts";
 import { useAllRecipes } from "../apis/recipes.ts";
 import { useShoppinglist } from "../apis/shoppinglists.ts";
 import type { ItemQuantity } from "../apis/shoppinglists.ts";
@@ -11,6 +13,58 @@ import { combineQuantities, humanize } from "../quantities.ts";
 export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId")({
   component: ShoppingPage,
 });
+
+function FindIngredient(props: { token: string }) {
+  const ingredients = useAllIngredients(props.token);
+  const [inputItems, setInputItems] = useState(ingredients.data || []);
+
+  const {
+    isOpen,
+    getInputProps,
+    getLabelProps,
+    getMenuProps,
+    getToggleButtonProps,
+    getItemProps,
+  } = useCombobox({
+    items: ingredients.data || [],
+    onInputValueChange: ({ inputValue }) => {
+      setInputItems(
+        (ingredients.data || []).filter(({ name }) =>
+          name.toLowerCase().startsWith(inputValue.toLowerCase()),
+        ),
+      );
+    },
+  });
+  return (
+    <div className={"flex flex-row w-fit justify-center self-center"}>
+      <label {...getLabelProps()}>Find ingredient:</label>
+      <div>
+        <input {...getInputProps()} />
+        <button
+          type={"button"}
+          {...getToggleButtonProps()}
+          className={"ml-2 px-2 bg-gray-300 shadow"}
+        >
+          Some toggle
+        </button>
+      </div>
+      <ul {...getMenuProps()}>
+        {isOpen &&
+          inputItems.map((item, index) => (
+            <li
+              key={item.id}
+              {...getItemProps({
+                item,
+                index,
+              })}
+            >
+              {item.name}
+            </li>
+          ))}
+      </ul>
+    </div>
+  );
+}
 
 export function ShoppingPage() {
   const { shoppinglistId } = Route.useParams();
@@ -40,7 +94,8 @@ export function ShoppingPage() {
     ) || {};
 
   return (
-    <div className="content-grid">
+    <div className="content-grid space-y-4">
+      <FindIngredient token={token} />
       <ul className="grid max-w-md gap-4">
         {shoppinglist.data?.ingredients.map((ingredient) => (
           <IngredientView
