@@ -1,76 +1,16 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import {createFileRoute, Link} from "@tanstack/react-router";
 import classnames from "classnames";
-import { useCombobox } from "downshift";
-import Fuse from "fuse.js";
-import { useMemo, useState } from "react";
-import { useAllIngredients } from "../apis/ingredients.ts";
-import { useAllRecipes } from "../apis/recipes.ts";
-import type { Ingredient, ItemQuantity } from "../apis/shoppinglists.ts";
-import { useShoppinglist } from "../apis/shoppinglists.ts";
-import { DottedLine } from "../components/dottedLine.tsx";
-import { combineQuantities, humanize } from "../quantities.ts";
+import {useState} from "react";
+import {useAllRecipes} from "../apis/recipes.ts";
+import type {Ingredient, ItemQuantity} from "../apis/shoppinglists.ts";
+import {useShoppinglist} from "../apis/shoppinglists.ts";
+import {DottedLine} from "../components/dottedLine.tsx";
+import {combineQuantities, humanize} from "../quantities.ts";
+import {FindIngredient} from "../components/findIngredient.tsx";
 
 export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId")({
   component: ShoppingPage,
 });
-
-function FindIngredient(props: { token: string }) {
-  const ingredients = useAllIngredients(props.token);
-  const [inputItems, setInputItems] = useState(ingredients.data || []);
-
-  const searchIndex = useMemo(() => {
-    return new Fuse(ingredients.data || [], {
-      shouldSort: true,
-      threshold: 0.3,
-      keys: ["name"],
-    });
-  }, [ingredients.data]);
-
-  const {
-    isOpen,
-    getInputProps,
-    getLabelProps,
-    getMenuProps,
-    getToggleButtonProps,
-    getItemProps,
-  } = useCombobox({
-    items: ingredients.data || [],
-    onInputValueChange: ({ inputValue }) => {
-      const x = searchIndex.search(inputValue).map((res) => res.item);
-      console.log(x);
-      setInputItems(x);
-    },
-  });
-  return (
-    <div className={"flex flex-row w-fit justify-center self-center"}>
-      <label {...getLabelProps()}>Find ingredient:</label>
-      <div>
-        <input {...getInputProps()} />
-        <button
-          type={"button"}
-          {...getToggleButtonProps()}
-          className={"ml-2 px-2 bg-gray-300 shadow"}
-        >
-          Some toggle
-        </button>
-      </div>
-      <ul {...getMenuProps()}>
-        {isOpen &&
-          inputItems.map((item, index) => (
-            <li
-              key={item.id}
-              {...getItemProps({
-                item,
-                index,
-              })}
-            >
-              {item.name}
-            </li>
-          ))}
-      </ul>
-    </div>
-  );
-}
 
 export function ShoppingPage() {
   const { shoppinglistId } = Route.useParams();
