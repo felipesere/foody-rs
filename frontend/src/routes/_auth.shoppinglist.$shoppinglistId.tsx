@@ -1,12 +1,12 @@
-import {createFileRoute, Link} from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import classnames from "classnames";
-import {useState} from "react";
-import {useAllRecipes} from "../apis/recipes.ts";
-import type {Ingredient, ItemQuantity} from "../apis/shoppinglists.ts";
-import {useShoppinglist} from "../apis/shoppinglists.ts";
-import {DottedLine} from "../components/dottedLine.tsx";
-import {combineQuantities, humanize} from "../quantities.ts";
-import {FindIngredient} from "../components/findIngredient.tsx";
+import { useState } from "react";
+import { useAllRecipes } from "../apis/recipes.ts";
+import type { Ingredient, ItemQuantity } from "../apis/shoppinglists.ts";
+import { useShoppinglist } from "../apis/shoppinglists.ts";
+import { DottedLine } from "../components/dottedLine.tsx";
+import { FindIngredient } from "../components/findIngredient.tsx";
+import { combineQuantities, humanize } from "../quantities.ts";
 
 export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId")({
   component: ShoppingPage,

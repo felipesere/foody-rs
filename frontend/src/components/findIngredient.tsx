@@ -1,11 +1,8 @@
-import { useAllIngredients } from "../apis/ingredients.ts";
-import { forwardRef, useMemo, useRef, useState } from "react";
-import Fuse from "fuse.js";
 import {
-  autoUpdate,
-  flip,
   FloatingFocusManager,
   FloatingPortal,
+  autoUpdate,
+  flip,
   offset,
   shift,
   useDismiss,
@@ -15,6 +12,10 @@ import {
   useListNavigation,
   useRole,
 } from "@floating-ui/react";
+import classNames from "classnames";
+import Fuse from "fuse.js";
+import { forwardRef, useMemo, useRef, useState } from "react";
+import { useAllIngredients } from "../apis/ingredients.ts";
 
 export function FindIngredient(props: { token: string }) {
   const ingredients = useAllIngredients(props.token);
@@ -70,6 +71,7 @@ export function FindIngredient(props: { token: string }) {
       <label>Find ingredient:</label>
       <input
         {...getReferenceProps({
+          className: "pl-4",
           ref: refs.setReference,
           onChange,
           value: query,
@@ -100,10 +102,9 @@ export function FindIngredient(props: { token: string }) {
                 ref: refs.setFloating,
                 style: {
                   ...floatingStyles,
-                  background: "#eee",
-                  color: "black",
-                  overflowY: "auto",
                 },
+                className:
+                  "bg-white overflow-y-auto border-solid border-black border-2",
               })}
             >
               {items.map((item, idx) => (
@@ -150,11 +151,11 @@ const Item = forwardRef<
       aria-selected={active}
       {...rest}
       style={{
-        background: active ? "lightblue" : "none",
-        padding: 4,
-        cursor: "default",
         ...rest.style,
       }}
+      className={classNames("p-2 hover:bg-gray-300 cursor-default", {
+        "bg-gray-300": active,
+      })}
     >
       {children}
     </li>
