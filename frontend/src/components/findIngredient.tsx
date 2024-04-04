@@ -2,9 +2,8 @@ import {
   FloatingFocusManager,
   FloatingPortal,
   autoUpdate,
-  flip,
   offset,
-  shift,
+  size,
   useDismiss,
   useFloating,
   useId,
@@ -15,13 +14,23 @@ import {
 import classNames from "classnames";
 import Fuse from "fuse.js";
 import { forwardRef, useMemo, useRef, useState } from "react";
+import type { ChangeEvent, HTMLProps, ReactNode } from "react";
 import { useAllIngredients } from "../apis/ingredients.ts";
+
+const matchWidth = size({
+  apply({ rects, elements }) {
+    Object.assign(elements.floating.style, {
+      width: `${rects.reference.width}px`,
+    });
+  },
+});
 
 export function FindIngredient(props: { token: string }) {
   const ingredients = useAllIngredients(props.token);
   const [open, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
   const listRef = useRef<Array<HTMLElement | null>>([]);
 
   const searchIndex = useMemo(() => {
@@ -36,7 +45,7 @@ export function FindIngredient(props: { token: string }) {
     whileElementsMounted: autoUpdate,
     open,
     onOpenChange: setIsOpen,
-    middleware: [offset(3), flip(), shift()],
+    middleware: [matchWidth, offset(3)],
   });
 
   const role = useRole(context);
@@ -53,7 +62,7 @@ export function FindIngredient(props: { token: string }) {
     [role, dismiss, listNav],
   );
 
-  function onChange(event: React.ChangeEvent<HTMLInputElement>) {
+  function onChange(event: ChangeEvent<HTMLInputElement>) {
     const value = event.target.value;
     setQuery(value);
     if (value.length > 2) {
@@ -134,30 +143,29 @@ export function FindIngredient(props: { token: string }) {
 }
 
 interface ItemProps {
-  children: React.ReactNode;
+  children: ReactNode;
   active: boolean;
 }
 
-const Item = forwardRef<
-  HTMLLIElement,
-  ItemProps & React.HTMLProps<HTMLLIElement>
->(({ children, active, ...rest }, ref) => {
-  const id = useId();
-  return (
-    <li
-      ref={ref}
-      // role="option"
-      id={id}
-      aria-selected={active}
-      {...rest}
-      style={{
-        ...rest.style,
-      }}
-      className={classNames("p-2 hover:bg-gray-300 cursor-default", {
-        "bg-gray-300": active,
-      })}
-    >
-      {children}
-    </li>
-  );
-});
+const Item = forwardRef<HTMLLIElement, ItemProps & HTMLProps<HTMLLIElement>>(
+  ({ children, active, ...rest }, ref) => {
+    const id = useId();
+    return (
+      <li
+        ref={ref}
+        // role="option"
+        id={id}
+        aria-selected={active}
+        {...rest}
+        style={{
+          ...rest.style,
+        }}
+        className={classNames("p-2 hover:bg-gray-300 cursor-default", {
+          "bg-gray-300": active,
+        })}
+      >
+        {children}
+      </li>
+    );
+  },
+);
