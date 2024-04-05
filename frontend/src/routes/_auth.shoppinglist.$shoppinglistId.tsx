@@ -40,7 +40,7 @@ export function ShoppingPage() {
     ) || {};
 
   return (
-    <div className="content-grid space-y-4">
+    <div className="content-grid space-y-4 max-w-md">
       <FindIngredient token={token} />
       <ul className="grid max-w-md gap-4">
         {shoppinglist.data?.ingredients.map((ingredient) => (
