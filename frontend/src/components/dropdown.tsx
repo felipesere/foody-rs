@@ -31,6 +31,7 @@ interface WithId {
 interface DropdownProps<T extends WithId, F extends keyof T> {
   items: Array<T>;
   field: F;
+  dropdownClassnames?: string;
 }
 
 export function Dropdown<T extends WithId, F extends keyof T>(
@@ -88,7 +89,7 @@ export function Dropdown<T extends WithId, F extends keyof T>(
     <>
       <input
         {...getReferenceProps({
-          className: "pl-4",
+          className: props.dropdownClassnames || "",
           ref: refs.setReference,
           onChange,
           value: query,

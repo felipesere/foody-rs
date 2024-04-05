@@ -6,6 +6,7 @@ import type { Ingredient, ItemQuantity } from "../apis/shoppinglists.ts";
 import { useShoppinglist } from "../apis/shoppinglists.ts";
 import { DottedLine } from "../components/dottedLine.tsx";
 import { FindIngredient } from "../components/findIngredient.tsx";
+import { Toggle } from "../components/toggle.tsx";
 import { combineQuantities, humanize } from "../quantities.ts";
 
 export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId")({
@@ -41,7 +42,9 @@ export function ShoppingPage() {
 
   return (
     <div className="content-grid space-y-4 max-w-md">
-      <FindIngredient token={token} />
+      <Toggle buttonLabel={"Add Ingredient"}>
+        <FindIngredient token={token} />
+      </Toggle>
       <ul className="grid max-w-md gap-4">
         {shoppinglist.data?.ingredients.map((ingredient) => (
           <IngredientView
