@@ -1,6 +1,6 @@
-import type { Quantity } from "./apis/recipes.ts";
+import type { Quantity, StoredQuantity } from "./apis/recipes.ts";
 
-export function humanize(quantity: Quantity): string {
+export function humanize(quantity: StoredQuantity): string {
   if (quantity.text) {
     return quantity.text;
   }
@@ -8,8 +8,8 @@ export function humanize(quantity: Quantity): string {
   return `${quantity.value}${unit}`;
 }
 
-export function combineQuantities(quantities: Quantity[]): string {
-  const byUnit: Record<string, Quantity[]> = {};
+export function combineQuantities(quantities: StoredQuantity[]): string {
+  const byUnit: Record<string, StoredQuantity[]> = {};
   for (const quantity of quantities) {
     const qs = byUnit[quantity.unit] || [];
     qs.push(quantity);
@@ -33,10 +33,50 @@ export function combineQuantities(quantities: Quantity[]): string {
   return elements.join(" & ");
 }
 
+export function parse(raw: string): Quantity | undefined {
+  const matches =
+    / *(?<numerator>\d+\.?\d*) *\/? *(?<denominator>\d+\.?\d*)? *(?<unit>[^ ]+)?/.exec(
+      raw,
+    );
+  if (!matches?.groups) {
+    return {
+      unit: "arbitrary",
+      text: raw,
+    };
+  }
+  const groups = matches.groups;
+  const numerator = Number(groups.numerator);
+
+  const denominator: number = Number(groups.denominator || "1");
+  const unit = groups.unit;
+
+  const value = numerator / denominator;
+  if (!unit || unit === "x") {
+    return {
+      value,
+      unit: "count",
+    };
+  }
+
+  return {
+    value,
+    unit: canonical(unit),
+  };
+}
+
+function canonical(unit: string): string {
+  return invertedUnit[unit] || unit;
+}
+
+function invert(input: Record<string, string>): Record<string, string> {
+  return Object.fromEntries(Object.entries(input).map(([k, v]) => [v, k]));
+}
+
 const unitConversion: Record<string, string> = {
   gram: "g",
   grams: "g",
   kilogram: "kg",
+  kilograms: "kg",
   millilitre: "ml",
   litre: "l",
   liter: "l",
@@ -45,3 +85,5 @@ const unitConversion: Record<string, string> = {
   cup: " cup",
   count: "x",
 };
+
+const invertedUnit = invert(unitConversion);

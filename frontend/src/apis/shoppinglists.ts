@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { z } from "zod";
 import { http } from "./http.ts";
-import { QuantitySchema } from "./recipes.ts";
+import { StoredQuantitySchema } from "./recipes.ts";
 
 const MinimalShoppinglistSchema = z.object({
   id: z.number(),
@@ -30,7 +30,7 @@ export function useAllShoppinglists(token: string) {
   });
 }
 
-const ItemQuantitySchema = QuantitySchema.extend({
+const ItemQuantitySchema = StoredQuantitySchema.extend({
   in_basket: z.boolean(),
   recipe_id: z.nullable(z.number()),
 });

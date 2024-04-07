@@ -3,18 +3,25 @@ import { z } from "zod";
 import { http } from "./http.ts";
 import type { Shoppinglist } from "./shoppinglists.ts";
 
-export const QuantitySchema = z.object({
+export const WithIdSchema = z.object({
+  id: z.number(),
+});
+
+const QuantitySchema = z.object({
   unit: z.string(),
   value: z.number().optional(),
   text: z.string().optional(),
-  id: z.number(),
 });
 export type Quantity = z.infer<typeof QuantitySchema>;
+
+export const StoredQuantitySchema = WithIdSchema.merge(QuantitySchema);
+
+export type StoredQuantity = z.infer<typeof StoredQuantitySchema>;
 
 const IngredientSchema = z.object({
   id: z.number(),
   name: z.string(),
-  quantity: z.array(QuantitySchema),
+  quantity: z.array(StoredQuantitySchema),
 });
 
 const BookSchema = z.object({
