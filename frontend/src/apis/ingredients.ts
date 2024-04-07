@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { http } from "./http.ts";
-import type { StoredQuantity } from "./recipes.ts";
+import type { Quantity } from "./recipes.ts";
 import type { Shoppinglist } from "./shoppinglists.ts";
 
 const IngredientSchema = z.object({
@@ -15,7 +15,7 @@ const IngredientsSchema = z.array(IngredientSchema);
 type AddIngredientParams = {
   ingredient: Ingredient["name"];
   shoppinglistId: Shoppinglist["id"];
-  quantity: Omit<StoredQuantity, "id">[];
+  quantity: Quantity[];
 };
 
 export function addIngredientToShoppinglist(token: string) {

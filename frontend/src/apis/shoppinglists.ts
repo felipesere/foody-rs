@@ -52,7 +52,10 @@ const ShoppinglistSchema = z.object({
 
 export type Shoppinglist = z.infer<typeof ShoppinglistSchema>;
 
-export function useShoppinglist(token: string, shoppinglistId: string) {
+export function useShoppinglist(
+  token: string,
+  shoppinglistId: Shoppinglist["id"],
+) {
   return useQuery({
     queryKey: ["shoppinglist", shoppinglistId],
     queryFn: async () => {
@@ -90,7 +93,7 @@ export function useCreateShoppinglist(token: string) {
     },
     onSuccess: (_opts, params, _ctx) => {
       toast.success(`Created a new shoppinglist ${params.name}`);
-      client.invalidateQueries({ queryKey: ["shoppinglists"] });
+      return client.invalidateQueries({ queryKey: ["shoppinglists"] });
     },
     onError: (err, params) => {
       console.log(

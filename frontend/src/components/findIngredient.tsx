@@ -1,14 +1,33 @@
 import { useState } from "react";
-import { type Ingredient, useAllIngredients } from "../apis/ingredients.ts";
+import {
+  type Ingredient,
+  addIngredientToShoppinglist,
+  useAllIngredients,
+} from "../apis/ingredients.ts";
+import type { Quantity } from "../apis/recipes.ts";
+import { parse } from "../quantities.ts";
 import { Dropdown } from "./dropdown.tsx";
 
-export function FindIngredient(props: { token: string }) {
+// TODO: refactor this to be a pure "finding component"!
+export function FindIngredient(props: {
+  token: string;
+  shoppinglistId: number;
+}) {
   const ingredients = useAllIngredients(props.token);
 
   const [selectedIngredient, setSelectedIngredient] = useState<
     Ingredient | undefined
   >(undefined);
-  const [quantity, setQuantity] = useState("");
+
+  const [quantity, setQuantity] = useState<{
+    raw: string;
+    quantity: Quantity | undefined;
+  }>({
+    raw: "",
+    quantity: undefined,
+  });
+
+  const addIngredient = addIngredientToShoppinglist(props.token);
 
   if (!ingredients.data) {
     return null;
@@ -26,17 +45,26 @@ export function FindIngredient(props: { token: string }) {
         className={"ml-2 w-1/3 border-gray-500 border-solid border-2"}
         type={"text"}
         name={"quantity"}
-        placeholder={"1x"}
-        onChange={(e) => setQuantity(e.target.value)}
+        placeholder={quantity.raw}
+        onChange={(e) => {
+          const value = e.target.value;
+          setQuantity({
+            raw: value,
+            quantity: value ? parse(value) : undefined,
+          });
+        }}
       />
       <button
         className={"ml-2 px-2"}
         type={"button"}
+        disabled={!(selectedIngredient && quantity.quantity)}
         onClick={() => {
-          if (selectedIngredient && quantity) {
-            console.log(
-              `About to add ${selectedIngredient.name} @ ${quantity}`,
-            );
+          if (selectedIngredient && quantity.quantity) {
+            addIngredient.mutate({
+              shoppinglistId: props.shoppinglistId,
+              ingredient: selectedIngredient.name,
+              quantity: [quantity.quantity],
+            });
           }
         }}
       >

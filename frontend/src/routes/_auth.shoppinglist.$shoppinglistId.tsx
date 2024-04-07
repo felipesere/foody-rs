@@ -14,7 +14,8 @@ export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId")({
 });
 
 export function ShoppingPage() {
-  const { shoppinglistId } = Route.useParams();
+  const params = Route.useParams();
+  const shoppinglistId = Number(params.shoppinglistId);
   const { token } = Route.useRouteContext();
   const shoppinglist = useShoppinglist(token, shoppinglistId);
   const recipes = useAllRecipes(token);
@@ -43,7 +44,7 @@ export function ShoppingPage() {
   return (
     <div className="content-grid space-y-4 max-w-md">
       <Toggle buttonLabel={"Add Ingredient"}>
-        <FindIngredient token={token} />
+        <FindIngredient token={token} shoppinglistId={shoppinglistId} />
       </Toggle>
       <ul className="grid max-w-md gap-4">
         {shoppinglist.data?.ingredients.map((ingredient) => (
