@@ -32,6 +32,7 @@ interface DropdownProps<T extends WithId, F extends keyof T> {
   items: Array<T>;
   field: F;
   dropdownClassnames?: string;
+  onSelectedItem: (item: T) => void;
 }
 
 export function Dropdown<T extends WithId, F extends keyof T>(
@@ -51,6 +52,18 @@ export function Dropdown<T extends WithId, F extends keyof T>(
     });
   }, [props.items, props.field]);
 
+  const items = searchIndex.search(query).map((r) => r.item);
+
+  const changeActiveItem = (idx: number | null) => {
+    // TODO: Possible bug: we never really say "no item is selected",
+    // but we don't control _when_ changeActiveItem is called (up to float-ui).
+    // We want to avoid "spamming" `onSelectedItem` with `nulls`
+    setActiveIndex(idx);
+    if (idx != null && items[idx]) {
+      props.onSelectedItem(items[idx]);
+    }
+  };
+
   const { refs, floatingStyles, context } = useFloating<HTMLElement>({
     whileElementsMounted: autoUpdate,
     open,
@@ -63,7 +76,7 @@ export function Dropdown<T extends WithId, F extends keyof T>(
   const listNav = useListNavigation(context, {
     listRef,
     activeIndex,
-    onNavigate: setActiveIndex,
+    onNavigate: changeActiveItem,
     virtual: true,
     loop: true,
   });
@@ -77,13 +90,11 @@ export function Dropdown<T extends WithId, F extends keyof T>(
     setQuery(value);
     if (value.length > 2) {
       setIsOpen(true);
-      setActiveIndex(0);
+      changeActiveItem(0);
     } else {
       setIsOpen(false);
     }
   }
-
-  const items = searchIndex.search(query).map((r) => r.item);
 
   return (
     <>
@@ -102,7 +113,7 @@ export function Dropdown<T extends WithId, F extends keyof T>(
               items[activeIndex]
             ) {
               setQuery(`${items[activeIndex][props.field]}`);
-              setActiveIndex(null);
+              changeActiveItem(null);
               setIsOpen(false);
             }
           },
