@@ -22,7 +22,7 @@ impl Quantity {
         .unwrap();
 
         let Some(caps) = re.captures(raw) else {
-            return Quantity::Arbitrary(raw.to_string());
+            return Self::Arbitrary(raw.to_string());
         };
 
         let n: Option<f32> = caps.name("numerator").and_then(|m| m.as_str().parse().ok());
@@ -33,10 +33,10 @@ impl Quantity {
         let unit: Option<String> = caps.name("unit").map(|m| m.as_str().to_string());
 
         match (n, unit) {
-            (None, _) => Quantity::Arbitrary(raw.to_string()),
-            (Some(n), None) => Quantity::Count(n / d),
-            (Some(n), Some(unit)) if &unit == "x" => Quantity::Count(n / d),
-            (Some(n), Some(unit)) => Quantity::WithUnit {
+            (None, _) => Self::Arbitrary(raw.to_string()),
+            (Some(n), None) => Self::Count(n / d),
+            (Some(n), Some(unit)) if &unit == "x" => Self::Count(n / d),
+            (Some(n), Some(unit)) => Self::WithUnit {
                 value: n / d,
                 unit: canonical(&unit).to_string(),
             },
