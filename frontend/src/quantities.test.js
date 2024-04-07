@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { parse } from "./quantities";
+import {combineQuantities, parse} from "./quantities";
 
 test.each([
     {name: "count", v: "7", quantity: { unit: "count", value: 7}},
@@ -11,4 +11,14 @@ test.each([
     {name: "arbitrary stuff", v: "a small pinch", quantity: { unit: "arbitrary", text: "a small pinch"}},
 ])('$name', ({v, quantity}) => {
     expect(parse(v)).toEqual(quantity)
+})
+
+
+test("it combines quantities", () => {
+    const a_pinch = parse("a pinch")
+    const a_little_bit = parse("a little bit")
+
+    expect(combineQuantities([a_pinch, a_little_bit])).toEqual("a pinch & a little bit")
+
+
 })

@@ -1,6 +1,6 @@
-import type { Quantity, StoredQuantity } from "./apis/recipes.ts";
+import type { Quantity } from "./apis/recipes.ts";
 
-export function humanize(quantity: StoredQuantity): string {
+export function humanize(quantity: Quantity): string {
   if (quantity.text) {
     return quantity.text;
   }
@@ -8,12 +8,17 @@ export function humanize(quantity: StoredQuantity): string {
   return `${quantity.value}${unit}`;
 }
 
-export function combineQuantities(quantities: StoredQuantity[]): string {
-  const byUnit: Record<string, StoredQuantity[]> = {};
+export function combineQuantities(quantities: Quantity[]): string {
+  const byUnit: Record<string, Quantity[]> = {};
+  const arbitrary: Array<Quantity> = [];
   for (const quantity of quantities) {
-    const qs = byUnit[quantity.unit] || [];
-    qs.push(quantity);
-    byUnit[quantity.unit] = qs;
+    if (quantity.unit === "arbitrary") {
+      arbitrary.push(quantity);
+    } else {
+      const qs = byUnit[quantity.unit] || [];
+      qs.push(quantity);
+      byUnit[quantity.unit] = qs;
+    }
   }
 
   const elements = [];
@@ -26,11 +31,10 @@ export function combineQuantities(quantities: StoredQuantity[]): string {
     const unitSymbol = unitConversion[unit] || unit;
     elements.push(`${totalValue}${unitSymbol}`);
   }
-  // re-consider arbitrary later
-  // const arbitrary = (byUnit.arbitrary || []).map((q) => q.text);
 
-  // return elements.concat(arbitrary).join(" & ");
-  return elements.join(" & ");
+  const allArbitraryOnes = arbitrary.map((q) => q.text) as string[];
+
+  return elements.concat(allArbitraryOnes).join(" & ");
 }
 
 export function parse(raw: string): Quantity | undefined {
