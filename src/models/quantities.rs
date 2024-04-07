@@ -1,3 +1,4 @@
+use regex_lite::Regex;
 use sea_orm::entity::prelude::*;
 
 pub use super::_entities::quantities::{self, ActiveModel, Entity, Model};
@@ -15,18 +16,31 @@ pub enum Quantity {
 
 impl Quantity {
     pub fn parse(raw: &str) -> Self {
-        if let Some(value) = parse_value(raw) {
-            return Self::Count(value);
-        }
-        if let Some(weight) = parse_weight(raw) {
-            return weight;
-        }
+        let re = Regex::new(
+            r" *(?<numerator>\d+\.?\d*) */? *(?<denominator>\d+\.?\d*)? *(?<unit>[^ ]+)?",
+        )
+        .unwrap();
 
-        if let Some(volume) = parse_volume(raw) {
-            return volume;
-        }
+        let Some(caps) = re.captures(raw) else {
+            return Quantity::Arbitrary(raw.to_string());
+        };
 
-        Self::Arbitrary(raw.to_string())
+        let n: Option<f32> = caps.name("numerator").and_then(|m| m.as_str().parse().ok());
+        let d: f32 = caps
+            .name("denominator")
+            .and_then(|m| m.as_str().parse().ok())
+            .unwrap_or(1.0);
+        let unit: Option<String> = caps.name("unit").map(|m| m.as_str().to_string());
+
+        match (n, unit) {
+            (None, _) => Quantity::Arbitrary(raw.to_string()),
+            (Some(n), None) => Quantity::Count(n / d),
+            (Some(n), Some(unit)) if &unit == "x" => Quantity::Count(n / d),
+            (Some(n), Some(unit)) => Quantity::WithUnit {
+                value: n / d,
+                unit: canonical(&unit).to_string(),
+            },
+        }
     }
 
     pub fn into_active_model(self) -> ActiveModel {
@@ -52,71 +66,17 @@ impl Quantity {
     }
 }
 
-fn parse_value(raw: &str) -> Option<f32> {
-    let raw = raw.replace(' ', "");
-    let raw = raw.strip_suffix('x').unwrap_or(&raw);
-    if let Some((left, right)) = raw.split_once('/') {
-        let x: f32 = left.parse().ok()?;
-        let y: f32 = right.parse().ok()?;
-
-        return Some(x / y);
+fn canonical(unit: &str) -> &str {
+    match unit {
+        "kg" => "kilogram",
+        "g" => "gram",
+        "ml" => "millilitre",
+        "l" => "litre",
+        "tbsp" => "tablespoon",
+        "tsp" => "teaspoon",
+        "cups" => "cup",
+        other => other,
     }
-
-    raw.parse().ok()
-}
-
-fn parse_weight(raw: &str) -> Option<Quantity> {
-    let (value, unit) = extract_value_and_unit(
-        raw,
-        &[
-            ("kg", "kilogram"),
-            ("g", "gram"),
-            ("cloves", "cloves"), /* TODO: this does not fit here */
-        ],
-    )?;
-
-    Some(Quantity::WithUnit { value, unit })
-}
-
-fn parse_volume(raw: &str) -> Option<Quantity> {
-    let (value, unit) = extract_value_and_unit(
-        raw,
-        &[
-            ("ml", "millilitre"),
-            ("l", "litre"),
-            ("tbsp", "tablespoon"),
-            ("tsp", "teaspoon"),
-            ("cup", "cup"),
-            ("cups", "cup"),
-        ],
-    )?;
-
-    Some(Quantity::WithUnit { value, unit })
-}
-
-fn extract_value_and_unit(raw: &str, symbol_to_unit: &[(&str, &str)]) -> Option<(f32, String)> {
-    let trimmed = raw.trim();
-
-    for (symbol, unit) in symbol_to_unit {
-        if trimmed.contains(symbol) {
-            let trimmed = trimmed.replace(symbol, "");
-            let without_unit = trimmed.trim();
-
-            if let Some(value) = parse_value(without_unit) {
-                return Some((value, unit.to_string()));
-            }
-        }
-
-        if trimmed.contains(unit) {
-            let trimmed = trimmed.replace(unit, "");
-            let without_unit = trimmed.trim();
-
-            if let Some(value) = parse_value(without_unit) {
-                return Some((value, unit.to_string()));
-            }
-        }
-    }
-    None
 }
 
 #[cfg(test)]
