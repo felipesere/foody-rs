@@ -53,6 +53,8 @@ impl Quantity {
 }
 
 fn parse_value(raw: &str) -> Option<f32> {
+    let raw = raw.replace(' ', "");
+    let raw = raw.strip_suffix('x').unwrap_or(&raw);
     if let Some((left, right)) = raw.split_once('/') {
         let x: f32 = left.parse().ok()?;
         let y: f32 = right.parse().ok()?;
@@ -123,6 +125,12 @@ mod tests {
 
     #[test]
     fn parses_simple_numeric_quantities() {
+        let q = Quantity::parse("1x");
+        assert_eq!(q, Quantity::Count(1.0));
+
+        let q = Quantity::parse("1 x");
+        assert_eq!(q, Quantity::Count(1.0));
+
         let q = Quantity::parse("1");
         assert_eq!(q, Quantity::Count(1.0));
 
