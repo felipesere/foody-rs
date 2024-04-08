@@ -41,8 +41,6 @@ input[type="checkbox"] {
     /* Add if not using autoprefixer */
     -webkit-appearance: none;
     appearance: none;
-    /* For iOS < 15 to remove gradient background */
-    background-color: #fff;
     /* Not removed via appearance */
     margin: 0;
 
@@ -51,9 +49,9 @@ input[type="checkbox"] {
     width: 1.15em;
     height: 1.15em;
     border: 0.2em solid currentColor;
-    border-radius: 0em;
+    border-radius: 0;
     /* nudging to align with label, which I may not have: */
-    transform: translateY(+0.2em);
+    transform: translateY(+0.1em);
 
     display: grid;
     place-content: center;
@@ -65,7 +63,7 @@ input[type="checkbox"]::before {
     width: 0.65em;
     height: 0.65em;
     transform: scale(0);
-    box-shadow: inset 1em 1em black;
+    box-shadow: inset 1em 1em currentColor;
     clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
 }
 

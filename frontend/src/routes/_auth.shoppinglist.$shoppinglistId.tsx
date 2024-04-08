@@ -48,7 +48,7 @@ export function ShoppingPage() {
       </Toggle>
       <ul className="grid max-w-md gap-4">
         {shoppinglist.data?.ingredients.map((ingredient) => (
-          <IngredientView
+          <CompactIngredientView
             key={ingredient.name}
             ingredient={ingredient}
             allRecipes={allRecipes}
@@ -59,20 +59,50 @@ export function ShoppingPage() {
   );
 }
 
+function CompactIngredientView({
+  ingredient,
+}: { ingredient: Ingredient; allRecipes: Record<number, string> }) {
+  const [checked, setChecked] = useState(false);
+  return (
+    <li
+      className={classnames(
+        "flex flex-row border-black border-solid border-2 p-2",
+        {
+          "bg-gray-200 text-gray-500": checked,
+          "line-through": checked,
+        },
+      )}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={() => setChecked((checked) => !checked)}
+      />
+      <p
+        className={classnames(
+          "flex-grow inline capitalize ml-2 font-black tracking-wider",
+        )}
+      >
+        {ingredient.name}
+      </p>
+      <p>{combineQuantities(ingredient.quantities)}</p>
+    </li>
+  );
+}
+
 function IngredientView({
   ingredient,
   allRecipes,
 }: { ingredient: Ingredient; allRecipes: Record<number, string> }) {
   const [open, setOpen] = useState(false);
   const [checked, setChecked] = useState(false);
-
   const totalQuantity = combineQuantities(ingredient.quantities);
+
   return (
     <li
-      className={classnames(
-        "shadow border-black border-solid border-2 p-2 col-span-2",
-        { "grid grid-cols-subgrid": true },
-      )}
+      className={
+        "shadow border-black border-solid border-2 p-2 col-span-2 grid grid-cols-subgrid"
+      }
     >
       <div>
         <div className="flex flex-col">
