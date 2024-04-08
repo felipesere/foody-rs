@@ -8,7 +8,7 @@ recipes:
       unit: tablespoon
       value: 2
     leeks:
-      text: 3 small
+      text: 3x
       unit: arbitrary
     parmesan shavings:
       unit: gram

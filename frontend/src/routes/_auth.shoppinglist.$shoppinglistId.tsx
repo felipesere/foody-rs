@@ -63,29 +63,32 @@ function CompactIngredientView({
   ingredient,
 }: { ingredient: Ingredient; allRecipes: Record<number, string> }) {
   const [checked, setChecked] = useState(false);
+
   return (
     <li
-      className={classnames(
-        "flex flex-row border-black border-solid border-2 p-2",
-        {
-          "bg-gray-200 text-gray-500": checked,
-          "line-through": checked,
-        },
-      )}
+      className={classnames("border-black border-solid border-2 p-2", {
+        "bg-gray-200 text-gray-500": checked,
+      })}
     >
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={() => setChecked((checked) => !checked)}
-      />
-      <p
-        className={classnames(
-          "flex-grow inline capitalize ml-2 font-black tracking-wider",
-        )}
+      <div
+        className={classnames("flex flex-row", {
+          "line-through": checked,
+        })}
       >
-        {ingredient.name}
-      </p>
-      <p>{combineQuantities(ingredient.quantities)}</p>
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={() => setChecked((checked) => !checked)}
+        />
+        <p
+          className={classnames(
+            "flex-grow inline capitalize ml-2 font-black tracking-wider",
+          )}
+        >
+          {ingredient.name}
+        </p>
+        <p>{combineQuantities(ingredient.quantities)}</p>
+      </div>
     </li>
   );
 }
