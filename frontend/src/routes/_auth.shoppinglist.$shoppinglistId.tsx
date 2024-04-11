@@ -2,7 +2,11 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import classnames from "classnames";
 import { useState } from "react";
 import { useAllRecipes } from "../apis/recipes.ts";
-import type { Ingredient, ItemQuantity } from "../apis/shoppinglists.ts";
+import {
+  type Ingredient,
+  type ItemQuantity,
+  useToggleIngredientInShoppinglist,
+} from "../apis/shoppinglists.ts";
 import { useShoppinglist } from "../apis/shoppinglists.ts";
 import { DottedLine } from "../components/dottedLine.tsx";
 import { FindIngredient } from "../components/findIngredient.tsx";
@@ -20,16 +24,17 @@ export function ShoppingPage() {
   const shoppinglist = useShoppinglist(token, shoppinglistId);
   const recipes = useAllRecipes(token);
 
+  const toggleIngredient = useToggleIngredientInShoppinglist(
+    token,
+    shoppinglistId,
+  );
+
   if (shoppinglist.isLoading || recipes.isLoading) {
     return <p>Loading</p>;
   }
 
   if (shoppinglist.isError || recipes.isError) {
     return <p>Failed to load shoppinglist or recipes</p>;
-  }
-
-  if (shoppinglist.data?.ingredients.length === 0) {
-    return <p>List has no items</p>;
   }
 
   const allRecipes =
@@ -52,6 +57,9 @@ export function ShoppingPage() {
             key={ingredient.name}
             ingredient={ingredient}
             allRecipes={allRecipes}
+            onToggle={(ingredientId, inBasket) =>
+              toggleIngredient.mutate({ ingredientId, inBasket })
+            }
           />
         ))}
       </ul>
@@ -61,8 +69,15 @@ export function ShoppingPage() {
 
 function CompactIngredientView({
   ingredient,
-}: { ingredient: Ingredient; allRecipes: Record<number, string> }) {
-  const [checked, setChecked] = useState(false);
+  onToggle,
+}: {
+  ingredient: Ingredient;
+  // Would be used once we expand the `quantities` per recipe
+  allRecipes: Record<number, string>;
+  onToggle: (ingredient: Ingredient["id"], inBasket: boolean) => void;
+}) {
+  const inBasket = ingredient.quantities.some((q) => q.in_basket);
+  const [checked, setChecked] = useState(inBasket);
 
   return (
     <li
@@ -78,7 +93,10 @@ function CompactIngredientView({
         <input
           type="checkbox"
           checked={checked}
-          onChange={() => setChecked((checked) => !checked)}
+          onChange={() => {
+            onToggle(ingredient.id, !checked);
+            setChecked((checked) => !checked);
+          }}
         />
         <p
           className={classnames(

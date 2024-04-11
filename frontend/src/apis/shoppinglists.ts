@@ -103,3 +103,36 @@ export function useCreateShoppinglist(token: string) {
     },
   });
 }
+
+export function useToggleIngredientInShoppinglist(
+  token: string,
+  shoppinglistId: Shoppinglist["id"],
+) {
+  const client = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: {
+      ingredientId: Ingredient["id"];
+      inBasket: boolean;
+    }) => {
+      await http
+        .post(
+          `api/shoppinglists/${shoppinglistId}/ingredient/${params.ingredientId}/in_basket`,
+          {
+            json: {
+              in_basket: params.inBasket,
+            },
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        )
+        .json();
+    },
+    onSuccess: () => {
+      return client.invalidateQueries({
+        queryKey: ["shoppinglist", shoppinglistId],
+      });
+    },
+  });
+}
