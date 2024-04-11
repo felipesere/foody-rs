@@ -104,6 +104,11 @@ export function useCreateShoppinglist(token: string) {
   });
 }
 
+type ToggleIngredientParams = {
+  ingredientId: Ingredient["id"];
+  inBasket: boolean;
+};
+
 export function useToggleIngredientInShoppinglist(
   token: string,
   shoppinglistId: Shoppinglist["id"],
@@ -111,10 +116,7 @@ export function useToggleIngredientInShoppinglist(
   const client = useQueryClient();
 
   return useMutation({
-    mutationFn: async (params: {
-      ingredientId: Ingredient["id"];
-      inBasket: boolean;
-    }) => {
+    mutationFn: async (params: ToggleIngredientParams) => {
       await http
         .post(
           `api/shoppinglists/${shoppinglistId}/ingredient/${params.ingredientId}/in_basket`,
@@ -129,10 +131,61 @@ export function useToggleIngredientInShoppinglist(
         )
         .json();
     },
+    onMutate: async (params) => {
+      await client.cancelQueries({ queryKey: ["shoppinglists"] });
+      const previousShoppinglist: Shoppinglist | undefined =
+        client.getQueryData(["shoppinglist", shoppinglistId]);
+
+      if (previousShoppinglist) {
+        const updatedList = updateItemInShoppingList(
+          previousShoppinglist,
+          params.ingredientId,
+          (ingredient) => {
+            return {
+              ...ingredient,
+              quantities: ingredient.quantities.map((q) => {
+                return { ...q, in_basket: params.inBasket };
+              }),
+            };
+          },
+        );
+        client.setQueryData(["shoppinglist", shoppinglistId], updatedList);
+      }
+      return { previousShoppinglist };
+    },
+    onError: (_err, _params, context) => {
+      client.setQueryData(
+        ["shoppinglist", shoppinglistId],
+        context?.previousShoppinglist,
+      );
+    },
+    onSettled: async () => {
+      // If we have mutations "bottled up" because we've been offline for a bit,
+      // then only invalidate the 'shoppinglists' on the last mutation...
+      if (client.isMutating() === 1) {
+        console.log("Invalidating after last mutation...");
+        await client.invalidateQueries({
+          queryKey: ["shoppinglist", shoppinglistId],
+        });
+      }
+    },
     onSuccess: () => {
       return client.invalidateQueries({
         queryKey: ["shoppinglist", shoppinglistId],
       });
     },
   });
+}
+
+function updateItemInShoppingList(
+  shoppinglist: Shoppinglist,
+  ingredientId: number,
+  f: (i: Ingredient) => Ingredient,
+) {
+  return {
+    ...shoppinglist,
+    ingredients: shoppinglist.ingredients.map((ingredient) => {
+      return ingredient.id !== ingredientId ? ingredient : f(ingredient);
+    }),
+  };
 }
