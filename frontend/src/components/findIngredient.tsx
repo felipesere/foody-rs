@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   type Ingredient,
   addIngredientToShoppinglist,
@@ -29,6 +29,8 @@ export function FindIngredient(props: {
 
   const addIngredient = addIngredientToShoppinglist(props.token);
 
+  const ref = useRef<HTMLInputElement | null>(null);
+
   if (!ingredients.data) {
     return null;
   }
@@ -37,9 +39,9 @@ export function FindIngredient(props: {
     <div className={"flex flex-row"}>
       <Dropdown
         items={ingredients.data}
-        field={"name"}
         dropdownClassnames={"border-gray-500 border-solid border-2"}
         onSelectedItem={setSelectedIngredient}
+        ref={ref}
       />
       <input
         className={"ml-2 w-1/3 border-gray-500 border-solid border-2"}
@@ -65,6 +67,7 @@ export function FindIngredient(props: {
               ingredient: selectedIngredient.name,
               quantity: [quantity.quantity],
             });
+            ref.current?.focus()
           }
         }}
       >

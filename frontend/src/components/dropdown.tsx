@@ -9,12 +9,13 @@ import {
   useId,
   useInteractions,
   useListNavigation,
-  useRole,
+  useRole, useMergeRefs,
 } from "@floating-ui/react";
 import classNames from "classnames";
 import Fuse from "fuse.js";
-import { forwardRef, useMemo, useRef, useState } from "react";
+import {forwardRef, useMemo, useRef, useState} from "react";
 import type { ChangeEvent, HTMLProps, ReactNode } from "react";
+import type {Ingredient} from "../apis/ingredients.ts";
 
 const matchWidth = size({
   apply({ rects, elements }) {
@@ -24,20 +25,13 @@ const matchWidth = size({
   },
 });
 
-interface WithId {
-  id: string | number;
-}
-
-interface DropdownProps<T extends WithId, F extends keyof T> {
-  items: Array<T>;
-  field: F;
+interface DropdownProps {
+  items: Array<Ingredient>;
   dropdownClassnames?: string;
-  onSelectedItem: (item: T) => void;
+  onSelectedItem: (item: Ingredient) => void;
 }
 
-export function Dropdown<T extends WithId, F extends keyof T>(
-  props: DropdownProps<T, F>,
-) {
+export const Dropdown = forwardRef<HTMLInputElement, DropdownProps>(function MyDropdown(props, ref) {
   const [open, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -48,9 +42,9 @@ export function Dropdown<T extends WithId, F extends keyof T>(
     return new Fuse(props.items, {
       shouldSort: true,
       threshold: 0.3,
-      keys: [props.field.toString()],
+      keys: ["name"],
     });
-  }, [props.items, props.field]);
+  }, [props.items]);
 
   const items = searchIndex.search(query).map((r) => r.item);
 
@@ -96,12 +90,14 @@ export function Dropdown<T extends WithId, F extends keyof T>(
     }
   }
 
+  const mergedRefs = useMergeRefs([refs.setReference, ref])
+
   return (
     <>
       <input
         {...getReferenceProps({
           className: props.dropdownClassnames || "",
-          ref: refs.setReference,
+          ref: mergedRefs,
           onChange,
           value: query,
           placeholder: "ingredient...",
@@ -112,7 +108,7 @@ export function Dropdown<T extends WithId, F extends keyof T>(
               activeIndex != null &&
               items[activeIndex]
             ) {
-              setQuery(`${items[activeIndex][props.field]}`);
+              setQuery(items[activeIndex].name);
               changeActiveItem(null);
               setIsOpen(false);
             }
@@ -144,14 +140,14 @@ export function Dropdown<T extends WithId, F extends keyof T>(
                       listRef.current[idx] = node;
                     },
                     onClick() {
-                      setQuery(`${item[props.field]}`);
+                      setQuery(item.name);
                       setIsOpen(false);
                       refs.domReference.current?.focus();
                     },
                   })}
                   active={activeIndex === idx}
                 >
-                  {`${item[props.field]}`}
+                  {item.name}
                 </Item>
               ))}
             </ul>
@@ -160,7 +156,7 @@ export function Dropdown<T extends WithId, F extends keyof T>(
       </FloatingPortal>
     </>
   );
-}
+});
 
 interface ItemProps {
   children: ReactNode;
