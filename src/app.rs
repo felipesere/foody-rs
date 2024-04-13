@@ -20,8 +20,8 @@ use sea_orm::{
 use crate::{
     controllers,
     models::_entities::{
-        ingredients, ingredients_in_recipes, ingredients_in_shoppinglists, notes, quantities,
-        recipes, shoppinglists, users,
+        ingredients, ingredients_in_recipes, ingredients_in_shoppinglists, quantities, recipes,
+        shoppinglists, users,
     },
     tasks,
     workers::downloader::DownloadWorker,
@@ -54,7 +54,6 @@ impl Hooks for App {
             .add_route(controllers::shoppinglists::routes())
             .add_route(controllers::ingredients::routes())
             .prefix("/api")
-            .add_route(controllers::notes::routes())
             .add_route(controllers::auth::routes())
             .add_route(controllers::user::routes())
     }
@@ -69,7 +68,6 @@ impl Hooks for App {
 
     async fn truncate(db: &DatabaseConnection) -> Result<()> {
         truncate_table(db, users::Entity).await?;
-        truncate_table(db, notes::Entity).await?;
         truncate_table(db, ingredients_in_shoppinglists::Entity).await?;
         truncate_table(db, ingredients_in_recipes::Entity).await?;
         truncate_table(db, quantities::Entity).await?;
@@ -192,7 +190,6 @@ impl Hooks for App {
             ))
             .await?;
         }
-        db::seed::<notes::ActiveModel>(db, &base.join("notes.yaml").display().to_string()).await?;
 
         Ok(())
     }
