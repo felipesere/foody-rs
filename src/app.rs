@@ -117,11 +117,11 @@ impl Hooks for App {
 
         use ActiveValue as AV;
         let mut ingredients = HashMap::new();
-        for ingredient in data.ingredients {
-            let mut i = ingredients::ActiveModel::new();
-            i.name = AV::set(ingredient);
-            let i = i.insert(db).await?;
-            ingredients.insert(i.name.clone(), i);
+        for ingredient_name in data.ingredients {
+            let mut ingredient = ingredients::ActiveModel::new();
+            ingredient.name = AV::set(ingredient_name);
+            let ingredient = ingredient.insert(db).await?;
+            ingredients.insert(ingredient.name.clone(), ingredient);
         }
 
         for recipe in data.recipes {

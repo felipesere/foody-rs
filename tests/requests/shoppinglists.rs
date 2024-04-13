@@ -251,7 +251,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "id": "[redacted]",
                   "in_basket": false,
                   "recipe_id": "[recipe_id]",
-                  "text": "3 small",
+                  "text": "3x",
                   "unit": "arbitrary"
                 }
               ]
@@ -330,7 +330,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "id": "[redactor]",
                   "in_basket": false,
                   "recipe_id": "[recipe_id]",
-                  "text": "3 small",
+                  "text": "3x",
                   "unit": "arbitrary"
                 }
               ]
@@ -422,7 +422,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "id": "[redacted]",
                   "in_basket": false,
                   "recipe_id": "[recipe_id]",
-                  "text": "3 small",
+                  "text": "3x",
                   "unit": "arbitrary"
                 }
               ]
@@ -504,7 +504,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "id": "[redacted]",
                   "in_basket": false,
                   "recipe_id": "[recipe_id]",
-                  "text": "3 small",
+                  "text": "3x",
                   "unit": "arbitrary"
                 }
               ]
@@ -629,7 +629,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "id": "[redacted]",
                   "in_basket": false,
                   "recipe_id": "[recipe_id]",
-                  "text": "3 small",
+                  "text": "3x",
                   "unit": "arbitrary"
                 }
               ]
