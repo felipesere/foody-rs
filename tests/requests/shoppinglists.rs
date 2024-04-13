@@ -219,19 +219,6 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "ingredients": [
             {
               "id": "[redacted]",
-              "name": "bananas",
-              "quantities": [
-                {
-                  "id": "[redacted]",
-                  "in_basket": true,
-                  "recipe_id": null,
-                  "unit": "count",
-                  "value": 10.0
-                }
-              ]
-            },
-            {
-              "id": "[redacted]",
               "name": "double cream",
               "quantities": [
                 {
@@ -279,6 +266,19 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "recipe_id": "[recipe_id]",
                   "text": "1 sheet",
                   "unit": "arbitrary"
+                }
+              ]
+            },
+            {
+              "id": "[redacted]",
+              "name": "bananas",
+              "quantities": [
+                {
+                  "id": "[redacted]",
+                  "in_basket": true,
+                  "recipe_id": null,
+                  "unit": "count",
+                  "value": 10.0
                 }
               ]
             }
@@ -551,11 +551,11 @@ async fn create_a_shoppinglist_and_add_ingredients() {
         let res = request.get(&format!("/api/recipes")).await;
         assert_eq!(res.status_code(), 200);
         let recipes = res.json::<RecipesResponse>();
-        let pumpking_soup_id = recipes
+        let easy_chicken_fajitas = recipes
             .recipes
             .into_iter()
             .find_map(|r| {
-                if r.name == "pumpkin soup" {
+                if r.name == "easy chicken fajitas" {
                     Some(r.id)
                 } else {
                     None
@@ -565,7 +565,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
 
         let res = request
             .post(&format!(
-                "/api/shoppinglists/{id}/recipe/{pumpking_soup_id}"
+                "/api/shoppinglists/{id}/recipe/{easy_chicken_fajitas}"
             ))
             .await;
         assert_eq!(res.status_code(), 200);
@@ -584,14 +584,14 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "ingredients": [
             {
               "id": "[redacted]",
-              "name": "cashew nuts",
+              "name": "chicken breasts",
               "quantities": [
                 {
                   "id": "[redacted]",
                   "in_basket": false,
                   "recipe_id": "[recipe_id]",
-                  "unit": "gram",
-                  "value": 50.0
+                  "unit": "count",
+                  "value": 2.0
                 }
               ]
             },
@@ -610,14 +610,53 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redacted]",
-              "name": "ginger",
+              "name": "fresh salsa",
               "quantities": [
                 {
                   "id": "[redacted]",
                   "in_basket": false,
                   "recipe_id": "[recipe_id]",
                   "unit": "gram",
-                  "value": 10.0
+                  "value": 230.0
+                }
+              ]
+            },
+            {
+              "id": "[redacted]",
+              "name": "garlic",
+              "quantities": [
+                {
+                  "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
+                  "unit": "count",
+                  "value": 2.0
+                }
+              ]
+            },
+            {
+              "id": "[redacted]",
+              "name": "ground coriander",
+              "quantities": [
+                {
+                  "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
+                  "unit": "tablespoon",
+                  "value": 1.0
+                }
+              ]
+            },
+            {
+              "id": "[redacted]",
+              "name": "ground cumin",
+              "quantities": [
+                {
+                  "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
+                  "text": "pinch",
+                  "unit": "arbitrary"
                 }
               ]
             },
@@ -631,6 +670,45 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "recipe_id": "[recipe_id]",
                   "text": "3x",
                   "unit": "arbitrary"
+                }
+              ]
+            },
+            {
+              "id": "[redacted]",
+              "name": "lime",
+              "quantities": [
+                {
+                  "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
+                  "unit": "count",
+                  "value": 1.0
+                }
+              ]
+            },
+            {
+              "id": "[redacted]",
+              "name": "mixed salad",
+              "quantities": [
+                {
+                  "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
+                  "text": "1 bag",
+                  "unit": "arbitrary"
+                }
+              ]
+            },
+            {
+              "id": "[redacted]",
+              "name": "olive oil",
+              "quantities": [
+                {
+                  "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
+                  "unit": "tablespoon",
+                  "value": 4.0
                 }
               ]
             },
@@ -656,19 +734,6 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redacted]",
-              "name": "potatoes",
-              "quantities": [
-                {
-                  "id": "[redacted]",
-                  "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "unit": "gram",
-                  "value": 100.0
-                }
-              ]
-            },
-            {
-              "id": "[redacted]",
               "name": "puff pastry",
               "quantities": [
                 {
@@ -682,14 +747,79 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             },
             {
               "id": "[redacted]",
-              "name": "pumpkin",
+              "name": "red chilli",
               "quantities": [
                 {
                   "id": "[redacted]",
                   "in_basket": false,
                   "recipe_id": "[recipe_id]",
-                  "unit": "gram",
-                  "value": 400.0
+                  "unit": "count",
+                  "value": 1.0
+                }
+              ]
+            },
+            {
+              "id": "[redacted]",
+              "name": "red onion",
+              "quantities": [
+                {
+                  "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
+                  "unit": "count",
+                  "value": 1.0
+                }
+              ]
+            },
+            {
+              "id": "[redacted]",
+              "name": "red pepper",
+              "quantities": [
+                {
+                  "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
+                  "unit": "count",
+                  "value": 1.0
+                }
+              ]
+            },
+            {
+              "id": "[redacted]",
+              "name": "smoked paprika",
+              "quantities": [
+                {
+                  "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
+                  "text": "pinch",
+                  "unit": "arbitrary"
+                }
+              ]
+            },
+            {
+              "id": "[redacted]",
+              "name": "tabasco",
+              "quantities": [
+                {
+                  "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
+                  "unit": "tablespoon",
+                  "value": 4.0
+                }
+              ]
+            },
+            {
+              "id": "[redacted]",
+              "name": "tortilla",
+              "quantities": [
+                {
+                  "id": "[redacted]",
+                  "in_basket": false,
+                  "recipe_id": "[recipe_id]",
+                  "unit": "count",
+                  "value": 8.0
                 }
               ]
             }
