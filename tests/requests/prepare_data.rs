@@ -1,4 +1,5 @@
 use axum::http::{HeaderName, HeaderValue};
+use foody::models::users::RegisterParams;
 use foody::{models::users, views::auth::LoginResponse};
 use loco_rs::{app::AppContext, TestServer};
 
@@ -19,26 +20,16 @@ pub async fn authenticated(request: &mut TestServer, ctx: &AppContext) {
 }
 
 pub async fn init_user_login(request: &TestServer, ctx: &AppContext) -> LoggedInUser {
-    let register_payload = serde_json::json!({
-        "name": "loco",
-        "email": USER_EMAIL,
-        "password": USER_PASSWORD
-    });
+    let register_params = RegisterParams {
+        name: "loco".to_string(),
+        email: USER_EMAIL.to_string(),
+        password: USER_PASSWORD.to_string(),
+    };
 
-    //Creating a new user
-    request
-        .post("/api/auth/register")
-        .json(&register_payload)
-        .await;
-    let user = users::Model::find_by_email(&ctx.db, USER_EMAIL)
+    // Creating a new user
+    let _user = users::Model::create_with_password(&ctx.db, &register_params)
         .await
-        .unwrap();
-
-    let verify_payload = serde_json::json!({
-        "token": user.email_verification_token,
-    });
-
-    request.post("/api/auth/verify").json(&verify_payload).await;
+        .expect("To register a new user");
 
     let response = request
         .post("/api/auth/login")
