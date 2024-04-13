@@ -1,0 +1,7731 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 14.4 (Debian 14.4-1.pgdg110+1)
+-- Dumped by pg_dump version 14.11 (Homebrew)
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: citext; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION citext; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION citext IS 'data type for case-insensitive character strings';
+
+
+--
+-- Name: recipe_source; Type: TYPE; Schema: public; Owner: foody
+--
+
+CREATE TYPE public.recipe_source AS ENUM (
+    'website',
+    'book'
+);
+
+
+ALTER TYPE public.recipe_source OWNER TO foody;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: goose_db_version; Type: TABLE; Schema: public; Owner: foody
+--
+
+CREATE TABLE public.goose_db_version (
+    id integer NOT NULL,
+    version_id bigint NOT NULL,
+    is_applied boolean NOT NULL,
+    tstamp timestamp without time zone DEFAULT now()
+);
+
+
+ALTER TABLE public.goose_db_version OWNER TO foody;
+
+--
+-- Name: goose_db_version_id_seq; Type: SEQUENCE; Schema: public; Owner: foody
+--
+
+CREATE SEQUENCE public.goose_db_version_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.goose_db_version_id_seq OWNER TO foody;
+
+--
+-- Name: goose_db_version_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: foody
+--
+
+ALTER SEQUENCE public.goose_db_version_id_seq OWNED BY public.goose_db_version.id;
+
+
+--
+-- Name: ingredients; Type: TABLE; Schema: public; Owner: foody
+--
+
+CREATE TABLE public.ingredients (
+    id integer NOT NULL,
+    name public.citext NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.ingredients OWNER TO foody;
+
+--
+-- Name: ingredients_id_seq; Type: SEQUENCE; Schema: public; Owner: foody
+--
+
+CREATE SEQUENCE public.ingredients_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.ingredients_id_seq OWNER TO foody;
+
+--
+-- Name: ingredients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: foody
+--
+
+ALTER SEQUENCE public.ingredients_id_seq OWNED BY public.ingredients.id;
+
+
+--
+-- Name: ingredients_in_recipe; Type: TABLE; Schema: public; Owner: foody
+--
+
+CREATE TABLE public.ingredients_in_recipe (
+    id integer NOT NULL,
+    ingredient_id integer NOT NULL,
+    recipe_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    quantity_id integer
+);
+
+
+ALTER TABLE public.ingredients_in_recipe OWNER TO foody;
+
+--
+-- Name: ingredients_in_recipe_id_seq; Type: SEQUENCE; Schema: public; Owner: foody
+--
+
+CREATE SEQUENCE public.ingredients_in_recipe_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.ingredients_in_recipe_id_seq OWNER TO foody;
+
+--
+-- Name: ingredients_in_recipe_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: foody
+--
+
+ALTER SEQUENCE public.ingredients_in_recipe_id_seq OWNED BY public.ingredients_in_recipe.id;
+
+
+--
+-- Name: recipes; Type: TABLE; Schema: public; Owner: foody
+--
+
+CREATE TABLE public.recipes (
+    id integer NOT NULL,
+    name public.citext NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    source public.recipe_source,
+    book_title text,
+    book_page integer,
+    website_url text
+);
+
+
+ALTER TABLE public.recipes OWNER TO foody;
+
+--
+-- Name: ingredients_in_recipe_overview; Type: VIEW; Schema: public; Owner: foody
+--
+
+CREATE VIEW public.ingredients_in_recipe_overview AS
+ SELECT iir.id,
+    i.name AS ingredient,
+    r.name AS recipe,
+    iir.created_at,
+    iir.updated_at,
+    iir.quantity_id
+   FROM ((public.ingredients_in_recipe iir
+     JOIN public.ingredients i ON ((i.id = iir.ingredient_id)))
+     JOIN public.recipes r ON ((iir.recipe_id = r.id)));
+
+
+ALTER TABLE public.ingredients_in_recipe_overview OWNER TO foody;
+
+--
+-- Name: ingredients_in_shoppinglist; Type: TABLE; Schema: public; Owner: foody
+--
+
+CREATE TABLE public.ingredients_in_shoppinglist (
+    id integer NOT NULL,
+    shoppinglist_id integer NOT NULL,
+    ingredient_id integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    in_basket boolean DEFAULT false NOT NULL,
+    quantity_id integer
+);
+
+
+ALTER TABLE public.ingredients_in_shoppinglist OWNER TO foody;
+
+--
+-- Name: ingredients_in_shoppinglist_id_seq; Type: SEQUENCE; Schema: public; Owner: foody
+--
+
+CREATE SEQUENCE public.ingredients_in_shoppinglist_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.ingredients_in_shoppinglist_id_seq OWNER TO foody;
+
+--
+-- Name: ingredients_in_shoppinglist_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: foody
+--
+
+ALTER SEQUENCE public.ingredients_in_shoppinglist_id_seq OWNED BY public.ingredients_in_shoppinglist.id;
+
+
+--
+-- Name: shoppinglists; Type: TABLE; Schema: public; Owner: foody
+--
+
+CREATE TABLE public.shoppinglists (
+    id integer NOT NULL,
+    name text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.shoppinglists OWNER TO foody;
+
+--
+-- Name: ingredients_in_shoppinglist_overview; Type: VIEW; Schema: public; Owner: foody
+--
+
+CREATE VIEW public.ingredients_in_shoppinglist_overview AS
+ SELECT iis.id,
+    s.name,
+    i.name AS ingredient,
+    iis.created_at,
+    iis.updated_at,
+    iis.in_basket,
+    iis.quantity_id
+   FROM ((public.ingredients_in_shoppinglist iis
+     JOIN public.ingredients i ON ((i.id = iis.ingredient_id)))
+     JOIN public.shoppinglists s ON ((s.id = iis.shoppinglist_id)));
+
+
+ALTER TABLE public.ingredients_in_shoppinglist_overview OWNER TO foody;
+
+--
+-- Name: ingredients_tags; Type: TABLE; Schema: public; Owner: foody
+--
+
+CREATE TABLE public.ingredients_tags (
+    ingredient_id integer NOT NULL,
+    tag_id integer NOT NULL
+);
+
+
+ALTER TABLE public.ingredients_tags OWNER TO foody;
+
+--
+-- Name: quantities; Type: TABLE; Schema: public; Owner: foody
+--
+
+CREATE TABLE public.quantities (
+    id integer NOT NULL,
+    value real,
+    unit text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    text text
+);
+
+
+ALTER TABLE public.quantities OWNER TO foody;
+
+--
+-- Name: quantities_id_seq; Type: SEQUENCE; Schema: public; Owner: foody
+--
+
+CREATE SEQUENCE public.quantities_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.quantities_id_seq OWNER TO foody;
+
+--
+-- Name: quantities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: foody
+--
+
+ALTER SEQUENCE public.quantities_id_seq OWNED BY public.quantities.id;
+
+
+--
+-- Name: recipes_id_seq; Type: SEQUENCE; Schema: public; Owner: foody
+--
+
+CREATE SEQUENCE public.recipes_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.recipes_id_seq OWNER TO foody;
+
+--
+-- Name: recipes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: foody
+--
+
+ALTER SEQUENCE public.recipes_id_seq OWNED BY public.recipes.id;
+
+
+--
+-- Name: shoppinglists_id_seq; Type: SEQUENCE; Schema: public; Owner: foody
+--
+
+CREATE SEQUENCE public.shoppinglists_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.shoppinglists_id_seq OWNER TO foody;
+
+--
+-- Name: shoppinglists_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: foody
+--
+
+ALTER SEQUENCE public.shoppinglists_id_seq OWNED BY public.shoppinglists.id;
+
+
+--
+-- Name: tags; Type: TABLE; Schema: public; Owner: foody
+--
+
+CREATE TABLE public.tags (
+    id integer NOT NULL,
+    name text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    isle_order integer NOT NULL
+);
+
+
+ALTER TABLE public.tags OWNER TO foody;
+
+--
+-- Name: tags_id_seq; Type: SEQUENCE; Schema: public; Owner: foody
+--
+
+CREATE SEQUENCE public.tags_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.tags_id_seq OWNER TO foody;
+
+--
+-- Name: tags_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: foody
+--
+
+ALTER SEQUENCE public.tags_id_seq OWNED BY public.tags.id;
+
+
+--
+-- Name: goose_db_version id; Type: DEFAULT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.goose_db_version ALTER COLUMN id SET DEFAULT nextval('public.goose_db_version_id_seq'::regclass);
+
+
+--
+-- Name: ingredients id; Type: DEFAULT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.ingredients ALTER COLUMN id SET DEFAULT nextval('public.ingredients_id_seq'::regclass);
+
+
+--
+-- Name: ingredients_in_recipe id; Type: DEFAULT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.ingredients_in_recipe ALTER COLUMN id SET DEFAULT nextval('public.ingredients_in_recipe_id_seq'::regclass);
+
+
+--
+-- Name: ingredients_in_shoppinglist id; Type: DEFAULT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.ingredients_in_shoppinglist ALTER COLUMN id SET DEFAULT nextval('public.ingredients_in_shoppinglist_id_seq'::regclass);
+
+
+--
+-- Name: quantities id; Type: DEFAULT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.quantities ALTER COLUMN id SET DEFAULT nextval('public.quantities_id_seq'::regclass);
+
+
+--
+-- Name: recipes id; Type: DEFAULT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.recipes ALTER COLUMN id SET DEFAULT nextval('public.recipes_id_seq'::regclass);
+
+
+--
+-- Name: shoppinglists id; Type: DEFAULT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.shoppinglists ALTER COLUMN id SET DEFAULT nextval('public.shoppinglists_id_seq'::regclass);
+
+
+--
+-- Name: tags id; Type: DEFAULT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.tags ALTER COLUMN id SET DEFAULT nextval('public.tags_id_seq'::regclass);
+
+
+--
+-- Data for Name: goose_db_version; Type: TABLE DATA; Schema: public; Owner: foody
+--
+
+COPY public.goose_db_version (id, version_id, is_applied, tstamp) FROM stdin;
+1	0	t	2022-12-18 22:26:58.493448
+2	20221218200603	t	2022-12-19 21:30:24.32316
+3	20221231174817	t	2023-01-01 20:51:26.695514
+4	20230101145443	t	2023-01-01 20:51:26.70952
+5	20230104095852	t	2023-01-04 16:37:33.320172
+6	20230107173340	t	2023-01-22 21:10:55.90778
+7	20230206112319	t	2023-02-06 21:17:18.170488
+8	20230206112320	t	2023-02-06 21:17:18.1806
+9	20230217200847	t	2023-02-18 10:15:07.02702
+10	20230218111301	t	2023-02-18 11:58:50.530362
+11	20230218215858	t	2023-02-19 21:17:28.397989
+12	20230219211720	t	2023-02-19 22:32:06.20549
+13	20230311135326	t	2023-03-11 14:17:29.969447
+14	20230311140044	t	2023-03-11 14:17:30.033773
+15	20230311165839	t	2023-03-11 17:08:08.788019
+16	20230604151959	t	2023-06-04 13:55:31.970275
+17	20230615204819	t	2023-06-24 20:02:34.376087
+18	20230615205900	t	2023-06-24 20:02:34.388785
+19	20230622230716	t	2023-06-24 20:02:34.396737
+20	20230627224422	t	2023-06-28 07:17:15.869519
+21	20230629080455	t	2023-06-30 20:10:27.416015
+22	20230718071841	t	2023-07-21 20:57:12.497627
+\.
+
+
+--
+-- Data for Name: ingredients; Type: TABLE DATA; Schema: public; Owner: foody
+--
+
+COPY public.ingredients (id, name, created_at, updated_at) FROM stdin;
+500	Meatballs	2023-07-08 12:27:28.50413+00	2023-07-08 12:27:28.50413+00
+501	Green chilli	2023-07-08 12:27:28.527689+00	2023-07-08 12:27:28.527689+00
+502	Pomegranete seeds	2023-07-08 12:27:28.531808+00	2023-07-08 12:27:28.531808+00
+503	Soured cream	2023-07-08 12:27:28.537092+00	2023-07-08 12:27:28.537092+00
+504	Sweet potato	2023-07-08 12:27:28.573095+00	2023-07-08 12:27:28.573095+00
+511	Glass cleaner	2023-07-22 10:04:30.965728+00	2023-07-22 10:04:30.965728+00
+273	Tofu	2023-08-05 10:44:58.675986+00	2023-08-05 10:44:58.675986+00
+531	fine sea salt	2023-09-03 21:55:43.624515+00	2023-09-03 21:55:43.624515+00
+532	ground tumeric	2023-09-03 22:06:42.604436+00	2023-09-03 22:06:42.604436+00
+533	lemon gras	2023-09-03 22:06:42.608241+00	2023-09-03 22:06:42.608241+00
+534	brown sugar	2023-09-03 22:06:42.616273+00	2023-09-03 22:06:42.616273+00
+535	pumpkin seeds	2023-09-03 22:11:41.990198+00	2023-09-03 22:11:41.990198+00
+536	Giant cous-cous	2023-09-03 22:11:41.992792+00	2023-09-03 22:11:41.992792+00
+537	lime juice	2023-09-03 22:11:41.998233+00	2023-09-03 22:11:41.998233+00
+538	feta cheese	2023-09-03 22:11:42.001436+00	2023-09-03 22:11:42.001436+00
+539	pomegranate seeds	2023-09-03 22:11:42.003586+00	2023-09-03 22:11:42.003586+00
+540	chili sauce	2023-09-03 22:16:09.330069+00	2023-09-03 22:16:09.330069+00
+541	natural yogurt	2023-09-03 22:16:09.332502+00	2023-09-03 22:16:09.332502+00
+559	Jar of red peppers	2023-09-16 15:33:00.027852+00	2023-09-16 15:33:00.027852+00
+560	peppercorns	2023-09-16 15:33:00.063199+00	2023-09-16 15:33:00.063199+00
+567	Celery stalks	2023-09-23 14:38:13.401909+00	2023-09-23 14:38:13.401909+00
+568	Dried basil	2023-09-23 14:38:13.40483+00	2023-09-23 14:38:13.40483+00
+569	Egg noodles	2023-09-23 14:38:13.408874+00	2023-09-23 14:38:13.408874+00
+570	cooked chicken meat	2023-09-23 14:38:13.411414+00	2023-09-23 14:38:13.411414+00
+571	dried marjoram	2023-09-23 14:38:13.440822+00	2023-09-23 14:38:13.440822+00
+572	lamb mince	2023-09-23 14:38:13.4695+00	2023-09-23 14:38:13.4695+00
+573	curry powder	2023-09-23 14:38:13.520563+00	2023-09-23 14:38:13.520563+00
+574	fresh spinach leaves	2023-09-23 14:38:13.524359+00	2023-09-23 14:38:13.524359+00
+584	Flapjacks	2023-10-07 09:39:40.630086+00	2023-10-07 09:39:40.630086+00
+607	Tinned plum tomatoes	2023-10-07 10:19:46.616257+00	2023-10-07 10:19:46.616257+00
+613	Sweet Potato Fries	2023-10-14 13:26:03.362069+00	2023-10-14 13:26:03.362069+00
+1	apple cider vinegar	2023-06-30 20:29:04.285615+00	2023-06-30 20:29:04.285615+00
+505	white wine vinegar	2023-07-16 08:44:43.287284+00	2023-07-16 08:44:43.287284+00
+506	mustard	2023-07-16 08:44:43.290783+00	2023-07-16 08:44:43.290783+00
+507	leek	2023-07-16 08:53:46.202703+00	2023-07-16 08:53:46.202703+00
+512	Shower cleaner	2023-07-22 10:51:06.105425+00	2023-07-22 10:51:06.105425+00
+517	piqeo	2023-08-13 08:43:16.083467+00	2023-08-13 08:43:16.083467+00
+519	Strong flour	2023-08-13 08:45:40.439237+00	2023-08-13 08:45:40.439237+00
+542	100g	2023-09-10 12:40:30.140006+00	2023-09-10 12:40:30.140006+00
+543	6x	2023-09-10 12:40:30.142247+00	2023-09-10 12:40:30.142247+00
+544	peanut butter	2023-09-10 12:43:56.706074+00	2023-09-10 12:43:56.706074+00
+545	light soy sauce	2023-09-10 12:43:56.708368+00	2023-09-10 12:43:56.708368+00
+546	dark brown sugar	2023-09-10 12:43:56.71171+00	2023-09-10 12:43:56.71171+00
+547	sriracha sauce	2023-09-10 12:43:56.714783+00	2023-09-10 12:43:56.714783+00
+548	basmati rice	2023-09-10 12:43:56.716921+00	2023-09-10 12:43:56.716921+00
+549	desiccated coconut	2023-09-10 12:43:56.718881+00	2023-09-10 12:43:56.718881+00
+550	baby sweetcorn	2023-09-10 12:43:56.721501+00	2023-09-10 12:43:56.721501+00
+551	sugar snap peas	2023-09-10 12:43:56.724122+00	2023-09-10 12:43:56.724122+00
+552	unsalted peanutes	2023-09-10 12:43:56.725995+00	2023-09-10 12:43:56.725995+00
+553	fresh coriander	2023-09-10 12:43:56.728305+00	2023-09-10 12:43:56.728305+00
+561	Blackberries	2023-09-16 15:36:24.06525+00	2023-09-16 15:36:24.06525+00
+575	bacon lardons	2023-10-01 08:35:42.661614+00	2023-10-01 08:35:42.661614+00
+576	Fronzen peas	2023-10-01 08:35:42.663765+00	2023-10-01 08:35:42.663765+00
+577	fresh gnocchi	2023-10-01 08:35:42.665857+00	2023-10-01 08:35:42.665857+00
+585	Coconut water	2023-10-07 09:48:47.867781+00	2023-10-07 09:48:47.867781+00
+608	Spreadable butter	2023-10-07 10:22:57.536108+00	2023-10-07 10:22:57.536108+00
+614	Flammkuchen	2023-10-21 10:19:34.01334+00	2023-10-21 10:19:34.01334+00
+127	ham hock	2023-06-30 20:29:08.013612+00	2023-06-30 20:29:08.013612+00
+508	flax seeds	2023-07-16 09:45:52.48427+00	2023-07-16 09:45:52.48427+00
+513	Frozen Spinach	2023-07-29 09:05:33.486643+00	2023-07-29 09:05:33.486643+00
+518	Rice Pudding	2023-08-13 08:44:59.477817+00	2023-08-13 08:44:59.477817+00
+554	Self raising flour	2023-09-10 12:55:43.116978+00	2023-09-10 12:55:43.116978+00
+555	Sultanas	2023-09-10 12:57:07.202662+00	2023-09-10 12:57:07.202662+00
+562	sponge finger biscuits	2023-09-16 16:00:20.274287+00	2023-09-16 16:00:20.274287+00
+563	dairy lea	2023-09-16 16:02:33.27777+00	2023-09-16 16:02:33.27777+00
+578	Tomato paste	2023-10-01 08:46:27.701344+00	2023-10-01 08:46:27.701344+00
+579	Pork Loin with skin	2023-10-01 08:46:31.298978+00	2023-10-01 08:46:31.298978+00
+586	Liquorice	2023-10-07 09:49:46.74326+00	2023-10-07 09:49:46.74326+00
+587	Fig rolls	2023-10-07 09:50:12.185638+00	2023-10-07 09:50:12.185638+00
+588	Cuppa soup	2023-10-07 09:51:07.49407+00	2023-10-07 09:51:07.49407+00
+609	Tin foil	2023-10-07 10:25:37.405343+00	2023-10-07 10:25:37.405343+00
+255	stirfry	2023-06-30 20:29:11.549802+00	2023-06-30 20:29:11.549802+00
+509	madeleines	2023-07-16 09:49:49.038011+00	2023-07-16 09:49:49.038011+00
+514	Serrano Ham	2023-08-05 10:37:10.405248+00	2023-08-05 10:37:10.405248+00
+520	Parmesan cheese, cut in pieces	2023-08-19 11:54:21.086505+00	2023-08-19 11:54:21.086505+00
+521	frozen petits pois	2023-08-19 11:54:21.091813+00	2023-08-19 11:54:21.091813+00
+522	pancetta	2023-08-19 11:54:21.10259+00	2023-08-19 11:54:21.10259+00
+523	red onions	2023-08-19 11:54:21.140178+00	2023-08-19 11:54:21.140178+00
+524	penne	2023-08-19 11:54:21.168123+00	2023-08-19 11:54:21.168123+00
+525	red chillies	2023-08-19 11:54:21.174019+00	2023-08-19 11:54:21.174019+00
+526	cloves	2023-08-19 11:54:21.202034+00	2023-08-19 11:54:21.202034+00
+527	turmeric	2023-08-19 11:54:21.207038+00	2023-08-19 11:54:21.207038+00
+556	All spice	2023-09-10 12:59:27.016392+00	2023-09-10 12:59:27.016392+00
+557	Limescale Remover	2023-09-10 13:00:28.231891+00	2023-09-10 13:00:28.231891+00
+564	Viakal	2023-09-23 08:29:28.308798+00	2023-09-23 08:29:28.308798+00
+34	Brocolli	2023-09-23 08:50:59.040459+00	2023-09-23 08:50:59.040459+00
+580	Orzo	2023-10-01 08:52:43.565722+00	2023-10-01 08:52:43.565722+00
+581	Harisa	2023-10-01 08:52:43.592103+00	2023-10-01 08:52:43.592103+00
+582	1x	2023-10-01 08:52:43.600725+00	2023-10-01 08:52:43.600725+00
+589	Straws	2023-10-07 10:02:57.254184+00	2023-10-07 10:02:57.254184+00
+610	Felipe cereal	2023-10-14 13:19:59.243018+00	2023-10-14 13:19:59.243018+00
+611	fresh mint	2023-10-14 13:20:27.758365+00	2023-10-14 13:20:27.758365+00
+2	apple juice	2023-06-30 20:29:04.301691+00	2023-06-30 20:29:04.301691+00
+3	apples	2023-06-30 20:29:04.319966+00	2023-06-30 20:29:04.319966+00
+4	apricots	2023-06-30 20:29:04.36351+00	2023-06-30 20:29:04.36351+00
+5	asparagus	2023-06-30 20:29:04.405877+00	2023-06-30 20:29:04.405877+00
+6	aubergine	2023-06-30 20:29:04.442807+00	2023-06-30 20:29:04.442807+00
+7	avocados	2023-06-30 20:29:04.486102+00	2023-06-30 20:29:04.486102+00
+8	baby arugula	2023-06-30 20:29:04.524303+00	2023-06-30 20:29:04.524303+00
+9	baked beans	2023-06-30 20:29:04.573233+00	2023-06-30 20:29:04.573233+00
+10	baking powder	2023-06-30 20:29:04.62485+00	2023-06-30 20:29:04.62485+00
+11	baking parchment	2023-06-30 20:29:04.660251+00	2023-06-30 20:29:04.660251+00
+12	baking potatoes	2023-06-30 20:29:04.682161+00	2023-06-30 20:29:04.682161+00
+13	balsamic drizzle	2023-06-30 20:29:04.722796+00	2023-06-30 20:29:04.722796+00
+14	balsamic vinegar	2023-06-30 20:29:04.765283+00	2023-06-30 20:29:04.765283+00
+15	bananas	2023-06-30 20:29:04.781883+00	2023-06-30 20:29:04.781883+00
+16	barbeque sauce	2023-06-30 20:29:04.81481+00	2023-06-30 20:29:04.81481+00
+17	basil	2023-06-30 20:29:04.870842+00	2023-06-30 20:29:04.870842+00
+18	bin bag 40l	2023-06-30 20:29:04.915216+00	2023-06-30 20:29:04.915216+00
+19	bircher muesli	2023-06-30 20:29:04.949404+00	2023-06-30 20:29:04.949404+00
+20	bircher müsli	2023-06-30 20:29:04.989721+00	2023-06-30 20:29:04.989721+00
+21	biscotti	2023-06-30 20:29:05.007745+00	2023-06-30 20:29:05.007745+00
+22	biscuit cutting thing	2023-06-30 20:29:05.025803+00	2023-06-30 20:29:05.025803+00
+23	black beans	2023-06-30 20:29:05.044778+00	2023-06-30 20:29:05.044778+00
+24	black olives	2023-06-30 20:29:05.081195+00	2023-06-30 20:29:05.081195+00
+25	black tea	2023-06-30 20:29:05.099941+00	2023-06-30 20:29:05.099941+00
+26	blue cheese	2023-06-30 20:29:05.119923+00	2023-06-30 20:29:05.119923+00
+27	blueberries	2023-06-30 20:29:05.271394+00	2023-06-30 20:29:05.271394+00
+28	borlotti beans / pinto beans	2023-06-30 20:29:05.311175+00	2023-06-30 20:29:05.311175+00
+29	bran flakes	2023-06-30 20:29:05.35698+00	2023-06-30 20:29:05.35698+00
+30	bread	2023-06-30 20:29:05.374657+00	2023-06-30 20:29:05.374657+00
+31	bread crumbs	2023-06-30 20:29:05.392637+00	2023-06-30 20:29:05.392637+00
+32	brew dogs	2023-06-30 20:29:05.412664+00	2023-06-30 20:29:05.412664+00
+33	broad beans	2023-06-30 20:29:05.431098+00	2023-06-30 20:29:05.431098+00
+35	brussel sprouts	2023-06-30 20:29:05.482177+00	2023-06-30 20:29:05.482177+00
+36	burrata	2023-06-30 20:29:05.514987+00	2023-06-30 20:29:05.514987+00
+38	cannellini beans	2023-06-30 20:29:05.581748+00	2023-06-30 20:29:05.581748+00
+39	capers	2023-06-30 20:29:05.615869+00	2023-06-30 20:29:05.615869+00
+40	cashews nuts	2023-06-30 20:29:05.634218+00	2023-06-30 20:29:05.634218+00
+41	caster sugar	2023-06-30 20:29:05.652621+00	2023-06-30 20:29:05.652621+00
+42	cauliflower	2023-06-30 20:29:05.668901+00	2023-06-30 20:29:05.668901+00
+43	celery	2023-06-30 20:29:05.702954+00	2023-06-30 20:29:05.702954+00
+44	chard	2023-06-30 20:29:05.737557+00	2023-06-30 20:29:05.737557+00
+45	cherry tomatoes	2023-06-30 20:29:05.769764+00	2023-06-30 20:29:05.769764+00
+46	chicken thighs	2023-06-30 20:29:05.80341+00	2023-06-30 20:29:05.80341+00
+47	chicken breast	2023-06-30 20:29:05.842572+00	2023-06-30 20:29:05.842572+00
+48	chicken stock	2023-06-30 20:29:05.877204+00	2023-06-30 20:29:05.877204+00
+49	chicory	2023-06-30 20:29:05.894008+00	2023-06-30 20:29:05.894008+00
+50	chili	2023-06-30 20:29:05.926753+00	2023-06-30 20:29:05.926753+00
+51	chili paste	2023-06-30 20:29:05.964232+00	2023-06-30 20:29:05.964232+00
+52	chili flakes	2023-06-30 20:29:05.98252+00	2023-06-30 20:29:05.98252+00
+53	chinese 5-spice powder	2023-06-30 20:29:05.99841+00	2023-06-30 20:29:05.99841+00
+54	chinese leaves	2023-06-30 20:29:06.016222+00	2023-06-30 20:29:06.016222+00
+55	chipotle sauce	2023-06-30 20:29:06.034322+00	2023-06-30 20:29:06.034322+00
+56	chives	2023-06-30 20:29:06.052405+00	2023-06-30 20:29:06.052405+00
+57	chocolate	2023-06-30 20:29:06.085554+00	2023-06-30 20:29:06.085554+00
+334	large eggs	2023-06-30 20:29:14.941934+00	2023-06-30 20:29:14.941934+00
+402	shortcrust pastry	2023-06-30 20:29:14.998335+00	2023-06-30 20:29:14.998335+00
+405	bacon	2023-06-30 20:29:15.0524+00	2023-06-30 20:29:15.0524+00
+58	chopped tomatoes	2023-06-30 20:29:06.103197+00	2023-06-30 20:29:06.103197+00
+59	chorizo	2023-06-30 20:29:06.120963+00	2023-06-30 20:29:06.120963+00
+60	cider vinegar	2023-06-30 20:29:06.154627+00	2023-06-30 20:29:06.154627+00
+61	cinnamon	2023-06-30 20:29:06.170728+00	2023-06-30 20:29:06.170728+00
+62	cleaning utensils	2023-06-30 20:29:06.187318+00	2023-06-30 20:29:06.187318+00
+63	clothes stain remover	2023-06-30 20:29:06.22753+00	2023-06-30 20:29:06.22753+00
+64	cocacola	2023-06-30 20:29:06.248879+00	2023-06-30 20:29:06.248879+00
+65	coconut yoghurt	2023-06-30 20:29:06.266209+00	2023-06-30 20:29:06.266209+00
+66	coconut milk	2023-06-30 20:29:06.281961+00	2023-06-30 20:29:06.281961+00
+67	coconut oil	2023-06-30 20:29:06.299279+00	2023-06-30 20:29:06.299279+00
+68	coke cans	2023-06-30 20:29:06.314909+00	2023-06-30 20:29:06.314909+00
+70	coriander seeds	2023-06-30 20:29:06.366593+00	2023-06-30 20:29:06.366593+00
+71	corn	2023-06-30 20:29:06.390667+00	2023-06-30 20:29:06.390667+00
+72	corn on the cob	2023-06-30 20:29:06.408812+00	2023-06-30 20:29:06.408812+00
+73	cottage cheese	2023-06-30 20:29:06.442624+00	2023-06-30 20:29:06.442624+00
+74	cotton wool wipes	2023-06-30 20:29:06.477265+00	2023-06-30 20:29:06.477265+00
+75	courgette	2023-06-30 20:29:06.51267+00	2023-06-30 20:29:06.51267+00
+76	cream	2023-06-30 20:29:06.545847+00	2023-06-30 20:29:06.545847+00
+77	creme fraiche	2023-06-30 20:29:06.584541+00	2023-06-30 20:29:06.584541+00
+78	crisps	2023-06-30 20:29:06.628945+00	2023-06-30 20:29:06.628945+00
+79	cucumber	2023-06-30 20:29:06.643189+00	2023-06-30 20:29:06.643189+00
+80	cumin	2023-06-30 20:29:06.730383+00	2023-06-30 20:29:06.730383+00
+81	cumin seeds	2023-06-30 20:29:06.747499+00	2023-06-30 20:29:06.747499+00
+82	currey power	2023-06-30 20:29:06.763912+00	2023-06-30 20:29:06.763912+00
+83	dates	2023-06-30 20:29:06.782447+00	2023-06-30 20:29:06.782447+00
+84	detergent cloths	2023-06-30 20:29:06.817818+00	2023-06-30 20:29:06.817818+00
+85	dettol wipes	2023-06-30 20:29:06.851487+00	2023-06-30 20:29:06.851487+00
+86	dijon mustard	2023-06-30 20:29:06.885688+00	2023-06-30 20:29:06.885688+00
+87	dill	2023-06-30 20:29:06.902418+00	2023-06-30 20:29:06.902418+00
+88	dishwasher tablets	2023-06-30 20:29:06.944022+00	2023-06-30 20:29:06.944022+00
+90	drain cleaner	2023-06-30 20:29:07.018172+00	2023-06-30 20:29:07.018172+00
+91	dried caneloni	2023-06-30 20:29:07.051978+00	2023-06-30 20:29:07.051978+00
+92	dried cherries	2023-06-30 20:29:07.06999+00	2023-06-30 20:29:07.06999+00
+93	dried fuseli pasta	2023-06-30 20:29:07.088825+00	2023-06-30 20:29:07.088825+00
+94	dried split peas	2023-06-30 20:29:07.112273+00	2023-06-30 20:29:07.112273+00
+95	dry dill	2023-06-30 20:29:07.130532+00	2023-06-30 20:29:07.130532+00
+96	ecover fabric softener	2023-06-30 20:29:07.147498+00	2023-06-30 20:29:07.147498+00
+97	ecover bathroom cleaner	2023-06-30 20:29:07.188352+00	2023-06-30 20:29:07.188352+00
+98	ecover multiaction surface cleaner	2023-06-30 20:29:07.225916+00	2023-06-30 20:29:07.225916+00
+99	egg-noodles	2023-06-30 20:29:07.262203+00	2023-06-30 20:29:07.262203+00
+100	emmental	2023-06-30 20:29:07.292499+00	2023-06-30 20:29:07.292499+00
+101	fajita meat	2023-06-30 20:29:07.328579+00	2023-06-30 20:29:07.328579+00
+102	fennel bulbs	2023-06-30 20:29:07.345873+00	2023-06-30 20:29:07.345873+00
+103	flat bread	2023-06-30 20:29:07.382505+00	2023-06-30 20:29:07.382505+00
+104	floor cleaner	2023-06-30 20:29:07.398983+00	2023-06-30 20:29:07.398983+00
+105	floss	2023-06-30 20:29:07.434633+00	2023-06-30 20:29:07.434633+00
+106	fresh pasta	2023-06-30 20:29:07.452456+00	2023-06-30 20:29:07.452456+00
+107	fresh pea shoots	2023-06-30 20:29:07.473417+00	2023-06-30 20:29:07.473417+00
+108	fresh stirfry noodles	2023-06-30 20:29:07.50963+00	2023-06-30 20:29:07.50963+00
+109	frozen bread baguettes	2023-06-30 20:29:07.543517+00	2023-06-30 20:29:07.543517+00
+110	fruity babe yoghurt	2023-06-30 20:29:07.56072+00	2023-06-30 20:29:07.56072+00
+111	garam masala	2023-06-30 20:29:07.597754+00	2023-06-30 20:29:07.597754+00
+112	garbanzos	2023-06-30 20:29:07.616621+00	2023-06-30 20:29:07.616621+00
+113	gem lettuce	2023-06-30 20:29:07.656349+00	2023-06-30 20:29:07.656349+00
+114	gherkins (normal)	2023-06-30 20:29:07.690326+00	2023-06-30 20:29:07.690326+00
+115	gherkins (spicy)	2023-06-30 20:29:07.713848+00	2023-06-30 20:29:07.713848+00
+116	giant couscous	2023-06-30 20:29:07.73368+00	2023-06-30 20:29:07.73368+00
+117	ginger	2023-06-30 20:29:07.752479+00	2023-06-30 20:29:07.752479+00
+118	gouda	2023-06-30 20:29:07.78496+00	2023-06-30 20:29:07.78496+00
+119	greek yoghurt	2023-06-30 20:29:07.821064+00	2023-06-30 20:29:07.821064+00
+120	green beans	2023-06-30 20:29:07.839899+00	2023-06-30 20:29:07.839899+00
+121	ground ginger	2023-06-30 20:29:07.858568+00	2023-06-30 20:29:07.858568+00
+122	gruyere	2023-06-30 20:29:07.876495+00	2023-06-30 20:29:07.876495+00
+123	guacamole	2023-06-30 20:29:07.918721+00	2023-06-30 20:29:07.918721+00
+124	gummy bears	2023-06-30 20:29:07.937279+00	2023-06-30 20:29:07.937279+00
+125	halloumi	2023-06-30 20:29:07.955877+00	2023-06-30 20:29:07.955877+00
+126	halloween sweets	2023-06-30 20:29:07.997295+00	2023-06-30 20:29:07.997295+00
+69	coriander	2023-06-30 20:29:15.53071+00	2023-06-30 20:29:15.53071+00
+128	ham slices	2023-06-30 20:29:08.034433+00	2023-06-30 20:29:08.034433+00
+129	hashbrowns	2023-06-30 20:29:08.051751+00	2023-06-30 20:29:08.051751+00
+130	healthy sweet snacks	2023-06-30 20:29:08.065935+00	2023-06-30 20:29:08.065935+00
+131	hoisin sauce	2023-06-30 20:29:08.080688+00	2023-06-30 20:29:08.080688+00
+132	honey	2023-06-30 20:29:08.09755+00	2023-06-30 20:29:08.09755+00
+133	houmous	2023-06-30 20:29:08.115136+00	2023-06-30 20:29:08.115136+00
+134	hummus	2023-06-30 20:29:08.134648+00	2023-06-30 20:29:08.134648+00
+135	ice-berg	2023-06-30 20:29:08.15098+00	2023-06-30 20:29:08.15098+00
+136	icing sugar	2023-06-30 20:29:08.184775+00	2023-06-30 20:29:08.184775+00
+137	jar of red pepper	2023-06-30 20:29:08.201858+00	2023-06-30 20:29:08.201858+00
+138	kale	2023-06-30 20:29:08.217512+00	2023-06-30 20:29:08.217512+00
+139	kebab skewers	2023-06-30 20:29:08.258612+00	2023-06-30 20:29:08.258612+00
+140	ketchup	2023-06-30 20:29:08.295537+00	2023-06-30 20:29:08.295537+00
+141	kidney beans	2023-06-30 20:29:08.310713+00	2023-06-30 20:29:08.310713+00
+142	kitchen roll	2023-06-30 20:29:08.343157+00	2023-06-30 20:29:08.343157+00
+143	kiwis	2023-06-30 20:29:08.378624+00	2023-06-30 20:29:08.378624+00
+144	lasagna sheets	2023-06-30 20:29:08.418135+00	2023-06-30 20:29:08.418135+00
+145	laundry detergent	2023-06-30 20:29:08.435326+00	2023-06-30 20:29:08.435326+00
+147	lemon grass	2023-06-30 20:29:08.509832+00	2023-06-30 20:29:08.509832+00
+148	lemon sorbet	2023-06-30 20:29:08.545171+00	2023-06-30 20:29:08.545171+00
+149	lemon thyme	2023-06-30 20:29:08.564041+00	2023-06-30 20:29:08.564041+00
+150	lemonade	2023-06-30 20:29:08.609909+00	2023-06-30 20:29:08.609909+00
+152	lettuce	2023-06-30 20:29:08.66386+00	2023-06-30 20:29:08.66386+00
+153	lime descaler	2023-06-30 20:29:08.715257+00	2023-06-30 20:29:08.715257+00
+154	lime leaves	2023-06-30 20:29:08.7516+00	2023-06-30 20:29:08.7516+00
+155	long life milk	2023-06-30 20:29:08.792039+00	2023-06-30 20:29:08.792039+00
+156	manchego	2023-06-30 20:29:08.829135+00	2023-06-30 20:29:08.829135+00
+157	mangetout	2023-06-30 20:29:08.863421+00	2023-06-30 20:29:08.863421+00
+158	mango	2023-06-30 20:29:08.901868+00	2023-06-30 20:29:08.901868+00
+159	maple syrup	2023-06-30 20:29:08.93745+00	2023-06-30 20:29:08.93745+00
+160	marinated chicken	2023-06-30 20:29:08.955442+00	2023-06-30 20:29:08.955442+00
+161	maris pipe potatoes	2023-06-30 20:29:08.976917+00	2023-06-30 20:29:08.976917+00
+162	mascarpone	2023-06-30 20:29:09.003173+00	2023-06-30 20:29:09.003173+00
+163	masks	2023-06-30 20:29:09.040177+00	2023-06-30 20:29:09.040177+00
+164	mature cheddar	2023-06-30 20:29:09.057175+00	2023-06-30 20:29:09.057175+00
+165	mince meat	2023-06-30 20:29:09.097838+00	2023-06-30 20:29:09.097838+00
+167	mirin	2023-06-30 20:29:09.204033+00	2023-06-30 20:29:09.204033+00
+168	mixed nuts	2023-06-30 20:29:09.223587+00	2023-06-30 20:29:09.223587+00
+169	mozarella	2023-06-30 20:29:09.242191+00	2023-06-30 20:29:09.242191+00
+170	mozarella tiny balls	2023-06-30 20:29:09.277103+00	2023-06-30 20:29:09.277103+00
+171	mushrooms	2023-06-30 20:29:09.309154+00	2023-06-30 20:29:09.309154+00
+172	müsli	2023-06-30 20:29:09.347652+00	2023-06-30 20:29:09.347652+00
+173	new potatoes	2023-06-30 20:29:09.366104+00	2023-06-30 20:29:09.366104+00
+174	nut roast	2023-06-30 20:29:09.401763+00	2023-06-30 20:29:09.401763+00
+175	oatly barrista oat milk	2023-06-30 20:29:09.420738+00	2023-06-30 20:29:09.420738+00
+176	olbas oil	2023-06-30 20:29:09.464136+00	2023-06-30 20:29:09.464136+00
+177	olives	2023-06-30 20:29:09.485992+00	2023-06-30 20:29:09.485992+00
+178	orange juice	2023-06-30 20:29:09.506322+00	2023-06-30 20:29:09.506322+00
+179	oranges	2023-06-30 20:29:09.524355+00	2023-06-30 20:29:09.524355+00
+180	oregano	2023-06-30 20:29:09.559+00	2023-06-30 20:29:09.559+00
+181	organica bin bag	2023-06-30 20:29:09.595606+00	2023-06-30 20:29:09.595606+00
+182	orzo pasta	2023-06-30 20:29:09.632418+00	2023-06-30 20:29:09.632418+00
+183	paprika	2023-06-30 20:29:09.651153+00	2023-06-30 20:29:09.651153+00
+184	parmesan	2023-06-30 20:29:09.686478+00	2023-06-30 20:29:09.686478+00
+185	parsnip	2023-06-30 20:29:09.731168+00	2023-06-30 20:29:09.731168+00
+186	peanuts	2023-06-30 20:29:09.783072+00	2023-06-30 20:29:09.783072+00
+187	pearl barley	2023-06-30 20:29:09.799851+00	2023-06-30 20:29:09.799851+00
+188	pears	2023-06-30 20:29:09.820734+00	2023-06-30 20:29:09.820734+00
+189	pecorino romano	2023-06-30 20:29:09.864789+00	2023-06-30 20:29:09.864789+00
+190	pepperoni	2023-06-30 20:29:09.890303+00	2023-06-30 20:29:09.890303+00
+192	petit reblochon	2023-06-30 20:29:09.925719+00	2023-06-30 20:29:09.925719+00
+193	pine nuts	2023-06-30 20:29:09.961109+00	2023-06-30 20:29:09.961109+00
+194	pitta bread	2023-06-30 20:29:09.976891+00	2023-06-30 20:29:09.976891+00
+195	pizza	2023-06-30 20:29:10.00208+00	2023-06-30 20:29:10.00208+00
+196	pizza bases	2023-06-30 20:29:10.019548+00	2023-06-30 20:29:10.019548+00
+197	plain yoghurt	2023-06-30 20:29:10.036303+00	2023-06-30 20:29:10.036303+00
+198	plums	2023-06-30 20:29:10.051889+00	2023-06-30 20:29:10.051889+00
+199	pomegranate	2023-06-30 20:29:10.095085+00	2023-06-30 20:29:10.095085+00
+200	pork chops	2023-06-30 20:29:10.127433+00	2023-06-30 20:29:10.127433+00
+201	porridge	2023-06-30 20:29:10.162408+00	2023-06-30 20:29:10.162408+00
+202	prosciutto	2023-06-30 20:29:10.182545+00	2023-06-30 20:29:10.182545+00
+203	quark	2023-06-30 20:29:10.206552+00	2023-06-30 20:29:10.206552+00
+204	queso  rallado/cheese	2023-06-30 20:29:10.243182+00	2023-06-30 20:29:10.243182+00
+205	quick meat	2023-06-30 20:29:10.282254+00	2023-06-30 20:29:10.282254+00
+206	radishes	2023-06-30 20:29:10.299689+00	2023-06-30 20:29:10.299689+00
+207	random greens charlotte	2023-06-30 20:29:10.328778+00	2023-06-30 20:29:10.328778+00
+208	rapeseed oil	2023-06-30 20:29:10.345061+00	2023-06-30 20:29:10.345061+00
+209	raspberries	2023-06-30 20:29:10.365222+00	2023-06-30 20:29:10.365222+00
+210	raspberry jam	2023-06-30 20:29:10.403267+00	2023-06-30 20:29:10.403267+00
+211	ready made quiche	2023-06-30 20:29:10.419551+00	2023-06-30 20:29:10.419551+00
+212	red lentils	2023-06-30 20:29:10.437337+00	2023-06-30 20:29:10.437337+00
+213	red cabbage	2023-06-30 20:29:10.453261+00	2023-06-30 20:29:10.453261+00
+214	red wine	2023-06-30 20:29:10.487063+00	2023-06-30 20:29:10.487063+00
+215	red wine vinegar	2023-06-30 20:29:10.506235+00	2023-06-30 20:29:10.506235+00
+216	rice	2023-06-30 20:29:10.52287+00	2023-06-30 20:29:10.52287+00
+217	rice cracker	2023-06-30 20:29:10.540584+00	2023-06-30 20:29:10.540584+00
+218	rice vinegar	2023-06-30 20:29:10.558685+00	2023-06-30 20:29:10.558685+00
+219	ricotta	2023-06-30 20:29:10.57434+00	2023-06-30 20:29:10.57434+00
+220	risotto rice	2023-06-30 20:29:10.608347+00	2023-06-30 20:29:10.608347+00
+222	rooibos tea	2023-06-30 20:29:10.66136+00	2023-06-30 20:29:10.66136+00
+223	rosemary	2023-06-30 20:29:10.686766+00	2023-06-30 20:29:10.686766+00
+224	fruit & nut cereal	2023-06-30 20:29:10.727971+00	2023-06-30 20:29:10.727971+00
+225	rump of beef fillet	2023-06-30 20:29:10.78231+00	2023-06-30 20:29:10.78231+00
+226	salad bag	2023-06-30 20:29:10.797241+00	2023-06-30 20:29:10.797241+00
+227	salami	2023-06-30 20:29:10.833206+00	2023-06-30 20:29:10.833206+00
+228	salmon	2023-06-30 20:29:10.857068+00	2023-06-30 20:29:10.857068+00
+229	salted butter	2023-06-30 20:29:10.874604+00	2023-06-30 20:29:10.874604+00
+230	samolina	2023-06-30 20:29:10.910913+00	2023-06-30 20:29:10.910913+00
+231	satsumas	2023-06-30 20:29:10.925949+00	2023-06-30 20:29:10.925949+00
+232	sausages	2023-06-30 20:29:10.957108+00	2023-06-30 20:29:10.957108+00
+233	seeds	2023-06-30 20:29:10.990024+00	2023-06-30 20:29:10.990024+00
+234	sesame oil	2023-06-30 20:29:11.019482+00	2023-06-30 20:29:11.019482+00
+235	sesame seeds	2023-06-30 20:29:11.036552+00	2023-06-30 20:29:11.036552+00
+236	shallots	2023-06-30 20:29:11.051905+00	2023-06-30 20:29:11.051905+00
+237	shampoo	2023-06-30 20:29:11.086412+00	2023-06-30 20:29:11.086412+00
+238	short crust pastery	2023-06-30 20:29:11.103473+00	2023-06-30 20:29:11.103473+00
+239	single cream	2023-06-30 20:29:11.119596+00	2023-06-30 20:29:11.119596+00
+240	small bananas	2023-06-30 20:29:11.157849+00	2023-06-30 20:29:11.157849+00
+241	small celery	2023-06-30 20:29:11.190688+00	2023-06-30 20:29:11.190688+00
+242	small fruity yoghurts	2023-06-30 20:29:11.223717+00	2023-06-30 20:29:11.223717+00
+243	smoked pancetta / lardons	2023-06-30 20:29:11.240895+00	2023-06-30 20:29:11.240895+00
+244	smoked salmon	2023-06-30 20:29:11.25842+00	2023-06-30 20:29:11.25842+00
+245	snack a jacks	2023-06-30 20:29:11.275612+00	2023-06-30 20:29:11.275612+00
+246	sodastream bottle	2023-06-30 20:29:11.293587+00	2023-06-30 20:29:11.293587+00
+247	soup	2023-06-30 20:29:11.312587+00	2023-06-30 20:29:11.312587+00
+248	sour cream	2023-06-30 20:29:11.331281+00	2023-06-30 20:29:11.331281+00
+249	soy sauce	2023-06-30 20:29:11.36702+00	2023-06-30 20:29:11.36702+00
+250	spaghetti	2023-06-30 20:29:11.38344+00	2023-06-30 20:29:11.38344+00
+251	spinach	2023-06-30 20:29:11.399933+00	2023-06-30 20:29:11.399933+00
+252	spring greens	2023-06-30 20:29:11.44238+00	2023-06-30 20:29:11.44238+00
+253	spring onions	2023-06-30 20:29:11.483762+00	2023-06-30 20:29:11.483762+00
+254	steaks	2023-06-30 20:29:11.528628+00	2023-06-30 20:29:11.528628+00
+221	rocket	2023-06-30 20:29:15.140499+00	2023-06-30 20:29:15.140499+00
+166	mint	2023-06-30 20:29:15.230329+00	2023-06-30 20:29:15.230329+00
+191	pesto	2023-06-30 20:29:15.264295+00	2023-06-30 20:29:15.264295+00
+151	lemons	2023-06-30 20:29:15.939142+00	2023-06-30 20:29:15.939142+00
+256	strawberries	2023-06-30 20:29:11.58294+00	2023-06-30 20:29:11.58294+00
+257	sugar	2023-06-30 20:29:11.630784+00	2023-06-30 20:29:11.630784+00
+258	sugar snap	2023-06-30 20:29:11.64989+00	2023-06-30 20:29:11.64989+00
+259	sun-dried tomatoes	2023-06-30 20:29:11.673488+00	2023-06-30 20:29:11.673488+00
+260	sunflower seed oil	2023-06-30 20:29:11.690265+00	2023-06-30 20:29:11.690265+00
+261	sweet chilli sauce	2023-06-30 20:29:11.706431+00	2023-06-30 20:29:11.706431+00
+262	sweet potatoes	2023-06-30 20:29:11.723929+00	2023-06-30 20:29:11.723929+00
+263	sweetcorn	2023-06-30 20:29:11.776225+00	2023-06-30 20:29:11.776225+00
+264	szechuan pepper	2023-06-30 20:29:11.831664+00	2023-06-30 20:29:11.831664+00
+265	taco making kit	2023-06-30 20:29:11.84971+00	2023-06-30 20:29:11.84971+00
+266	tahini	2023-06-30 20:29:11.868249+00	2023-06-30 20:29:11.868249+00
+267	tarragon	2023-06-30 20:29:11.895937+00	2023-06-30 20:29:11.895937+00
+268	teriyaki sauce	2023-06-30 20:29:11.914516+00	2023-06-30 20:29:11.914516+00
+269	thai green curry paste	2023-06-30 20:29:11.930607+00	2023-06-30 20:29:11.930607+00
+270	the pink stuff	2023-06-30 20:29:11.950812+00	2023-06-30 20:29:11.950812+00
+271	thyme	2023-06-30 20:29:12.002223+00	2023-06-30 20:29:12.002223+00
+272	tinned fruit chaz	2023-06-30 20:29:12.019481+00	2023-06-30 20:29:12.019481+00
+274	toilet cleaner	2023-06-30 20:29:12.06033+00	2023-06-30 20:29:12.06033+00
+275	toilet limescale tablets	2023-06-30 20:29:12.093428+00	2023-06-30 20:29:12.093428+00
+276	toilet roll	2023-06-30 20:29:12.128039+00	2023-06-30 20:29:12.128039+00
+277	toilet things for toilet bowl	2023-06-30 20:29:12.159547+00	2023-06-30 20:29:12.159547+00
+278	toilet wipes	2023-06-30 20:29:12.193772+00	2023-06-30 20:29:12.193772+00
+279	tomate frito	2023-06-30 20:29:12.232008+00	2023-06-30 20:29:12.232008+00
+280	tomato pasata	2023-06-30 20:29:12.253212+00	2023-06-30 20:29:12.253212+00
+281	tomato puree	2023-06-30 20:29:12.27442+00	2023-06-30 20:29:12.27442+00
+282	tortelini / ravioli / gnocci	2023-06-30 20:29:12.289998+00	2023-06-30 20:29:12.289998+00
+283	tzaziki	2023-06-30 20:29:12.311166+00	2023-06-30 20:29:12.311166+00
+284	vanilla extract	2023-06-30 20:29:12.641196+00	2023-06-30 20:29:12.641196+00
+285	vitamins and supplemetns	2023-06-30 20:29:12.660458+00	2023-06-30 20:29:12.660458+00
+286	washing-up liquid	2023-06-30 20:29:12.690082+00	2023-06-30 20:29:12.690082+00
+287	watercress	2023-06-30 20:29:12.724382+00	2023-06-30 20:29:12.724382+00
+288	wet wipes	2023-06-30 20:29:12.760997+00	2023-06-30 20:29:12.760997+00
+289	white wine	2023-06-30 20:29:12.804589+00	2023-06-30 20:29:12.804589+00
+290	whole almonds	2023-06-30 20:29:12.823263+00	2023-06-30 20:29:12.823263+00
+291	yeast	2023-06-30 20:29:12.867116+00	2023-06-30 20:29:12.867116+00
+292	yorkshire pudding	2023-06-30 20:29:12.90034+00	2023-06-30 20:29:12.90034+00
+293	anti nausea ginger capsules	2023-06-30 20:29:12.922941+00	2023-06-30 20:29:12.922941+00
+294	beef brisket pecho	2023-06-30 20:29:12.945012+00	2023-06-30 20:29:12.945012+00
+295	tagine paste	2023-06-30 20:29:12.963172+00	2023-06-30 20:29:12.963172+00
+296	tuna	2023-06-30 20:29:12.983825+00	2023-06-30 20:29:12.983825+00
+297	unsalted pistachios, shelled	2023-06-30 20:29:13.045377+00	2023-06-30 20:29:13.045377+00
+298	vermicelli rice noodles	2023-06-30 20:29:13.062722+00	2023-06-30 20:29:13.062722+00
+299	smoked bacon lardons	2023-06-30 20:29:13.079007+00	2023-06-30 20:29:13.079007+00
+300	waxy potatoes, such as charlotte or désirée	2023-06-30 20:29:13.098587+00	2023-06-30 20:29:13.098587+00
+301	nutmeg graiting	2023-06-30 20:29:13.121363+00	2023-06-30 20:29:13.121363+00
+303	reblochon	2023-06-30 20:29:13.163841+00	2023-06-30 20:29:13.163841+00
+306	large onion	2023-06-30 20:29:13.216281+00	2023-06-30 20:29:13.216281+00
+307	dry white wine	2023-06-30 20:29:13.231817+00	2023-06-30 20:29:13.231817+00
+308	smoked paprika	2023-06-30 20:29:13.251405+00	2023-06-30 20:29:13.251405+00
+309	chicken breasts	2023-06-30 20:29:13.267864+00	2023-06-30 20:29:13.267864+00
+310	red onion	2023-06-30 20:29:13.286639+00	2023-06-30 20:29:13.286639+00
+312	lime	2023-06-30 20:29:13.318818+00	2023-06-30 20:29:13.318818+00
+313	mixed salad	2023-06-30 20:29:13.343906+00	2023-06-30 20:29:13.343906+00
+314	red pepper	2023-06-30 20:29:13.360027+00	2023-06-30 20:29:13.360027+00
+315	red chilli	2023-06-30 20:29:13.388398+00	2023-06-30 20:29:13.388398+00
+317	tabasco	2023-06-30 20:29:13.423706+00	2023-06-30 20:29:13.423706+00
+320	tortilla	2023-06-30 20:29:13.489554+00	2023-06-30 20:29:13.489554+00
+321	fresh salsa	2023-06-30 20:29:13.508626+00	2023-06-30 20:29:13.508626+00
+324	roasted butternut squash	2023-06-30 20:29:13.563011+00	2023-06-30 20:29:13.563011+00
+325	baby spinach leaves	2023-06-30 20:29:13.588443+00	2023-06-30 20:29:13.588443+00
+326	pie crust	2023-06-30 20:29:13.606856+00	2023-06-30 20:29:13.606856+00
+327	whole milk	2023-06-30 20:29:13.622882+00	2023-06-30 20:29:13.622882+00
+336	plain flour	2023-06-30 20:29:13.781918+00	2023-06-30 20:29:13.781918+00
+337	parsnips	2023-06-30 20:29:13.798781+00	2023-06-30 20:29:13.798781+00
+338	cornflour	2023-06-30 20:29:13.820677+00	2023-06-30 20:29:13.820677+00
+339	onions	2023-06-30 20:29:13.840422+00	2023-06-30 20:29:13.840422+00
+340	sliced	2023-06-30 20:29:13.857059+00	2023-06-30 20:29:13.857059+00
+319	olive oil	2023-06-30 20:29:14.397771+00	2023-06-30 20:29:14.397771+00
+343	beef stock	2023-06-30 20:29:13.909125+00	2023-06-30 20:29:13.909125+00
+344	rosemary sprigs	2023-06-30 20:29:13.924832+00	2023-06-30 20:29:13.924832+00
+347	worcestershire sauce	2023-06-30 20:29:13.979067+00	2023-06-30 20:29:13.979067+00
+348	thyme sprigs	2023-06-30 20:29:13.997293+00	2023-06-30 20:29:13.997293+00
+349	celery sticks	2023-06-30 20:29:14.014322+00	2023-06-30 20:29:14.014322+00
+350	tomato purée	2023-06-30 20:29:14.031099+00	2023-06-30 20:29:14.031099+00
+351	bay leaves	2023-06-30 20:29:14.047754+00	2023-06-30 20:29:14.047754+00
+372	butternut squash	2023-06-30 20:29:14.417019+00	2023-06-30 20:29:14.417019+00
+353	beef roasting joint	2023-06-30 20:29:14.080896+00	2023-06-30 20:29:14.080896+00
+354	vegetable oil	2023-06-30 20:29:14.096268+00	2023-06-30 20:29:14.096268+00
+305	unsalted butter	2023-06-30 20:29:15.696432+00	2023-06-30 20:29:15.696432+00
+330	black pepper	2023-06-30 20:29:15.621569+00	2023-06-30 20:29:15.621569+00
+392	butter	2023-06-30 20:29:15.359587+00	2023-06-30 20:29:15.359587+00
+361	flour	2023-06-30 20:29:15.194744+00	2023-06-30 20:29:15.194744+00
+333	garlic	2023-06-30 20:29:15.42819+00	2023-06-30 20:29:15.42819+00
+362	parsley	2023-06-30 20:29:14.235028+00	2023-06-30 20:29:14.235028+00
+89	double cream	2023-06-30 20:29:14.273682+00	2023-06-30 20:29:14.273682+00
+146	leeks	2023-06-30 20:29:14.289289+00	2023-06-30 20:29:14.289289+00
+366	puff pastry	2023-06-30 20:29:14.308105+00	2023-06-30 20:29:14.308105+00
+367	parmesan shavings	2023-06-30 20:29:14.326865+00	2023-06-30 20:29:14.326865+00
+368	thyme leaves	2023-06-30 20:29:14.348764+00	2023-06-30 20:29:14.348764+00
+369	ground cinnamon	2023-06-30 20:29:14.364156+00	2023-06-30 20:29:14.364156+00
+370	harissa	2023-06-30 20:29:14.380535+00	2023-06-30 20:29:14.380535+00
+304	garlic clove	2023-06-30 20:29:14.432699+00	2023-06-30 20:29:14.432699+00
+374	chickpeas	2023-06-30 20:29:14.460959+00	2023-06-30 20:29:14.460959+00
+376	lemon	2023-06-30 20:29:14.495188+00	2023-06-30 20:29:14.495188+00
+377	fennel seeds	2023-06-30 20:29:14.513667+00	2023-06-30 20:29:14.513667+00
+378	tomatoes	2023-06-30 20:29:14.535931+00	2023-06-30 20:29:14.535931+00
+318	ground cumin	2023-06-30 20:29:14.59022+00	2023-06-30 20:29:14.59022+00
+381	vegetable stock	2023-06-30 20:29:14.608466+00	2023-06-30 20:29:14.608466+00
+311	ground coriander	2023-06-30 20:29:14.623397+00	2023-06-30 20:29:14.623397+00
+383	tumeric	2023-06-30 20:29:14.653107+00	2023-06-30 20:29:14.653107+00
+384	calvo nero	2023-06-30 20:29:14.671141+00	2023-06-30 20:29:14.671141+00
+385	fresh coriander leaves	2023-06-30 20:29:14.693597+00	2023-06-30 20:29:14.693597+00
+332	onion	2023-06-30 20:29:14.70893+00	2023-06-30 20:29:14.70893+00
+388	emmental cheese	2023-06-30 20:29:14.748597+00	2023-06-30 20:29:14.748597+00
+322	ground nutmeg	2023-06-30 20:29:14.766295+00	2023-06-30 20:29:14.766295+00
+390	all-purpose flour	2023-06-30 20:29:14.783389+00	2023-06-30 20:29:14.783389+00
+302	crème fraîche	2023-06-30 20:29:15.016609+00	2023-06-30 20:29:15.016609+00
+360	eggs	2023-06-30 20:29:15.176118+00	2023-06-30 20:29:15.176118+00
+395	fried onions	2023-06-30 20:29:14.86491+00	2023-06-30 20:29:14.86491+00
+363	for frying	2023-06-30 20:29:14.960181+00	2023-06-30 20:29:14.960181+00
+375	feta	2023-06-30 20:29:15.920475+00	2023-06-30 20:29:15.920475+00
+379	bay leaf	2023-06-30 20:29:15.640908+00	2023-06-30 20:29:15.640908+00
+341	potatoes	2023-06-30 20:29:15.411285+00	2023-06-30 20:29:15.411285+00
+331	parmesan cheese	2023-06-30 20:29:15.334255+00	2023-06-30 20:29:15.334255+00
+323	gruyère cheese	2023-06-30 20:29:15.461245+00	2023-06-30 20:29:15.461245+00
+335	heavy cream	2023-06-30 20:29:15.602955+00	2023-06-30 20:29:15.602955+00
+329	salt	2023-06-30 20:29:15.659197+00	2023-06-30 20:29:15.659197+00
+316	garlic cloves	2023-06-30 20:29:15.733378+00	2023-06-30 20:29:15.733378+00
+346	frozen peas	2023-06-30 20:29:15.843175+00	2023-06-30 20:29:15.843175+00
+397	water	2023-06-30 20:29:15.900888+00	2023-06-30 20:29:15.900888+00
+406	fresh thyme	2023-06-30 20:29:15.07064+00	2023-06-30 20:29:15.07064+00
+407	cheddar cheese	2023-06-30 20:29:15.08898+00	2023-06-30 20:29:15.08898+00
+414	beer	2023-06-30 20:29:15.212227+00	2023-06-30 20:29:15.212227+00
+416	pizza dough	2023-06-30 20:29:15.247662+00	2023-06-30 20:29:15.247662+00
+411	courgettes	2023-06-30 20:29:15.281705+00	2023-06-30 20:29:15.281705+00
+419	air-dried ham	2023-06-30 20:29:15.298938+00	2023-06-30 20:29:15.298938+00
+404	milk	2023-06-30 20:29:15.318007+00	2023-06-30 20:29:15.318007+00
+423	nutmeg	2023-06-30 20:29:15.379028+00	2023-06-30 20:29:15.379028+00
+430	sweet onion	2023-06-30 20:29:15.492384+00	2023-06-30 20:29:15.492384+00
+431	cashew nuts	2023-06-30 20:29:15.508694+00	2023-06-30 20:29:15.508694+00
+433	noodles	2023-06-30 20:29:15.549625+00	2023-06-30 20:29:15.549625+00
+434	chcken breasts	2023-06-30 20:29:15.565408+00	2023-06-30 20:29:15.565408+00
+440	fresh chives	2023-06-30 20:29:15.677426+00	2023-06-30 20:29:15.677426+00
+398	large leeks	2023-06-30 20:29:15.714676+00	2023-06-30 20:29:15.714676+00
+444	large russet potatoes	2023-06-30 20:29:15.750053+00	2023-06-30 20:29:15.750053+00
+445	low sodium chicken broth	2023-06-30 20:29:15.768768+00	2023-06-30 20:29:15.768768+00
+446	bacon bits	2023-06-30 20:29:15.787305+00	2023-06-30 20:29:15.787305+00
+37	butter beans	2023-06-30 20:29:15.806471+00	2023-06-30 20:29:15.806471+00
+448	large brocolli	2023-06-30 20:29:15.825422+00	2023-06-30 20:29:15.825422+00
+450	flaked almonds	2023-06-30 20:29:15.862042+00	2023-06-30 20:29:15.862042+00
+451	mint leaves	2023-06-30 20:29:15.881331+00	2023-06-30 20:29:15.881331+00
+455	quinoa	2023-06-30 20:29:15.958307+00	2023-06-30 20:29:15.958307+00
+456	bannanas	2023-07-01 11:20:16.862013+00	2023-07-01 11:20:16.862013+00
+457		2023-07-01 11:32:07.64783+00	2023-07-01 11:32:07.64783+00
+458	carrots	2023-07-01 11:32:07.736749+00	2023-07-01 11:32:07.736749+00
+459	to taste	2023-07-01 11:32:07.750287+00	2023-07-01 11:32:07.750287+00
+460	charlotte potatoes	2023-07-01 11:32:07.971376+00	2023-07-01 11:32:07.971376+00
+461	vine tomatoes	2023-07-01 11:32:07.974346+00	2023-07-01 11:32:07.974346+00
+462	free range chicken thighs & drumsticks	2023-07-01 11:32:07.976548+00	2023-07-01 11:32:07.976548+00
+463	jar of artichockes in oil	2023-07-01 11:32:07.979036+00	2023-07-01 11:32:07.979036+00
+464	fresh rosemary	2023-07-01 11:32:07.980972+00	2023-07-01 11:32:07.980972+00
+465	pitted black olives	2023-07-01 11:32:07.983707+00	2023-07-01 11:32:07.983707+00
+466	fresh parsley	2023-07-01 11:32:07.985848+00	2023-07-01 11:32:07.985848+00
+467	red peppers	2023-07-01 11:32:08.011705+00	2023-07-01 11:32:08.011705+00
+468	cloves of garlic	2023-07-01 11:32:08.016647+00	2023-07-01 11:32:08.016647+00
+469	free range chicken thighs	2023-07-01 11:32:08.018831+00	2023-07-01 11:32:08.018831+00
+470	saffron	2023-07-01 11:32:08.021834+00	2023-07-01 11:32:08.021834+00
+471	paella rice	2023-07-01 11:32:08.023968+00	2023-07-01 11:32:08.023968+00
+472	carrot	2023-07-01 11:32:08.052065+00	2023-07-01 11:32:08.052065+00
+473	small onion	2023-07-01 11:32:08.054056+00	2023-07-01 11:32:08.054056+00
+474	fresh dill	2023-07-01 11:32:08.056151+00	2023-07-01 11:32:08.056151+00
+475	beef mince	2023-07-01 11:32:08.058037+00	2023-07-01 11:32:08.058037+00
+476	pork mince	2023-07-01 11:32:08.059851+00	2023-07-01 11:32:08.059851+00
+477	egg	2023-07-01 11:32:08.061678+00	2023-07-01 11:32:08.061678+00
+478	long grain rice	2023-07-01 11:32:08.063486+00	2023-07-01 11:32:08.063486+00
+479	fusili	2023-07-01 11:32:08.107927+00	2023-07-01 11:32:08.107927+00
+480	artichokes	2023-07-01 11:32:08.11306+00	2023-07-01 11:32:08.11306+00
+481	fennel	2023-07-01 11:32:08.136407+00	2023-07-01 11:32:08.136407+00
+482	goats cheese	2023-07-01 11:32:08.141163+00	2023-07-01 11:32:08.141163+00
+483	fresh basil	2023-07-01 11:32:08.143076+00	2023-07-01 11:32:08.143076+00
+484	pepper	2023-07-01 11:32:08.145378+00	2023-07-01 11:32:08.145378+00
+485	mushroom	2023-07-01 11:32:08.177093+00	2023-07-01 11:32:08.177093+00
+486	taglietelle	2023-07-01 11:32:08.18483+00	2023-07-01 11:32:08.18483+00
+487	breadcrumbs	2023-07-01 11:32:08.217465+00	2023-07-01 11:32:08.217465+00
+488	sweet potatoe	2023-07-01 11:32:08.235219+00	2023-07-01 11:32:08.235219+00
+489	squash	2023-07-01 11:32:08.23696+00	2023-07-01 11:32:08.23696+00
+490	tortillas	2023-07-01 11:32:08.242347+00	2023-07-01 11:32:08.242347+00
+491	peas	2023-07-01 11:32:08.266731+00	2023-07-01 11:32:08.266731+00
+492	green peppers	2023-07-01 11:35:40.406316+00	2023-07-01 11:35:40.406316+00
+493	chillis	2023-07-01 11:35:40.409108+00	2023-07-01 11:35:40.409108+00
+494	white beans	2023-07-01 11:35:40.414987+00	2023-07-01 11:35:40.414987+00
+495	celery stalk	2023-07-01 11:35:40.435167+00	2023-07-01 11:35:40.435167+00
+496	brown lentils	2023-07-01 11:35:40.439975+00	2023-07-01 11:35:40.439975+00
+497	ripe vine tomatoes	2023-07-01 11:35:40.442972+00	2023-07-01 11:35:40.442972+00
+498	walnuts	2023-07-01 11:35:40.453872+00	2023-07-01 11:35:40.453872+00
+499	goat's cheese	2023-07-01 11:35:40.457865+00	2023-07-01 11:35:40.457865+00
+510	fussili	2023-07-16 09:50:39.620337+00	2023-07-16 09:50:39.620337+00
+515	Tamarind Paste	2023-08-05 10:43:42.244184+00	2023-08-05 10:43:42.244184+00
+528	garlic powder	2023-09-03 21:33:20.042148+00	2023-09-03 21:33:20.042148+00
+529	dried oregano	2023-09-03 21:33:20.044998+00	2023-09-03 21:33:20.044998+00
+530	tomato sauce	2023-09-03 21:33:20.049648+00	2023-09-03 21:33:20.049648+00
+558	Toilet brush heads	2023-09-10 13:04:36.001146+00	2023-09-10 13:04:36.001146+00
+566	Gaviscon	2023-09-23 14:33:49.237486+00	2023-09-23 14:33:49.237486+00
+583	Dry cider 	2023-10-01 08:56:23.623958+00	2023-10-01 08:56:23.623958+00
+590	green peas	2023-10-07 10:13:05.260612+00	2023-10-07 10:13:05.260612+00
+591	tomato ketchup	2023-10-07 10:13:05.298465+00	2023-10-07 10:13:05.298465+00
+592	English mustard powder	2023-10-07 10:13:05.301532+00	2023-10-07 10:13:05.301532+00
+593	mayonnaise	2023-10-07 10:13:05.309459+00	2023-10-07 10:13:05.309459+00
+594	celeriac	2023-10-07 10:13:05.343316+00	2023-10-07 10:13:05.343316+00
+595	green lentils	2023-10-07 10:13:05.346901+00	2023-10-07 10:13:05.346901+00
+596	smoked, cooked ham	2023-10-07 10:13:05.377979+00	2023-10-07 10:13:05.377979+00
+597	broccoli	2023-10-07 10:13:05.381176+00	2023-10-07 10:13:05.381176+00
+598	clove	2023-10-07 10:13:05.406096+00	2023-10-07 10:13:05.406096+00
+599	roasted red peppers	2023-10-07 10:13:05.412719+00	2023-10-07 10:13:05.412719+00
+600	sun-blush tomatoes	2023-10-07 10:13:05.414612+00	2023-10-07 10:13:05.414612+00
+601	tinned chopped tomatoes	2023-10-07 10:13:05.416537+00	2023-10-07 10:13:05.416537+00
+602	dried tagliatelle	2023-10-07 10:13:05.419068+00	2023-10-07 10:13:05.419068+00
+603	cheddar	2023-10-07 10:13:05.421602+00	2023-10-07 10:13:05.421602+00
+604	mozzarella	2023-10-07 10:13:05.452912+00	2023-10-07 10:13:05.452912+00
+605	baby plum tomatoes	2023-10-07 10:13:05.456032+00	2023-10-07 10:13:05.456032+00
+606	pumpkin	2023-10-07 10:13:05.470351+00	2023-10-07 10:13:05.470351+00
+612	Pork Medallion	2023-10-14 13:25:46.63342+00	2023-10-14 13:25:46.63342+00
+\.
+
+
+--
+-- Data for Name: ingredients_in_recipe; Type: TABLE DATA; Schema: public; Owner: foody
+--
+
+COPY public.ingredients_in_recipe (id, ingredient_id, recipe_id, created_at, updated_at, quantity_id) FROM stdin;
+1	146	1	2023-06-30 20:29:16.06799+00	2023-06-30 20:29:16.06799+00	1
+2	366	1	2023-06-30 20:29:16.086295+00	2023-06-30 20:29:16.086295+00	2
+3	367	1	2023-06-30 20:29:16.104996+00	2023-06-30 20:29:16.104996+00	3
+4	89	1	2023-06-30 20:29:16.123344+00	2023-06-30 20:29:16.123344+00	4
+5	304	2	2023-06-30 20:29:16.325679+00	2023-06-30 20:29:16.325679+00	5
+6	305	2	2023-06-30 20:29:16.341375+00	2023-06-30 20:29:16.341375+00	6
+7	306	2	2023-06-30 20:29:16.358316+00	2023-06-30 20:29:16.358316+00	7
+8	307	2	2023-06-30 20:29:16.385818+00	2023-06-30 20:29:16.385818+00	8
+9	302	2	2023-06-30 20:29:16.404876+00	2023-06-30 20:29:16.404876+00	9
+10	303	2	2023-06-30 20:29:16.421953+00	2023-06-30 20:29:16.421953+00	10
+11	299	2	2023-06-30 20:29:16.438826+00	2023-06-30 20:29:16.438826+00	11
+12	300	2	2023-06-30 20:29:16.455074+00	2023-06-30 20:29:16.455074+00	12
+13	301	2	2023-06-30 20:29:16.471772+00	2023-06-30 20:29:16.471772+00	13
+14	308	3	2023-06-30 20:29:16.774089+00	2023-06-30 20:29:16.774089+00	14
+15	309	3	2023-06-30 20:29:16.792543+00	2023-06-30 20:29:16.792543+00	15
+16	310	3	2023-06-30 20:29:16.80947+00	2023-06-30 20:29:16.80947+00	16
+17	311	3	2023-06-30 20:29:16.82559+00	2023-06-30 20:29:16.82559+00	17
+18	312	3	2023-06-30 20:29:16.844824+00	2023-06-30 20:29:16.844824+00	18
+19	313	3	2023-06-30 20:29:16.860996+00	2023-06-30 20:29:16.860996+00	19
+20	314	3	2023-06-30 20:29:16.876764+00	2023-06-30 20:29:16.876764+00	20
+21	315	3	2023-06-30 20:29:16.894426+00	2023-06-30 20:29:16.894426+00	21
+22	316	3	2023-06-30 20:29:16.909586+00	2023-06-30 20:29:16.909586+00	22
+23	317	3	2023-06-30 20:29:16.925471+00	2023-06-30 20:29:16.925471+00	23
+24	318	3	2023-06-30 20:29:16.943078+00	2023-06-30 20:29:16.943078+00	24
+25	319	3	2023-06-30 20:29:16.961441+00	2023-06-30 20:29:16.961441+00	25
+26	320	3	2023-06-30 20:29:16.980235+00	2023-06-30 20:29:16.980235+00	26
+27	321	3	2023-06-30 20:29:16.997858+00	2023-06-30 20:29:16.997858+00	27
+28	325	4	2023-06-30 20:29:17.272983+00	2023-06-30 20:29:17.272983+00	28
+29	326	4	2023-06-30 20:29:17.294801+00	2023-06-30 20:29:17.294801+00	29
+30	327	4	2023-06-30 20:29:17.312602+00	2023-06-30 20:29:17.312602+00	30
+31	322	4	2023-06-30 20:29:17.343172+00	2023-06-30 20:29:17.343172+00	31
+32	323	4	2023-06-30 20:29:17.360551+00	2023-06-30 20:29:17.360551+00	32
+33	324	4	2023-06-30 20:29:17.376936+00	2023-06-30 20:29:17.376936+00	33
+34	329	4	2023-06-30 20:29:17.395762+00	2023-06-30 20:29:17.395762+00	34
+35	330	4	2023-06-30 20:29:17.414345+00	2023-06-30 20:29:17.414345+00	35
+36	319	4	2023-06-30 20:29:17.433216+00	2023-06-30 20:29:17.433216+00	36
+37	333	4	2023-06-30 20:29:17.449757+00	2023-06-30 20:29:17.449757+00	37
+38	334	4	2023-06-30 20:29:17.46724+00	2023-06-30 20:29:17.46724+00	38
+39	335	4	2023-06-30 20:29:17.4867+00	2023-06-30 20:29:17.4867+00	39
+40	331	4	2023-06-30 20:29:17.505229+00	2023-06-30 20:29:17.505229+00	40
+41	332	4	2023-06-30 20:29:17.523747+00	2023-06-30 20:29:17.523747+00	41
+42	351	5	2023-06-30 20:29:17.913818+00	2023-06-30 20:29:17.913818+00	42
+43	330	5	2023-06-30 20:29:17.930967+00	2023-06-30 20:29:17.930967+00	43
+44	353	5	2023-06-30 20:29:17.955979+00	2023-06-30 20:29:17.955979+00	44
+45	354	5	2023-06-30 20:29:17.973494+00	2023-06-30 20:29:17.973494+00	45
+46	349	5	2023-06-30 20:29:18.001537+00	2023-06-30 20:29:18.001537+00	46
+47	350	5	2023-06-30 20:29:18.019125+00	2023-06-30 20:29:18.019125+00	47
+48	338	5	2023-06-30 20:29:18.035461+00	2023-06-30 20:29:18.035461+00	48
+49	339	5	2023-06-30 20:29:18.051228+00	2023-06-30 20:29:18.051228+00	49
+50	340	5	2023-06-30 20:29:18.068163+00	2023-06-30 20:29:18.068163+00	50
+51	336	5	2023-06-30 20:29:18.083901+00	2023-06-30 20:29:18.083901+00	51
+52	337	5	2023-06-30 20:29:18.101354+00	2023-06-30 20:29:18.101354+00	52
+53	343	5	2023-06-30 20:29:18.118196+00	2023-06-30 20:29:18.118196+00	53
+54	344	5	2023-06-30 20:29:18.132697+00	2023-06-30 20:29:18.132697+00	54
+55	341	5	2023-06-30 20:29:18.150678+00	2023-06-30 20:29:18.150678+00	55
+56	329	5	2023-06-30 20:29:18.167438+00	2023-06-30 20:29:18.167438+00	56
+57	347	5	2023-06-30 20:29:18.185913+00	2023-06-30 20:29:18.185913+00	57
+58	348	5	2023-06-30 20:29:18.204642+00	2023-06-30 20:29:18.204642+00	58
+59	316	5	2023-06-30 20:29:18.221682+00	2023-06-30 20:29:18.221682+00	59
+60	346	5	2023-06-30 20:29:18.239959+00	2023-06-30 20:29:18.239959+00	60
+61	363	6	2023-06-30 20:29:18.494397+00	2023-06-30 20:29:18.494397+00	61
+62	341	6	2023-06-30 20:29:18.511732+00	2023-06-30 20:29:18.511732+00	62
+63	360	6	2023-06-30 20:29:18.531782+00	2023-06-30 20:29:18.531782+00	63
+64	361	6	2023-06-30 20:29:18.550402+00	2023-06-30 20:29:18.550402+00	64
+65	362	6	2023-06-30 20:29:18.566604+00	2023-06-30 20:29:18.566604+00	65
+66	332	6	2023-06-30 20:29:18.584338+00	2023-06-30 20:29:18.584338+00	66
+67	333	6	2023-06-30 20:29:18.602851+00	2023-06-30 20:29:18.602851+00	67
+68	329	6	2023-06-30 20:29:18.618661+00	2023-06-30 20:29:18.618661+00	68
+69	330	6	2023-06-30 20:29:18.635896+00	2023-06-30 20:29:18.635896+00	69
+70	319	7	2023-06-30 20:29:18.993656+00	2023-06-30 20:29:18.993656+00	70
+71	372	7	2023-06-30 20:29:19.011577+00	2023-06-30 20:29:19.011577+00	71
+72	304	7	2023-06-30 20:29:19.031699+00	2023-06-30 20:29:19.031699+00	72
+73	374	7	2023-06-30 20:29:19.049319+00	2023-06-30 20:29:19.049319+00	73
+74	375	7	2023-06-30 20:29:19.06761+00	2023-06-30 20:29:19.06761+00	74
+75	376	7	2023-06-30 20:29:19.087082+00	2023-06-30 20:29:19.087082+00	75
+76	377	7	2023-06-30 20:29:19.104404+00	2023-06-30 20:29:19.104404+00	76
+77	378	7	2023-06-30 20:29:19.120345+00	2023-06-30 20:29:19.120345+00	77
+78	379	7	2023-06-30 20:29:19.136482+00	2023-06-30 20:29:19.136482+00	78
+79	318	7	2023-06-30 20:29:19.154689+00	2023-06-30 20:29:19.154689+00	79
+80	381	7	2023-06-30 20:29:19.172994+00	2023-06-30 20:29:19.172994+00	80
+81	311	7	2023-06-30 20:29:19.196897+00	2023-06-30 20:29:19.196897+00	81
+82	383	7	2023-06-30 20:29:19.215614+00	2023-06-30 20:29:19.215614+00	82
+83	384	7	2023-06-30 20:29:19.234072+00	2023-06-30 20:29:19.234072+00	83
+84	385	7	2023-06-30 20:29:19.252478+00	2023-06-30 20:29:19.252478+00	84
+85	368	7	2023-06-30 20:29:19.271446+00	2023-06-30 20:29:19.271446+00	85
+86	369	7	2023-06-30 20:29:19.288065+00	2023-06-30 20:29:19.288065+00	86
+87	370	7	2023-06-30 20:29:19.306331+00	2023-06-30 20:29:19.306331+00	87
+88	390	8	2023-06-30 20:29:19.594943+00	2023-06-30 20:29:19.594943+00	88
+89	329	8	2023-06-30 20:29:19.611218+00	2023-06-30 20:29:19.611218+00	89
+90	332	8	2023-06-30 20:29:19.628154+00	2023-06-30 20:29:19.628154+00	90
+91	323	8	2023-06-30 20:29:19.644157+00	2023-06-30 20:29:19.644157+00	91
+92	388	8	2023-06-30 20:29:19.661836+00	2023-06-30 20:29:19.661836+00	92
+93	322	8	2023-06-30 20:29:19.678249+00	2023-06-30 20:29:19.678249+00	93
+94	360	8	2023-06-30 20:29:19.695424+00	2023-06-30 20:29:19.695424+00	94
+95	397	8	2023-06-30 20:29:19.712879+00	2023-06-30 20:29:19.712879+00	95
+96	392	8	2023-06-30 20:29:19.729786+00	2023-06-30 20:29:19.729786+00	96
+97	331	8	2023-06-30 20:29:19.745553+00	2023-06-30 20:29:19.745553+00	97
+98	330	8	2023-06-30 20:29:19.763995+00	2023-06-30 20:29:19.763995+00	98
+99	395	8	2023-06-30 20:29:19.782711+00	2023-06-30 20:29:19.782711+00	99
+100	329	9	2023-06-30 20:29:20.026422+00	2023-06-30 20:29:20.026422+00	100
+101	402	9	2023-06-30 20:29:20.047725+00	2023-06-30 20:29:20.047725+00	101
+102	302	9	2023-06-30 20:29:20.073301+00	2023-06-30 20:29:20.073301+00	102
+103	404	9	2023-06-30 20:29:20.091311+00	2023-06-30 20:29:20.091311+00	103
+104	405	9	2023-06-30 20:29:20.112107+00	2023-06-30 20:29:20.112107+00	104
+105	406	9	2023-06-30 20:29:20.133595+00	2023-06-30 20:29:20.133595+00	105
+106	407	9	2023-06-30 20:29:20.15082+00	2023-06-30 20:29:20.15082+00	106
+107	392	9	2023-06-30 20:29:20.168027+00	2023-06-30 20:29:20.168027+00	107
+108	330	9	2023-06-30 20:29:20.184766+00	2023-06-30 20:29:20.184766+00	108
+109	398	9	2023-06-30 20:29:20.203653+00	2023-06-30 20:29:20.203653+00	109
+110	334	9	2023-06-30 20:29:20.221885+00	2023-06-30 20:29:20.221885+00	110
+111	363	9	2023-06-30 20:29:20.3542+00	2023-06-30 20:29:20.3542+00	111
+112	221	10	2023-06-30 20:29:20.507637+00	2023-06-30 20:29:20.507637+00	112
+113	411	10	2023-06-30 20:29:20.524439+00	2023-06-30 20:29:20.524439+00	113
+114	360	10	2023-06-30 20:29:20.544247+00	2023-06-30 20:29:20.544247+00	114
+115	361	10	2023-06-30 20:29:20.562674+00	2023-06-30 20:29:20.562674+00	115
+116	414	10	2023-06-30 20:29:20.582446+00	2023-06-30 20:29:20.582446+00	116
+117	166	10	2023-06-30 20:29:20.59934+00	2023-06-30 20:29:20.59934+00	117
+118	191	11	2023-06-30 20:29:20.724452+00	2023-06-30 20:29:20.724452+00	118
+119	411	11	2023-06-30 20:29:20.740896+00	2023-06-30 20:29:20.740896+00	119
+120	419	11	2023-06-30 20:29:20.759017+00	2023-06-30 20:29:20.759017+00	120
+121	416	11	2023-06-30 20:29:20.777657+00	2023-06-30 20:29:20.777657+00	121
+122	335	12	2023-06-30 20:29:20.984677+00	2023-06-30 20:29:20.984677+00	122
+123	323	12	2023-06-30 20:29:21.003108+00	2023-06-30 20:29:21.003108+00	123
+124	329	12	2023-06-30 20:29:21.020155+00	2023-06-30 20:29:21.020155+00	124
+125	341	12	2023-06-30 20:29:21.035848+00	2023-06-30 20:29:21.035848+00	125
+126	333	12	2023-06-30 20:29:21.054038+00	2023-06-30 20:29:21.054038+00	126
+127	392	12	2023-06-30 20:29:21.070146+00	2023-06-30 20:29:21.070146+00	127
+128	423	12	2023-06-30 20:29:21.087296+00	2023-06-30 20:29:21.087296+00	128
+129	330	12	2023-06-30 20:29:21.10321+00	2023-06-30 20:29:21.10321+00	129
+130	404	12	2023-06-30 20:29:21.118069+00	2023-06-30 20:29:21.118069+00	130
+131	331	12	2023-06-30 20:29:21.135106+00	2023-06-30 20:29:21.135106+00	131
+132	69	13	2023-06-30 20:29:21.299785+00	2023-06-30 20:29:21.299785+00	132
+133	433	13	2023-06-30 20:29:21.318861+00	2023-06-30 20:29:21.318861+00	133
+134	434	13	2023-06-30 20:29:21.338381+00	2023-06-30 20:29:21.338381+00	134
+135	430	13	2023-06-30 20:29:21.356713+00	2023-06-30 20:29:21.356713+00	135
+136	431	13	2023-06-30 20:29:21.379062+00	2023-06-30 20:29:21.379062+00	136
+137	335	14	2023-06-30 20:29:21.698513+00	2023-06-30 20:29:21.698513+00	137
+138	330	14	2023-06-30 20:29:21.726212+00	2023-06-30 20:29:21.726212+00	138
+139	397	14	2023-06-30 20:29:21.743247+00	2023-06-30 20:29:21.743247+00	139
+140	398	14	2023-06-30 20:29:21.765388+00	2023-06-30 20:29:21.765388+00	140
+141	316	14	2023-06-30 20:29:21.781+00	2023-06-30 20:29:21.781+00	141
+142	444	14	2023-06-30 20:29:21.805251+00	2023-06-30 20:29:21.805251+00	142
+143	445	14	2023-06-30 20:29:21.833028+00	2023-06-30 20:29:21.833028+00	143
+144	379	14	2023-06-30 20:29:21.852564+00	2023-06-30 20:29:21.852564+00	144
+145	329	14	2023-06-30 20:29:21.869199+00	2023-06-30 20:29:21.869199+00	145
+146	440	14	2023-06-30 20:29:21.889149+00	2023-06-30 20:29:21.889149+00	146
+147	305	14	2023-06-30 20:29:21.910066+00	2023-06-30 20:29:21.910066+00	147
+148	446	14	2023-06-30 20:29:21.926747+00	2023-06-30 20:29:21.926747+00	148
+149	346	15	2023-06-30 20:29:22.120409+00	2023-06-30 20:29:22.120409+00	149
+150	450	15	2023-06-30 20:29:22.139239+00	2023-06-30 20:29:22.139239+00	150
+151	451	15	2023-06-30 20:29:22.158029+00	2023-06-30 20:29:22.158029+00	151
+152	397	15	2023-06-30 20:29:22.173274+00	2023-06-30 20:29:22.173274+00	152
+153	37	15	2023-06-30 20:29:22.189165+00	2023-06-30 20:29:22.189165+00	153
+154	448	15	2023-06-30 20:29:22.204583+00	2023-06-30 20:29:22.204583+00	154
+155	455	15	2023-06-30 20:29:22.222674+00	2023-06-30 20:29:22.222674+00	155
+156	375	15	2023-06-30 20:29:22.246351+00	2023-06-30 20:29:22.246351+00	156
+157	151	15	2023-06-30 20:29:22.264555+00	2023-06-30 20:29:22.264555+00	157
+224	305	21	2023-07-01 11:32:07.656935+00	2023-07-01 11:32:07.656935+00	224
+225	398	21	2023-07-01 11:32:07.660045+00	2023-07-01 11:32:07.660045+00	225
+226	316	21	2023-07-01 11:32:07.662166+00	2023-07-01 11:32:07.662166+00	226
+227	444	21	2023-07-01 11:32:07.66527+00	2023-07-01 11:32:07.66527+00	227
+228	445	21	2023-07-01 11:32:07.6678+00	2023-07-01 11:32:07.6678+00	228
+229	397	21	2023-07-01 11:32:07.670444+00	2023-07-01 11:32:07.670444+00	229
+230	457	21	2023-07-01 11:32:07.672575+00	2023-07-01 11:32:07.672575+00	230
+231	335	21	2023-07-01 11:32:07.674698+00	2023-07-01 11:32:07.674698+00	231
+232	329	21	2023-07-01 11:32:07.677098+00	2023-07-01 11:32:07.677098+00	232
+233	330	21	2023-07-01 11:32:07.67946+00	2023-07-01 11:32:07.67946+00	233
+234	440	21	2023-07-01 11:32:07.681743+00	2023-07-01 11:32:07.681743+00	234
+235	446	21	2023-07-01 11:32:07.683946+00	2023-07-01 11:32:07.683946+00	235
+253	458	5	2023-07-01 11:32:07.762171+00	2023-07-01 11:32:07.762171+00	253
+267	459	5	2023-07-01 11:32:07.797248+00	2023-07-01 11:32:07.797248+00	267
+277	459	9	2023-07-01 11:32:07.827915+00	2023-07-01 11:32:07.827915+00	277
+309	455	30	2023-07-01 11:32:07.951823+00	2023-07-01 11:32:07.951823+00	309
+310	397	30	2023-07-01 11:32:07.953901+00	2023-07-01 11:32:07.953901+00	310
+311	37	30	2023-07-01 11:32:07.955778+00	2023-07-01 11:32:07.955778+00	311
+312	448	30	2023-07-01 11:32:07.957824+00	2023-07-01 11:32:07.957824+00	312
+313	346	30	2023-07-01 11:32:07.960741+00	2023-07-01 11:32:07.960741+00	313
+314	375	30	2023-07-01 11:32:07.962615+00	2023-07-01 11:32:07.962615+00	314
+315	450	30	2023-07-01 11:32:07.965046+00	2023-07-01 11:32:07.965046+00	315
+316	451	30	2023-07-01 11:32:07.967218+00	2023-07-01 11:32:07.967218+00	316
+317	151	30	2023-07-01 11:32:07.969371+00	2023-07-01 11:32:07.969371+00	317
+318	460	31	2023-07-01 11:32:07.988851+00	2023-07-01 11:32:07.988851+00	318
+319	310	31	2023-07-01 11:32:07.990849+00	2023-07-01 11:32:07.990849+00	319
+320	461	31	2023-07-01 11:32:07.993015+00	2023-07-01 11:32:07.993015+00	320
+321	462	31	2023-07-01 11:32:07.995202+00	2023-07-01 11:32:07.995202+00	321
+322	376	31	2023-07-01 11:32:07.997657+00	2023-07-01 11:32:07.997657+00	322
+323	463	31	2023-07-01 11:32:07.999783+00	2023-07-01 11:32:07.999783+00	323
+324	464	31	2023-07-01 11:32:08.001868+00	2023-07-01 11:32:08.001868+00	324
+325	406	31	2023-07-01 11:32:08.004179+00	2023-07-01 11:32:08.004179+00	325
+326	465	31	2023-07-01 11:32:08.006137+00	2023-07-01 11:32:08.006137+00	326
+327	466	31	2023-07-01 11:32:08.008309+00	2023-07-01 11:32:08.008309+00	327
+328	310	32	2023-07-01 11:32:08.030269+00	2023-07-01 11:32:08.030269+00	328
+329	467	32	2023-07-01 11:32:08.032798+00	2023-07-01 11:32:08.032798+00	329
+330	468	32	2023-07-01 11:32:08.035581+00	2023-07-01 11:32:08.035581+00	330
+331	469	32	2023-07-01 11:32:08.037462+00	2023-07-01 11:32:08.037462+00	331
+332	59	32	2023-07-01 11:32:08.039352+00	2023-07-01 11:32:08.039352+00	332
+333	470	32	2023-07-01 11:32:08.041507+00	2023-07-01 11:32:08.041507+00	333
+334	471	32	2023-07-01 11:32:08.043707+00	2023-07-01 11:32:08.043707+00	334
+335	48	32	2023-07-01 11:32:08.045781+00	2023-07-01 11:32:08.045781+00	335
+336	376	32	2023-07-01 11:32:08.047741+00	2023-07-01 11:32:08.047741+00	336
+337	466	32	2023-07-01 11:32:08.050022+00	2023-07-01 11:32:08.050022+00	337
+338	472	33	2023-07-01 11:32:08.075017+00	2023-07-01 11:32:08.075017+00	338
+339	473	33	2023-07-01 11:32:08.07735+00	2023-07-01 11:32:08.07735+00	339
+340	474	33	2023-07-01 11:32:08.080699+00	2023-07-01 11:32:08.080699+00	340
+341	475	33	2023-07-01 11:32:08.083105+00	2023-07-01 11:32:08.083105+00	341
+342	476	33	2023-07-01 11:32:08.085051+00	2023-07-01 11:32:08.085051+00	342
+343	477	33	2023-07-01 11:32:08.087089+00	2023-07-01 11:32:08.087089+00	343
+344	478	33	2023-07-01 11:32:08.089334+00	2023-07-01 11:32:08.089334+00	344
+345	48	33	2023-07-01 11:32:08.091343+00	2023-07-01 11:32:08.091343+00	345
+346	376	33	2023-07-01 11:32:08.093257+00	2023-07-01 11:32:08.093257+00	346
+347	466	33	2023-07-01 11:32:08.095351+00	2023-07-01 11:32:08.095351+00	347
+348	392	33	2023-07-01 11:32:08.097378+00	2023-07-01 11:32:08.097378+00	348
+349	319	33	2023-07-01 11:32:08.099647+00	2023-07-01 11:32:08.099647+00	349
+350	58	33	2023-07-01 11:32:08.101571+00	2023-07-01 11:32:08.101571+00	350
+351	333	33	2023-07-01 11:32:08.103538+00	2023-07-01 11:32:08.103538+00	351
+352	248	33	2023-07-01 11:32:08.105711+00	2023-07-01 11:32:08.105711+00	352
+353	479	34	2023-07-01 11:32:08.119054+00	2023-07-01 11:32:08.119054+00	353
+354	215	34	2023-07-01 11:32:08.121073+00	2023-07-01 11:32:08.121073+00	354
+355	333	34	2023-07-01 11:32:08.123111+00	2023-07-01 11:32:08.123111+00	355
+356	251	34	2023-07-01 11:32:08.125032+00	2023-07-01 11:32:08.125032+00	356
+357	480	34	2023-07-01 11:32:08.127437+00	2023-07-01 11:32:08.127437+00	357
+358	259	34	2023-07-01 11:32:08.129401+00	2023-07-01 11:32:08.129401+00	358
+359	24	34	2023-07-01 11:32:08.131447+00	2023-07-01 11:32:08.131447+00	359
+360	193	34	2023-07-01 11:32:08.133485+00	2023-07-01 11:32:08.133485+00	360
+361	366	35	2023-07-01 11:32:08.150292+00	2023-07-01 11:32:08.150292+00	361
+362	481	35	2023-07-01 11:32:08.15252+00	2023-07-01 11:32:08.15252+00	362
+363	333	35	2023-07-01 11:32:08.154624+00	2023-07-01 11:32:08.154624+00	363
+364	289	35	2023-07-01 11:32:08.156702+00	2023-07-01 11:32:08.156702+00	364
+365	376	35	2023-07-01 11:32:08.158621+00	2023-07-01 11:32:08.158621+00	365
+366	482	35	2023-07-01 11:32:08.161338+00	2023-07-01 11:32:08.161338+00	366
+367	483	35	2023-07-01 11:32:08.163394+00	2023-07-01 11:32:08.163394+00	367
+368	484	35	2023-07-01 11:32:08.173447+00	2023-07-01 11:32:08.173447+00	368
+369	332	36	2023-07-01 11:32:08.18945+00	2023-07-01 11:32:08.18945+00	369
+370	485	36	2023-07-01 11:32:08.193412+00	2023-07-01 11:32:08.193412+00	370
+371	333	36	2023-07-01 11:32:08.195846+00	2023-07-01 11:32:08.195846+00	371
+372	289	36	2023-07-01 11:32:08.198435+00	2023-07-01 11:32:08.198435+00	372
+373	89	36	2023-07-01 11:32:08.200587+00	2023-07-01 11:32:08.200587+00	373
+374	376	36	2023-07-01 11:32:08.202677+00	2023-07-01 11:32:08.202677+00	374
+375	184	36	2023-07-01 11:32:08.204829+00	2023-07-01 11:32:08.204829+00	375
+376	486	36	2023-07-01 11:32:08.206927+00	2023-07-01 11:32:08.206927+00	376
+377	362	36	2023-07-01 11:32:08.20916+00	2023-07-01 11:32:08.20916+00	377
+378	314	37	2023-07-01 11:32:08.220737+00	2023-07-01 11:32:08.220737+00	378
+379	480	37	2023-07-01 11:32:08.22275+00	2023-07-01 11:32:08.22275+00	379
+380	375	37	2023-07-01 11:32:08.22478+00	2023-07-01 11:32:08.22478+00	380
+381	193	37	2023-07-01 11:32:08.22674+00	2023-07-01 11:32:08.22674+00	381
+382	362	37	2023-07-01 11:32:08.229183+00	2023-07-01 11:32:08.229183+00	382
+383	376	37	2023-07-01 11:32:08.231247+00	2023-07-01 11:32:08.231247+00	383
+384	487	37	2023-07-01 11:32:08.233195+00	2023-07-01 11:32:08.233195+00	384
+385	488	38	2023-07-01 11:32:08.247275+00	2023-07-01 11:32:08.247275+00	385
+386	489	38	2023-07-01 11:32:08.249301+00	2023-07-01 11:32:08.249301+00	386
+387	271	38	2023-07-01 11:32:08.251358+00	2023-07-01 11:32:08.251358+00	387
+388	332	38	2023-07-01 11:32:08.25333+00	2023-07-01 11:32:08.25333+00	388
+389	314	38	2023-07-01 11:32:08.25536+00	2023-07-01 11:32:08.25536+00	389
+390	47	38	2023-07-01 11:32:08.257421+00	2023-07-01 11:32:08.257421+00	390
+391	490	38	2023-07-01 11:32:08.259344+00	2023-07-01 11:32:08.259344+00	391
+392	134	38	2023-07-01 11:32:08.261518+00	2023-07-01 11:32:08.261518+00	392
+393	375	38	2023-07-01 11:32:08.263728+00	2023-07-01 11:32:08.263728+00	393
+394	33	39	2023-07-01 11:32:08.275316+00	2023-07-01 11:32:08.275316+00	394
+395	491	39	2023-07-01 11:32:08.277324+00	2023-07-01 11:32:08.277324+00	395
+396	166	39	2023-07-01 11:32:08.27945+00	2023-07-01 11:32:08.27945+00	396
+397	253	39	2023-07-01 11:32:08.281637+00	2023-07-01 11:32:08.281637+00	397
+398	36	39	2023-07-01 11:32:08.283798+00	2023-07-01 11:32:08.283798+00	398
+399	376	39	2023-07-01 11:32:08.285996+00	2023-07-01 11:32:08.285996+00	399
+400	315	39	2023-07-01 11:32:08.287816+00	2023-07-01 11:32:08.287816+00	400
+646	492	64	2023-07-01 11:35:40.418862+00	2023-07-01 11:35:40.418862+00	646
+647	493	64	2023-07-01 11:35:40.42218+00	2023-07-01 11:35:40.42218+00	647
+648	223	64	2023-07-01 11:35:40.424537+00	2023-07-01 11:35:40.424537+00	648
+649	316	64	2023-07-01 11:35:40.427076+00	2023-07-01 11:35:40.427076+00	649
+650	200	64	2023-07-01 11:35:40.429435+00	2023-07-01 11:35:40.429435+00	650
+651	494	64	2023-07-01 11:35:40.431463+00	2023-07-01 11:35:40.431463+00	651
+652	332	65	2023-07-01 11:35:40.461749+00	2023-07-01 11:35:40.461749+00	652
+653	472	65	2023-07-01 11:35:40.464358+00	2023-07-01 11:35:40.464358+00	653
+654	495	65	2023-07-01 11:35:40.469219+00	2023-07-01 11:35:40.469219+00	654
+655	304	65	2023-07-01 11:35:40.471517+00	2023-07-01 11:35:40.471517+00	655
+656	379	65	2023-07-01 11:35:40.473865+00	2023-07-01 11:35:40.473865+00	656
+657	496	65	2023-07-01 11:35:40.477452+00	2023-07-01 11:35:40.477452+00	657
+658	381	65	2023-07-01 11:35:40.479412+00	2023-07-01 11:35:40.479412+00	658
+659	497	65	2023-07-01 11:35:40.481678+00	2023-07-01 11:35:40.481678+00	659
+660	257	65	2023-07-01 11:35:40.483683+00	2023-07-01 11:35:40.483683+00	660
+661	498	65	2023-07-01 11:35:40.485788+00	2023-07-01 11:35:40.485788+00	661
+662	499	65	2023-07-01 11:35:40.487779+00	2023-07-01 11:35:40.487779+00	662
+924	59	92	2023-07-08 12:27:28.485031+00	2023-07-08 12:27:28.485031+00	924
+925	58	92	2023-07-08 12:27:28.488218+00	2023-07-08 12:27:28.488218+00	925
+926	37	92	2023-07-08 12:27:28.498095+00	2023-07-08 12:27:28.498095+00	926
+927	191	92	2023-07-08 12:27:28.501181+00	2023-07-08 12:27:28.501181+00	927
+928	500	93	2023-07-08 12:27:28.511216+00	2023-07-08 12:27:28.511216+00	928
+929	182	93	2023-07-08 12:27:28.513554+00	2023-07-08 12:27:28.513554+00	929
+930	5	93	2023-07-08 12:27:28.516892+00	2023-07-08 12:27:28.516892+00	930
+931	77	93	2023-07-08 12:27:28.519107+00	2023-07-08 12:27:28.519107+00	931
+932	23	94	2023-07-08 12:27:28.540254+00	2023-07-08 12:27:28.540254+00	932
+933	60	94	2023-07-08 12:27:28.542405+00	2023-07-08 12:27:28.542405+00	933
+934	132	94	2023-07-08 12:27:28.544593+00	2023-07-08 12:27:28.544593+00	934
+935	308	94	2023-07-08 12:27:28.546638+00	2023-07-08 12:27:28.546638+00	935
+936	318	94	2023-07-08 12:27:28.548856+00	2023-07-08 12:27:28.548856+00	936
+937	333	94	2023-07-08 12:27:28.551042+00	2023-07-08 12:27:28.551042+00	937
+938	69	94	2023-07-08 12:27:28.553028+00	2023-07-08 12:27:28.553028+00	938
+939	501	94	2023-07-08 12:27:28.555349+00	2023-07-08 12:27:28.555349+00	939
+940	7	94	2023-07-08 12:27:28.557524+00	2023-07-08 12:27:28.557524+00	940
+941	312	94	2023-07-08 12:27:28.559483+00	2023-07-08 12:27:28.559483+00	941
+942	502	94	2023-07-08 12:27:28.561397+00	2023-07-08 12:27:28.561397+00	942
+943	332	94	2023-07-08 12:27:28.56348+00	2023-07-08 12:27:28.56348+00	943
+944	490	94	2023-07-08 12:27:28.566044+00	2023-07-08 12:27:28.566044+00	944
+945	503	94	2023-07-08 12:27:28.568202+00	2023-07-08 12:27:28.568202+00	945
+946	360	95	2023-07-08 12:27:28.578368+00	2023-07-08 12:27:28.578368+00	946
+947	370	95	2023-07-08 12:27:28.580538+00	2023-07-08 12:27:28.580538+00	947
+948	119	95	2023-07-08 12:27:28.582394+00	2023-07-08 12:27:28.582394+00	948
+949	504	95	2023-07-08 12:27:28.584525+00	2023-07-08 12:27:28.584525+00	949
+950	361	95	2023-07-08 12:27:28.5864+00	2023-07-08 12:27:28.5864+00	950
+951	362	95	2023-07-08 12:27:28.588484+00	2023-07-08 12:27:28.588484+00	951
+1241	411	126	2023-07-16 08:44:43.272942+00	2023-07-16 08:44:43.272942+00	1241
+1242	375	126	2023-07-16 08:44:43.277101+00	2023-07-16 08:44:43.277101+00	1242
+1243	378	126	2023-07-16 08:44:43.279257+00	2023-07-16 08:44:43.279257+00	1243
+1244	24	126	2023-07-16 08:44:43.281273+00	2023-07-16 08:44:43.281273+00	1244
+1245	487	126	2023-07-16 08:44:43.28338+00	2023-07-16 08:44:43.28338+00	1245
+1246	341	127	2023-07-16 08:44:43.294242+00	2023-07-16 08:44:43.294242+00	1246
+1247	381	127	2023-07-16 08:44:43.296563+00	2023-07-16 08:44:43.296563+00	1247
+1248	505	127	2023-07-16 08:44:43.298517+00	2023-07-16 08:44:43.298517+00	1248
+1249	319	127	2023-07-16 08:44:43.300467+00	2023-07-16 08:44:43.300467+00	1249
+1250	506	127	2023-07-16 08:44:43.302266+00	2023-07-16 08:44:43.302266+00	1250
+1550	507	160	2023-07-16 08:53:46.213031+00	2023-07-16 08:53:46.213031+00	1550
+1551	405	160	2023-07-16 08:53:46.215834+00	2023-07-16 08:53:46.215834+00	1551
+1552	360	160	2023-07-16 08:53:46.217924+00	2023-07-16 08:53:46.217924+00	1552
+1553	76	160	2023-07-16 08:53:46.22026+00	2023-07-16 08:53:46.22026+00	1553
+1554	423	160	2023-07-16 08:53:46.222396+00	2023-07-16 08:53:46.222396+00	1554
+1555	87	160	2023-07-16 08:53:46.224605+00	2023-07-16 08:53:46.224605+00	1555
+1556	402	160	2023-07-16 08:53:46.226678+00	2023-07-16 08:53:46.226678+00	1556
+1557	520	161	2023-08-19 11:54:21.109738+00	2023-08-19 11:54:21.109738+00	1596
+1558	236	161	2023-08-19 11:54:21.113803+00	2023-08-19 11:54:21.113803+00	1597
+1559	319	161	2023-08-19 11:54:21.11627+00	2023-08-19 11:54:21.11627+00	1598
+1560	521	161	2023-08-19 11:54:21.119587+00	2023-08-19 11:54:21.119587+00	1599
+1561	307	161	2023-08-19 11:54:21.121792+00	2023-08-19 11:54:21.121792+00	1600
+1562	220	161	2023-08-19 11:54:21.123791+00	2023-08-19 11:54:21.123791+00	1601
+1563	381	161	2023-08-19 11:54:21.125919+00	2023-08-19 11:54:21.125919+00	1602
+1564	522	161	2023-08-19 11:54:21.128092+00	2023-08-19 11:54:21.128092+00	1603
+1565	239	161	2023-08-19 11:54:21.13003+00	2023-08-19 11:54:21.13003+00	1604
+1566	330	161	2023-08-19 11:54:21.132396+00	2023-08-19 11:54:21.132396+00	1605
+1567	451	161	2023-08-19 11:54:21.135282+00	2023-08-19 11:54:21.135282+00	1606
+1568	466	162	2023-08-19 11:54:21.148229+00	2023-08-19 11:54:21.148229+00	1607
+1569	117	162	2023-08-19 11:54:21.150309+00	2023-08-19 11:54:21.150309+00	1608
+1570	319	162	2023-08-19 11:54:21.152643+00	2023-08-19 11:54:21.152643+00	1609
+1571	523	162	2023-08-19 11:54:21.1545+00	2023-08-19 11:54:21.1545+00	1610
+1572	262	162	2023-08-19 11:54:21.15645+00	2023-08-19 11:54:21.15645+00	1611
+1573	411	162	2023-08-19 11:54:21.158372+00	2023-08-19 11:54:21.158372+00	1612
+1574	467	162	2023-08-19 11:54:21.16053+00	2023-08-19 11:54:21.16053+00	1613
+1575	360	162	2023-08-19 11:54:21.162511+00	2023-08-19 11:54:21.162511+00	1614
+1576	499	162	2023-08-19 11:54:21.1645+00	2023-08-19 11:54:21.1645+00	1615
+1577	184	163	2023-08-19 11:54:21.177242+00	2023-08-19 11:54:21.177242+00	1616
+1578	470	163	2023-08-19 11:54:21.179497+00	2023-08-19 11:54:21.179497+00	1617
+1579	524	163	2023-08-19 11:54:21.181963+00	2023-08-19 11:54:21.181963+00	1618
+1580	47	163	2023-08-19 11:54:21.184662+00	2023-08-19 11:54:21.184662+00	1619
+1581	89	163	2023-08-19 11:54:21.186662+00	2023-08-19 11:54:21.186662+00	1620
+1582	330	163	2023-08-19 11:54:21.192552+00	2023-08-19 11:54:21.192552+00	1621
+1583	251	163	2023-08-19 11:54:21.194686+00	2023-08-19 11:54:21.194686+00	1622
+1584	525	163	2023-08-19 11:54:21.196787+00	2023-08-19 11:54:21.196787+00	1623
+1585	87	164	2023-08-19 11:54:21.215234+00	2023-08-19 11:54:21.215234+00	1624
+1586	248	164	2023-08-19 11:54:21.217291+00	2023-08-19 11:54:21.217291+00	1625
+1587	39	164	2023-08-19 11:54:21.21927+00	2023-08-19 11:54:21.21927+00	1626
+1588	526	164	2023-08-19 11:54:21.221181+00	2023-08-19 11:54:21.221181+00	1627
+1589	151	164	2023-08-19 11:54:21.223102+00	2023-08-19 11:54:21.223102+00	1628
+1590	253	164	2023-08-19 11:54:21.22492+00	2023-08-19 11:54:21.22492+00	1629
+1591	466	164	2023-08-19 11:54:21.22689+00	2023-08-19 11:54:21.22689+00	1630
+1592	527	164	2023-08-19 11:54:21.229507+00	2023-08-19 11:54:21.229507+00	1631
+1593	216	164	2023-08-19 11:54:21.231439+00	2023-08-19 11:54:21.231439+00	1632
+1594	5	164	2023-08-19 11:54:21.233826+00	2023-08-19 11:54:21.233826+00	1633
+1595	228	164	2023-08-19 11:54:21.236071+00	2023-08-19 11:54:21.236071+00	1634
+1637	48	169	2023-09-03 21:33:20.056731+00	2023-09-03 21:33:20.056731+00	1679
+1638	528	169	2023-09-03 21:33:20.060112+00	2023-09-03 21:33:20.060112+00	1680
+1639	529	169	2023-09-03 21:33:20.062489+00	2023-09-03 21:33:20.062489+00	1681
+1640	59	169	2023-09-03 21:33:20.064968+00	2023-09-03 21:33:20.064968+00	1682
+1641	171	169	2023-09-03 21:33:20.067933+00	2023-09-03 21:33:20.067933+00	1683
+1642	530	169	2023-09-03 21:33:20.070541+00	2023-09-03 21:33:20.070541+00	1684
+1643	397	169	2023-09-03 21:33:20.073001+00	2023-09-03 21:33:20.073001+00	1685
+1644	524	169	2023-09-03 21:33:20.07559+00	2023-09-03 21:33:20.07559+00	1686
+1693	402	175	2023-09-03 21:55:43.632904+00	2023-09-03 21:55:43.632904+00	1735
+1694	407	175	2023-09-03 21:55:43.637545+00	2023-09-03 21:55:43.637545+00	1736
+1695	405	175	2023-09-03 21:55:43.640268+00	2023-09-03 21:55:43.640268+00	1737
+1696	146	175	2023-09-03 21:55:43.642526+00	2023-09-03 21:55:43.642526+00	1738
+1697	263	175	2023-09-03 21:55:43.644939+00	2023-09-03 21:55:43.644939+00	1739
+1698	406	175	2023-09-03 21:55:43.647455+00	2023-09-03 21:55:43.647455+00	1740
+1699	531	175	2023-09-03 21:55:43.650367+00	2023-09-03 21:55:43.650367+00	1741
+1700	484	175	2023-09-03 21:55:43.6526+00	2023-09-03 21:55:43.6526+00	1742
+1701	89	175	2023-09-03 21:55:43.65499+00	2023-09-03 21:55:43.65499+00	1743
+1702	360	175	2023-09-03 21:55:43.657427+00	2023-09-03 21:55:43.657427+00	1744
+2009	66	209	2023-09-03 22:06:42.620509+00	2023-09-03 22:06:42.620509+00	2051
+2010	46	209	2023-09-03 22:06:42.623733+00	2023-09-03 22:06:42.623733+00	2052
+2011	372	209	2023-09-03 22:06:42.625966+00	2023-09-03 22:06:42.625966+00	2053
+2012	236	209	2023-09-03 22:06:42.628686+00	2023-09-03 22:06:42.628686+00	2054
+2013	333	209	2023-09-03 22:06:42.6313+00	2023-09-03 22:06:42.6313+00	2055
+2014	315	209	2023-09-03 22:06:42.633363+00	2023-09-03 22:06:42.633363+00	2056
+2015	532	209	2023-09-03 22:06:42.635498+00	2023-09-03 22:06:42.635498+00	2057
+2016	311	209	2023-09-03 22:06:42.637525+00	2023-09-03 22:06:42.637525+00	2058
+2017	533	209	2023-09-03 22:06:42.639625+00	2023-09-03 22:06:42.639625+00	2059
+2018	515	209	2023-09-03 22:06:42.641736+00	2023-09-03 22:06:42.641736+00	2060
+2019	534	209	2023-09-03 22:06:42.643755+00	2023-09-03 22:06:42.643755+00	2061
+2337	489	244	2023-09-03 22:11:42.007023+00	2023-09-03 22:11:42.007023+00	2379
+2338	535	244	2023-09-03 22:11:42.010058+00	2023-09-03 22:11:42.010058+00	2380
+2339	536	244	2023-09-03 22:11:42.012314+00	2023-09-03 22:11:42.012314+00	2381
+2340	381	244	2023-09-03 22:11:42.01448+00	2023-09-03 22:11:42.01448+00	2382
+2341	333	244	2023-09-03 22:11:42.016874+00	2023-09-03 22:11:42.016874+00	2383
+2342	287	244	2023-09-03 22:11:42.019143+00	2023-09-03 22:11:42.019143+00	2384
+2343	537	244	2023-09-03 22:11:42.021733+00	2023-09-03 22:11:42.021733+00	2385
+2344	319	244	2023-09-03 22:11:42.023907+00	2023-09-03 22:11:42.023907+00	2386
+2345	538	244	2023-09-03 22:11:42.025861+00	2023-09-03 22:11:42.025861+00	2387
+2346	539	244	2023-09-03 22:11:42.027983+00	2023-09-03 22:11:42.027983+00	2388
+2674	341	280	2023-09-03 22:16:09.336198+00	2023-09-03 22:16:09.336198+00	2716
+2675	480	280	2023-09-03 22:16:09.340148+00	2023-09-03 22:16:09.340148+00	2717
+2676	333	280	2023-09-03 22:16:09.342595+00	2023-09-03 22:16:09.342595+00	2718
+2677	252	280	2023-09-03 22:16:09.345234+00	2023-09-03 22:16:09.345234+00	2719
+2678	360	280	2023-09-03 22:16:09.347725+00	2023-09-03 22:16:09.347725+00	2720
+2679	540	280	2023-09-03 22:16:09.351747+00	2023-09-03 22:16:09.351747+00	2721
+2680	541	280	2023-09-03 22:16:09.353985+00	2023-09-03 22:16:09.353985+00	2722
+2739	474	287	2023-09-10 12:39:31.434824+00	2023-09-10 12:39:31.434824+00	2782
+2740	146	287	2023-09-10 12:39:31.437312+00	2023-09-10 12:39:31.437312+00	2783
+2741	162	287	2023-09-10 12:39:31.439682+00	2023-09-10 12:39:31.439682+00	2784
+2742	173	287	2023-09-10 12:39:31.44236+00	2023-09-10 12:39:31.44236+00	2785
+2743	228	287	2023-09-10 12:39:31.444854+00	2023-09-10 12:39:31.444854+00	2786
+3078	42	324	2023-09-10 12:40:30.127835+00	2023-09-10 12:40:30.127835+00	3121
+3079	236	324	2023-09-10 12:40:30.130545+00	2023-09-10 12:40:30.130545+00	3122
+3080	254	324	2023-09-10 12:40:30.133146+00	2023-09-10 12:40:30.133146+00	3123
+3082	376	325	2023-09-10 12:40:30.147437+00	2023-09-10 12:40:30.147437+00	3125
+3083	166	325	2023-09-10 12:40:30.149607+00	2023-09-10 12:40:30.149607+00	3126
+3084	474	325	2023-09-10 12:40:30.151615+00	2023-09-10 12:40:30.151615+00	3127
+3085	197	325	2023-09-10 12:40:30.153741+00	2023-09-10 12:40:30.153741+00	3128
+3151	333	333	2023-09-10 12:43:56.731482+00	2023-09-10 12:43:56.731482+00	3194
+3152	117	333	2023-09-10 12:43:56.733827+00	2023-09-10 12:43:56.733827+00	3195
+3153	66	333	2023-09-10 12:43:56.736443+00	2023-09-10 12:43:56.736443+00	3196
+3154	544	333	2023-09-10 12:43:56.738586+00	2023-09-10 12:43:56.738586+00	3197
+3155	545	333	2023-09-10 12:43:56.740745+00	2023-09-10 12:43:56.740745+00	3198
+3156	178	333	2023-09-10 12:43:56.742935+00	2023-09-10 12:43:56.742935+00	3199
+3157	546	333	2023-09-10 12:43:56.74485+00	2023-09-10 12:43:56.74485+00	3200
+3158	234	333	2023-09-10 12:43:56.747042+00	2023-09-10 12:43:56.747042+00	3201
+3159	547	333	2023-09-10 12:43:56.749223+00	2023-09-10 12:43:56.749223+00	3202
+3160	548	333	2023-09-10 12:43:56.751334+00	2023-09-10 12:43:56.751334+00	3203
+3161	549	333	2023-09-10 12:43:56.753584+00	2023-09-10 12:43:56.753584+00	3204
+3162	46	333	2023-09-10 12:43:56.755905+00	2023-09-10 12:43:56.755905+00	3205
+3163	550	333	2023-09-10 12:43:56.757772+00	2023-09-10 12:43:56.757772+00	3206
+3164	551	333	2023-09-10 12:43:56.759942+00	2023-09-10 12:43:56.759942+00	3207
+3165	552	333	2023-09-10 12:43:56.762036+00	2023-09-10 12:43:56.762036+00	3208
+3166	553	333	2023-09-10 12:43:56.76405+00	2023-09-10 12:43:56.76405+00	3209
+3167	182	325	2023-09-10 12:55:40.204668+00	2023-09-10 12:55:40.204668+00	3210
+3170	375	325	2023-09-10 13:03:35.475007+00	2023-09-10 13:03:35.475007+00	3211
+3168	500	325	2023-09-10 13:02:39.302229+00	2023-09-10 13:02:39.302229+00	3212
+3250	524	342	2023-09-16 15:33:00.031842+00	2023-09-16 15:33:00.031842+00	3293
+3251	30	342	2023-09-16 15:33:00.034402+00	2023-09-16 15:33:00.034402+00	3294
+3252	407	342	2023-09-16 15:33:00.036671+00	2023-09-16 15:33:00.036671+00	3295
+3253	392	342	2023-09-16 15:33:00.039156+00	2023-09-16 15:33:00.039156+00	3296
+3254	336	342	2023-09-16 15:33:00.048247+00	2023-09-16 15:33:00.048247+00	3297
+3255	404	342	2023-09-16 15:33:00.051106+00	2023-09-16 15:33:00.051106+00	3298
+3256	59	342	2023-09-16 15:33:00.053784+00	2023-09-16 15:33:00.053784+00	3299
+3257	483	342	2023-09-16 15:33:00.056752+00	2023-09-16 15:33:00.056752+00	3300
+3258	559	342	2023-09-16 15:33:00.059122+00	2023-09-16 15:33:00.059122+00	3301
+3259	48	343	2023-09-16 15:33:00.083463+00	2023-09-16 15:33:00.083463+00	3302
+3260	339	343	2023-09-16 15:33:00.085819+00	2023-09-16 15:33:00.085819+00	3303
+3261	560	343	2023-09-16 15:33:00.087883+00	2023-09-16 15:33:00.087883+00	3304
+3262	333	343	2023-09-16 15:33:00.090075+00	2023-09-16 15:33:00.090075+00	3305
+3263	406	343	2023-09-16 15:33:00.092583+00	2023-09-16 15:33:00.092583+00	3306
+3264	379	343	2023-09-16 15:33:00.094472+00	2023-09-16 15:33:00.094472+00	3307
+3265	309	343	2023-09-16 15:33:00.09676+00	2023-09-16 15:33:00.09676+00	3308
+3266	146	343	2023-09-16 15:33:00.099243+00	2023-09-16 15:33:00.099243+00	3309
+3267	458	343	2023-09-16 15:33:00.101489+00	2023-09-16 15:33:00.101489+00	3310
+3268	305	343	2023-09-16 15:33:00.104211+00	2023-09-16 15:33:00.104211+00	3311
+3269	336	343	2023-09-16 15:33:00.106236+00	2023-09-16 15:33:00.106236+00	3312
+3270	404	343	2023-09-16 15:33:00.108687+00	2023-09-16 15:33:00.108687+00	3313
+3271	506	343	2023-09-16 15:33:00.110764+00	2023-09-16 15:33:00.110764+00	3314
+3272	289	343	2023-09-16 15:33:00.113136+00	2023-09-16 15:33:00.113136+00	3315
+3273	366	343	2023-09-16 15:33:00.115299+00	2023-09-16 15:33:00.115299+00	3316
+3274	360	343	2023-09-16 15:33:00.117398+00	2023-09-16 15:33:00.117398+00	3317
+3275	339	344	2023-09-16 15:33:00.128644+00	2023-09-16 15:33:00.128644+00	3318
+3276	333	344	2023-09-16 15:33:00.130881+00	2023-09-16 15:33:00.130881+00	3319
+3277	374	344	2023-09-16 15:33:00.133224+00	2023-09-16 15:33:00.133224+00	3320
+3278	341	344	2023-09-16 15:33:00.135612+00	2023-09-16 15:33:00.135612+00	3321
+3279	58	344	2023-09-16 15:33:00.137594+00	2023-09-16 15:33:00.137594+00	3322
+3280	308	344	2023-09-16 15:33:00.139709+00	2023-09-16 15:33:00.139709+00	3323
+3281	325	344	2023-09-16 15:33:00.142003+00	2023-09-16 15:33:00.142003+00	3324
+3393	339	356	2023-09-23 14:38:13.41471+00	2023-09-23 14:38:13.41471+00	3450
+3394	458	356	2023-09-23 14:38:13.417445+00	2023-09-23 14:38:13.417445+00	3451
+3395	567	356	2023-09-23 14:38:13.419906+00	2023-09-23 14:38:13.419906+00	3452
+3396	568	356	2023-09-23 14:38:13.422132+00	2023-09-23 14:38:13.422132+00	3453
+3397	180	356	2023-09-23 14:38:13.424791+00	2023-09-23 14:38:13.424791+00	3454
+3398	351	356	2023-09-23 14:38:13.427736+00	2023-09-23 14:38:13.427736+00	3455
+3399	569	356	2023-09-23 14:38:13.430223+00	2023-09-23 14:38:13.430223+00	3456
+3400	570	356	2023-09-23 14:38:13.432711+00	2023-09-23 14:38:13.432711+00	3457
+3401	339	357	2023-09-23 14:38:13.447894+00	2023-09-23 14:38:13.447894+00	3458
+3402	146	357	2023-09-23 14:38:13.450064+00	2023-09-23 14:38:13.450064+00	3459
+3403	341	357	2023-09-23 14:38:13.452271+00	2023-09-23 14:38:13.452271+00	3460
+3404	5	357	2023-09-23 14:38:13.454222+00	2023-09-23 14:38:13.454222+00	3461
+3405	406	357	2023-09-23 14:38:13.456616+00	2023-09-23 14:38:13.456616+00	3462
+3406	571	357	2023-09-23 14:38:13.458855+00	2023-09-23 14:38:13.458855+00	3463
+3407	440	357	2023-09-23 14:38:13.461534+00	2023-09-23 14:38:13.461534+00	3464
+3408	76	357	2023-09-23 14:38:13.463765+00	2023-09-23 14:38:13.463765+00	3465
+3409	333	358	2023-09-23 14:38:13.480074+00	2023-09-23 14:38:13.480074+00	3466
+3410	339	358	2023-09-23 14:38:13.487458+00	2023-09-23 14:38:13.487458+00	3467
+3411	458	358	2023-09-23 14:38:13.490575+00	2023-09-23 14:38:13.490575+00	3468
+3412	567	358	2023-09-23 14:38:13.493139+00	2023-09-23 14:38:13.493139+00	3469
+3413	572	358	2023-09-23 14:38:13.49515+00	2023-09-23 14:38:13.49515+00	3470
+3414	350	358	2023-09-23 14:38:13.497352+00	2023-09-23 14:38:13.497352+00	3471
+3415	347	358	2023-09-23 14:38:13.50005+00	2023-09-23 14:38:13.50005+00	3472
+3416	379	358	2023-09-23 14:38:13.502378+00	2023-09-23 14:38:13.502378+00	3473
+3417	406	358	2023-09-23 14:38:13.504493+00	2023-09-23 14:38:13.504493+00	3474
+3418	341	358	2023-09-23 14:38:13.506543+00	2023-09-23 14:38:13.506543+00	3475
+3419	146	358	2023-09-23 14:38:13.508599+00	2023-09-23 14:38:13.508599+00	3476
+3420	404	358	2023-09-23 14:38:13.51058+00	2023-09-23 14:38:13.51058+00	3477
+3421	305	358	2023-09-23 14:38:13.513701+00	2023-09-23 14:38:13.513701+00	3478
+3422	42	359	2023-09-23 14:38:13.527587+00	2023-09-23 14:38:13.527587+00	3479
+3423	339	359	2023-09-23 14:38:13.529806+00	2023-09-23 14:38:13.529806+00	3480
+3424	316	359	2023-09-23 14:38:13.531824+00	2023-09-23 14:38:13.531824+00	3481
+3425	81	359	2023-09-23 14:38:13.533978+00	2023-09-23 14:38:13.533978+00	3482
+3426	573	359	2023-09-23 14:38:13.53623+00	2023-09-23 14:38:13.53623+00	3483
+3427	262	359	2023-09-23 14:38:13.538196+00	2023-09-23 14:38:13.538196+00	3484
+3428	350	359	2023-09-23 14:38:13.540619+00	2023-09-23 14:38:13.540619+00	3485
+3429	574	359	2023-09-23 14:38:13.542838+00	2023-09-23 14:38:13.542838+00	3486
+3578	331	375	2023-10-01 08:35:42.669784+00	2023-10-01 08:35:42.669784+00	3636
+3579	575	375	2023-10-01 08:35:42.671399+00	2023-10-01 08:35:42.671399+00	3637
+3580	576	375	2023-10-01 08:35:42.67458+00	2023-10-01 08:35:42.67458+00	3638
+3581	577	375	2023-10-01 08:35:42.67681+00	2023-10-01 08:35:42.67681+00	3639
+3582	89	375	2023-10-01 08:35:42.678885+00	2023-10-01 08:35:42.678885+00	3640
+3736	3	392	2023-10-01 08:41:11.800294+00	2023-10-01 08:41:11.800294+00	3797
+3737	117	392	2023-10-01 08:41:11.804831+00	2023-10-01 08:41:11.804831+00	3798
+3738	339	392	2023-10-01 08:41:11.807111+00	2023-10-01 08:41:11.807111+00	3799
+3739	305	392	2023-10-01 08:41:11.810632+00	2023-10-01 08:41:11.810632+00	3800
+3740	567	392	2023-10-01 08:41:11.813026+00	2023-10-01 08:41:11.813026+00	3801
+3741	458	392	2023-10-01 08:41:11.815319+00	2023-10-01 08:41:11.815319+00	3802
+3742	381	392	2023-10-01 08:41:11.818187+00	2023-10-01 08:41:11.818187+00	3803
+3743	374	392	2023-10-01 08:41:11.820076+00	2023-10-01 08:41:11.820076+00	3804
+4081	580	325	2023-10-01 08:52:43.574155+00	2023-10-01 08:52:43.574155+00	4150
+4086	542	325	2023-10-01 08:52:43.584996+00	2023-10-01 08:52:43.584996+00	4155
+4087	543	325	2023-10-01 08:52:43.587282+00	2023-10-01 08:52:43.587282+00	4156
+4088	42	431	2023-10-01 08:52:43.60509+00	2023-10-01 08:52:43.60509+00	4157
+4089	310	431	2023-10-01 08:52:43.607369+00	2023-10-01 08:52:43.607369+00	4158
+4090	581	431	2023-10-01 08:52:43.609847+00	2023-10-01 08:52:43.609847+00	4159
+4091	482	431	2023-10-01 08:52:43.613688+00	2023-10-01 08:52:43.613688+00	4160
+4092	193	431	2023-10-01 08:52:43.616277+00	2023-10-01 08:52:43.616277+00	4161
+4093	487	431	2023-10-01 08:52:43.618681+00	2023-10-01 08:52:43.618681+00	4162
+4094	362	431	2023-10-01 08:52:43.620816+00	2023-10-01 08:52:43.620816+00	4163
+4095	582	431	2023-10-01 08:52:43.622965+00	2023-10-01 08:52:43.622965+00	4164
+4257	411	449	2023-10-07 10:13:05.277887+00	2023-10-07 10:13:05.277887+00	4329
+4258	590	449	2023-10-07 10:13:05.280862+00	2023-10-07 10:13:05.280862+00	4330
+4259	5	449	2023-10-07 10:13:05.283028+00	2023-10-07 10:13:05.283028+00	4331
+4260	524	449	2023-10-07 10:13:05.285425+00	2023-10-07 10:13:05.285425+00	4332
+4261	482	449	2023-10-07 10:13:05.28767+00	2023-10-07 10:13:05.28767+00	4333
+4262	333	449	2023-10-07 10:13:05.28997+00	2023-10-07 10:13:05.28997+00	4334
+4263	483	449	2023-10-07 10:13:05.292291+00	2023-10-07 10:13:05.292291+00	4335
+4264	197	449	2023-10-07 10:13:05.294472+00	2023-10-07 10:13:05.294472+00	4336
+4265	46	450	2023-10-07 10:13:05.315346+00	2023-10-07 10:13:05.315346+00	4337
+4266	591	450	2023-10-07 10:13:05.317324+00	2023-10-07 10:13:05.317324+00	4338
+4267	347	450	2023-10-07 10:13:05.31925+00	2023-10-07 10:13:05.31925+00	4339
+4268	592	450	2023-10-07 10:13:05.321284+00	2023-10-07 10:13:05.321284+00	4340
+4269	311	450	2023-10-07 10:13:05.323392+00	2023-10-07 10:13:05.323392+00	4341
+4270	318	450	2023-10-07 10:13:05.325648+00	2023-10-07 10:13:05.325648+00	4342
+4271	121	450	2023-10-07 10:13:05.327777+00	2023-10-07 10:13:05.327777+00	4343
+4272	332	450	2023-10-07 10:13:05.330285+00	2023-10-07 10:13:05.330285+00	4344
+4273	458	450	2023-10-07 10:13:05.332325+00	2023-10-07 10:13:05.332325+00	4345
+4274	213	450	2023-10-07 10:13:05.334481+00	2023-10-07 10:13:05.334481+00	4346
+4275	593	450	2023-10-07 10:13:05.33675+00	2023-10-07 10:13:05.33675+00	4347
+4276	376	450	2023-10-07 10:13:05.33918+00	2023-10-07 10:13:05.33918+00	4348
+4277	339	451	2023-10-07 10:13:05.35415+00	2023-10-07 10:13:05.35415+00	4349
+4278	458	451	2023-10-07 10:13:05.356276+00	2023-10-07 10:13:05.356276+00	4350
+4279	594	451	2023-10-07 10:13:05.358357+00	2023-10-07 10:13:05.358357+00	4351
+4280	341	451	2023-10-07 10:13:05.362123+00	2023-10-07 10:13:05.362123+00	4352
+4281	146	451	2023-10-07 10:13:05.364403+00	2023-10-07 10:13:05.364403+00	4353
+4282	595	451	2023-10-07 10:13:05.366364+00	2023-10-07 10:13:05.366364+00	4354
+4283	350	451	2023-10-07 10:13:05.368335+00	2023-10-07 10:13:05.368335+00	4355
+4284	522	451	2023-10-07 10:13:05.370354+00	2023-10-07 10:13:05.370354+00	4356
+4285	381	451	2023-10-07 10:13:05.372907+00	2023-10-07 10:13:05.372907+00	4357
+4286	60	451	2023-10-07 10:13:05.374978+00	2023-10-07 10:13:05.374978+00	4358
+4287	323	452	2023-10-07 10:13:05.387862+00	2023-10-07 10:13:05.387862+00	4359
+4288	596	452	2023-10-07 10:13:05.390152+00	2023-10-07 10:13:05.390152+00	4360
+4289	524	452	2023-10-07 10:13:05.392911+00	2023-10-07 10:13:05.392911+00	4361
+4290	597	452	2023-10-07 10:13:05.39602+00	2023-10-07 10:13:05.39602+00	4362
+4291	336	452	2023-10-07 10:13:05.398324+00	2023-10-07 10:13:05.398324+00	4363
+4292	327	452	2023-10-07 10:13:05.400919+00	2023-10-07 10:13:05.400919+00	4364
+4293	86	452	2023-10-07 10:13:05.404008+00	2023-10-07 10:13:05.404008+00	4365
+4294	598	453	2023-10-07 10:13:05.424725+00	2023-10-07 10:13:05.424725+00	4366
+4295	464	453	2023-10-07 10:13:05.426564+00	2023-10-07 10:13:05.426564+00	4367
+4296	339	453	2023-10-07 10:13:05.428637+00	2023-10-07 10:13:05.428637+00	4368
+4297	458	453	2023-10-07 10:13:05.430413+00	2023-10-07 10:13:05.430413+00	4369
+4298	43	453	2023-10-07 10:13:05.432435+00	2023-10-07 10:13:05.432435+00	4370
+4299	212	453	2023-10-07 10:13:05.434338+00	2023-10-07 10:13:05.434338+00	4371
+4300	599	453	2023-10-07 10:13:05.43634+00	2023-10-07 10:13:05.43634+00	4372
+4301	600	453	2023-10-07 10:13:05.438244+00	2023-10-07 10:13:05.438244+00	4373
+4302	601	453	2023-10-07 10:13:05.440463+00	2023-10-07 10:13:05.440463+00	4374
+4303	381	453	2023-10-07 10:13:05.442318+00	2023-10-07 10:13:05.442318+00	4375
+4304	602	453	2023-10-07 10:13:05.444321+00	2023-10-07 10:13:05.444321+00	4376
+4305	138	453	2023-10-07 10:13:05.446234+00	2023-10-07 10:13:05.446234+00	4377
+4306	603	453	2023-10-07 10:13:05.448832+00	2023-10-07 10:13:05.448832+00	4378
+4307	291	454	2023-10-07 10:13:05.459196+00	2023-10-07 10:13:05.459196+00	4379
+4308	361	454	2023-10-07 10:13:05.461603+00	2023-10-07 10:13:05.461603+00	4380
+4309	604	454	2023-10-07 10:13:05.463685+00	2023-10-07 10:13:05.463685+00	4381
+4310	227	454	2023-10-07 10:13:05.465518+00	2023-10-07 10:13:05.465518+00	4382
+4311	605	454	2023-10-07 10:13:05.467332+00	2023-10-07 10:13:05.467332+00	4383
+4312	117	455	2023-10-07 10:13:05.475742+00	2023-10-07 10:13:05.475742+00	4384
+4313	606	455	2023-10-07 10:13:05.477954+00	2023-10-07 10:13:05.477954+00	4385
+4314	341	455	2023-10-07 10:13:05.47998+00	2023-10-07 10:13:05.47998+00	4386
+4315	431	455	2023-10-07 10:13:05.482191+00	2023-10-07 10:13:05.482191+00	4387
+4536	236	480	2023-10-14 13:20:27.77009+00	2023-10-14 13:20:27.77009+00	4620
+4537	333	480	2023-10-14 13:20:27.773053+00	2023-10-14 13:20:27.773053+00	4621
+4538	611	480	2023-10-14 13:20:27.776616+00	2023-10-14 13:20:27.776616+00	4622
+4539	590	480	2023-10-14 13:20:27.780341+00	2023-10-14 13:20:27.780341+00	4623
+4540	307	480	2023-10-14 13:20:27.783949+00	2023-10-14 13:20:27.783949+00	4624
+4541	404	480	2023-10-14 13:20:27.786958+00	2023-10-14 13:20:27.786958+00	4625
+4542	381	480	2023-10-14 13:20:27.789508+00	2023-10-14 13:20:27.789508+00	4626
+4543	514	480	2023-10-14 13:20:27.791806+00	2023-10-14 13:20:27.791806+00	4627
+4544	89	480	2023-10-14 13:20:27.79448+00	2023-10-14 13:20:27.79448+00	4628
+4545	302	480	2023-10-14 13:20:27.79669+00	2023-10-14 13:20:27.79669+00	4629
+\.
+
+
+--
+-- Data for Name: ingredients_in_shoppinglist; Type: TABLE DATA; Schema: public; Owner: foody
+--
+
+COPY public.ingredients_in_shoppinglist (id, shoppinglist_id, ingredient_id, created_at, updated_at, in_basket, quantity_id) FROM stdin;
+197	5	310	2023-07-22 10:04:09.833158+00	2023-07-22 11:21:53.033187+00	t	328
+196	5	59	2023-07-22 10:04:09.833158+00	2023-07-22 11:23:54.486808+00	t	332
+51	2	289	2023-07-01 11:36:58.122795+00	2023-07-01 11:36:58.122795+00	f	372
+58	2	193	2023-07-01 11:37:05.035616+00	2023-07-01 11:37:05.035616+00	f	381
+27	2	24	2023-07-01 11:36:36.258623+00	2023-07-04 19:02:14.949598+00	t	359
+45	2	316	2023-07-01 11:36:47.151562+00	2023-07-01 12:53:18.867042+00	t	649
+21	2	213	2023-07-01 11:26:13.585013+00	2023-07-01 12:22:59.894413+00	t	\N
+29	2	215	2023-07-01 11:36:36.258623+00	2023-07-01 12:24:05.695617+00	t	354
+77	2	36	2023-07-01 11:38:00.101247+00	2023-07-04 19:02:15.498194+00	t	398
+56	2	485	2023-07-01 11:36:58.122795+00	2023-07-01 12:24:29.713657+00	t	370
+59	2	314	2023-07-01 11:37:05.035616+00	2023-07-01 12:52:01.393874+00	t	378
+52	2	332	2023-07-01 11:36:58.122795+00	2023-07-01 12:53:09.466785+00	t	369
+79	2	253	2023-07-01 11:38:00.101247+00	2023-07-01 12:55:20.77005+00	t	397
+67	2	332	2023-07-01 11:37:42.00262+00	2023-07-01 12:55:24.823175+00	t	652
+110	3	308	2023-07-08 12:28:18.781025+00	2023-07-08 12:28:18.781025+00	f	935
+87	2	332	2023-07-01 11:38:07.153237+00	2023-07-01 12:55:35.878602+00	t	388
+26	2	173	2023-07-01 11:32:00.605917+00	2023-07-01 12:56:37.506669+00	t	\N
+73	2	497	2023-07-01 11:37:42.00262+00	2023-07-01 12:56:52.178477+00	t	659
+86	2	314	2023-07-01 11:38:07.153237+00	2023-07-01 12:56:58.759598+00	t	389
+54	2	362	2023-07-01 11:36:58.122795+00	2023-07-01 12:57:08.537203+00	t	377
+78	2	166	2023-07-01 11:38:00.101247+00	2023-07-01 12:57:13.792009+00	t	396
+30	2	251	2023-07-01 11:36:36.258623+00	2023-07-01 12:58:00.511194+00	t	356
+60	2	362	2023-07-01 11:37:05.035616+00	2023-07-01 12:58:08.251748+00	t	382
+94	2	458	2023-07-01 12:21:43.277965+00	2023-07-01 12:59:18.533057+00	t	\N
+42	2	484	2023-07-01 11:36:38.021053+00	2023-07-01 12:59:31.278163+00	t	368
+82	2	491	2023-07-01 11:38:00.101247+00	2023-07-01 12:59:40.739958+00	t	395
+90	2	489	2023-07-01 11:38:07.153237+00	2023-07-01 13:00:20.731266+00	t	386
+49	2	89	2023-07-01 11:36:58.122795+00	2023-07-04 19:03:39.336641+00	t	373
+25	2	120	2023-07-01 11:31:43.486611+00	2023-07-01 13:00:51.382445+00	t	\N
+46	2	492	2023-07-01 11:36:47.151562+00	2023-07-01 13:01:14.731911+00	t	646
+92	2	100	2023-07-01 12:21:19.000866+00	2023-07-04 19:03:39.367476+00	t	\N
+88	2	375	2023-07-01 11:38:07.153237+00	2023-07-04 19:03:39.394612+00	t	393
+44	2	223	2023-07-01 11:36:47.151562+00	2023-07-01 13:02:19.254491+00	t	648
+75	2	499	2023-07-01 11:37:42.00262+00	2023-07-04 19:03:39.428871+00	t	662
+80	2	315	2023-07-01 11:38:00.101247+00	2023-07-01 13:03:21.843795+00	t	400
+89	2	488	2023-07-01 11:38:07.153237+00	2023-07-01 13:03:26.966854+00	t	385
+93	2	113	2023-07-01 12:21:39.43177+00	2023-07-01 13:03:28.812014+00	t	\N
+38	2	376	2023-07-01 11:36:38.021053+00	2023-07-01 13:03:45.240261+00	t	365
+55	2	376	2023-07-01 11:36:58.122795+00	2023-07-01 13:03:48.342278+00	t	374
+62	2	376	2023-07-01 11:37:05.035616+00	2023-07-01 13:03:51.836078+00	t	383
+81	2	376	2023-07-01 11:38:00.101247+00	2023-07-01 13:04:03.885485+00	t	399
+50	2	184	2023-07-01 11:36:58.122795+00	2023-07-04 19:03:39.445094+00	t	375
+85	2	271	2023-07-01 11:38:07.153237+00	2023-07-01 13:04:20.847115+00	t	387
+40	2	482	2023-07-01 11:36:38.021053+00	2023-07-04 19:03:39.46288+00	t	366
+95	2	128	2023-07-01 12:22:12.532824+00	2023-07-01 13:04:50.776568+00	t	\N
+17	2	228	2023-07-01 11:19:53.316488+00	2023-07-01 13:05:28.411184+00	t	\N
+57	2	486	2023-07-01 11:36:58.122795+00	2023-07-01 13:06:18.016086+00	t	376
+69	2	381	2023-07-01 11:37:42.00262+00	2023-07-01 13:06:26.014319+00	t	658
+33	2	479	2023-07-01 11:36:36.258623+00	2023-07-01 13:06:38.043811+00	t	353
+84	2	134	2023-07-01 11:38:07.153237+00	2023-07-01 13:07:33.55702+00	t	392
+98	3	58	2023-07-08 12:28:14.682986+00	2023-07-08 12:28:14.682986+00	f	925
+100	3	191	2023-07-08 12:28:14.682986+00	2023-07-08 12:28:14.682986+00	f	927
+63	2	480	2023-07-01 11:37:05.035616+00	2023-07-04 19:01:36.024036+00	f	379
+68	2	379	2023-07-01 11:37:42.00262+00	2023-07-04 19:01:44.782495+00	f	656
+91	2	490	2023-07-01 11:38:07.153237+00	2023-07-01 13:11:24.040312+00	t	391
+70	2	472	2023-07-01 11:37:42.00262+00	2023-07-04 19:01:45.522792+00	f	653
+65	2	257	2023-07-01 11:37:42.00262+00	2023-07-01 13:12:18.971075+00	t	660
+37	2	366	2023-07-01 11:36:38.021053+00	2023-07-01 13:15:30.886034+00	t	361
+72	2	496	2023-07-01 11:37:42.00262+00	2023-07-01 13:16:12.193134+00	t	657
+71	2	495	2023-07-01 11:37:42.00262+00	2023-07-04 19:01:47.523129+00	f	654
+47	2	493	2023-07-01 11:36:47.151562+00	2023-07-04 19:01:48.101434+00	f	647
+39	2	481	2023-07-01 11:36:38.021053+00	2023-07-04 19:01:50.328988+00	f	362
+31	2	259	2023-07-01 11:36:36.258623+00	2023-07-01 13:19:30.518602+00	t	358
+96	2	30	2023-07-01 12:23:18.494934+00	2023-07-01 13:20:09.578119+00	t	\N
+76	2	33	2023-07-01 11:38:00.101247+00	2023-07-01 13:20:13.951879+00	t	394
+48	2	494	2023-07-01 11:36:47.151562+00	2023-07-01 13:20:31.57531+00	t	651
+64	2	487	2023-07-01 11:37:05.035616+00	2023-07-01 13:20:35.146107+00	t	384
+24	2	360	2023-07-01 11:30:27.202083+00	2023-07-01 13:21:04.342853+00	t	\N
+74	2	498	2023-07-01 11:37:42.00262+00	2023-07-01 13:21:42.582515+00	t	661
+28	2	193	2023-07-01 11:36:36.258623+00	2023-07-01 13:21:47.46926+00	t	360
+35	2	289	2023-07-01 11:36:38.021053+00	2023-07-01 13:22:24.058132+00	t	364
+115	3	490	2023-07-08 12:28:18.781025+00	2023-07-08 12:28:18.781025+00	f	944
+116	3	501	2023-07-08 12:28:18.781025+00	2023-07-08 12:28:18.781025+00	f	939
+41	2	483	2023-07-01 11:36:38.021053+00	2023-07-04 19:01:50.894319+00	f	367
+32	2	333	2023-07-01 11:36:36.258623+00	2023-07-04 19:01:51.394297+00	f	355
+61	2	375	2023-07-01 11:37:05.035616+00	2023-07-04 19:00:58.317343+00	t	380
+119	3	119	2023-07-08 12:28:19.920378+00	2023-07-08 12:28:19.920378+00	f	948
+22	2	197	2023-07-01 11:28:45.334326+00	2023-07-04 19:01:02.020528+00	f	\N
+23	2	242	2023-07-01 11:28:51.237058+00	2023-07-04 19:01:02.505566+00	f	\N
+18	2	3	2023-07-01 11:20:04.167943+00	2023-07-04 19:01:04.34658+00	f	\N
+19	2	456	2023-07-01 11:20:37.413889+00	2023-07-04 19:01:04.959051+00	f	\N
+83	2	47	2023-07-01 11:38:07.153237+00	2023-07-04 19:01:05.459741+00	f	390
+43	2	200	2023-07-01 11:36:47.151562+00	2023-07-04 19:01:05.99535+00	f	650
+66	2	304	2023-07-01 11:37:42.00262+00	2023-07-04 19:01:51.892761+00	f	655
+20	2	7	2023-07-01 11:20:46.227853+00	2023-07-04 19:01:08.681122+00	f	\N
+53	2	333	2023-07-01 11:36:58.122795+00	2023-07-04 19:01:52.311821+00	f	371
+36	2	333	2023-07-01 11:36:38.021053+00	2023-07-04 19:01:53.133666+00	f	363
+34	2	480	2023-07-01 11:36:36.258623+00	2023-07-04 19:01:11.825712+00	f	357
+107	3	60	2023-07-08 12:28:18.781025+00	2023-07-08 12:35:15.409032+00	t	933
+120	3	360	2023-07-08 12:28:19.920378+00	2023-07-08 12:35:16.217435+00	t	946
+121	3	361	2023-07-08 12:28:19.920378+00	2023-07-08 12:35:18.050911+00	t	950
+112	3	318	2023-07-08 12:28:18.781025+00	2023-07-17 20:41:08.775245+00	f	936
+123	3	370	2023-07-08 12:28:19.920378+00	2023-07-17 20:41:07.943857+00	f	947
+103	3	182	2023-07-08 12:28:16.702977+00	2023-07-17 20:41:03.014546+00	t	929
+129	3	272	2023-07-08 12:28:54.990618+00	2023-07-08 12:37:06.932928+00	t	\N
+130	3	3	2023-07-08 12:29:00.066357+00	2023-07-17 20:40:39.436146+00	t	\N
+113	3	332	2023-07-08 12:28:18.781025+00	2023-07-08 16:07:29.403561+00	t	943
+114	3	333	2023-07-08 12:28:18.781025+00	2023-07-08 16:09:56.966188+00	t	937
+108	3	69	2023-07-08 12:28:18.781025+00	2023-07-08 16:12:01.088948+00	t	938
+117	3	502	2023-07-08 12:28:18.781025+00	2023-07-08 16:13:46.399213+00	t	942
+109	3	132	2023-07-08 12:28:18.781025+00	2023-07-17 20:41:07.547797+00	f	934
+111	3	312	2023-07-08 12:28:18.781025+00	2023-07-17 20:41:05.000264+00	f	941
+99	3	59	2023-07-08 12:28:14.682986+00	2023-07-08 16:29:15.257404+00	t	924
+128	3	278	2023-07-08 12:28:48.525695+00	2023-07-08 16:37:34.169041+00	t	\N
+127	3	276	2023-07-08 12:28:45.353098+00	2023-07-08 16:37:34.179991+00	t	\N
+106	3	23	2023-07-08 12:28:18.781025+00	2023-07-08 16:38:38.694914+00	t	932
+97	3	37	2023-07-08 12:28:14.682986+00	2023-07-08 16:38:38.695332+00	t	926
+125	3	286	2023-07-08 12:28:38.732817+00	2023-07-08 16:38:38.710752+00	t	\N
+126	3	274	2023-07-08 12:28:44.416214+00	2023-07-08 16:38:38.71129+00	t	\N
+102	3	77	2023-07-08 12:28:16.702977+00	2023-07-17 20:40:43.947669+00	f	931
+101	3	5	2023-07-08 12:28:16.702977+00	2023-07-09 07:56:20.973076+00	f	930
+104	3	500	2023-07-08 12:28:16.702977+00	2023-07-17 20:41:03.418355+00	f	928
+122	3	362	2023-07-08 12:28:19.920378+00	2023-07-08 12:34:08.935235+00	t	951
+131	3	456	2023-07-08 12:29:23.428874+00	2023-07-08 16:05:33.510385+00	t	\N
+133	3	206	2023-07-08 12:29:30.610844+00	2023-07-08 16:09:45.515828+00	t	\N
+143	3	173	2023-07-08 12:40:09.617034+00	2023-07-08 16:09:47.325339+00	t	\N
+134	3	120	2023-07-08 12:29:39.027783+00	2023-07-08 16:09:49.246435+00	t	\N
+138	3	226	2023-07-08 12:39:09.614855+00	2023-07-08 16:11:26.155964+00	t	\N
+132	3	458	2023-07-08 12:29:24.872849+00	2023-07-08 16:11:26.482308+00	t	\N
+139	3	228	2023-07-08 12:39:12.784986+00	2023-07-08 16:15:42.826902+00	t	\N
+140	3	320	2023-07-08 12:39:36.651117+00	2023-07-08 16:30:19.946783+00	t	\N
+136	3	175	2023-07-08 12:31:59.27932+00	2023-07-17 20:40:45.04729+00	f	\N
+135	3	448	2023-07-08 12:29:43.813473+00	2023-07-17 20:41:05.600623+00	f	\N
+542	13	561	2023-09-16 15:37:25.404752+00	2023-09-16 16:49:08.681224+00	t	3325
+296	6	259	2023-07-29 09:11:30.658909+00	2023-07-29 10:21:48.330886+00	t	1560
+291	6	78	2023-07-29 08:57:44.993684+00	2023-07-29 10:24:24.857075+00	t	\N
+302	7	93	2023-08-05 10:25:22.098395+00	2023-08-05 12:39:41.444589+00	t	\N
+362	7	119	2023-08-05 10:51:06.668062+00	2023-08-05 12:39:59.729369+00	t	\N
+546	13	67	2023-09-16 15:39:34.12836+00	2023-09-16 17:01:09.580093+00	t	3326
+198	5	376	2023-07-22 10:04:09.833158+00	2023-07-22 11:22:03.925078+00	t	336
+200	5	467	2023-07-22 10:04:09.833158+00	2023-07-22 11:22:51.160375+00	t	329
+333	7	298	2023-08-05 10:37:52.891292+00	2023-08-05 12:41:48.520723+00	t	1579
+220	5	305	2023-07-22 10:31:05.872136+00	2023-07-22 11:28:31.49922+00	t	\N
+207	5	110	2023-07-22 10:04:49.469611+00	2023-07-22 11:29:27.879867+00	t	\N
+208	5	242	2023-07-22 10:04:53.478023+00	2023-07-22 11:29:28.063843+00	t	\N
+310	7	99	2023-08-05 10:29:47.803834+00	2023-08-05 12:43:04.559094+00	t	1568
+206	5	224	2023-07-22 10:04:43.024283+00	2023-07-22 11:35:23.15745+00	t	\N
+205	5	511	2023-07-22 10:04:35.132859+00	2023-07-22 11:36:23.048814+00	t	\N
+212	5	30	2023-07-22 10:05:42.928126+00	2023-07-22 11:37:10.626603+00	t	\N
+213	5	201	2023-07-22 10:08:14.205788+00	2023-07-22 11:37:14.770874+00	t	\N
+210	5	78	2023-07-22 10:05:20.33237+00	2023-07-22 11:37:14.770849+00	t	\N
+374	8	226	2023-08-13 08:42:49.01954+00	2023-08-13 11:41:05.478536+00	t	\N
+308	7	99	2023-08-05 10:29:30.588547+00	2023-08-05 10:30:25.290473+00	f	\N
+209	5	65	2023-07-22 10:05:02.079633+00	2023-07-22 13:12:36.745759+00	t	\N
+211	5	2	2023-07-22 10:05:24.840316+00	2023-07-22 13:12:37.037052+00	t	\N
+219	5	100	2023-07-22 10:30:26.899642+00	2023-07-22 13:12:37.915092+00	t	\N
+227	4	2	2023-07-27 22:04:35.444673+00	2023-07-27 22:04:35.444673+00	f	1557
+229	5	469	2023-07-29 02:57:06.326832+00	2023-07-29 02:57:13.147911+00	t	1559
+256	6	309	2023-07-29 08:53:27.199147+00	2023-07-29 08:53:27.199147+00	f	15
+251	6	362	2023-07-29 08:53:18.261119+00	2023-07-29 10:05:10.480255+00	t	377
+261	6	314	2023-07-29 08:53:27.199147+00	2023-07-29 10:05:12.156999+00	t	20
+285	6	45	2023-07-29 08:56:27.153082+00	2023-07-29 10:07:46.921891+00	t	\N
+287	6	228	2023-07-29 08:57:15.507292+00	2023-07-29 10:10:45.258349+00	t	\N
+288	6	2	2023-07-29 08:57:27.768005+00	2023-07-29 10:10:48.023276+00	t	\N
+265	6	318	2023-07-29 08:53:27.199147+00	2023-07-29 10:15:26.444356+00	t	24
+258	6	311	2023-07-29 08:53:27.199147+00	2023-07-29 10:15:26.454228+00	t	17
+246	6	89	2023-07-29 08:53:18.261119+00	2023-07-29 10:15:42.35247+00	t	373
+297	6	320	2023-07-29 09:12:04.010724+00	2023-07-29 10:15:59.025253+00	t	1561
+247	6	184	2023-07-29 08:53:18.261119+00	2023-07-29 10:16:31.470271+00	t	375
+290	6	242	2023-07-29 08:57:41.342605+00	2023-07-29 10:17:15.703686+00	t	\N
+289	6	65	2023-07-29 08:57:33.242663+00	2023-07-29 10:17:39.084675+00	t	\N
+335	7	232	2023-08-05 10:40:18.508098+00	2023-08-05 10:40:18.508098+00	f	\N
+336	7	232	2023-08-05 10:40:29.840899+00	2023-08-05 10:40:29.840899+00	f	1581
+303	7	472	2023-08-05 10:26:32.053539+00	2023-08-05 12:22:15.973875+00	t	\N
+355	7	185	2023-08-05 10:49:41.433556+00	2023-08-05 12:22:59.250033+00	t	\N
+356	7	185	2023-08-05 10:49:51.480019+00	2023-08-05 12:23:01.40678+00	t	1588
+304	7	472	2023-08-05 10:26:44.272673+00	2023-08-05 12:23:05.810616+00	t	1564
+324	7	59	2023-08-05 10:36:04.670247+00	2023-08-05 12:26:06.985222+00	t	\N
+313	7	299	2023-08-05 10:30:59.926039+00	2023-08-05 12:26:08.477719+00	t	\N
+325	7	59	2023-08-05 10:36:12.332634+00	2023-08-05 12:26:09.1213+00	t	1576
+314	7	299	2023-08-05 10:31:23.384615+00	2023-08-05 12:26:10.59049+00	t	1570
+334	7	282	2023-08-05 10:38:29.435748+00	2023-08-05 12:27:57.437921+00	t	1580
+339	7	320	2023-08-05 10:41:16.495436+00	2023-08-05 12:28:44.764232+00	t	\N
+369	8	169	2023-08-13 08:41:51.122164+00	2023-08-13 11:48:59.915178+00	t	\N
+317	7	89	2023-08-05 10:32:00.616277+00	2023-08-05 12:34:08.327477+00	t	\N
+318	7	89	2023-08-05 10:32:06.954674+00	2023-08-05 12:34:52.97055+00	t	1572
+346	7	273	2023-08-05 10:45:14.538651+00	2023-08-05 12:48:46.033917+00	t	1584
+354	7	305	2023-08-05 10:49:28.026189+00	2023-08-05 12:34:55.264032+00	t	\N
+358	7	89	2023-08-05 10:50:10.085078+00	2023-08-05 12:34:55.971882+00	t	1590
+305	7	93	2023-08-05 10:26:51.008247+00	2023-08-05 12:35:42.573847+00	t	1565
+332	7	298	2023-08-05 10:37:44.338612+00	2023-08-05 12:35:43.682147+00	t	\N
+363	7	319	2023-08-05 10:51:39.452802+00	2023-08-05 12:36:02.335115+00	t	\N
+301	7	180	2023-08-05 10:23:33.628998+00	2023-08-05 12:38:44.986858+00	t	\N
+345	7	273	2023-08-05 10:45:01.747445+00	2023-08-05 12:48:46.905207+00	t	\N
+364	7	175	2023-08-05 10:51:43.274407+00	2023-08-05 12:48:50.843649+00	t	\N
+360	7	278	2023-08-05 10:50:52.188322+00	2023-08-05 12:51:17.093376+00	t	\N
+361	7	277	2023-08-05 10:50:52.813888+00	2023-08-05 12:51:50.344596+00	t	\N
+365	7	175	2023-08-05 10:51:54.165107+00	2023-08-05 12:54:09.31692+00	t	1591
+366	8	164	2023-08-13 08:41:18.988267+00	2023-08-13 11:48:59.927279+00	t	\N
+371	8	5	2023-08-13 08:42:28.915053+00	2023-08-13 11:44:39.358759+00	t	\N
+385	8	47	2023-08-13 08:46:10.523286+00	2023-08-13 11:44:40.713895+00	t	\N
+386	8	47	2023-08-13 08:46:22.083766+00	2023-08-13 11:44:42.23754+00	t	1592
+373	8	228	2023-08-13 08:42:41.045689+00	2023-08-13 11:45:34.927755+00	t	\N
+372	8	232	2023-08-13 08:42:35.028407+00	2023-08-13 11:45:37.14232+00	t	\N
+375	8	517	2023-08-13 08:43:20.649428+00	2023-08-13 11:47:14.954349+00	t	\N
+368	8	170	2023-08-13 08:41:50.315927+00	2023-08-13 11:48:59.927518+00	t	\N
+367	8	184	2023-08-13 08:41:39.722639+00	2023-08-13 11:49:02.147108+00	t	\N
+381	8	518	2023-08-13 08:45:08.202156+00	2023-08-13 11:51:02.454183+00	t	\N
+377	8	93	2023-08-13 08:44:06.992885+00	2023-08-13 11:51:38.428473+00	t	\N
+387	8	93	2023-08-13 08:46:38.831094+00	2023-08-13 11:51:39.68409+00	t	1593
+384	8	280	2023-08-13 08:46:00.077331+00	2023-08-13 11:51:49.340706+00	t	\N
+380	8	216	2023-08-13 08:44:36.993993+00	2023-08-13 11:53:36.45136+00	t	\N
+378	8	470	2023-08-13 08:44:19.352662+00	2023-08-13 11:54:45.34244+00	t	\N
+379	8	37	2023-08-13 08:44:27.88845+00	2023-08-13 11:54:52.020434+00	t	\N
+388	8	175	2023-08-13 08:46:51.969698+00	2023-08-13 11:56:20.741039+00	t	1594
+370	8	175	2023-08-13 08:42:08.996443+00	2023-08-13 11:56:22.412356+00	t	\N
+389	8	519	2023-08-13 08:47:06.32742+00	2023-08-13 11:57:52.846414+00	t	1595
+383	8	519	2023-08-13 08:45:46.576888+00	2023-08-13 11:57:53.725882+00	t	\N
+376	8	109	2023-08-13 08:43:43.854877+00	2023-08-13 11:57:54.597441+00	t	\N
+382	8	57	2023-08-13 08:45:19.63654+00	2023-08-13 11:58:48.110185+00	t	\N
+397	10	151	2023-08-30 08:24:48.045955+00	2023-08-30 08:24:48.045955+00	f	\N
+398	10	132	2023-08-30 08:24:52.707207+00	2023-08-30 08:24:52.707207+00	f	\N
+400	10	151	2023-08-30 08:27:28.030332+00	2023-08-30 08:27:28.030332+00	f	1636
+401	10	30	2023-08-30 08:27:38.08647+00	2023-08-30 08:27:38.08647+00	f	1637
+399	10	30	2023-08-30 08:25:01.14346+00	2023-08-30 08:27:33.293592+00	f	\N
+402	10	132	2023-08-30 08:27:49.61991+00	2023-08-30 08:27:49.61991+00	f	1638
+403	11	226	2023-09-03 20:50:09.555877+00	2023-09-04 10:47:04.645294+00	t	\N
+406	11	171	2023-09-03 20:50:26.961147+00	2023-09-04 10:47:24.508236+00	t	\N
+404	11	458	2023-09-03 20:50:13.389679+00	2023-09-04 10:47:52.900488+00	t	\N
+414	11	537	2023-09-03 22:12:12.221827+00	2023-09-04 10:47:55.299936+00	t	2385
+411	11	489	2023-09-03 22:12:12.221827+00	2023-09-04 10:49:37.299541+00	t	2379
+412	11	535	2023-09-03 22:12:12.221827+00	2023-09-04 10:52:44.865021+00	t	2380
+407	11	287	2023-09-03 22:12:12.221827+00	2023-09-04 10:54:57.944351+00	t	2384
+141	3	36	2023-07-08 12:39:46.184655+00	2023-07-08 12:39:46.184655+00	f	\N
+137	3	198	2023-07-08 12:32:08.729116+00	2023-07-08 16:05:56.355847+00	t	\N
+105	3	7	2023-07-08 12:28:18.781025+00	2023-07-08 16:09:50.613405+00	t	940
+142	3	232	2023-07-08 12:39:53.567054+00	2023-07-08 16:18:15.351459+00	t	\N
+144	3	247	2023-07-08 12:40:48.919082+00	2023-07-08 16:21:05.213869+00	t	\N
+270	6	309	2023-07-29 08:54:37.556642+00	2023-07-29 08:54:37.556642+00	f	15
+543	13	67	2023-09-16 15:38:09.607583+00	2023-09-16 15:38:09.607583+00	f	\N
+156	4	381	2023-07-16 09:39:51.804267+00	2023-07-18 19:22:48.737128+00	t	1247
+272	6	311	2023-07-29 08:54:37.556642+00	2023-07-29 08:54:37.556642+00	f	17
+168	4	378	2023-07-16 09:40:14.336794+00	2023-07-16 10:21:31.309283+00	t	1243
+173	4	255	2023-07-16 09:44:50.67466+00	2023-07-16 10:21:56.693338+00	t	\N
+191	4	226	2023-07-16 09:53:17.866379+00	2023-07-16 10:22:34.443384+00	t	\N
+148	4	332	2023-07-16 09:39:40.266103+00	2023-07-16 10:23:33.02952+00	t	369
+150	4	362	2023-07-16 09:39:40.266103+00	2023-07-16 10:24:14.696741+00	t	377
+275	6	314	2023-07-29 08:54:37.556642+00	2023-07-29 08:54:37.556642+00	f	20
+180	4	151	2023-07-16 09:46:16.848769+00	2023-07-16 10:25:58.267764+00	t	\N
+151	4	376	2023-07-16 09:39:40.266103+00	2023-07-16 10:25:58.756176+00	t	374
+194	4	474	2023-07-16 09:57:13.193967+00	2023-07-16 10:26:07.101072+00	t	\N
+172	4	228	2023-07-16 09:44:27.816761+00	2023-07-16 10:27:02.213596+00	t	\N
+183	4	160	2023-07-16 09:47:32.241731+00	2023-07-16 10:27:38.675247+00	t	\N
+154	4	319	2023-07-16 09:39:51.804267+00	2023-07-16 10:32:09.032022+00	t	1249
+164	4	423	2023-07-16 09:39:53.038972+00	2023-07-16 10:32:10.312165+00	t	1554
+171	4	320	2023-07-16 09:44:11.720331+00	2023-07-16 10:32:12.076811+00	t	\N
+158	4	506	2023-07-16 09:39:51.804267+00	2023-07-16 10:32:54.08809+00	t	1250
+159	4	76	2023-07-16 09:39:53.038972+00	2023-07-16 10:33:28.161201+00	t	1553
+145	4	89	2023-07-16 09:39:40.266103+00	2023-07-16 10:33:28.340761+00	t	373
+162	4	402	2023-07-16 09:39:53.038972+00	2023-07-16 10:34:06.561875+00	t	1556
+146	4	184	2023-07-16 09:39:40.266103+00	2023-07-16 10:37:08.511198+00	t	375
+192	4	170	2023-07-16 09:55:00.948386+00	2023-07-16 10:37:09.911809+00	t	\N
+193	4	169	2023-07-16 09:55:01.7857+00	2023-07-16 10:37:10.159369+00	t	\N
+167	4	375	2023-07-16 09:40:14.336794+00	2023-07-16 10:37:38.280308+00	t	1242
+188	4	2	2023-07-16 09:50:17.570158+00	2023-07-16 10:37:45.753505+00	t	\N
+176	4	110	2023-07-16 09:45:15.898946+00	2023-07-16 10:39:03.909682+00	t	\N
+190	4	510	2023-07-16 09:50:47.69102+00	2023-07-16 10:40:04.163365+00	t	\N
+186	4	509	2023-07-16 09:49:55.013712+00	2023-07-16 10:42:29.632587+00	t	\N
+181	4	175	2023-07-16 09:46:22.919435+00	2023-07-16 10:44:08.983797+00	t	\N
+161	4	360	2023-07-16 09:39:53.038972+00	2023-07-16 10:44:42.711608+00	t	1552
+178	4	508	2023-07-16 09:45:56.899599+00	2023-07-16 10:45:25.111108+00	t	\N
+179	4	159	2023-07-16 09:46:08.924953+00	2023-07-16 10:45:59.084307+00	t	\N
+177	4	290	2023-07-16 09:45:37.764471+00	2023-07-16 10:46:33.946144+00	t	\N
+184	4	172	2023-07-16 09:48:20.866735+00	2023-07-16 10:50:01.15986+00	t	\N
+187	4	57	2023-07-16 09:50:10.734188+00	2023-07-16 10:50:06.844713+00	t	\N
+166	4	24	2023-07-16 09:40:14.336794+00	2023-07-16 10:52:51.827399+00	t	1244
+170	4	487	2023-07-16 09:40:14.336794+00	2023-07-16 10:53:53.757913+00	t	1245
+174	4	196	2023-07-16 09:45:02.721024+00	2023-07-16 10:54:01.943008+00	t	\N
+175	4	195	2023-07-16 09:45:04.783199+00	2023-07-16 10:55:34.938721+00	t	\N
+185	4	78	2023-07-16 09:48:37.180615+00	2023-07-16 10:57:39.823703+00	t	\N
+147	4	289	2023-07-16 09:39:40.266103+00	2023-07-16 10:57:42.091078+00	t	372
+182	4	104	2023-07-16 09:47:18.097949+00	2023-07-16 11:01:02.666807+00	t	\N
+189	4	277	2023-07-16 09:50:29.067968+00	2023-07-16 11:01:03.186902+00	t	\N
+279	6	318	2023-07-29 08:54:37.556642+00	2023-07-29 08:54:37.556642+00	f	24
+165	4	507	2023-07-16 09:39:53.038972+00	2023-07-20 07:35:17.36943+00	f	1550
+160	4	87	2023-07-16 09:39:53.038972+00	2023-07-20 07:35:17.798213+00	f	1555
+163	4	405	2023-07-16 09:39:53.038972+00	2023-07-20 07:35:18.641493+00	f	1551
+169	4	411	2023-07-16 09:40:14.336794+00	2023-07-21 21:00:02.421451+00	f	1241
+215	5	474	2023-07-22 10:26:36.784218+00	2023-07-22 11:21:55.098647+00	t	\N
+218	5	7	2023-07-22 10:29:32.632596+00	2023-07-22 11:23:34.563445+00	t	\N
+223	5	120	2023-07-22 10:32:32.849543+00	2023-07-22 11:23:35.24133+00	t	\N
+222	5	232	2023-07-22 10:32:22.289351+00	2023-07-22 11:24:39.674405+00	t	\N
+217	5	320	2023-07-22 10:29:29.871362+00	2023-07-22 11:26:18.813218+00	t	\N
+221	5	114	2023-07-22 10:32:08.662813+00	2023-07-22 11:31:45.431815+00	t	\N
+224	5	109	2023-07-22 10:32:47.457493+00	2023-07-22 11:35:23.860438+00	t	\N
+225	5	97	2023-07-22 10:50:49.610564+00	2023-07-22 11:36:53.075119+00	t	\N
+226	5	512	2023-07-22 10:51:09.263605+00	2023-07-22 11:36:54.472153+00	t	\N
+216	5	85	2023-07-22 10:29:06.76735+00	2023-07-28 06:33:22.181297+00	t	\N
+300	6	313	2023-07-29 09:46:08.928542+00	2023-07-29 10:04:56.17066+00	t	1563
+293	6	256	2023-07-29 09:00:58.010898+00	2023-07-29 10:05:12.833646+00	t	\N
+236	6	483	2023-07-29 08:52:50.283543+00	2023-07-29 10:05:47.281004+00	t	367
+234	6	481	2023-07-29 08:52:50.283543+00	2023-07-29 10:07:01.186159+00	t	362
+286	6	232	2023-07-29 08:56:36.595364+00	2023-07-29 10:09:13.783522+00	t	\N
+283	6	128	2023-07-29 08:55:41.508236+00	2023-07-29 10:13:37.349369+00	t	\N
+237	6	484	2023-07-29 08:52:50.283543+00	2023-07-29 10:15:33.277276+00	t	368
+232	6	366	2023-07-29 08:52:50.283543+00	2023-07-29 10:15:55.6102+00	t	361
+235	6	482	2023-07-29 08:52:50.283543+00	2023-07-29 10:17:04.21729+00	t	366
+298	6	490	2023-07-29 09:12:53.545107+00	2023-07-29 10:18:37.929935+00	t	\N
+299	6	490	2023-07-29 09:13:10.304822+00	2023-07-29 10:18:43.614179+00	t	1562
+238	6	24	2023-07-29 08:53:10.531931+00	2023-07-29 10:21:44.11994+00	t	359
+284	6	114	2023-07-29 08:56:06.840105+00	2023-07-29 10:21:44.687266+00	t	\N
+294	6	175	2023-07-29 09:01:30.205123+00	2023-07-29 10:23:03.774172+00	t	\N
+292	6	130	2023-07-29 08:59:17.883922+00	2023-07-29 10:23:06.371781+00	t	\N
+295	6	513	2023-07-29 09:06:11.229726+00	2023-07-29 10:25:05.154108+00	t	\N
+315	7	282	2023-08-05 10:31:38.151629+00	2023-08-05 10:31:38.151629+00	f	\N
+320	7	372	2023-08-05 10:34:47.294791+00	2023-08-05 12:20:06.477697+00	t	\N
+321	7	372	2023-08-05 10:34:55.852659+00	2023-08-05 12:20:20.842518+00	t	1574
+348	7	117	2023-08-05 10:47:08.525162+00	2023-08-05 12:20:43.683979+00	t	\N
+353	7	117	2023-08-05 10:49:19.561496+00	2023-08-05 12:21:01.029246+00	t	1587
+306	7	43	2023-08-05 10:27:06.252711+00	2023-08-05 12:23:34.525114+00	t	\N
+338	7	152	2023-08-05 10:41:05.591283+00	2023-08-05 12:21:30.973034+00	t	1582
+350	7	507	2023-08-05 10:48:07.789597+00	2023-08-05 12:22:13.637914+00	t	\N
+337	7	152	2023-08-05 10:40:57.027621+00	2023-08-05 12:23:19.288409+00	f	\N
+307	7	43	2023-08-05 10:27:14.640444+00	2023-08-05 12:29:15.440454+00	t	1566
+330	7	514	2023-08-05 10:37:13.16727+00	2023-08-05 12:31:33.319864+00	t	\N
+326	7	170	2023-08-05 10:36:26.424883+00	2023-08-05 12:32:25.542072+00	t	\N
+327	7	170	2023-08-05 10:36:34.825567+00	2023-08-05 12:32:27.308285+00	t	1577
+328	7	134	2023-08-05 10:36:45.537724+00	2023-08-05 12:36:02.334597+00	t	\N
+341	7	234	2023-08-05 10:42:19.634825+00	2023-08-05 12:38:41.550513+00	t	\N
+322	7	381	2023-08-05 10:35:43.63336+00	2023-08-05 12:39:27.847297+00	t	\N
+323	7	381	2023-08-05 10:35:54.120758+00	2023-08-05 12:39:29.016848+00	t	1575
+340	7	108	2023-08-05 10:41:54.672287+00	2023-08-05 12:43:04.564048+00	t	\N
+319	7	43	2023-08-05 10:34:24.834614+00	2023-08-05 12:43:04.857767+00	t	1573
+349	7	43	2023-08-05 10:47:25.367146+00	2023-08-05 12:43:06.169327+00	t	1585
+331	7	514	2023-08-05 10:37:24.263704+00	2023-08-05 12:44:06.596764+00	t	1578
+329	7	103	2023-08-05 10:36:49.082157+00	2023-08-05 12:46:33.250672+00	t	\N
+347	7	360	2023-08-05 10:46:23.027701+00	2023-08-05 12:46:33.729894+00	t	\N
+359	7	104	2023-08-05 10:50:24.668533+00	2023-08-05 12:51:18.045844+00	t	\N
+342	7	515	2023-08-05 10:43:45.58225+00	2023-08-05 12:54:06.946144+00	t	\N
+351	7	504	2023-08-05 10:48:47.503214+00	2023-08-05 12:55:28.216981+00	t	\N
+352	7	504	2023-08-05 10:48:57.232331+00	2023-08-05 12:55:29.294802+00	t	1586
+311	7	47	2023-08-05 10:30:18.787874+00	2023-08-05 13:01:22.327347+00	t	\N
+312	7	47	2023-08-05 10:30:31.620553+00	2023-08-05 13:01:23.993852+00	t	1569
+344	7	47	2023-08-05 10:44:49.773012+00	2023-08-05 13:01:25.565069+00	t	1583
+488	12	182	2023-09-10 12:57:54.574119+00	2023-09-10 14:26:41.52189+00	t	3210
+469	12	544	2023-09-10 12:47:21.330779+00	2023-09-10 14:27:41.62774+00	t	3197
+496	12	276	2023-09-10 13:05:09.903514+00	2023-09-10 14:30:41.631142+00	t	\N
+493	12	275	2023-09-10 13:04:21.781441+00	2023-09-10 14:31:32.738963+00	t	\N
+495	12	278	2023-09-10 13:04:54.25988+00	2023-09-10 14:31:34.11645+00	t	\N
+501	12	458	2023-09-10 13:06:50.613742+00	2023-09-12 06:50:10.875097+00	f	\N
+438	11	171	2023-09-03 22:12:54.946012+00	2023-09-03 22:12:54.946012+00	f	1683
+447	11	360	2023-09-03 22:16:38.771441+00	2023-09-03 22:16:38.771441+00	f	2720
+427	11	236	2023-09-03 22:12:36.058373+00	2023-09-04 10:48:17.141076+00	t	2054
+446	11	341	2023-09-03 22:16:38.771441+00	2023-09-04 10:48:48.622743+00	t	2716
+431	11	372	2023-09-03 22:12:36.058373+00	2023-09-04 10:49:49.706576+00	t	2053
+420	11	251	2023-09-03 22:12:26.368245+00	2023-09-04 10:49:51.973241+00	t	356
+444	11	252	2023-09-03 22:16:38.771441+00	2023-09-04 10:51:00.395656+00	t	2719
+418	11	193	2023-09-03 22:12:26.368245+00	2023-09-04 10:51:53.757346+00	t	360
+452	11	170	2023-09-04 06:49:08.042975+00	2023-09-04 10:52:05.038391+00	t	\N
+416	11	539	2023-09-03 22:12:12.221827+00	2023-09-04 10:52:44.258544+00	t	2388
+415	11	538	2023-09-03 22:12:12.221827+00	2023-09-04 10:52:55.713872+00	t	2387
+450	11	541	2023-09-03 22:16:38.771441+00	2023-09-04 10:55:47.80133+00	t	2722
+425	11	46	2023-09-03 22:12:36.058373+00	2023-09-04 10:56:05.594522+00	t	2052
+424	11	480	2023-09-03 22:12:26.368245+00	2023-09-04 10:56:45.532177+00	t	357
+421	11	259	2023-09-03 22:12:26.368245+00	2023-09-04 10:56:59.74395+00	t	358
+448	11	480	2023-09-03 22:16:38.771441+00	2023-09-04 10:57:12.702367+00	t	2717
+454	11	524	2023-09-04 10:42:53.998415+00	2023-09-04 10:59:26.749694+00	t	2723
+443	11	530	2023-09-03 22:12:54.946012+00	2023-09-04 10:59:28.98173+00	t	1684
+453	11	14	2023-09-04 06:49:31.010062+00	2023-09-04 10:59:33.189352+00	t	\N
+451	11	78	2023-09-04 06:49:00.132103+00	2023-09-04 11:01:03.418341+00	t	\N
+472	12	547	2023-09-10 12:47:21.330779+00	2023-09-10 12:47:21.330779+00	f	3202
+478	12	553	2023-09-10 12:47:21.330779+00	2023-09-10 12:47:21.330779+00	f	3209
+494	12	558	2023-09-10 13:04:46.579879+00	2023-09-10 13:04:46.579879+00	f	\N
+460	12	42	2023-09-10 12:47:08.064+00	2023-09-10 14:00:20.17465+00	t	3121
+480	12	166	2023-09-10 12:47:30.015826+00	2023-09-10 14:01:35.806134+00	t	3126
+465	12	117	2023-09-10 12:47:21.330779+00	2023-09-10 14:02:21.653474+00	t	3195
+498	12	188	2023-09-10 13:05:27.719602+00	2023-09-10 14:02:32.248331+00	t	\N
+455	12	146	2023-09-10 12:46:30.915738+00	2023-09-10 14:03:11.578243+00	t	2783
+500	12	152	2023-09-10 13:06:46.449126+00	2023-09-10 14:03:11.587975+00	t	\N
+475	12	550	2023-09-10 12:47:21.330779+00	2023-09-10 14:03:50.365829+00	t	3206
+577	13	563	2023-09-16 16:02:38.537622+00	2023-09-16 17:03:18.093892+00	t	\N
+497	12	500	2023-09-10 13:05:25.283542+00	2023-09-10 14:06:28.370553+00	t	\N
+463	12	46	2023-09-10 12:47:21.330779+00	2023-09-10 14:06:29.125876+00	t	3205
+462	12	254	2023-09-10 12:47:08.064+00	2023-09-10 14:06:30.340832+00	t	3123
+458	12	228	2023-09-10 12:46:30.915738+00	2023-09-10 14:08:19.096371+00	t	2786
+503	12	320	2023-09-10 13:07:29.548365+00	2023-09-10 14:09:55.666695+00	t	\N
+502	12	125	2023-09-10 13:07:04.731911+00	2023-09-10 14:12:08.249421+00	t	\N
+499	12	375	2023-09-10 13:05:28.679612+00	2023-09-10 14:12:08.825082+00	t	\N
+456	12	162	2023-09-10 12:46:30.915738+00	2023-09-10 14:12:09.448467+00	t	2784
+476	12	551	2023-09-10 12:47:21.330779+00	2023-09-10 14:12:21.432811+00	t	3207
+489	12	100	2023-09-10 12:58:33.083038+00	2023-09-10 14:14:01.211587+00	t	\N
+492	12	557	2023-09-10 13:00:40.991648+00	2023-09-10 14:14:43.317476+00	t	\N
+466	12	178	2023-09-10 12:47:21.330779+00	2023-09-10 14:14:47.701191+00	t	3199
+491	12	556	2023-09-10 12:59:42.904462+00	2023-09-10 14:19:04.318084+00	t	\N
+490	12	360	2023-09-10 12:58:55.767695+00	2023-09-10 14:22:20.142831+00	t	\N
+504	12	175	2023-09-10 13:15:48.929235+00	2023-09-10 14:22:20.142865+00	t	\N
+486	12	554	2023-09-10 12:56:03.202028+00	2023-09-10 14:22:45.583268+00	t	\N
+487	12	555	2023-09-10 12:57:20.408445+00	2023-09-10 14:23:27.937862+00	t	\N
+464	12	66	2023-09-10 12:47:21.330779+00	2023-09-10 14:23:38.388007+00	t	3196
+474	12	549	2023-09-10 12:47:21.330779+00	2023-09-10 14:23:44.582575+00	t	3204
+557	13	236	2023-09-16 15:45:23.344195+00	2023-09-16 16:44:32.235759+00	t	\N
+563	13	228	2023-09-16 15:47:51.626087+00	2023-09-16 16:51:47.850126+00	t	\N
+552	13	175	2023-09-16 15:42:50.177607+00	2023-09-16 17:08:29.086352+00	t	\N
+562	13	341	2023-09-16 15:47:33.474463+00	2023-09-16 16:45:44.577421+00	t	3331
+556	13	458	2023-09-16 15:45:10.221546+00	2023-09-16 16:41:57.568715+00	t	3330
+531	13	483	2023-09-16 15:35:26.617128+00	2023-09-16 16:42:19.39908+00	t	3300
+564	13	120	2023-09-16 15:48:11.63405+00	2023-09-16 16:42:45.587724+00	t	\N
+554	13	485	2023-09-16 15:43:10.12246+00	2023-09-16 16:43:13.328892+00	t	\N
+553	13	152	2023-09-16 15:43:01.303724+00	2023-09-16 16:43:37.031702+00	t	\N
+555	13	87	2023-09-16 15:43:24.809898+00	2023-09-16 16:43:58.453179+00	t	\N
+566	13	87	2023-09-16 15:49:24.608755+00	2023-09-16 16:43:59.341556+00	t	3333
+521	13	406	2023-09-16 15:34:27.567085+00	2023-09-16 16:44:13.027629+00	t	3306
+544	13	83	2023-09-16 15:38:31.714897+00	2023-09-16 16:47:35.279339+00	t	\N
+547	13	83	2023-09-16 15:39:49.842546+00	2023-09-16 16:47:36.375027+00	t	3327
+545	13	456	2023-09-16 15:38:45.308604+00	2023-09-16 16:49:01.199333+00	t	\N
+541	13	561	2023-09-16 15:36:26.417526+00	2023-09-16 16:49:02.104358+00	t	\N
+548	13	456	2023-09-16 15:40:01.675153+00	2023-09-16 16:49:02.83709+00	t	3328
+513	13	309	2023-09-16 15:34:27.567085+00	2023-09-16 16:51:46.784294+00	t	3308
+558	13	160	2023-09-16 15:45:43.969257+00	2023-09-16 16:51:47.289293+00	t	\N
+518	13	366	2023-09-16 15:34:27.567085+00	2023-09-16 16:56:29.096484+00	t	3316
+540	13	374	2023-09-16 15:35:46.736731+00	2023-09-16 17:04:11.750769+00	t	3320
+549	13	305	2023-09-16 15:41:29.157642+00	2023-09-16 16:55:05.215781+00	t	\N
+550	13	305	2023-09-16 15:41:51.735431+00	2023-09-16 16:55:06.902623+00	t	3329
+569	13	404	2023-09-16 15:51:43.351804+00	2023-09-16 16:55:43.499172+00	t	3335
+568	13	404	2023-09-16 15:51:34.923442+00	2023-09-16 16:55:45.002975+00	t	\N
+574	13	162	2023-09-16 15:59:03.05212+00	2023-09-16 16:57:03.892081+00	t	\N
+575	13	162	2023-09-16 15:59:12.333265+00	2023-09-16 16:57:05.019306+00	t	3338
+560	13	169	2023-09-16 15:46:31.709767+00	2023-09-16 16:57:40.119328+00	t	\N
+561	13	170	2023-09-16 15:46:34.726497+00	2023-09-16 16:57:40.709288+00	t	\N
+508	13	197	2023-09-16 15:33:03.843943+00	2023-09-16 17:02:57.651883+00	t	\N
+580	13	65	2023-09-16 16:02:52.337226+00	2023-09-16 17:03:02.458331+00	t	\N
+572	13	41	2023-09-16 15:58:36.67126+00	2023-09-16 17:05:58.81992+00	t	\N
+573	13	41	2023-09-16 15:58:51.270082+00	2023-09-16 17:06:19.943269+00	t	3337
+533	13	559	2023-09-16 15:35:26.617128+00	2023-09-16 17:07:10.031428+00	t	3301
+567	13	175	2023-09-16 15:51:02.068346+00	2023-09-16 17:08:30.937421+00	t	3334
+570	13	360	2023-09-16 15:58:04.606139+00	2023-09-16 17:08:35.037193+00	t	\N
+571	13	360	2023-09-16 15:58:18.375896+00	2023-09-16 17:08:40.439099+00	t	3336
+578	13	57	2023-09-16 16:02:42.763081+00	2023-09-16 17:12:06.265587+00	t	\N
+576	13	562	2023-09-16 16:00:46.168487+00	2023-09-16 17:12:07.240791+00	t	\N
+559	13	33	2023-09-16 15:46:26.808315+00	2023-09-16 17:20:40.685638+00	t	\N
+579	13	78	2023-09-16 16:02:48.40465+00	2023-09-16 17:20:41.067237+00	t	\N
+581	14	564	2023-09-23 08:29:47.651142+00	2023-09-23 08:29:47.651142+00	f	\N
+582	14	145	2023-09-23 08:32:20.491064+00	2023-09-23 08:32:20.491064+00	f	\N
+587	14	120	2023-09-23 08:46:47.869694+00	2023-09-23 15:17:54.91636+00	t	\N
+588	14	448	2023-09-23 08:51:03.226455+00	2023-09-23 15:20:21.60736+00	t	\N
+596	14	171	2023-09-23 14:30:01.117935+00	2023-09-23 15:21:24.391919+00	t	\N
+597	14	461	2023-09-23 14:31:14.399176+00	2023-09-23 15:22:41.430891+00	t	\N
+592	14	320	2023-09-23 08:53:47.073597+00	2023-09-23 15:30:39.761293+00	t	\N
+589	14	407	2023-09-23 08:51:20.997327+00	2023-09-23 15:35:21.498657+00	t	\N
+591	14	128	2023-09-23 08:51:32.790364+00	2023-09-23 15:32:00.948926+00	t	\N
+584	14	319	2023-09-23 08:39:18.288991+00	2023-09-23 15:33:54.08084+00	t	\N
+586	14	242	2023-09-23 08:39:37.09543+00	2023-09-23 15:37:33.264492+00	t	\N
+583	14	175	2023-09-23 08:38:32.370762+00	2023-09-23 15:44:07.144863+00	t	\N
+593	14	109	2023-09-23 14:28:41.461901+00	2023-09-23 15:44:14.011596+00	t	\N
+585	14	272	2023-09-23 08:39:35.961614+00	2023-09-23 15:47:06.939279+00	t	\N
+640	14	175	2023-09-23 14:42:15.970851+00	2023-09-23 14:42:15.970851+00	f	3487
+595	14	458	2023-09-23 14:29:52.429016+00	2023-09-23 15:15:48.956622+00	t	\N
+611	14	42	2023-09-23 14:38:59.398997+00	2023-09-23 15:16:23.54502+00	t	3479
+606	14	458	2023-09-23 14:38:39.366292+00	2023-09-23 15:16:23.568481+00	t	3451
+637	14	458	2023-09-23 14:39:48.420789+00	2023-09-23 15:16:25.1444+00	t	3468
+602	14	79	2023-09-23 14:37:25.125884+00	2023-09-23 15:16:55.763039+00	t	\N
+619	14	5	2023-09-23 14:39:22.781868+00	2023-09-23 15:17:33.446948+00	t	3461
+607	14	567	2023-09-23 14:38:39.366292+00	2023-09-23 15:19:28.405102+00	t	3452
+638	14	567	2023-09-23 14:39:48.420789+00	2023-09-23 15:19:30.556471+00	t	3469
+621	14	146	2023-09-23 14:39:22.781868+00	2023-09-23 15:20:21.635254+00	t	3459
+627	14	146	2023-09-23 14:39:48.420789+00	2023-09-23 15:20:52.224461+00	t	3476
+594	14	152	2023-09-23 14:29:47.998302+00	2023-09-23 15:21:24.176662+00	t	\N
+604	14	339	2023-09-23 14:38:39.366292+00	2023-09-23 15:22:03.378512+00	t	3450
+615	14	339	2023-09-23 14:38:59.398997+00	2023-09-23 15:22:38.799844+00	t	3480
+600	14	456	2023-09-23 14:34:13.375026+00	2023-09-23 15:22:40.546643+00	t	\N
+622	14	339	2023-09-23 14:39:22.781868+00	2023-09-23 15:22:42.18432+00	t	3458
+630	14	339	2023-09-23 14:39:48.420789+00	2023-09-23 15:22:43.646155+00	t	3467
+624	14	406	2023-09-23 14:39:22.781868+00	2023-09-23 15:23:17.166653+00	t	3462
+636	14	406	2023-09-23 14:39:48.420789+00	2023-09-23 15:23:18.166822+00	t	3474
+623	14	341	2023-09-23 14:39:22.781868+00	2023-09-23 15:24:12.216724+00	t	3460
+631	14	341	2023-09-23 14:39:48.420789+00	2023-09-23 15:24:13.308869+00	t	3475
+613	14	262	2023-09-23 14:38:59.398997+00	2023-09-23 15:24:42.331826+00	t	3484
+625	14	440	2023-09-23 14:39:22.781868+00	2023-09-23 15:26:48.478451+00	t	3464
+610	14	570	2023-09-23 14:38:39.366292+00	2023-09-23 15:28:55.270024+00	t	3457
+639	14	572	2023-09-23 14:39:48.420789+00	2023-09-23 15:29:05.09312+00	t	3470
+635	14	404	2023-09-23 14:39:48.420789+00	2023-09-23 15:31:57.677113+00	t	3477
+620	14	76	2023-09-23 14:39:22.781868+00	2023-09-23 15:33:14.375352+00	t	3465
+598	14	65	2023-09-23 14:32:00.401522+00	2023-09-23 15:36:16.563917+00	t	\N
+609	14	569	2023-09-23 14:38:39.366292+00	2023-09-23 15:37:38.208631+00	t	3456
+608	14	568	2023-09-23 14:38:39.366292+00	2023-09-23 15:38:50.949699+00	t	3453
+599	14	548	2023-09-23 14:32:40.934636+00	2023-09-23 15:39:04.63127+00	t	\N
+601	14	276	2023-09-23 14:36:17.631763+00	2023-09-23 15:50:28.613821+00	t	\N
+666	15	88	2023-10-01 08:36:32.117203+00	2023-10-01 08:36:32.117203+00	f	\N
+700	15	42	2023-10-01 08:53:03.207404+00	2023-10-01 09:34:47.800087+00	t	4157
+683	15	152	2023-10-01 08:43:54.204708+00	2023-10-01 09:36:36.116489+00	t	\N
+656	15	314	2023-10-01 08:31:57.55222+00	2023-10-01 09:36:39.405729+00	t	\N
+699	15	341	2023-10-01 08:51:07.953653+00	2023-10-01 09:37:19.477427+00	t	3812
+679	15	339	2023-10-01 08:41:45.82541+00	2023-10-01 09:38:52.405625+00	t	3805
+653	15	120	2023-10-01 08:30:32.660609+00	2023-10-01 09:39:05.669978+00	t	\N
+685	15	6	2023-10-01 08:45:20.587833+00	2023-10-01 09:39:37.930827+00	t	\N
+686	15	6	2023-10-01 08:45:28.818414+00	2023-10-01 09:39:49.121721+00	t	3807
+667	15	213	2023-10-01 08:36:48.366698+00	2023-10-01 09:41:04.263189+00	t	\N
+710	15	213	2023-10-01 08:55:20.021895+00	2023-10-01 09:41:13.95905+00	t	4166
+702	15	310	2023-10-01 08:53:03.207404+00	2023-10-01 09:41:13.969784+00	t	4158
+655	15	458	2023-10-01 08:31:50.044234+00	2023-10-01 09:41:18.165767+00	t	\N
+677	15	458	2023-10-01 08:41:25.014789+00	2023-10-01 09:41:19.868661+00	t	3802
+687	15	378	2023-10-01 08:45:51.21291+00	2023-10-01 09:42:41.996182+00	t	\N
+688	15	378	2023-10-01 08:46:06.829062+00	2023-10-01 09:42:43.627337+00	t	3808
+672	15	117	2023-10-01 08:41:25.014789+00	2023-10-01 09:43:17.150295+00	t	3798
+703	15	362	2023-10-01 08:53:03.207404+00	2023-10-01 09:43:57.985792+00	t	4163
+682	15	474	2023-10-01 08:43:45.503984+00	2023-10-01 09:43:59.117017+00	t	\N
+659	15	198	2023-10-01 08:35:19.28337+00	2023-10-01 09:45:32.312387+00	t	\N
+690	15	579	2023-10-01 08:46:38.100694+00	2023-10-01 09:48:24.713911+00	t	\N
+698	15	579	2023-10-01 08:50:48.024493+00	2023-10-01 09:49:10.256197+00	t	3811
+654	15	160	2023-10-01 08:31:27.860081+00	2023-10-01 09:49:11.016849+00	t	\N
+652	15	232	2023-10-01 08:30:26.069262+00	2023-10-01 09:50:03.150139+00	t	\N
+663	15	575	2023-10-01 08:36:30.190455+00	2023-10-01 09:51:12.485406+00	t	3637
+650	15	404	2023-10-01 08:28:32.977377+00	2023-10-01 09:52:12.843047+00	t	130
+665	15	577	2023-10-01 08:36:30.190455+00	2023-10-01 10:16:46.433205+00	t	3639
+712	15	583	2023-10-01 08:59:18.191362+00	2023-10-01 10:16:57.784182+00	t	4167
+709	15	116	2023-10-01 08:54:40.23227+00	2023-10-01 10:17:03.853836+00	t	4165
+642	15	323	2023-10-01 08:28:32.977377+00	2023-10-01 10:16:46.496409+00	t	123
+675	15	374	2023-10-01 08:41:25.014789+00	2023-10-01 10:17:04.52986+00	t	3804
+658	15	305	2023-10-01 08:34:58.686617+00	2023-10-01 10:17:05.083055+00	t	\N
+669	15	331	2023-10-01 08:36:55.972095+00	2023-10-01 10:17:05.541128+00	t	3642
+680	15	305	2023-10-01 08:42:09.592628+00	2023-10-01 10:17:06.450684+00	t	3806
+660	15	66	2023-10-01 08:35:38.616221+00	2023-10-01 10:16:46.496474+00	t	\N
+696	15	175	2023-10-01 08:50:02.576518+00	2023-10-01 10:16:46.499321+00	t	\N
+711	15	583	2023-10-01 08:58:08.077206+00	2023-10-01 10:16:46.499243+00	t	\N
+708	15	116	2023-10-01 08:54:14.465262+00	2023-10-01 10:16:46.499204+00	t	\N
+670	15	335	2023-10-01 08:37:52.241071+00	2023-10-01 10:16:46.499157+00	t	3643
+689	15	578	2023-10-01 08:46:32.536771+00	2023-10-01 10:16:52.414131+00	t	\N
+678	15	567	2023-10-01 08:41:25.014789+00	2023-10-01 10:16:52.498329+00	t	3801
+692	15	323	2023-10-01 08:47:07.830959+00	2023-10-01 10:16:54.150873+00	t	3809
+647	15	335	2023-10-01 08:28:32.977377+00	2023-10-01 10:16:55.544367+00	t	122
+684	15	170	2023-10-01 08:44:02.37765+00	2023-10-01 10:17:08.900023+00	t	\N
+693	15	169	2023-10-01 08:47:18.529979+00	2023-10-01 10:17:09.206595+00	t	\N
+704	15	482	2023-10-01 08:53:03.207404+00	2023-10-01 10:17:10.431082+00	t	4160
+691	15	375	2023-10-01 08:46:45.353244+00	2023-10-01 10:17:10.690799+00	t	\N
+661	15	89	2023-10-01 08:36:30.190455+00	2023-10-01 10:17:12.183561+00	t	3640
+697	15	388	2023-10-01 08:50:07.667908+00	2023-10-01 10:17:12.677081+00	t	\N
+695	15	2	2023-10-01 08:49:29.252679+00	2023-10-01 10:17:14.16485+00	t	\N
+694	15	169	2023-10-01 08:47:27.550412+00	2023-10-01 10:17:21.461571+00	t	3810
+657	15	283	2023-10-01 08:32:35.661179+00	2023-10-01 10:19:53.949747+00	t	\N
+705	15	487	2023-10-01 08:53:03.207404+00	2023-10-01 10:26:52.157299+00	t	4162
+664	15	576	2023-10-01 08:36:30.190455+00	2023-10-01 10:29:03.012091+00	t	3638
+641	15	142	2023-10-01 08:04:17.539239+00	2023-10-01 10:31:29.581716+00	t	\N
+714	16	276	2023-10-07 09:32:43.014992+00	2023-10-07 09:32:43.014992+00	f	\N
+715	16	278	2023-10-07 09:32:47.400179+00	2023-10-07 09:32:47.400179+00	f	\N
+720	16	146	2023-10-07 09:35:46.43127+00	2023-10-07 16:17:14.276446+00	t	3459
+722	16	341	2023-10-07 09:35:46.43127+00	2023-10-07 16:16:52.329344+00	t	3460
+737	16	188	2023-10-07 09:54:58.531045+00	2023-10-07 16:29:56.166807+00	t	\N
+721	16	339	2023-10-07 09:35:46.43127+00	2023-10-07 16:18:00.774722+00	t	3458
+738	16	240	2023-10-07 09:55:28.764518+00	2023-10-07 16:18:43.968933+00	t	\N
+718	16	5	2023-10-07 09:35:46.43127+00	2023-10-07 16:19:15.134377+00	t	3461
+732	16	197	2023-10-07 09:52:07.396111+00	2023-10-07 16:29:59.214024+00	t	\N
+730	16	588	2023-10-07 09:51:17.971645+00	2023-10-07 16:48:07.892908+00	t	\N
+724	16	440	2023-10-07 09:35:46.43127+00	2023-10-07 16:31:54.965487+00	t	3464
+717	16	360	2023-10-07 09:33:23.458424+00	2023-10-07 16:47:18.75725+00	t	\N
+716	16	291	2023-10-07 09:33:05.909825+00	2023-10-07 16:49:17.547411+00	t	\N
+729	16	587	2023-10-07 09:50:37.416747+00	2023-10-07 16:47:18.765593+00	t	\N
+727	16	585	2023-10-07 09:49:11.121977+00	2023-10-07 16:48:11.050217+00	t	\N
+733	16	242	2023-10-07 09:52:08.647437+00	2023-10-07 16:48:27.99436+00	t	\N
+719	16	76	2023-10-07 09:35:46.43127+00	2023-10-07 16:48:30.847057+00	t	3465
+731	16	65	2023-10-07 09:52:03.585047+00	2023-10-07 16:48:39.112535+00	t	\N
+713	16	277	2023-10-07 09:32:42.292974+00	2023-10-07 16:52:08.401274+00	t	\N
+728	16	586	2023-10-07 09:50:00.78697+00	2023-10-07 17:05:52.133152+00	t	\N
+734	16	40	2023-10-07 09:54:08.071032+00	2023-10-07 17:05:52.162717+00	t	\N
+736	16	217	2023-10-07 09:54:41.812051+00	2023-10-07 17:05:52.166419+00	t	\N
+743	16	5	2023-10-07 10:15:56.51234+00	2023-10-07 10:15:56.51234+00	f	4331
+744	16	197	2023-10-07 10:15:56.51234+00	2023-10-07 10:15:56.51234+00	f	4336
+750	16	590	2023-10-07 10:15:56.51234+00	2023-10-07 10:15:56.51234+00	f	4330
+764	16	146	2023-10-07 10:16:14.529659+00	2023-10-07 10:16:14.529659+00	f	4353
+765	16	339	2023-10-07 10:16:14.529659+00	2023-10-07 10:16:14.529659+00	f	4349
+766	16	341	2023-10-07 10:16:14.529659+00	2023-10-07 10:16:14.529659+00	f	4352
+783	16	339	2023-10-07 10:17:17.490825+00	2023-10-07 10:17:17.490825+00	f	4368
+794	16	291	2023-10-07 10:17:25.560426+00	2023-10-07 10:17:25.560426+00	f	4379
+799	16	341	2023-10-07 10:18:27.898647+00	2023-10-07 10:18:27.898647+00	f	4386
+811	16	360	2023-10-07 10:24:21.299086+00	2023-10-07 10:24:21.299086+00	f	4392
+817	16	339	2023-10-07 10:27:03.340167+00	2023-10-07 10:27:03.340167+00	f	4395
+818	16	339	2023-10-07 10:27:14.867235+00	2023-10-07 10:27:14.867235+00	f	4396
+795	16	361	2023-10-07 10:17:25.560426+00	2023-10-07 16:08:37.63344+00	t	4380
+753	16	213	2023-10-07 10:16:05.195269+00	2023-10-07 16:12:01.07464+00	t	4346
+740	16	579	2023-10-07 10:00:18.697481+00	2023-10-07 16:27:50.16465+00	t	\N
+741	16	161	2023-10-07 10:00:41.921742+00	2023-10-07 16:12:48.538474+00	t	\N
+759	16	458	2023-10-07 10:16:05.195269+00	2023-10-07 16:13:08.004636+00	t	4345
+769	16	458	2023-10-07 10:16:14.529659+00	2023-10-07 16:13:09.219163+00	t	4350
+785	16	458	2023-10-07 10:17:17.490825+00	2023-10-07 16:13:11.828962+00	t	4369
+819	16	458	2023-10-07 10:27:28.87788+00	2023-10-07 16:13:19.091964+00	t	4397
+804	16	314	2023-10-07 10:21:28.912491+00	2023-10-07 16:13:49.528257+00	t	\N
+805	16	314	2023-10-07 10:21:48.523492+00	2023-10-07 16:15:20.190817+00	t	4389
+822	16	161	2023-10-07 10:39:01.731907+00	2023-10-07 16:16:04.345488+00	t	4399
+816	16	579	2023-10-07 10:26:31.434819+00	2023-10-07 16:27:52.194514+00	t	4394
+746	16	411	2023-10-07 10:15:56.51234+00	2023-10-07 16:18:48.941225+00	t	4329
+809	16	151	2023-10-07 10:23:31.50331+00	2023-10-07 16:19:53.765732+00	t	\N
+810	16	151	2023-10-07 10:23:46.673353+00	2023-10-07 16:19:56.149572+00	t	4391
+791	16	602	2023-10-07 10:17:17.490825+00	2023-10-07 16:29:37.30646+00	t	4376
+779	16	597	2023-10-07 10:16:33.315575+00	2023-10-07 16:21:39.833837+00	t	4362
+780	16	43	2023-10-07 10:17:17.490825+00	2023-10-07 16:29:52.822364+00	t	4370
+742	16	589	2023-10-07 10:03:01.29919+00	2023-10-07 16:24:54.246236+00	f	\N
+781	16	138	2023-10-07 10:17:17.490825+00	2023-10-07 16:25:05.599466+00	t	4377
+745	16	333	2023-10-07 10:15:56.51234+00	2023-10-07 16:25:09.83631+00	t	4334
+748	16	483	2023-10-07 10:15:56.51234+00	2023-10-07 16:25:41.354532+00	t	4335
+751	16	46	2023-10-07 10:16:05.195269+00	2023-10-07 16:27:21.797043+00	t	4337
+808	16	608	2023-10-07 10:23:00.950572+00	2023-10-07 16:31:59.634693+00	t	\N
+806	16	305	2023-10-07 10:22:17.38043+00	2023-10-07 16:32:00.246075+00	t	\N
+807	16	305	2023-10-07 10:22:33.15934+00	2023-10-07 16:32:01.934277+00	t	4390
+797	16	605	2023-10-07 10:17:25.560426+00	2023-10-07 16:32:11.185946+00	t	4383
+796	16	604	2023-10-07 10:17:25.560426+00	2023-10-07 16:32:16.728986+00	t	4381
+775	16	327	2023-10-07 10:16:33.315575+00	2023-10-07 16:34:47.206091+00	t	4364
+820	16	175	2023-10-07 10:27:52.923472+00	2023-10-07 16:47:18.838589+00	t	\N
+739	16	25	2023-10-07 09:57:14.597619+00	2023-10-07 16:48:07.451734+00	t	\N
+802	16	607	2023-10-07 10:19:50.489025+00	2023-10-07 16:48:09.481723+00	t	\N
+803	16	607	2023-10-07 10:20:15.820631+00	2023-10-07 16:48:22.895135+00	t	4388
+821	16	175	2023-10-07 10:28:01.739732+00	2023-10-07 16:48:30.070039+00	t	4398
+763	16	60	2023-10-07 10:16:14.529659+00	2023-10-07 16:48:54.060702+00	t	4358
+762	16	593	2023-10-07 10:16:05.195269+00	2023-10-07 16:48:54.45204+00	t	4347
+770	16	522	2023-10-07 10:16:14.529659+00	2023-10-07 16:48:58.141758+00	t	4356
+749	16	524	2023-10-07 10:15:56.51234+00	2023-10-07 16:48:58.141948+00	t	4332
+801	16	606	2023-10-07 10:18:27.898647+00	2023-10-07 16:48:58.331221+00	t	4385
+782	16	212	2023-10-07 10:17:17.490825+00	2023-10-07 16:49:00.274172+00	t	4371
+788	16	599	2023-10-07 10:17:17.490825+00	2023-10-07 16:49:01.416818+00	t	4372
+793	16	227	2023-10-07 10:17:25.560426+00	2023-10-07 16:49:02.816065+00	t	4382
+778	16	596	2023-10-07 10:16:33.315575+00	2023-10-07 16:49:03.13022+00	t	4360
+790	16	601	2023-10-07 10:17:17.490825+00	2023-10-07 16:49:04.935944+00	t	4374
+812	16	136	2023-10-07 10:24:42.796131+00	2023-10-07 16:50:13.029306+00	t	\N
+813	16	136	2023-10-07 10:25:03.756441+00	2023-10-07 16:50:16.384988+00	t	4393
+814	16	11	2023-10-07 10:25:19.18+00	2023-10-07 17:05:52.160381+00	t	\N
+735	16	518	2023-10-07 09:54:36.244516+00	2023-10-07 17:05:52.1619+00	t	\N
+726	16	78	2023-10-07 09:47:06.122805+00	2023-10-07 17:05:52.163354+00	t	\N
+815	16	609	2023-10-07 10:25:41.537097+00	2023-10-07 17:05:52.164106+00	t	\N
+843	18	181	2023-10-14 13:13:45.840802+00	2023-10-14 13:13:45.840802+00	f	\N
+853	18	40	2023-10-14 13:20:14.45136+00	2023-10-14 13:20:14.45136+00	f	\N
+862	18	398	2023-10-14 13:22:15.135731+00	2023-10-14 14:00:16.756232+00	t	109
+850	18	65	2023-10-14 13:16:33.335407+00	2023-10-14 14:21:32.201846+00	t	\N
+854	18	83	2023-10-14 13:20:53.286251+00	2023-10-14 14:01:05.933956+00	t	\N
+876	18	451	2023-10-14 13:22:28.062259+00	2023-10-14 14:01:53.215516+00	t	1606
+867	18	407	2023-10-14 13:22:15.135731+00	2023-10-14 14:03:46.36334+00	t	106
+849	18	119	2023-10-14 13:16:27.916914+00	2023-10-14 14:05:50.534873+00	t	\N
+865	18	405	2023-10-14 13:22:15.135731+00	2023-10-14 14:06:39.057258+00	t	104
+887	18	514	2023-10-14 13:22:39.149357+00	2023-10-14 14:06:46.270081+00	t	4627
+890	18	299	2023-10-14 13:22:53.607659+00	2023-10-14 14:07:47.886201+00	t	11
+864	18	404	2023-10-14 13:22:15.135731+00	2023-10-14 14:11:07.65059+00	t	103
+880	18	89	2023-10-14 13:22:39.149357+00	2023-10-14 14:11:41.824828+00	t	4628
+871	18	239	2023-10-14 13:22:28.062259+00	2023-10-14 14:11:42.901693+00	t	1604
+886	18	404	2023-10-14 13:22:39.149357+00	2023-10-14 14:11:43.336391+00	t	4625
+879	18	522	2023-10-14 13:22:28.062259+00	2023-10-14 14:12:43.003013+00	t	1603
+877	18	520	2023-10-14 13:22:28.062259+00	2023-10-14 14:12:45.868769+00	t	1596
+894	18	303	2023-10-14 13:22:53.607659+00	2023-10-14 14:15:47.453335+00	t	10
+889	18	611	2023-10-14 13:22:39.149357+00	2023-10-14 14:15:53.209851+00	t	4622
+861	18	392	2023-10-14 13:22:15.135731+00	2023-10-14 14:15:55.476375+00	t	107
+863	18	402	2023-10-14 13:22:15.135731+00	2023-10-14 14:16:22.862805+00	t	101
+885	18	381	2023-10-14 13:22:39.149357+00	2023-10-14 14:16:26.080468+00	t	4626
+856	18	302	2023-10-14 13:22:15.135731+00	2023-10-14 14:17:31.193995+00	t	102
+882	18	302	2023-10-14 13:22:39.149357+00	2023-10-14 14:17:46.095017+00	t	4629
+845	18	530	2023-10-14 13:15:24.290704+00	2023-10-14 14:20:33.469303+00	t	\N
+893	18	302	2023-10-14 13:22:53.607659+00	2023-10-14 14:21:12.652744+00	t	9
+844	18	58	2023-10-14 13:15:14.470134+00	2023-10-14 14:23:46.522658+00	t	\N
+859	18	334	2023-10-14 13:22:15.135731+00	2023-10-14 14:25:12.270714+00	t	110
+846	18	109	2023-10-14 13:15:38.246652+00	2023-10-14 14:25:49.37702+00	t	\N
+847	18	201	2023-10-14 13:16:03.426295+00	2023-10-14 14:35:55.857127+00	t	\N
+855	18	586	2023-10-14 13:21:37.519656+00	2023-10-14 14:36:25.812404+00	t	\N
+852	18	610	2023-10-14 13:20:08.476741+00	2023-10-14 14:36:26.00312+00	t	\N
+848	18	124	2023-10-14 13:16:19.385276+00	2023-10-14 14:36:26.249448+00	t	\N
+842	18	286	2023-10-14 13:13:37.375606+00	2023-10-14 14:36:47.926327+00	t	\N
+875	18	381	2023-10-14 13:22:28.062259+00	2023-10-14 13:23:14.822403+00	t	1602
+938	19	36	2023-10-21 10:21:25.018946+00	2023-10-21 15:48:02.271431+00	t	\N
+901	18	458	2023-10-14 13:24:44.812039+00	2023-10-14 13:56:43.962292+00	t	\N
+911	19	89	2023-10-21 10:06:04.99432+00	2023-10-21 15:48:03.497197+00	t	373
+925	19	169	2023-10-21 10:13:53.403603+00	2023-10-21 15:48:23.624852+00	t	\N
+900	18	152	2023-10-14 13:24:41.414261+00	2023-10-14 13:57:44.416029+00	t	\N
+908	18	226	2023-10-14 13:26:20.079726+00	2023-10-14 13:57:45.498377+00	t	\N
+904	18	123	2023-10-14 13:25:28.496945+00	2023-10-14 14:00:43.994102+00	t	\N
+910	18	300	2023-10-14 13:31:34.755501+00	2023-10-14 14:00:57.734351+00	t	4631
+926	19	170	2023-10-21 10:13:53.936287+00	2023-10-21 15:48:48.559533+00	t	\N
+912	19	184	2023-10-21 10:06:04.99432+00	2023-10-21 15:49:40.515469+00	t	375
+905	18	612	2023-10-14 13:25:48.135079+00	2023-10-14 14:03:59.613084+00	t	\N
+903	18	101	2023-10-14 13:25:13.570193+00	2023-10-14 14:04:05.971991+00	t	\N
+902	18	47	2023-10-14 13:25:02.464523+00	2023-10-14 14:04:34.80151+00	t	\N
+896	18	305	2023-10-14 13:22:53.607659+00	2023-10-14 14:11:57.979442+00	t	6
+899	18	282	2023-10-14 13:24:27.335184+00	2023-10-14 14:19:11.489253+00	t	\N
+907	18	613	2023-10-14 13:26:07.64553+00	2023-10-14 14:35:55.689985+00	t	\N
+906	18	217	2023-10-14 13:25:51.66601+00	2023-10-14 14:36:25.181091+00	t	\N
+924	19	184	2023-10-21 10:13:27.410036+00	2023-10-21 10:13:27.410036+00	f	4634
+927	19	169	2023-10-21 10:14:11.419982+00	2023-10-21 10:14:11.419982+00	f	4635
+930	19	89	2023-10-21 10:17:16.899266+00	2023-10-21 10:17:16.899266+00	f	4637
+953	19	110	2023-10-21 11:32:41.749639+00	2023-10-21 15:51:51.101642+00	t	\N
+952	19	381	2023-10-21 11:24:34.708113+00	2023-10-21 15:53:10.877726+00	t	\N
+921	19	601	2023-10-21 10:12:13.321305+00	2023-10-21 15:54:01.08357+00	t	4632
+950	19	3	2023-10-21 10:34:13.590302+00	2023-10-21 10:37:25.839963+00	t	\N
+947	19	472	2023-10-21 10:23:24.762818+00	2023-10-21 15:34:52.198503+00	t	\N
+928	19	483	2023-10-21 10:14:20.538421+00	2023-10-21 15:34:52.822383+00	t	\N
+940	19	611	2023-10-21 10:21:49.850126+00	2023-10-21 15:34:53.58143+00	t	\N
+936	19	314	2023-10-21 10:20:27.270559+00	2023-10-21 15:34:57.001337+00	t	\N
+949	19	314	2023-10-21 10:26:59.475116+00	2023-10-21 15:34:57.938264+00	t	4641
+946	19	226	2023-10-21 10:23:21.346426+00	2023-10-21 15:34:59.591526+00	t	\N
+935	19	120	2023-10-21 10:20:07.250077+00	2023-10-21 15:36:16.585537+00	t	\N
+918	19	485	2023-10-21 10:06:04.99432+00	2023-10-21 15:36:19.987547+00	t	370
+916	19	362	2023-10-21 10:06:04.99432+00	2023-10-21 15:36:34.387318+00	t	377
+914	19	332	2023-10-21 10:06:04.99432+00	2023-10-21 15:37:05.231467+00	t	369
+933	19	332	2023-10-21 10:19:07.724329+00	2023-10-21 15:37:07.209549+00	t	4638
+951	19	15	2023-10-21 10:34:28.573737+00	2023-10-21 15:37:15.93591+00	t	\N
+917	19	376	2023-10-21 10:06:04.99432+00	2023-10-21 15:38:45.159225+00	t	374
+929	19	376	2023-10-21 10:15:54.70131+00	2023-10-21 15:38:46.111353+00	t	4636
+932	19	160	2023-10-21 10:18:19.586679+00	2023-10-21 15:40:02.303109+00	t	\N
+919	19	486	2023-10-21 10:06:04.99432+00	2023-10-21 15:43:11.797326+00	t	376
+934	19	614	2023-10-21 10:19:36.790394+00	2023-10-21 15:44:27.9413+00	t	\N
+948	19	134	2023-10-21 10:23:28.997859+00	2023-10-21 15:44:30.94622+00	t	\N
+937	19	283	2023-10-21 10:20:56.031413+00	2023-10-21 15:45:04.25224+00	t	\N
+942	19	59	2023-10-21 10:22:39.217177+00	2023-10-21 15:46:18.661696+00	t	\N
+944	19	59	2023-10-21 10:22:51.424747+00	2023-10-21 15:46:19.798298+00	t	4640
+920	19	601	2023-10-21 10:12:01.570813+00	2023-10-21 15:46:35.452294+00	f	\N
+931	19	194	2023-10-21 10:18:11.748708+00	2023-10-21 15:58:54.224466+00	t	\N
+945	19	30	2023-10-21 10:23:09.857823+00	2023-10-21 15:58:54.244422+00	t	\N
+954	19	305	2023-10-21 11:42:12.977073+00	2023-10-21 15:58:54.605907+00	t	\N
+939	19	33	2023-10-21 10:21:38.413731+00	2023-10-21 15:58:57.276584+00	t	\N
+941	19	491	2023-10-21 10:22:21.801879+00	2023-10-21 15:59:01.665258+00	t	\N
+922	19	6	2023-10-21 10:12:35.083728+00	2023-12-08 18:57:04.234468+00	f	\N
+923	19	6	2023-10-21 10:12:42.417691+00	2023-12-08 18:57:05.137628+00	f	4633
+955	19	500	2024-01-13 16:41:13.119643+00	2024-01-13 16:41:13.119643+00	f	\N
+1013	20	276	2024-01-13 17:16:45.022095+00	2024-01-13 17:16:45.022095+00	f	\N
+994	20	362	2024-01-13 17:06:26.026246+00	2024-01-13 17:11:57.571495+00	t	377
+972	20	466	2024-01-13 17:03:24.754796+00	2024-01-13 18:22:54.236736+00	t	347
+985	20	466	2024-01-13 17:06:12.275693+00	2024-01-13 18:22:55.960434+00	t	1607
+1016	20	500	2024-01-13 17:24:05.221719+00	2024-01-13 18:25:49.073516+00	t	\N
+1003	20	362	2024-01-13 17:07:44.551899+00	2024-01-13 18:22:58.236878+00	t	377
+975	20	474	2024-01-13 17:03:24.754796+00	2024-01-13 18:22:58.993638+00	t	340
+984	20	411	2024-01-13 17:06:12.275693+00	2024-01-13 18:23:32.719197+00	t	1612
+993	20	333	2024-01-13 17:06:26.026246+00	2024-01-13 18:23:41.522546+00	t	371
+969	20	333	2024-01-13 17:03:24.754796+00	2024-01-13 18:23:42.652466+00	t	351
+980	20	117	2024-01-13 17:06:12.275693+00	2024-01-13 18:23:43.280199+00	t	1608
+1002	20	333	2024-01-13 17:07:44.551899+00	2024-01-13 18:23:44.067954+00	t	371
+996	20	485	2024-01-13 17:06:26.026246+00	2024-01-13 18:24:28.509597+00	t	370
+1005	20	485	2024-01-13 17:07:44.551899+00	2024-01-13 18:24:29.568784+00	t	370
+970	20	376	2024-01-13 17:03:24.754796+00	2024-01-13 18:25:25.102681+00	t	346
+995	20	376	2024-01-13 17:06:26.026246+00	2024-01-13 18:25:26.253501+00	t	374
+1004	20	376	2024-01-13 17:07:44.551899+00	2024-01-13 18:25:29.988768+00	t	374
+976	20	475	2024-01-13 17:03:24.754796+00	2024-01-13 18:25:48.013697+00	t	341
+997	20	486	2024-01-13 17:06:26.026246+00	2024-01-13 18:30:20.152029+00	t	376
+1006	20	486	2024-01-13 17:07:44.551899+00	2024-01-13 18:30:21.953755+00	t	376
+966	20	58	2024-01-13 17:03:24.754796+00	2024-01-13 18:30:24.862878+00	t	350
+1010	20	31	2024-01-13 17:09:26.717744+00	2024-01-13 18:30:28.952245+00	t	\N
+959	20	302	2024-01-13 16:59:24.966534+00	2024-01-13 18:30:56.731618+00	t	9
+989	20	89	2024-01-13 17:06:26.026246+00	2024-01-13 18:31:23.500656+00	t	373
+998	20	89	2024-01-13 17:07:44.551899+00	2024-01-13 18:31:29.305718+00	t	373
+967	20	248	2024-01-13 17:03:24.754796+00	2024-01-13 18:32:00.301116+00	t	352
+977	20	476	2024-01-13 17:03:24.754796+00	2024-01-13 18:32:05.935956+00	t	342
+958	20	301	2024-01-13 16:59:24.966534+00	2024-01-13 18:32:07.980351+00	t	13
+1007	20	247	2024-01-13 17:09:10.945087+00	2024-01-13 18:32:11.835257+00	t	\N
+1017	20	282	2024-01-13 17:24:23.024639+00	2024-01-13 18:32:12.392388+00	t	\N
+962	20	305	2024-01-13 16:59:24.966534+00	2024-01-13 18:33:04.163455+00	t	6
+971	20	392	2024-01-13 17:03:24.754796+00	2024-01-13 18:33:06.921689+00	t	348
+979	20	478	2024-01-13 17:03:24.754796+00	2024-01-13 18:33:09.994718+00	t	344
+1015	20	2	2024-01-13 17:17:09.740041+00	2024-01-13 18:33:50.447146+00	t	\N
+987	20	499	2024-01-13 17:06:12.275693+00	2024-01-13 18:35:44.604931+00	t	1615
+960	20	303	2024-01-13 16:59:24.966534+00	2024-01-13 18:35:50.220722+00	t	10
+990	20	184	2024-01-13 17:06:26.026246+00	2024-01-13 18:37:33.780152+00	t	375
+957	20	300	2024-01-13 16:59:24.966534+00	2024-01-13 18:38:32.676544+00	t	12
+999	20	184	2024-01-13 17:07:44.551899+00	2024-01-13 18:38:39.570182+00	t	375
+956	20	299	2024-01-13 16:59:24.966534+00	2024-01-13 18:39:04.136914+00	t	11
+1012	20	119	2024-01-13 17:16:23.501693+00	2024-01-13 18:40:17.156653+00	t	\N
+1009	20	30	2024-01-13 17:09:24.326549+00	2024-01-13 18:41:13.814891+00	t	\N
+983	20	360	2024-01-13 17:06:12.275693+00	2024-01-13 18:41:54.753735+00	t	1614
+1011	20	360	2024-01-13 17:14:07.799657+00	2024-01-13 18:41:59.788751+00	t	4642
+1014	20	246	2024-01-13 17:16:54.229475+00	2024-01-13 18:44:49.086912+00	t	\N
+\.
+
+
+--
+-- Data for Name: ingredients_tags; Type: TABLE DATA; Schema: public; Owner: foody
+--
+
+COPY public.ingredients_tags (ingredient_id, tag_id) FROM stdin;
+3	8
+5	1
+6	1
+7	1
+8	1
+8	9
+9	2
+9	10
+10	3
+12	1
+15	8
+16	11
+17	4
+18	5
+23	2
+26	6
+27	8
+28	2
+35	1
+36	6
+37	2
+38	2
+42	1
+43	1
+44	1
+45	1
+46	7
+47	7
+49	1
+50	1
+56	1
+59	7
+62	5
+69	1
+72	1
+73	6
+74	5
+75	1
+76	6
+77	6
+79	1
+84	5
+85	5
+88	5
+89	6
+90	5
+96	5
+97	5
+98	5
+99	1
+100	6
+102	1
+104	5
+107	1
+108	1
+110	6
+112	2
+113	1
+117	1
+118	6
+122	6
+125	6
+135	1
+138	1
+139	7
+141	2
+142	5
+143	8
+145	5
+146	1
+147	1
+149	1
+152	1
+153	5
+154	1
+155	6
+156	6
+157	1
+158	8
+162	6
+164	6
+165	7
+166	1
+169	6
+170	6
+171	1
+173	1
+175	6
+179	8
+181	5
+183	1
+184	6
+185	1
+188	8
+192	6
+198	8
+199	8
+200	7
+203	6
+204	6
+206	1
+209	8
+213	1
+219	6
+221	1
+223	1
+229	6
+231	8
+232	7
+236	1
+239	6
+240	8
+241	1
+248	6
+251	1
+252	1
+253	1
+255	1
+256	8
+262	1
+263	1
+274	5
+275	5
+276	5
+277	5
+278	5
+286	5
+287	1
+288	5
+177	2
+331	6
+367	6
+483	1
+379	1
+197	6
+492	1
+362	1
+15	1
+472	1
+480	1
+375	6
+482	6
+314	1
+481	1
+489	1
+304	1
+316	1
+484	1
+491	1
+488	1
+120	1
+271	1
+485	1
+332	1
+493	1
+495	1
+333	1
+315	1
+456	1
+242	6
+24	2
+499	6
+497	1
+405	7
+446	7
+456	8
+294	7
+475	7
+353	7
+4	1
+4	8
+411	1
+507	1
+341	1
+378	1
+376	1
+376	8
+151	1
+151	8
+511	5
+2	6
+468	1
+65	6
+469	7
+466	1
+87	1
+87	4
+474	1
+474	4
+310	1
+467	1
+388	6
+114	2
+512	5
+128	7
+130	3
+513	12
+490	2
+313	1
+458	1
+299	7
+372	1
+514	7
+504	1
+226	1
+226	9
+93	2
+216	2
+518	2
+57	3
+519	3
+280	2
+119	6
+554	3
+555	3
+360	3
+556	6
+557	5
+558	5
+553	1
+254	7
+561	8
+67	6
+83	8
+407	6
+309	7
+374	2
+58	2
+339	1
+404	6
+327	6
+406	1
+308	11
+305	6
+506	11
+95	11
+160	7
+33	12
+228	7
+562	3
+563	6
+41	3
+366	6
+559	2
+564	5
+448	1
+461	1
+548	13
+207	1
+66	6
+579	7
+538	6
+116	2
+536	2
+500	7
+291	3
+584	3
+585	3
+586	3
+587	3
+588	2
+40	3
+217	3
+25	2
+161	1
+607	2
+608	6
+136	3
+11	5
+609	5
+610	3
+613	1
+611	1
+30	3
+134	11
+614	11
+194	3
+486	6
+601	10
+283	11
+381	4
+\.
+
+
+--
+-- Data for Name: quantities; Type: TABLE DATA; Schema: public; Owner: foody
+--
+
+COPY public.quantities (id, value, unit, created_at, updated_at, text) FROM stdin;
+1	\N	arbitrary	2023-06-30 20:29:15.993246+00	2023-06-30 20:29:15.993246+00	3 small
+2	\N	arbitrary	2023-06-30 20:29:16.015169+00	2023-06-30 20:29:16.015169+00	1 sheet
+3	100	gram	2023-06-30 20:29:16.032666+00	2023-06-30 20:29:16.032666+00	\N
+4	2	tablespoon	2023-06-30 20:29:16.049553+00	2023-06-30 20:29:16.049553+00	\N
+5	0.5	count	2023-06-30 20:29:16.160365+00	2023-06-30 20:29:16.160365+00	\N
+6	15	gram	2023-06-30 20:29:16.177491+00	2023-06-30 20:29:16.177491+00	\N
+7	1	kilogram	2023-06-30 20:29:16.195375+00	2023-06-30 20:29:16.195375+00	\N
+8	100	millilitre	2023-06-30 20:29:16.211606+00	2023-06-30 20:29:16.211606+00	\N
+9	100	millilitre	2023-06-30 20:29:16.229069+00	2023-06-30 20:29:16.229069+00	\N
+10	250	gram	2023-06-30 20:29:16.246508+00	2023-06-30 20:29:16.246508+00	\N
+11	140	gram	2023-06-30 20:29:16.272566+00	2023-06-30 20:29:16.272566+00	\N
+12	140	gram	2023-06-30 20:29:16.293961+00	2023-06-30 20:29:16.293961+00	\N
+13	\N	arbitrary	2023-06-30 20:29:16.309807+00	2023-06-30 20:29:16.309807+00	pinch
+14	\N	arbitrary	2023-06-30 20:29:16.509849+00	2023-06-30 20:29:16.509849+00	pinch
+15	2	count	2023-06-30 20:29:16.527562+00	2023-06-30 20:29:16.527562+00	\N
+16	1	count	2023-06-30 20:29:16.549985+00	2023-06-30 20:29:16.549985+00	\N
+17	1	tablespoon	2023-06-30 20:29:16.56666+00	2023-06-30 20:29:16.56666+00	\N
+18	1	count	2023-06-30 20:29:16.588305+00	2023-06-30 20:29:16.588305+00	\N
+19	\N	arbitrary	2023-06-30 20:29:16.604873+00	2023-06-30 20:29:16.604873+00	1 bag
+20	1	count	2023-06-30 20:29:16.620855+00	2023-06-30 20:29:16.620855+00	\N
+21	1	count	2023-06-30 20:29:16.638029+00	2023-06-30 20:29:16.638029+00	\N
+22	2	count	2023-06-30 20:29:16.658855+00	2023-06-30 20:29:16.658855+00	\N
+23	4	tablespoon	2023-06-30 20:29:16.677383+00	2023-06-30 20:29:16.677383+00	\N
+24	\N	arbitrary	2023-06-30 20:29:16.696549+00	2023-06-30 20:29:16.696549+00	pinch
+25	4	tablespoon	2023-06-30 20:29:16.71806+00	2023-06-30 20:29:16.71806+00	\N
+26	8	count	2023-06-30 20:29:16.735562+00	2023-06-30 20:29:16.735562+00	\N
+27	230	gram	2023-06-30 20:29:16.754383+00	2023-06-30 20:29:16.754383+00	\N
+28	2	cup	2023-06-30 20:29:17.033875+00	2023-06-30 20:29:17.033875+00	\N
+29	1	count	2023-06-30 20:29:17.050901+00	2023-06-30 20:29:17.050901+00	\N
+30	\N	arbitrary	2023-06-30 20:29:17.068057+00	2023-06-30 20:29:17.068057+00	1 1/2 cups
+31	0.25	teaspoon	2023-06-30 20:29:17.084066+00	2023-06-30 20:29:17.084066+00	\N
+32	\N	arbitrary	2023-06-30 20:29:17.101432+00	2023-06-30 20:29:17.101432+00	1 1/2 cups
+33	2	cup	2023-06-30 20:29:17.119027+00	2023-06-30 20:29:17.119027+00	\N
+34	0.5	teaspoon	2023-06-30 20:29:17.135812+00	2023-06-30 20:29:17.135812+00	\N
+35	0.25	teaspoon	2023-06-30 20:29:17.151218+00	2023-06-30 20:29:17.151218+00	\N
+36	1	tablespoon	2023-06-30 20:29:17.168397+00	2023-06-30 20:29:17.168397+00	\N
+37	2	cloves	2023-06-30 20:29:17.187082+00	2023-06-30 20:29:17.187082+00	\N
+38	4	count	2023-06-30 20:29:17.202689+00	2023-06-30 20:29:17.202689+00	\N
+39	0.5	cup	2023-06-30 20:29:17.218609+00	2023-06-30 20:29:17.218609+00	\N
+40	0.25	cup	2023-06-30 20:29:17.235877+00	2023-06-30 20:29:17.235877+00	\N
+41	1	count	2023-06-30 20:29:17.254299+00	2023-06-30 20:29:17.254299+00	\N
+42	2	count	2023-06-30 20:29:17.560306+00	2023-06-30 20:29:17.560306+00	\N
+43	\N	arbitrary	2023-06-30 20:29:17.579028+00	2023-06-30 20:29:17.579028+00	to taste
+44	1.5	kilogram	2023-06-30 20:29:17.596026+00	2023-06-30 20:29:17.596026+00	\N
+45	2	tablespoon	2023-06-30 20:29:17.61332+00	2023-06-30 20:29:17.61332+00	\N
+46	2	count	2023-06-30 20:29:17.631463+00	2023-06-30 20:29:17.631463+00	\N
+47	2	tablespoon	2023-06-30 20:29:17.647786+00	2023-06-30 20:29:17.647786+00	\N
+48	2	tablespoon	2023-06-30 20:29:17.665909+00	2023-06-30 20:29:17.665909+00	\N
+49	2	count	2023-06-30 20:29:17.688532+00	2023-06-30 20:29:17.688532+00	\N
+50	\N	arbitrary	2023-06-30 20:29:17.705668+00	2023-06-30 20:29:17.705668+00	carrots
+51	2	tablespoon	2023-06-30 20:29:17.732438+00	2023-06-30 20:29:17.732438+00	\N
+52	2	count	2023-06-30 20:29:17.749296+00	2023-06-30 20:29:17.749296+00	\N
+53	500	millilitre	2023-06-30 20:29:17.76393+00	2023-06-30 20:29:17.76393+00	\N
+54	\N	arbitrary	2023-06-30 20:29:17.782011+00	2023-06-30 20:29:17.782011+00	few
+55	500	gram	2023-06-30 20:29:17.800761+00	2023-06-30 20:29:17.800761+00	\N
+56	\N	arbitrary	2023-06-30 20:29:17.817512+00	2023-06-30 20:29:17.817512+00	to taste
+57	2	tablespoon	2023-06-30 20:29:17.835924+00	2023-06-30 20:29:17.835924+00	\N
+58	\N	arbitrary	2023-06-30 20:29:17.855668+00	2023-06-30 20:29:17.855668+00	few
+59	3	count	2023-06-30 20:29:17.873093+00	2023-06-30 20:29:17.873093+00	\N
+60	150	gram	2023-06-30 20:29:17.891558+00	2023-06-30 20:29:17.891558+00	\N
+61	\N	arbitrary	2023-06-30 20:29:18.2804+00	2023-06-30 20:29:18.2804+00	vegetable oil
+62	1	kilogram	2023-06-30 20:29:18.29798+00	2023-06-30 20:29:18.29798+00	\N
+63	2	count	2023-06-30 20:29:18.314181+00	2023-06-30 20:29:18.314181+00	\N
+64	4	tablespoon	2023-06-30 20:29:18.33227+00	2023-06-30 20:29:18.33227+00	\N
+65	2	tablespoon	2023-06-30 20:29:18.347892+00	2023-06-30 20:29:18.347892+00	\N
+66	1	count	2023-06-30 20:29:18.364819+00	2023-06-30 20:29:18.364819+00	\N
+67	2	cloves	2023-06-30 20:29:18.380938+00	2023-06-30 20:29:18.380938+00	\N
+68	1	teaspoon	2023-06-30 20:29:18.400705+00	2023-06-30 20:29:18.400705+00	\N
+69	0.5	teaspoon	2023-06-30 20:29:18.479177+00	2023-06-30 20:29:18.479177+00	\N
+70	5	tablespoon	2023-06-30 20:29:18.667594+00	2023-06-30 20:29:18.667594+00	\N
+71	250	gram	2023-06-30 20:29:18.685993+00	2023-06-30 20:29:18.685993+00	\N
+72	1	count	2023-06-30 20:29:18.70459+00	2023-06-30 20:29:18.70459+00	\N
+73	800	gram	2023-06-30 20:29:18.723373+00	2023-06-30 20:29:18.723373+00	\N
+74	100	gram	2023-06-30 20:29:18.741676+00	2023-06-30 20:29:18.741676+00	\N
+75	1	count	2023-06-30 20:29:18.760009+00	2023-06-30 20:29:18.760009+00	\N
+76	2	tablespoon	2023-06-30 20:29:18.778799+00	2023-06-30 20:29:18.778799+00	\N
+77	4	count	2023-06-30 20:29:18.79693+00	2023-06-30 20:29:18.79693+00	\N
+78	1	count	2023-06-30 20:29:18.814996+00	2023-06-30 20:29:18.814996+00	\N
+79	1	tablespoon	2023-06-30 20:29:18.829868+00	2023-06-30 20:29:18.829868+00	\N
+80	1	litre	2023-06-30 20:29:18.846675+00	2023-06-30 20:29:18.846675+00	\N
+81	1	tablespoon	2023-06-30 20:29:18.865737+00	2023-06-30 20:29:18.865737+00	\N
+82	0.5	teaspoon	2023-06-30 20:29:18.883744+00	2023-06-30 20:29:18.883744+00	\N
+83	200	gram	2023-06-30 20:29:18.902659+00	2023-06-30 20:29:18.902659+00	\N
+84	\N	arbitrary	2023-06-30 20:29:18.921411+00	2023-06-30 20:29:18.921411+00	1 handful
+85	1	tablespoon	2023-06-30 20:29:18.939557+00	2023-06-30 20:29:18.939557+00	\N
+86	1	tablespoon	2023-06-30 20:29:18.9581+00	2023-06-30 20:29:18.9581+00	\N
+87	1	tablespoon	2023-06-30 20:29:18.97631+00	2023-06-30 20:29:18.97631+00	\N
+88	2	cup	2023-06-30 20:29:19.344112+00	2023-06-30 20:29:19.344112+00	\N
+89	0.5	teaspoon	2023-06-30 20:29:19.369955+00	2023-06-30 20:29:19.369955+00	\N
+90	0.5	cup	2023-06-30 20:29:19.388258+00	2023-06-30 20:29:19.388258+00	\N
+91	2	cup	2023-06-30 20:29:19.409171+00	2023-06-30 20:29:19.409171+00	\N
+92	1	cup	2023-06-30 20:29:19.438477+00	2023-06-30 20:29:19.438477+00	\N
+93	0.25	teaspoon	2023-06-30 20:29:19.454666+00	2023-06-30 20:29:19.454666+00	\N
+94	4	count	2023-06-30 20:29:19.483091+00	2023-06-30 20:29:19.483091+00	\N
+95	0.5	cup	2023-06-30 20:29:19.504688+00	2023-06-30 20:29:19.504688+00	\N
+96	3	tablespoon	2023-06-30 20:29:19.521532+00	2023-06-30 20:29:19.521532+00	\N
+97	0.5	cup	2023-06-30 20:29:19.541863+00	2023-06-30 20:29:19.541863+00	\N
+98	0.25	teaspoon	2023-06-30 20:29:19.558532+00	2023-06-30 20:29:19.558532+00	\N
+99	0.5	cup	2023-06-30 20:29:19.577112+00	2023-06-30 20:29:19.577112+00	\N
+100	\N	arbitrary	2023-06-30 20:29:19.81832+00	2023-06-30 20:29:19.81832+00	to taste
+101	320	gram	2023-06-30 20:29:19.835634+00	2023-06-30 20:29:19.835634+00	\N
+102	200	millilitre	2023-06-30 20:29:19.853056+00	2023-06-30 20:29:19.853056+00	\N
+103	200	millilitre	2023-06-30 20:29:19.869908+00	2023-06-30 20:29:19.869908+00	\N
+104	200	gram	2023-06-30 20:29:19.885814+00	2023-06-30 20:29:19.885814+00	\N
+105	\N	arbitrary	2023-06-30 20:29:19.903066+00	2023-06-30 20:29:19.903066+00	1 bunch
+106	100	gram	2023-06-30 20:29:19.921711+00	2023-06-30 20:29:19.921711+00	\N
+107	\N	arbitrary	2023-06-30 20:29:19.941017+00	2023-06-30 20:29:19.941017+00	1 knob
+108	\N	arbitrary	2023-06-30 20:29:19.960801+00	2023-06-30 20:29:19.960801+00	to taste
+109	4	count	2023-06-30 20:29:19.979325+00	2023-06-30 20:29:19.979325+00	\N
+110	4	count	2023-06-30 20:29:19.995085+00	2023-06-30 20:29:19.995085+00	\N
+111	\N	arbitrary	2023-06-30 20:29:20.012165+00	2023-06-30 20:29:20.012165+00	olive oil
+112	\N	arbitrary	2023-06-30 20:29:20.395116+00	2023-06-30 20:29:20.395116+00	2 handfuls
+113	2	count	2023-06-30 20:29:20.411756+00	2023-06-30 20:29:20.411756+00	\N
+114	2	count	2023-06-30 20:29:20.429167+00	2023-06-30 20:29:20.429167+00	\N
+115	100	gram	2023-06-30 20:29:20.447933+00	2023-06-30 20:29:20.447933+00	\N
+116	100	millilitre	2023-06-30 20:29:20.469714+00	2023-06-30 20:29:20.469714+00	\N
+117	\N	arbitrary	2023-06-30 20:29:20.487173+00	2023-06-30 20:29:20.487173+00	10 leaves
+118	2	tablespoon	2023-06-30 20:29:20.657396+00	2023-06-30 20:29:20.657396+00	\N
+119	2	count	2023-06-30 20:29:20.673436+00	2023-06-30 20:29:20.673436+00	\N
+120	\N	arbitrary	2023-06-30 20:29:20.691824+00	2023-06-30 20:29:20.691824+00	1 pack
+121	\N	arbitrary	2023-06-30 20:29:20.707552+00	2023-06-30 20:29:20.707552+00	enough for at least 2 pizzas
+122	300	millilitre	2023-06-30 20:29:20.81467+00	2023-06-30 20:29:20.81467+00	\N
+123	100	gram	2023-06-30 20:29:20.831246+00	2023-06-30 20:29:20.831246+00	\N
+124	\N	arbitrary	2023-06-30 20:29:20.849352+00	2023-06-30 20:29:20.849352+00	to taste
+125	1	kilogram	2023-06-30 20:29:20.866008+00	2023-06-30 20:29:20.866008+00	\N
+126	2	cloves	2023-06-30 20:29:20.882847+00	2023-06-30 20:29:20.882847+00	\N
+127	1	teaspoon	2023-06-30 20:29:20.898963+00	2023-06-30 20:29:20.898963+00	\N
+128	\N	arbitrary	2023-06-30 20:29:20.915998+00	2023-06-30 20:29:20.915998+00	1 pinch
+129	\N	arbitrary	2023-06-30 20:29:20.932111+00	2023-06-30 20:29:20.932111+00	to taste
+130	200	millilitre	2023-06-30 20:29:20.950515+00	2023-06-30 20:29:20.950515+00	\N
+131	50	gram	2023-06-30 20:29:20.969001+00	2023-06-30 20:29:20.969001+00	\N
+132	\N	arbitrary	2023-06-30 20:29:21.19994+00	2023-06-30 20:29:21.19994+00	1 bunch
+133	\N	arbitrary	2023-06-30 20:29:21.216915+00	2023-06-30 20:29:21.216915+00	1 pack
+134	2	count	2023-06-30 20:29:21.235795+00	2023-06-30 20:29:21.235795+00	\N
+135	1	count	2023-06-30 20:29:21.253541+00	2023-06-30 20:29:21.253541+00	\N
+136	100	gram	2023-06-30 20:29:21.281356+00	2023-06-30 20:29:21.281356+00	\N
+137	0.5	cup	2023-06-30 20:29:21.415157+00	2023-06-30 20:29:21.415157+00	\N
+138	0.25	teaspoon	2023-06-30 20:29:21.432464+00	2023-06-30 20:29:21.432464+00	\N
+139	1	cup	2023-06-30 20:29:21.450395+00	2023-06-30 20:29:21.450395+00	\N
+140	4	count	2023-06-30 20:29:21.4719+00	2023-06-30 20:29:21.4719+00	\N
+141	4	count	2023-06-30 20:29:21.493911+00	2023-06-30 20:29:21.493911+00	\N
+142	2	count	2023-06-30 20:29:21.509705+00	2023-06-30 20:29:21.509705+00	\N
+143	4	cup	2023-06-30 20:29:21.52862+00	2023-06-30 20:29:21.52862+00	\N
+144	1	count	2023-06-30 20:29:21.54693+00	2023-06-30 20:29:21.54693+00	\N
+145	0.5	teaspoon	2023-06-30 20:29:21.565107+00	2023-06-30 20:29:21.565107+00	\N
+146	2	tablespoon	2023-06-30 20:29:21.586571+00	2023-06-30 20:29:21.586571+00	\N
+147	3	tablespoon	2023-06-30 20:29:21.664825+00	2023-06-30 20:29:21.664825+00	\N
+148	2	tablespoon	2023-06-30 20:29:21.682444+00	2023-06-30 20:29:21.682444+00	\N
+149	150	gram	2023-06-30 20:29:21.960595+00	2023-06-30 20:29:21.960595+00	\N
+150	40	gram	2023-06-30 20:29:21.976802+00	2023-06-30 20:29:21.976802+00	\N
+151	15	gram	2023-06-30 20:29:21.995566+00	2023-06-30 20:29:21.995566+00	\N
+152	325	millilitre	2023-06-30 20:29:22.014968+00	2023-06-30 20:29:22.014968+00	\N
+153	400	gram	2023-06-30 20:29:22.030071+00	2023-06-30 20:29:22.030071+00	\N
+154	1	count	2023-06-30 20:29:22.046615+00	2023-06-30 20:29:22.046615+00	\N
+155	125	gram	2023-06-30 20:29:22.06379+00	2023-06-30 20:29:22.06379+00	\N
+156	200	gram	2023-06-30 20:29:22.081089+00	2023-06-30 20:29:22.081089+00	\N
+157	2	count	2023-06-30 20:29:22.102561+00	2023-06-30 20:29:22.102561+00	\N
+158	15	gram	2023-07-01 11:32:07.444948+00	2023-07-01 11:32:07.444948+00	\N
+159	140	gram	2023-07-01 11:32:07.447869+00	2023-07-01 11:32:07.447869+00	\N
+160	1	kilogram	2023-07-01 11:32:07.449879+00	2023-07-01 11:32:07.449879+00	\N
+161	140	gram	2023-07-01 11:32:07.452172+00	2023-07-01 11:32:07.452172+00	\N
+162	140	gram	2023-07-01 11:32:07.454618+00	2023-07-01 11:32:07.454618+00	\N
+163	100	millilitre	2023-07-01 11:32:07.456792+00	2023-07-01 11:32:07.456792+00	\N
+164	100	millilitre	2023-07-01 11:32:07.458584+00	2023-07-01 11:32:07.458584+00	\N
+165	\N	arbitrary	2023-07-01 11:32:07.460812+00	2023-07-01 11:32:07.460812+00	pinch
+166	250	gram	2023-07-01 11:32:07.462687+00	2023-07-01 11:32:07.462687+00	\N
+167	0.5	count	2023-07-01 11:32:07.464805+00	2023-07-01 11:32:07.464805+00	\N
+168	4	count	2023-07-01 11:32:07.486189+00	2023-07-01 11:32:07.486189+00	\N
+169	5	tablespoon	2023-07-01 11:32:07.488963+00	2023-07-01 11:32:07.488963+00	\N
+170	250	gram	2023-07-01 11:32:07.490811+00	2023-07-01 11:32:07.490811+00	\N
+171	1	tablespoon	2023-07-01 11:32:07.49261+00	2023-07-01 11:32:07.49261+00	\N
+172	1	count	2023-07-01 11:32:07.494825+00	2023-07-01 11:32:07.494825+00	\N
+173	800	gram	2023-07-01 11:32:07.496521+00	2023-07-01 11:32:07.496521+00	\N
+174	1	count	2023-07-01 11:32:07.498184+00	2023-07-01 11:32:07.498184+00	\N
+175	1	tablespoon	2023-07-01 11:32:07.499991+00	2023-07-01 11:32:07.499991+00	\N
+176	1	tablespoon	2023-07-01 11:32:07.501555+00	2023-07-01 11:32:07.501555+00	\N
+177	0.5	teaspoon	2023-07-01 11:32:07.503203+00	2023-07-01 11:32:07.503203+00	\N
+178	1	tablespoon	2023-07-01 11:32:07.505011+00	2023-07-01 11:32:07.505011+00	\N
+179	1	litre	2023-07-01 11:32:07.506983+00	2023-07-01 11:32:07.506983+00	\N
+180	100	gram	2023-07-01 11:32:07.508893+00	2023-07-01 11:32:07.508893+00	\N
+181	1	count	2023-07-01 11:32:07.511057+00	2023-07-01 11:32:07.511057+00	\N
+182	2	tablespoon	2023-07-01 11:32:07.512855+00	2023-07-01 11:32:07.512855+00	\N
+183	1	tablespoon	2023-07-01 11:32:07.514545+00	2023-07-01 11:32:07.514545+00	\N
+184	200	gram	2023-07-01 11:32:07.516544+00	2023-07-01 11:32:07.516544+00	\N
+185	\N	arbitrary	2023-07-01 11:32:07.518198+00	2023-07-01 11:32:07.518198+00	1 handful
+186	2	count	2023-07-01 11:32:07.533261+00	2023-07-01 11:32:07.533261+00	\N
+187	1	count	2023-07-01 11:32:07.535698+00	2023-07-01 11:32:07.535698+00	\N
+188	1	count	2023-07-01 11:32:07.538131+00	2023-07-01 11:32:07.538131+00	\N
+189	1	count	2023-07-01 11:32:07.540631+00	2023-07-01 11:32:07.540631+00	\N
+190	\N	arbitrary	2023-07-01 11:32:07.542757+00	2023-07-01 11:32:07.542757+00	pinch
+191	1	tablespoon	2023-07-01 11:32:07.544677+00	2023-07-01 11:32:07.544677+00	\N
+192	\N	arbitrary	2023-07-01 11:32:07.546503+00	2023-07-01 11:32:07.546503+00	pinch
+193	2	count	2023-07-01 11:32:07.54825+00	2023-07-01 11:32:07.54825+00	\N
+194	4	tablespoon	2023-07-01 11:32:07.550329+00	2023-07-01 11:32:07.550329+00	\N
+195	1	count	2023-07-01 11:32:07.552161+00	2023-07-01 11:32:07.552161+00	\N
+196	4	tablespoon	2023-07-01 11:32:07.554153+00	2023-07-01 11:32:07.554153+00	\N
+197	8	count	2023-07-01 11:32:07.556466+00	2023-07-01 11:32:07.556466+00	\N
+198	\N	arbitrary	2023-07-01 11:32:07.558459+00	2023-07-01 11:32:07.558459+00	1 bag
+199	230	gram	2023-07-01 11:32:07.560553+00	2023-07-01 11:32:07.560553+00	\N
+200	1	kilogram	2023-07-01 11:32:07.573201+00	2023-07-01 11:32:07.573201+00	\N
+201	2	cloves	2023-07-01 11:32:07.57515+00	2023-07-01 11:32:07.57515+00	\N
+202	300	millilitre	2023-07-01 11:32:07.577032+00	2023-07-01 11:32:07.577032+00	\N
+203	200	millilitre	2023-07-01 11:32:07.57898+00	2023-07-01 11:32:07.57898+00	\N
+204	100	gram	2023-07-01 11:32:07.581664+00	2023-07-01 11:32:07.581664+00	\N
+205	50	gram	2023-07-01 11:32:07.583653+00	2023-07-01 11:32:07.583653+00	\N
+206	1	teaspoon	2023-07-01 11:32:07.585612+00	2023-07-01 11:32:07.585612+00	\N
+207	\N	arbitrary	2023-07-01 11:32:07.58756+00	2023-07-01 11:32:07.58756+00	1 pinch
+208	\N	arbitrary	2023-07-01 11:32:07.589376+00	2023-07-01 11:32:07.589376+00	to taste
+209	\N	arbitrary	2023-07-01 11:32:07.591244+00	2023-07-01 11:32:07.591244+00	to taste
+210	2	cup	2023-07-01 11:32:07.608864+00	2023-07-01 11:32:07.608864+00	\N
+211	4	count	2023-07-01 11:32:07.610827+00	2023-07-01 11:32:07.610827+00	\N
+212	0.5	cup	2023-07-01 11:32:07.61313+00	2023-07-01 11:32:07.61313+00	\N
+213	0.5	teaspoon	2023-07-01 11:32:07.615192+00	2023-07-01 11:32:07.615192+00	\N
+214	0.5	cup	2023-07-01 11:32:07.61737+00	2023-07-01 11:32:07.61737+00	\N
+215	3	tablespoon	2023-07-01 11:32:07.619614+00	2023-07-01 11:32:07.619614+00	\N
+216	2	cup	2023-07-01 11:32:07.622063+00	2023-07-01 11:32:07.622063+00	\N
+217	1	cup	2023-07-01 11:32:07.624281+00	2023-07-01 11:32:07.624281+00	\N
+218	0.5	cup	2023-07-01 11:32:07.626459+00	2023-07-01 11:32:07.626459+00	\N
+219	0.25	teaspoon	2023-07-01 11:32:07.62869+00	2023-07-01 11:32:07.62869+00	\N
+220	0.5	teaspoon	2023-07-01 11:32:07.630769+00	2023-07-01 11:32:07.630769+00	\N
+221	0.25	teaspoon	2023-07-01 11:32:07.63279+00	2023-07-01 11:32:07.63279+00	\N
+222	3	tablespoon	2023-07-01 11:32:07.637086+00	2023-07-01 11:32:07.637086+00	\N
+223	0.5	cup	2023-07-01 11:32:07.639102+00	2023-07-01 11:32:07.639102+00	\N
+224	3	tablespoon	2023-07-01 11:32:07.655865+00	2023-07-01 11:32:07.655865+00	\N
+225	4	count	2023-07-01 11:32:07.658691+00	2023-07-01 11:32:07.658691+00	\N
+226	4	count	2023-07-01 11:32:07.66118+00	2023-07-01 11:32:07.66118+00	\N
+227	2	count	2023-07-01 11:32:07.66364+00	2023-07-01 11:32:07.66364+00	\N
+228	4	cup	2023-07-01 11:32:07.666567+00	2023-07-01 11:32:07.666567+00	\N
+229	1	cup	2023-07-01 11:32:07.669232+00	2023-07-01 11:32:07.669232+00	\N
+230	\N	arbitrary	2023-07-01 11:32:07.671598+00	2023-07-01 11:32:07.671598+00	1 bay leaf
+231	0.5	cup	2023-07-01 11:32:07.673684+00	2023-07-01 11:32:07.673684+00	\N
+232	0.5	teaspoon	2023-07-01 11:32:07.67584+00	2023-07-01 11:32:07.67584+00	\N
+233	0.25	teaspoon	2023-07-01 11:32:07.678204+00	2023-07-01 11:32:07.678204+00	\N
+234	2	tablespoon	2023-07-01 11:32:07.680694+00	2023-07-01 11:32:07.680694+00	\N
+235	2	tablespoon	2023-07-01 11:32:07.683031+00	2023-07-01 11:32:07.683031+00	\N
+236	2	cup	2023-07-01 11:32:07.701494+00	2023-07-01 11:32:07.701494+00	\N
+237	1	tablespoon	2023-07-01 11:32:07.703647+00	2023-07-01 11:32:07.703647+00	\N
+238	1	count	2023-07-01 11:32:07.706084+00	2023-07-01 11:32:07.706084+00	\N
+239	2	cloves	2023-07-01 11:32:07.708981+00	2023-07-01 11:32:07.708981+00	\N
+240	2	cup	2023-07-01 11:32:07.711741+00	2023-07-01 11:32:07.711741+00	\N
+241	1	count	2023-07-01 11:32:07.713686+00	2023-07-01 11:32:07.713686+00	\N
+242	4	count	2023-07-01 11:32:07.715828+00	2023-07-01 11:32:07.715828+00	\N
+243	\N	arbitrary	2023-07-01 11:32:07.717881+00	2023-07-01 11:32:07.717881+00	1 1/2 cups
+244	0.5	cup	2023-07-01 11:32:07.719749+00	2023-07-01 11:32:07.719749+00	\N
+245	0.5	teaspoon	2023-07-01 11:32:07.722604+00	2023-07-01 11:32:07.722604+00	\N
+246	0.25	teaspoon	2023-07-01 11:32:07.724539+00	2023-07-01 11:32:07.724539+00	\N
+247	0.25	teaspoon	2023-07-01 11:32:07.726306+00	2023-07-01 11:32:07.726306+00	\N
+248	\N	arbitrary	2023-07-01 11:32:07.728363+00	2023-07-01 11:32:07.728363+00	1 1/2 cups
+249	0.25	cup	2023-07-01 11:32:07.731033+00	2023-07-01 11:32:07.731033+00	\N
+250	1.5	kilogram	2023-07-01 11:32:07.753475+00	2023-07-01 11:32:07.753475+00	\N
+251	2	tablespoon	2023-07-01 11:32:07.755289+00	2023-07-01 11:32:07.755289+00	\N
+252	2	count	2023-07-01 11:32:07.757188+00	2023-07-01 11:32:07.757188+00	\N
+253	2	count	2023-07-01 11:32:07.760947+00	2023-07-01 11:32:07.760947+00	\N
+254	2	count	2023-07-01 11:32:07.763268+00	2023-07-01 11:32:07.763268+00	\N
+255	2	tablespoon	2023-07-01 11:32:07.765326+00	2023-07-01 11:32:07.765326+00	\N
+256	2	tablespoon	2023-07-01 11:32:07.767182+00	2023-07-01 11:32:07.767182+00	\N
+257	500	millilitre	2023-07-01 11:32:07.769093+00	2023-07-01 11:32:07.769093+00	\N
+258	2	tablespoon	2023-07-01 11:32:07.771329+00	2023-07-01 11:32:07.771329+00	\N
+259	\N	arbitrary	2023-07-01 11:32:07.773335+00	2023-07-01 11:32:07.773335+00	few
+260	\N	arbitrary	2023-07-01 11:32:07.775219+00	2023-07-01 11:32:07.775219+00	few
+261	2	count	2023-07-01 11:32:07.783374+00	2023-07-01 11:32:07.783374+00	\N
+262	3	count	2023-07-01 11:32:07.786037+00	2023-07-01 11:32:07.786037+00	\N
+263	500	gram	2023-07-01 11:32:07.788286+00	2023-07-01 11:32:07.788286+00	\N
+264	2	count	2023-07-01 11:32:07.790424+00	2023-07-01 11:32:07.790424+00	\N
+265	150	gram	2023-07-01 11:32:07.792439+00	2023-07-01 11:32:07.792439+00	\N
+266	2	tablespoon	2023-07-01 11:32:07.794331+00	2023-07-01 11:32:07.794331+00	\N
+267	\N	arbitrary	2023-07-01 11:32:07.796223+00	2023-07-01 11:32:07.796223+00	salt
+268	\N	arbitrary	2023-07-01 11:32:07.7984+00	2023-07-01 11:32:07.7984+00	black pepper
+269	320	gram	2023-07-01 11:32:07.812394+00	2023-07-01 11:32:07.812394+00	\N
+270	4	count	2023-07-01 11:32:07.814228+00	2023-07-01 11:32:07.814228+00	\N
+271	4	count	2023-07-01 11:32:07.816118+00	2023-07-01 11:32:07.816118+00	\N
+272	200	millilitre	2023-07-01 11:32:07.81778+00	2023-07-01 11:32:07.81778+00	\N
+273	200	millilitre	2023-07-01 11:32:07.819783+00	2023-07-01 11:32:07.819783+00	\N
+274	200	gram	2023-07-01 11:32:07.821453+00	2023-07-01 11:32:07.821453+00	\N
+275	\N	arbitrary	2023-07-01 11:32:07.823563+00	2023-07-01 11:32:07.823563+00	1 bunch
+276	100	gram	2023-07-01 11:32:07.825233+00	2023-07-01 11:32:07.825233+00	\N
+277	\N	arbitrary	2023-07-01 11:32:07.826944+00	2023-07-01 11:32:07.826944+00	salt
+278	\N	arbitrary	2023-07-01 11:32:07.829139+00	2023-07-01 11:32:07.829139+00	black pepper
+279	\N	arbitrary	2023-07-01 11:32:07.831036+00	2023-07-01 11:32:07.831036+00	1 knob
+280	\N	arbitrary	2023-07-01 11:32:07.833079+00	2023-07-01 11:32:07.833079+00	olive oil
+281	1	kilogram	2023-07-01 11:32:07.844592+00	2023-07-01 11:32:07.844592+00	\N
+282	2	count	2023-07-01 11:32:07.846295+00	2023-07-01 11:32:07.846295+00	\N
+283	4	tablespoon	2023-07-01 11:32:07.848143+00	2023-07-01 11:32:07.848143+00	\N
+284	1	count	2023-07-01 11:32:07.850208+00	2023-07-01 11:32:07.850208+00	\N
+285	2	cloves	2023-07-01 11:32:07.852226+00	2023-07-01 11:32:07.852226+00	\N
+286	2	tablespoon	2023-07-01 11:32:07.854161+00	2023-07-01 11:32:07.854161+00	\N
+287	1	teaspoon	2023-07-01 11:32:07.856568+00	2023-07-01 11:32:07.856568+00	\N
+288	0.5	teaspoon	2023-07-01 11:32:07.858537+00	2023-07-01 11:32:07.858537+00	\N
+289	\N	arbitrary	2023-07-01 11:32:07.8615+00	2023-07-01 11:32:07.8615+00	vegetable oil
+290	2	count	2023-07-01 11:32:07.870136+00	2023-07-01 11:32:07.870136+00	\N
+291	1	count	2023-07-01 11:32:07.872524+00	2023-07-01 11:32:07.872524+00	\N
+292	100	gram	2023-07-01 11:32:07.874929+00	2023-07-01 11:32:07.874929+00	\N
+293	\N	arbitrary	2023-07-01 11:32:07.876944+00	2023-07-01 11:32:07.876944+00	1 bunch
+294	\N	arbitrary	2023-07-01 11:32:07.879191+00	2023-07-01 11:32:07.879191+00	1 pack
+295	2	tablespoon	2023-07-01 11:32:07.887129+00	2023-07-01 11:32:07.887129+00	\N
+296	\N	arbitrary	2023-07-01 11:32:07.891217+00	2023-07-01 11:32:07.891217+00	3 small
+297	\N	arbitrary	2023-07-01 11:32:07.893635+00	2023-07-01 11:32:07.893635+00	1 sheet
+298	100	gram	2023-07-01 11:32:07.895716+00	2023-07-01 11:32:07.895716+00	\N
+299	\N	arbitrary	2023-07-01 11:32:07.905436+00	2023-07-01 11:32:07.905436+00	2 handfuls
+300	2	count	2023-07-01 11:32:07.907558+00	2023-07-01 11:32:07.907558+00	\N
+301	2	count	2023-07-01 11:32:07.909935+00	2023-07-01 11:32:07.909935+00	\N
+302	100	gram	2023-07-01 11:32:07.91204+00	2023-07-01 11:32:07.91204+00	\N
+303	100	millilitre	2023-07-01 11:32:07.914272+00	2023-07-01 11:32:07.914272+00	\N
+304	\N	arbitrary	2023-07-01 11:32:07.916342+00	2023-07-01 11:32:07.916342+00	10 leaves
+305	\N	arbitrary	2023-07-01 11:32:07.924197+00	2023-07-01 11:32:07.924197+00	enough for at least 2 pizzas
+306	2	tablespoon	2023-07-01 11:32:07.926152+00	2023-07-01 11:32:07.926152+00	\N
+307	2	count	2023-07-01 11:32:07.92833+00	2023-07-01 11:32:07.92833+00	\N
+308	\N	arbitrary	2023-07-01 11:32:07.931076+00	2023-07-01 11:32:07.931076+00	1 pack
+309	125	gram	2023-07-01 11:32:07.950769+00	2023-07-01 11:32:07.950769+00	\N
+310	325	millilitre	2023-07-01 11:32:07.952796+00	2023-07-01 11:32:07.952796+00	\N
+311	400	gram	2023-07-01 11:32:07.954827+00	2023-07-01 11:32:07.954827+00	\N
+312	1	count	2023-07-01 11:32:07.95689+00	2023-07-01 11:32:07.95689+00	\N
+313	150	gram	2023-07-01 11:32:07.959054+00	2023-07-01 11:32:07.959054+00	\N
+314	200	gram	2023-07-01 11:32:07.961744+00	2023-07-01 11:32:07.961744+00	\N
+315	40	gram	2023-07-01 11:32:07.9638+00	2023-07-01 11:32:07.9638+00	\N
+316	15	gram	2023-07-01 11:32:07.966133+00	2023-07-01 11:32:07.966133+00	\N
+317	2	count	2023-07-01 11:32:07.968332+00	2023-07-01 11:32:07.968332+00	\N
+318	800	gram	2023-07-01 11:32:07.987934+00	2023-07-01 11:32:07.987934+00	\N
+319	1	count	2023-07-01 11:32:07.989888+00	2023-07-01 11:32:07.989888+00	\N
+320	8	count	2023-07-01 11:32:07.991982+00	2023-07-01 11:32:07.991982+00	\N
+321	8	count	2023-07-01 11:32:07.994089+00	2023-07-01 11:32:07.994089+00	\N
+322	1	count	2023-07-01 11:32:07.996491+00	2023-07-01 11:32:07.996491+00	\N
+323	280	gram	2023-07-01 11:32:07.998783+00	2023-07-01 11:32:07.998783+00	\N
+324	\N	arbitrary	2023-07-01 11:32:08.000788+00	2023-07-01 11:32:08.000788+00	3-4 sprigs
+325	\N	arbitrary	2023-07-01 11:32:08.003139+00	2023-07-01 11:32:08.003139+00	5-6 sprigs
+326	340	gram	2023-07-01 11:32:08.005174+00	2023-07-01 11:32:08.005174+00	\N
+327	20	gram	2023-07-01 11:32:08.007226+00	2023-07-01 11:32:08.007226+00	\N
+328	1	count	2023-07-01 11:32:08.0291+00	2023-07-01 11:32:08.0291+00	\N
+329	2	count	2023-07-01 11:32:08.031506+00	2023-07-01 11:32:08.031506+00	\N
+330	2	count	2023-07-01 11:32:08.034309+00	2023-07-01 11:32:08.034309+00	\N
+331	6	count	2023-07-01 11:32:08.036538+00	2023-07-01 11:32:08.036538+00	\N
+332	150	gram	2023-07-01 11:32:08.038381+00	2023-07-01 11:32:08.038381+00	\N
+333	\N	arbitrary	2023-07-01 11:32:08.04047+00	2023-07-01 11:32:08.04047+00	4 pinches
+334	250	gram	2023-07-01 11:32:08.042559+00	2023-07-01 11:32:08.042559+00	\N
+335	600	millilitre	2023-07-01 11:32:08.044781+00	2023-07-01 11:32:08.044781+00	\N
+336	1	count	2023-07-01 11:32:08.046794+00	2023-07-01 11:32:08.046794+00	\N
+337	20	gram	2023-07-01 11:32:08.04887+00	2023-07-01 11:32:08.04887+00	\N
+338	2	count	2023-07-01 11:32:08.073838+00	2023-07-01 11:32:08.073838+00	\N
+339	2	count	2023-07-01 11:32:08.076261+00	2023-07-01 11:32:08.076261+00	\N
+340	15	gram	2023-07-01 11:32:08.079367+00	2023-07-01 11:32:08.079367+00	\N
+341	400	gram	2023-07-01 11:32:08.081885+00	2023-07-01 11:32:08.081885+00	\N
+342	400	gram	2023-07-01 11:32:08.084124+00	2023-07-01 11:32:08.084124+00	\N
+343	1	count	2023-07-01 11:32:08.086099+00	2023-07-01 11:32:08.086099+00	\N
+344	4	tablespoon	2023-07-01 11:32:08.08833+00	2023-07-01 11:32:08.08833+00	\N
+345	600	millilitre	2023-07-01 11:32:08.090436+00	2023-07-01 11:32:08.090436+00	\N
+346	1	count	2023-07-01 11:32:08.09232+00	2023-07-01 11:32:08.09232+00	\N
+347	20	gram	2023-07-01 11:32:08.094298+00	2023-07-01 11:32:08.094298+00	\N
+348	1	tablespoon	2023-07-01 11:32:08.096391+00	2023-07-01 11:32:08.096391+00	\N
+349	1	tablespoon	2023-07-01 11:32:08.098667+00	2023-07-01 11:32:08.098667+00	\N
+350	800	gram	2023-07-01 11:32:08.100645+00	2023-07-01 11:32:08.100645+00	\N
+351	2	cloves	2023-07-01 11:32:08.102526+00	2023-07-01 11:32:08.102526+00	\N
+352	150	gram	2023-07-01 11:32:08.104728+00	2023-07-01 11:32:08.104728+00	\N
+353	\N	arbitrary	2023-07-01 11:32:08.11802+00	2023-07-01 11:32:08.11802+00	1 pound
+354	0.25	cup	2023-07-01 11:32:08.120096+00	2023-07-01 11:32:08.120096+00	\N
+355	\N	arbitrary	2023-07-01 11:32:08.122096+00	2023-07-01 11:32:08.122096+00	1 clove
+356	\N	arbitrary	2023-07-01 11:32:08.124108+00	2023-07-01 11:32:08.124108+00	6 ounces
+357	2	cup	2023-07-01 11:32:08.126232+00	2023-07-01 11:32:08.126232+00	\N
+358	2	cup	2023-07-01 11:32:08.128523+00	2023-07-01 11:32:08.128523+00	\N
+359	0.5	cup	2023-07-01 11:32:08.13051+00	2023-07-01 11:32:08.13051+00	\N
+360	0.5	cup	2023-07-01 11:32:08.132521+00	2023-07-01 11:32:08.132521+00	\N
+361	1	count	2023-07-01 11:32:08.148981+00	2023-07-01 11:32:08.148981+00	\N
+362	1	count	2023-07-01 11:32:08.151482+00	2023-07-01 11:32:08.151482+00	\N
+363	3	count	2023-07-01 11:32:08.153602+00	2023-07-01 11:32:08.153602+00	\N
+364	0.5	cup	2023-07-01 11:32:08.155802+00	2023-07-01 11:32:08.155802+00	\N
+365	1	count	2023-07-01 11:32:08.157743+00	2023-07-01 11:32:08.157743+00	\N
+366	2	cup	2023-07-01 11:32:08.160195+00	2023-07-01 11:32:08.160195+00	\N
+367	5	tablespoon	2023-07-01 11:32:08.162451+00	2023-07-01 11:32:08.162451+00	\N
+368	0.25	teaspoon	2023-07-01 11:32:08.164552+00	2023-07-01 11:32:08.164552+00	\N
+369	1	count	2023-07-01 11:32:08.18845+00	2023-07-01 11:32:08.18845+00	\N
+370	250	gram	2023-07-01 11:32:08.190641+00	2023-07-01 11:32:08.190641+00	\N
+371	1	count	2023-07-01 11:32:08.194701+00	2023-07-01 11:32:08.194701+00	\N
+372	100	millilitre	2023-07-01 11:32:08.197231+00	2023-07-01 11:32:08.197231+00	\N
+373	200	millilitre	2023-07-01 11:32:08.199634+00	2023-07-01 11:32:08.199634+00	\N
+374	1	count	2023-07-01 11:32:08.201697+00	2023-07-01 11:32:08.201697+00	\N
+375	200	gram	2023-07-01 11:32:08.203831+00	2023-07-01 11:32:08.203831+00	\N
+376	300	gram	2023-07-01 11:32:08.205862+00	2023-07-01 11:32:08.205862+00	\N
+377	\N	arbitrary	2023-07-01 11:32:08.208063+00	2023-07-01 11:32:08.208063+00	1/2 bunch
+378	4	count	2023-07-01 11:32:08.219763+00	2023-07-01 11:32:08.219763+00	\N
+379	280	gram	2023-07-01 11:32:08.22183+00	2023-07-01 11:32:08.22183+00	\N
+380	200	gram	2023-07-01 11:32:08.223781+00	2023-07-01 11:32:08.223781+00	\N
+381	100	gram	2023-07-01 11:32:08.225842+00	2023-07-01 11:32:08.225842+00	\N
+382	\N	arbitrary	2023-07-01 11:32:08.228103+00	2023-07-01 11:32:08.228103+00	1 bunch
+383	1	count	2023-07-01 11:32:08.230214+00	2023-07-01 11:32:08.230214+00	\N
+384	50	gram	2023-07-01 11:32:08.232247+00	2023-07-01 11:32:08.232247+00	\N
+385	1	count	2023-07-01 11:32:08.246264+00	2023-07-01 11:32:08.246264+00	\N
+386	150	gram	2023-07-01 11:32:08.248417+00	2023-07-01 11:32:08.248417+00	\N
+387	0.5	teaspoon	2023-07-01 11:32:08.250363+00	2023-07-01 11:32:08.250363+00	\N
+388	1	count	2023-07-01 11:32:08.252336+00	2023-07-01 11:32:08.252336+00	\N
+389	1	count	2023-07-01 11:32:08.254302+00	2023-07-01 11:32:08.254302+00	\N
+390	2	count	2023-07-01 11:32:08.256503+00	2023-07-01 11:32:08.256503+00	\N
+391	4	count	2023-07-01 11:32:08.258365+00	2023-07-01 11:32:08.258365+00	\N
+392	1	count	2023-07-01 11:32:08.260508+00	2023-07-01 11:32:08.260508+00	\N
+393	1	count	2023-07-01 11:32:08.262678+00	2023-07-01 11:32:08.262678+00	\N
+394	200	gram	2023-07-01 11:32:08.274214+00	2023-07-01 11:32:08.274214+00	\N
+395	200	gram	2023-07-01 11:32:08.27636+00	2023-07-01 11:32:08.27636+00	\N
+396	1	count	2023-07-01 11:32:08.278428+00	2023-07-01 11:32:08.278428+00	\N
+397	1	count	2023-07-01 11:32:08.280508+00	2023-07-01 11:32:08.280508+00	\N
+398	2	count	2023-07-01 11:32:08.282665+00	2023-07-01 11:32:08.282665+00	\N
+399	1	count	2023-07-01 11:32:08.284847+00	2023-07-01 11:32:08.284847+00	\N
+400	1	count	2023-07-01 11:32:08.28698+00	2023-07-01 11:32:08.28698+00	\N
+401	1	count	2023-07-01 11:32:08.28881+00	2023-07-01 11:32:08.28881+00	\N
+402	15	gram	2023-07-01 11:35:39.490133+00	2023-07-01 11:35:39.490133+00	\N
+403	140	gram	2023-07-01 11:35:39.49371+00	2023-07-01 11:35:39.49371+00	\N
+404	1	kilogram	2023-07-01 11:35:39.495693+00	2023-07-01 11:35:39.495693+00	\N
+405	140	gram	2023-07-01 11:35:39.497768+00	2023-07-01 11:35:39.497768+00	\N
+406	140	gram	2023-07-01 11:35:39.500012+00	2023-07-01 11:35:39.500012+00	\N
+407	100	millilitre	2023-07-01 11:35:39.50178+00	2023-07-01 11:35:39.50178+00	\N
+408	100	millilitre	2023-07-01 11:35:39.509708+00	2023-07-01 11:35:39.509708+00	\N
+409	\N	arbitrary	2023-07-01 11:35:39.512424+00	2023-07-01 11:35:39.512424+00	pinch
+410	250	gram	2023-07-01 11:35:39.514213+00	2023-07-01 11:35:39.514213+00	\N
+411	0.5	count	2023-07-01 11:35:39.516232+00	2023-07-01 11:35:39.516232+00	\N
+412	4	count	2023-07-01 11:35:39.53673+00	2023-07-01 11:35:39.53673+00	\N
+413	5	tablespoon	2023-07-01 11:35:39.539016+00	2023-07-01 11:35:39.539016+00	\N
+414	250	gram	2023-07-01 11:35:39.540971+00	2023-07-01 11:35:39.540971+00	\N
+415	1	tablespoon	2023-07-01 11:35:39.543212+00	2023-07-01 11:35:39.543212+00	\N
+416	1	count	2023-07-01 11:35:39.545271+00	2023-07-01 11:35:39.545271+00	\N
+417	800	gram	2023-07-01 11:35:39.547346+00	2023-07-01 11:35:39.547346+00	\N
+418	1	count	2023-07-01 11:35:39.549313+00	2023-07-01 11:35:39.549313+00	\N
+419	1	tablespoon	2023-07-01 11:35:39.551229+00	2023-07-01 11:35:39.551229+00	\N
+420	1	tablespoon	2023-07-01 11:35:39.55328+00	2023-07-01 11:35:39.55328+00	\N
+421	0.5	teaspoon	2023-07-01 11:35:39.555305+00	2023-07-01 11:35:39.555305+00	\N
+422	1	tablespoon	2023-07-01 11:35:39.557209+00	2023-07-01 11:35:39.557209+00	\N
+423	1	litre	2023-07-01 11:35:39.559141+00	2023-07-01 11:35:39.559141+00	\N
+424	100	gram	2023-07-01 11:35:39.561242+00	2023-07-01 11:35:39.561242+00	\N
+425	1	count	2023-07-01 11:35:39.563324+00	2023-07-01 11:35:39.563324+00	\N
+426	2	tablespoon	2023-07-01 11:35:39.565263+00	2023-07-01 11:35:39.565263+00	\N
+427	1	tablespoon	2023-07-01 11:35:39.567088+00	2023-07-01 11:35:39.567088+00	\N
+428	200	gram	2023-07-01 11:35:39.570049+00	2023-07-01 11:35:39.570049+00	\N
+429	\N	arbitrary	2023-07-01 11:35:39.572036+00	2023-07-01 11:35:39.572036+00	1 handful
+430	2	count	2023-07-01 11:35:39.59651+00	2023-07-01 11:35:39.59651+00	\N
+431	1	count	2023-07-01 11:35:39.598437+00	2023-07-01 11:35:39.598437+00	\N
+432	1	count	2023-07-01 11:35:39.600348+00	2023-07-01 11:35:39.600348+00	\N
+433	1	count	2023-07-01 11:35:39.602457+00	2023-07-01 11:35:39.602457+00	\N
+434	\N	arbitrary	2023-07-01 11:35:39.604511+00	2023-07-01 11:35:39.604511+00	pinch
+435	1	tablespoon	2023-07-01 11:35:39.606501+00	2023-07-01 11:35:39.606501+00	\N
+436	\N	arbitrary	2023-07-01 11:35:39.608633+00	2023-07-01 11:35:39.608633+00	pinch
+437	2	count	2023-07-01 11:35:39.610531+00	2023-07-01 11:35:39.610531+00	\N
+438	4	tablespoon	2023-07-01 11:35:39.612415+00	2023-07-01 11:35:39.612415+00	\N
+439	1	count	2023-07-01 11:35:39.614085+00	2023-07-01 11:35:39.614085+00	\N
+440	4	tablespoon	2023-07-01 11:35:39.61622+00	2023-07-01 11:35:39.61622+00	\N
+441	8	count	2023-07-01 11:35:39.618052+00	2023-07-01 11:35:39.618052+00	\N
+442	\N	arbitrary	2023-07-01 11:35:39.619805+00	2023-07-01 11:35:39.619805+00	1 bag
+443	230	gram	2023-07-01 11:35:39.621704+00	2023-07-01 11:35:39.621704+00	\N
+444	1	kilogram	2023-07-01 11:35:39.640142+00	2023-07-01 11:35:39.640142+00	\N
+445	2	cloves	2023-07-01 11:35:39.642141+00	2023-07-01 11:35:39.642141+00	\N
+446	300	millilitre	2023-07-01 11:35:39.644288+00	2023-07-01 11:35:39.644288+00	\N
+447	200	millilitre	2023-07-01 11:35:39.646404+00	2023-07-01 11:35:39.646404+00	\N
+448	100	gram	2023-07-01 11:35:39.64836+00	2023-07-01 11:35:39.64836+00	\N
+449	50	gram	2023-07-01 11:35:39.650899+00	2023-07-01 11:35:39.650899+00	\N
+450	1	teaspoon	2023-07-01 11:35:39.653121+00	2023-07-01 11:35:39.653121+00	\N
+451	\N	arbitrary	2023-07-01 11:35:39.65488+00	2023-07-01 11:35:39.65488+00	1 pinch
+452	\N	arbitrary	2023-07-01 11:35:39.656903+00	2023-07-01 11:35:39.656903+00	to taste
+453	\N	arbitrary	2023-07-01 11:35:39.658828+00	2023-07-01 11:35:39.658828+00	to taste
+454	2	cup	2023-07-01 11:35:39.681328+00	2023-07-01 11:35:39.681328+00	\N
+455	4	count	2023-07-01 11:35:39.683867+00	2023-07-01 11:35:39.683867+00	\N
+456	0.5	cup	2023-07-01 11:35:39.685795+00	2023-07-01 11:35:39.685795+00	\N
+457	0.5	teaspoon	2023-07-01 11:35:39.687714+00	2023-07-01 11:35:39.687714+00	\N
+458	0.5	cup	2023-07-01 11:35:39.68963+00	2023-07-01 11:35:39.68963+00	\N
+459	3	tablespoon	2023-07-01 11:35:39.691419+00	2023-07-01 11:35:39.691419+00	\N
+460	2	cup	2023-07-01 11:35:39.693231+00	2023-07-01 11:35:39.693231+00	\N
+461	1	cup	2023-07-01 11:35:39.695214+00	2023-07-01 11:35:39.695214+00	\N
+462	0.5	cup	2023-07-01 11:35:39.697733+00	2023-07-01 11:35:39.697733+00	\N
+463	0.25	teaspoon	2023-07-01 11:35:39.699969+00	2023-07-01 11:35:39.699969+00	\N
+464	0.5	teaspoon	2023-07-01 11:35:39.701889+00	2023-07-01 11:35:39.701889+00	\N
+465	0.25	teaspoon	2023-07-01 11:35:39.705014+00	2023-07-01 11:35:39.705014+00	\N
+466	3	tablespoon	2023-07-01 11:35:39.709383+00	2023-07-01 11:35:39.709383+00	\N
+467	0.5	cup	2023-07-01 11:35:39.71135+00	2023-07-01 11:35:39.71135+00	\N
+468	3	tablespoon	2023-07-01 11:35:39.802958+00	2023-07-01 11:35:39.802958+00	\N
+469	4	count	2023-07-01 11:35:39.805611+00	2023-07-01 11:35:39.805611+00	\N
+470	4	count	2023-07-01 11:35:39.808256+00	2023-07-01 11:35:39.808256+00	\N
+471	2	count	2023-07-01 11:35:39.810127+00	2023-07-01 11:35:39.810127+00	\N
+472	4	cup	2023-07-01 11:35:39.811966+00	2023-07-01 11:35:39.811966+00	\N
+473	1	cup	2023-07-01 11:35:39.813907+00	2023-07-01 11:35:39.813907+00	\N
+475	0.5	cup	2023-07-01 11:35:39.81816+00	2023-07-01 11:35:39.81816+00	\N
+476	0.5	teaspoon	2023-07-01 11:35:39.820336+00	2023-07-01 11:35:39.820336+00	\N
+477	0.25	teaspoon	2023-07-01 11:35:39.822691+00	2023-07-01 11:35:39.822691+00	\N
+478	2	tablespoon	2023-07-01 11:35:39.825988+00	2023-07-01 11:35:39.825988+00	\N
+479	2	tablespoon	2023-07-01 11:35:39.827897+00	2023-07-01 11:35:39.827897+00	\N
+480	2	cup	2023-07-01 11:35:39.845063+00	2023-07-01 11:35:39.845063+00	\N
+481	1	tablespoon	2023-07-01 11:35:39.847462+00	2023-07-01 11:35:39.847462+00	\N
+482	1	count	2023-07-01 11:35:39.849665+00	2023-07-01 11:35:39.849665+00	\N
+483	2	cloves	2023-07-01 11:35:39.851754+00	2023-07-01 11:35:39.851754+00	\N
+484	2	cup	2023-07-01 11:35:39.853765+00	2023-07-01 11:35:39.853765+00	\N
+485	1	count	2023-07-01 11:35:39.855879+00	2023-07-01 11:35:39.855879+00	\N
+486	4	count	2023-07-01 11:35:39.857769+00	2023-07-01 11:35:39.857769+00	\N
+488	0.5	cup	2023-07-01 11:35:39.862339+00	2023-07-01 11:35:39.862339+00	\N
+489	0.5	teaspoon	2023-07-01 11:35:39.864351+00	2023-07-01 11:35:39.864351+00	\N
+490	0.25	teaspoon	2023-07-01 11:35:39.866495+00	2023-07-01 11:35:39.866495+00	\N
+491	0.25	teaspoon	2023-07-01 11:35:39.868924+00	2023-07-01 11:35:39.868924+00	\N
+493	0.25	cup	2023-07-01 11:35:39.873397+00	2023-07-01 11:35:39.873397+00	\N
+494	1.5	kilogram	2023-07-01 11:35:39.894798+00	2023-07-01 11:35:39.894798+00	\N
+495	2	tablespoon	2023-07-01 11:35:39.897053+00	2023-07-01 11:35:39.897053+00	\N
+496	2	count	2023-07-01 11:35:39.899205+00	2023-07-01 11:35:39.899205+00	\N
+497	2	count	2023-07-01 11:35:39.901151+00	2023-07-01 11:35:39.901151+00	\N
+498	2	count	2023-07-01 11:35:39.903103+00	2023-07-01 11:35:39.903103+00	\N
+499	2	tablespoon	2023-07-01 11:35:39.904933+00	2023-07-01 11:35:39.904933+00	\N
+500	2	tablespoon	2023-07-01 11:35:39.906901+00	2023-07-01 11:35:39.906901+00	\N
+501	500	millilitre	2023-07-01 11:35:39.908879+00	2023-07-01 11:35:39.908879+00	\N
+502	2	tablespoon	2023-07-01 11:35:39.911175+00	2023-07-01 11:35:39.911175+00	\N
+503	\N	arbitrary	2023-07-01 11:35:39.913292+00	2023-07-01 11:35:39.913292+00	few
+504	\N	arbitrary	2023-07-01 11:35:39.915292+00	2023-07-01 11:35:39.915292+00	few
+505	2	count	2023-07-01 11:35:39.917048+00	2023-07-01 11:35:39.917048+00	\N
+506	3	count	2023-07-01 11:35:39.918979+00	2023-07-01 11:35:39.918979+00	\N
+507	500	gram	2023-07-01 11:35:39.920802+00	2023-07-01 11:35:39.920802+00	\N
+508	2	count	2023-07-01 11:35:39.9228+00	2023-07-01 11:35:39.9228+00	\N
+509	150	gram	2023-07-01 11:35:39.93068+00	2023-07-01 11:35:39.93068+00	\N
+510	2	tablespoon	2023-07-01 11:35:39.935231+00	2023-07-01 11:35:39.935231+00	\N
+511	\N	arbitrary	2023-07-01 11:35:39.937316+00	2023-07-01 11:35:39.937316+00	salt
+512	\N	arbitrary	2023-07-01 11:35:39.93936+00	2023-07-01 11:35:39.93936+00	black pepper
+513	320	gram	2023-07-01 11:35:39.957163+00	2023-07-01 11:35:39.957163+00	\N
+514	4	count	2023-07-01 11:35:39.959119+00	2023-07-01 11:35:39.959119+00	\N
+515	4	count	2023-07-01 11:35:39.961023+00	2023-07-01 11:35:39.961023+00	\N
+516	200	millilitre	2023-07-01 11:35:39.963114+00	2023-07-01 11:35:39.963114+00	\N
+517	200	millilitre	2023-07-01 11:35:39.964847+00	2023-07-01 11:35:39.964847+00	\N
+518	200	gram	2023-07-01 11:35:39.966745+00	2023-07-01 11:35:39.966745+00	\N
+519	\N	arbitrary	2023-07-01 11:35:39.969087+00	2023-07-01 11:35:39.969087+00	1 bunch
+520	100	gram	2023-07-01 11:35:39.970937+00	2023-07-01 11:35:39.970937+00	\N
+521	\N	arbitrary	2023-07-01 11:35:39.973161+00	2023-07-01 11:35:39.973161+00	salt
+522	\N	arbitrary	2023-07-01 11:35:39.975232+00	2023-07-01 11:35:39.975232+00	black pepper
+523	\N	arbitrary	2023-07-01 11:35:39.977461+00	2023-07-01 11:35:39.977461+00	1 knob
+524	\N	arbitrary	2023-07-01 11:35:39.979391+00	2023-07-01 11:35:39.979391+00	olive oil
+525	1	kilogram	2023-07-01 11:35:39.992341+00	2023-07-01 11:35:39.992341+00	\N
+526	2	count	2023-07-01 11:35:39.994225+00	2023-07-01 11:35:39.994225+00	\N
+527	4	tablespoon	2023-07-01 11:35:39.996192+00	2023-07-01 11:35:39.996192+00	\N
+528	1	count	2023-07-01 11:35:40.040657+00	2023-07-01 11:35:40.040657+00	\N
+529	2	cloves	2023-07-01 11:35:40.042957+00	2023-07-01 11:35:40.042957+00	\N
+530	2	tablespoon	2023-07-01 11:35:40.046662+00	2023-07-01 11:35:40.046662+00	\N
+531	1	teaspoon	2023-07-01 11:35:40.04868+00	2023-07-01 11:35:40.04868+00	\N
+532	0.5	teaspoon	2023-07-01 11:35:40.050811+00	2023-07-01 11:35:40.050811+00	\N
+533	\N	arbitrary	2023-07-01 11:35:40.053118+00	2023-07-01 11:35:40.053118+00	vegetable oil
+534	2	count	2023-07-01 11:35:40.060915+00	2023-07-01 11:35:40.060915+00	\N
+535	1	count	2023-07-01 11:35:40.063+00	2023-07-01 11:35:40.063+00	\N
+536	100	gram	2023-07-01 11:35:40.065249+00	2023-07-01 11:35:40.065249+00	\N
+537	\N	arbitrary	2023-07-01 11:35:40.06753+00	2023-07-01 11:35:40.06753+00	1 bunch
+538	\N	arbitrary	2023-07-01 11:35:40.069316+00	2023-07-01 11:35:40.069316+00	1 pack
+539	2	tablespoon	2023-07-01 11:35:40.076037+00	2023-07-01 11:35:40.076037+00	\N
+540	\N	arbitrary	2023-07-01 11:35:40.0783+00	2023-07-01 11:35:40.0783+00	3 small
+541	\N	arbitrary	2023-07-01 11:35:40.080397+00	2023-07-01 11:35:40.080397+00	1 sheet
+542	100	gram	2023-07-01 11:35:40.082865+00	2023-07-01 11:35:40.082865+00	\N
+543	\N	arbitrary	2023-07-01 11:35:40.092098+00	2023-07-01 11:35:40.092098+00	2 handfuls
+544	2	count	2023-07-01 11:35:40.094001+00	2023-07-01 11:35:40.094001+00	\N
+545	2	count	2023-07-01 11:35:40.096171+00	2023-07-01 11:35:40.096171+00	\N
+546	100	gram	2023-07-01 11:35:40.098382+00	2023-07-01 11:35:40.098382+00	\N
+547	100	millilitre	2023-07-01 11:35:40.100614+00	2023-07-01 11:35:40.100614+00	\N
+548	\N	arbitrary	2023-07-01 11:35:40.102663+00	2023-07-01 11:35:40.102663+00	10 leaves
+549	\N	arbitrary	2023-07-01 11:35:40.110218+00	2023-07-01 11:35:40.110218+00	enough for at least 2 pizzas
+550	2	tablespoon	2023-07-01 11:35:40.112007+00	2023-07-01 11:35:40.112007+00	\N
+551	2	count	2023-07-01 11:35:40.114059+00	2023-07-01 11:35:40.114059+00	\N
+552	\N	arbitrary	2023-07-01 11:35:40.115739+00	2023-07-01 11:35:40.115739+00	1 pack
+553	125	gram	2023-07-01 11:35:40.126251+00	2023-07-01 11:35:40.126251+00	\N
+554	325	millilitre	2023-07-01 11:35:40.128167+00	2023-07-01 11:35:40.128167+00	\N
+555	400	gram	2023-07-01 11:35:40.130225+00	2023-07-01 11:35:40.130225+00	\N
+556	1	count	2023-07-01 11:35:40.132062+00	2023-07-01 11:35:40.132062+00	\N
+557	150	gram	2023-07-01 11:35:40.134046+00	2023-07-01 11:35:40.134046+00	\N
+558	200	gram	2023-07-01 11:35:40.135858+00	2023-07-01 11:35:40.135858+00	\N
+559	40	gram	2023-07-01 11:35:40.137668+00	2023-07-01 11:35:40.137668+00	\N
+560	15	gram	2023-07-01 11:35:40.139537+00	2023-07-01 11:35:40.139537+00	\N
+561	2	count	2023-07-01 11:35:40.142189+00	2023-07-01 11:35:40.142189+00	\N
+562	800	gram	2023-07-01 11:35:40.153844+00	2023-07-01 11:35:40.153844+00	\N
+487	1.5	cup	2023-07-01 11:35:39.860265+00	2023-07-01 11:35:39.860265+00	
+474	1	count	2023-07-01 11:35:39.815838+00	2023-07-01 11:35:39.815838+00	
+563	1	count	2023-07-01 11:35:40.155765+00	2023-07-01 11:35:40.155765+00	\N
+564	8	count	2023-07-01 11:35:40.157708+00	2023-07-01 11:35:40.157708+00	\N
+565	8	count	2023-07-01 11:35:40.159603+00	2023-07-01 11:35:40.159603+00	\N
+566	1	count	2023-07-01 11:35:40.161634+00	2023-07-01 11:35:40.161634+00	\N
+567	280	gram	2023-07-01 11:35:40.163348+00	2023-07-01 11:35:40.163348+00	\N
+568	\N	arbitrary	2023-07-01 11:35:40.165488+00	2023-07-01 11:35:40.165488+00	3-4 sprigs
+569	\N	arbitrary	2023-07-01 11:35:40.167305+00	2023-07-01 11:35:40.167305+00	5-6 sprigs
+570	340	gram	2023-07-01 11:35:40.169072+00	2023-07-01 11:35:40.169072+00	\N
+571	20	gram	2023-07-01 11:35:40.17098+00	2023-07-01 11:35:40.17098+00	\N
+572	1	count	2023-07-01 11:35:40.184033+00	2023-07-01 11:35:40.184033+00	\N
+573	2	count	2023-07-01 11:35:40.18611+00	2023-07-01 11:35:40.18611+00	\N
+574	2	count	2023-07-01 11:35:40.188657+00	2023-07-01 11:35:40.188657+00	\N
+575	6	count	2023-07-01 11:35:40.190298+00	2023-07-01 11:35:40.190298+00	\N
+576	150	gram	2023-07-01 11:35:40.192559+00	2023-07-01 11:35:40.192559+00	\N
+577	\N	arbitrary	2023-07-01 11:35:40.194563+00	2023-07-01 11:35:40.194563+00	4 pinches
+578	250	gram	2023-07-01 11:35:40.196641+00	2023-07-01 11:35:40.196641+00	\N
+579	600	millilitre	2023-07-01 11:35:40.198705+00	2023-07-01 11:35:40.198705+00	\N
+580	1	count	2023-07-01 11:35:40.200575+00	2023-07-01 11:35:40.200575+00	\N
+581	20	gram	2023-07-01 11:35:40.202226+00	2023-07-01 11:35:40.202226+00	\N
+582	2	count	2023-07-01 11:35:40.218906+00	2023-07-01 11:35:40.218906+00	\N
+583	2	count	2023-07-01 11:35:40.220934+00	2023-07-01 11:35:40.220934+00	\N
+584	15	gram	2023-07-01 11:35:40.222995+00	2023-07-01 11:35:40.222995+00	\N
+585	400	gram	2023-07-01 11:35:40.224909+00	2023-07-01 11:35:40.224909+00	\N
+586	400	gram	2023-07-01 11:35:40.227061+00	2023-07-01 11:35:40.227061+00	\N
+587	1	count	2023-07-01 11:35:40.228758+00	2023-07-01 11:35:40.228758+00	\N
+588	4	tablespoon	2023-07-01 11:35:40.23064+00	2023-07-01 11:35:40.23064+00	\N
+589	600	millilitre	2023-07-01 11:35:40.232837+00	2023-07-01 11:35:40.232837+00	\N
+590	1	count	2023-07-01 11:35:40.235169+00	2023-07-01 11:35:40.235169+00	\N
+591	20	gram	2023-07-01 11:35:40.237148+00	2023-07-01 11:35:40.237148+00	\N
+592	1	tablespoon	2023-07-01 11:35:40.239347+00	2023-07-01 11:35:40.239347+00	\N
+593	1	tablespoon	2023-07-01 11:35:40.242749+00	2023-07-01 11:35:40.242749+00	\N
+594	800	gram	2023-07-01 11:35:40.24483+00	2023-07-01 11:35:40.24483+00	\N
+595	2	cloves	2023-07-01 11:35:40.246679+00	2023-07-01 11:35:40.246679+00	\N
+596	150	gram	2023-07-01 11:35:40.248492+00	2023-07-01 11:35:40.248492+00	\N
+597	\N	arbitrary	2023-07-01 11:35:40.259803+00	2023-07-01 11:35:40.259803+00	1 pound
+598	0.25	cup	2023-07-01 11:35:40.261984+00	2023-07-01 11:35:40.261984+00	\N
+599	\N	arbitrary	2023-07-01 11:35:40.264674+00	2023-07-01 11:35:40.264674+00	1 clove
+600	\N	arbitrary	2023-07-01 11:35:40.266852+00	2023-07-01 11:35:40.266852+00	6 ounces
+601	2	cup	2023-07-01 11:35:40.26927+00	2023-07-01 11:35:40.26927+00	\N
+602	2	cup	2023-07-01 11:35:40.271638+00	2023-07-01 11:35:40.271638+00	\N
+603	0.5	cup	2023-07-01 11:35:40.274064+00	2023-07-01 11:35:40.274064+00	\N
+604	0.5	cup	2023-07-01 11:35:40.275984+00	2023-07-01 11:35:40.275984+00	\N
+605	1	count	2023-07-01 11:35:40.285658+00	2023-07-01 11:35:40.285658+00	\N
+606	1	count	2023-07-01 11:35:40.287422+00	2023-07-01 11:35:40.287422+00	\N
+607	3	count	2023-07-01 11:35:40.289175+00	2023-07-01 11:35:40.289175+00	\N
+608	0.5	cup	2023-07-01 11:35:40.290814+00	2023-07-01 11:35:40.290814+00	\N
+609	1	count	2023-07-01 11:35:40.292738+00	2023-07-01 11:35:40.292738+00	\N
+610	2	cup	2023-07-01 11:35:40.294572+00	2023-07-01 11:35:40.294572+00	\N
+611	5	tablespoon	2023-07-01 11:35:40.29696+00	2023-07-01 11:35:40.29696+00	\N
+612	0.25	teaspoon	2023-07-01 11:35:40.29882+00	2023-07-01 11:35:40.29882+00	\N
+613	1	count	2023-07-01 11:35:40.310516+00	2023-07-01 11:35:40.310516+00	\N
+614	250	gram	2023-07-01 11:35:40.312479+00	2023-07-01 11:35:40.312479+00	\N
+615	1	count	2023-07-01 11:35:40.31446+00	2023-07-01 11:35:40.31446+00	\N
+616	100	millilitre	2023-07-01 11:35:40.316327+00	2023-07-01 11:35:40.316327+00	\N
+617	200	millilitre	2023-07-01 11:35:40.317975+00	2023-07-01 11:35:40.317975+00	\N
+618	1	count	2023-07-01 11:35:40.319776+00	2023-07-01 11:35:40.319776+00	\N
+619	200	gram	2023-07-01 11:35:40.321796+00	2023-07-01 11:35:40.321796+00	\N
+620	300	gram	2023-07-01 11:35:40.323763+00	2023-07-01 11:35:40.323763+00	\N
+621	\N	arbitrary	2023-07-01 11:35:40.32559+00	2023-07-01 11:35:40.32559+00	1/2 bunch
+622	4	count	2023-07-01 11:35:40.334939+00	2023-07-01 11:35:40.334939+00	\N
+623	280	gram	2023-07-01 11:35:40.33679+00	2023-07-01 11:35:40.33679+00	\N
+624	200	gram	2023-07-01 11:35:40.338817+00	2023-07-01 11:35:40.338817+00	\N
+625	100	gram	2023-07-01 11:35:40.340678+00	2023-07-01 11:35:40.340678+00	\N
+626	\N	arbitrary	2023-07-01 11:35:40.342509+00	2023-07-01 11:35:40.342509+00	1 bunch
+627	1	count	2023-07-01 11:35:40.344306+00	2023-07-01 11:35:40.344306+00	\N
+628	50	gram	2023-07-01 11:35:40.346341+00	2023-07-01 11:35:40.346341+00	\N
+629	1	count	2023-07-01 11:35:40.357459+00	2023-07-01 11:35:40.357459+00	\N
+630	150	gram	2023-07-01 11:35:40.359299+00	2023-07-01 11:35:40.359299+00	\N
+631	0.5	teaspoon	2023-07-01 11:35:40.361125+00	2023-07-01 11:35:40.361125+00	\N
+632	1	count	2023-07-01 11:35:40.363032+00	2023-07-01 11:35:40.363032+00	\N
+633	1	count	2023-07-01 11:35:40.365077+00	2023-07-01 11:35:40.365077+00	\N
+634	2	count	2023-07-01 11:35:40.367285+00	2023-07-01 11:35:40.367285+00	\N
+635	4	count	2023-07-01 11:35:40.369686+00	2023-07-01 11:35:40.369686+00	\N
+636	1	count	2023-07-01 11:35:40.372168+00	2023-07-01 11:35:40.372168+00	\N
+637	1	count	2023-07-01 11:35:40.374252+00	2023-07-01 11:35:40.374252+00	\N
+638	200	gram	2023-07-01 11:35:40.38856+00	2023-07-01 11:35:40.38856+00	\N
+639	200	gram	2023-07-01 11:35:40.390448+00	2023-07-01 11:35:40.390448+00	\N
+640	1	count	2023-07-01 11:35:40.392315+00	2023-07-01 11:35:40.392315+00	\N
+641	1	count	2023-07-01 11:35:40.39476+00	2023-07-01 11:35:40.39476+00	\N
+642	2	count	2023-07-01 11:35:40.39652+00	2023-07-01 11:35:40.39652+00	\N
+643	1	count	2023-07-01 11:35:40.398508+00	2023-07-01 11:35:40.398508+00	\N
+644	1	count	2023-07-01 11:35:40.401271+00	2023-07-01 11:35:40.401271+00	\N
+645	1	count	2023-07-01 11:35:40.403239+00	2023-07-01 11:35:40.403239+00	\N
+646	2	count	2023-07-01 11:35:40.417847+00	2023-07-01 11:35:40.417847+00	\N
+647	3	count	2023-07-01 11:35:40.421028+00	2023-07-01 11:35:40.421028+00	\N
+648	2	count	2023-07-01 11:35:40.423562+00	2023-07-01 11:35:40.423562+00	\N
+649	2	count	2023-07-01 11:35:40.426013+00	2023-07-01 11:35:40.426013+00	\N
+650	4	count	2023-07-01 11:35:40.428478+00	2023-07-01 11:35:40.428478+00	\N
+651	500	gram	2023-07-01 11:35:40.430539+00	2023-07-01 11:35:40.430539+00	\N
+652	1	count	2023-07-01 11:35:40.460022+00	2023-07-01 11:35:40.460022+00	\N
+653	1	count	2023-07-01 11:35:40.462825+00	2023-07-01 11:35:40.462825+00	\N
+654	1	count	2023-07-01 11:35:40.466751+00	2023-07-01 11:35:40.466751+00	\N
+655	2	count	2023-07-01 11:35:40.47051+00	2023-07-01 11:35:40.47051+00	\N
+656	1	count	2023-07-01 11:35:40.472916+00	2023-07-01 11:35:40.472916+00	\N
+657	300	gram	2023-07-01 11:35:40.476278+00	2023-07-01 11:35:40.476278+00	\N
+658	600	millilitre	2023-07-01 11:35:40.478456+00	2023-07-01 11:35:40.478456+00	\N
+659	2	count	2023-07-01 11:35:40.480572+00	2023-07-01 11:35:40.480572+00	\N
+660	75	gram	2023-07-01 11:35:40.48269+00	2023-07-01 11:35:40.48269+00	\N
+661	20	gram	2023-07-01 11:35:40.484883+00	2023-07-01 11:35:40.484883+00	\N
+662	100	gram	2023-07-01 11:35:40.486781+00	2023-07-01 11:35:40.486781+00	\N
+663	15	gram	2023-07-08 12:27:27.597188+00	2023-07-08 12:27:27.597188+00	\N
+664	140	gram	2023-07-08 12:27:27.59959+00	2023-07-08 12:27:27.59959+00	\N
+665	1	kilogram	2023-07-08 12:27:27.601399+00	2023-07-08 12:27:27.601399+00	\N
+666	140	gram	2023-07-08 12:27:27.603252+00	2023-07-08 12:27:27.603252+00	\N
+667	140	gram	2023-07-08 12:27:27.605061+00	2023-07-08 12:27:27.605061+00	\N
+668	100	millilitre	2023-07-08 12:27:27.606773+00	2023-07-08 12:27:27.606773+00	\N
+669	100	millilitre	2023-07-08 12:27:27.608608+00	2023-07-08 12:27:27.608608+00	\N
+670	\N	arbitrary	2023-07-08 12:27:27.610399+00	2023-07-08 12:27:27.610399+00	pinch
+671	250	gram	2023-07-08 12:27:27.612305+00	2023-07-08 12:27:27.612305+00	\N
+672	0.5	count	2023-07-08 12:27:27.614141+00	2023-07-08 12:27:27.614141+00	\N
+673	4	count	2023-07-08 12:27:27.634608+00	2023-07-08 12:27:27.634608+00	\N
+674	5	tablespoon	2023-07-08 12:27:27.636667+00	2023-07-08 12:27:27.636667+00	\N
+675	250	gram	2023-07-08 12:27:27.638582+00	2023-07-08 12:27:27.638582+00	\N
+676	1	tablespoon	2023-07-08 12:27:27.640342+00	2023-07-08 12:27:27.640342+00	\N
+677	1	count	2023-07-08 12:27:27.641953+00	2023-07-08 12:27:27.641953+00	\N
+678	800	gram	2023-07-08 12:27:27.643678+00	2023-07-08 12:27:27.643678+00	\N
+679	1	count	2023-07-08 12:27:27.645852+00	2023-07-08 12:27:27.645852+00	\N
+680	1	tablespoon	2023-07-08 12:27:27.648138+00	2023-07-08 12:27:27.648138+00	\N
+681	1	tablespoon	2023-07-08 12:27:27.650127+00	2023-07-08 12:27:27.650127+00	\N
+682	0.5	teaspoon	2023-07-08 12:27:27.651964+00	2023-07-08 12:27:27.651964+00	\N
+683	1	tablespoon	2023-07-08 12:27:27.65442+00	2023-07-08 12:27:27.65442+00	\N
+684	1	litre	2023-07-08 12:27:27.656314+00	2023-07-08 12:27:27.656314+00	\N
+685	100	gram	2023-07-08 12:27:27.658226+00	2023-07-08 12:27:27.658226+00	\N
+686	1	count	2023-07-08 12:27:27.660327+00	2023-07-08 12:27:27.660327+00	\N
+687	2	tablespoon	2023-07-08 12:27:27.662193+00	2023-07-08 12:27:27.662193+00	\N
+688	1	tablespoon	2023-07-08 12:27:27.664126+00	2023-07-08 12:27:27.664126+00	\N
+689	200	gram	2023-07-08 12:27:27.666062+00	2023-07-08 12:27:27.666062+00	\N
+690	\N	arbitrary	2023-07-08 12:27:27.668033+00	2023-07-08 12:27:27.668033+00	1 handful
+691	2	count	2023-07-08 12:27:27.684532+00	2023-07-08 12:27:27.684532+00	\N
+692	1	count	2023-07-08 12:27:27.686363+00	2023-07-08 12:27:27.686363+00	\N
+693	1	count	2023-07-08 12:27:27.68826+00	2023-07-08 12:27:27.68826+00	\N
+694	1	count	2023-07-08 12:27:27.690029+00	2023-07-08 12:27:27.690029+00	\N
+695	\N	arbitrary	2023-07-08 12:27:27.691985+00	2023-07-08 12:27:27.691985+00	pinch
+696	1	tablespoon	2023-07-08 12:27:27.693944+00	2023-07-08 12:27:27.693944+00	\N
+697	\N	arbitrary	2023-07-08 12:27:27.697155+00	2023-07-08 12:27:27.697155+00	pinch
+698	2	count	2023-07-08 12:27:27.699196+00	2023-07-08 12:27:27.699196+00	\N
+699	4	tablespoon	2023-07-08 12:27:27.701266+00	2023-07-08 12:27:27.701266+00	\N
+700	1	count	2023-07-08 12:27:27.703319+00	2023-07-08 12:27:27.703319+00	\N
+701	4	tablespoon	2023-07-08 12:27:27.705261+00	2023-07-08 12:27:27.705261+00	\N
+702	8	count	2023-07-08 12:27:27.706968+00	2023-07-08 12:27:27.706968+00	\N
+703	\N	arbitrary	2023-07-08 12:27:27.708676+00	2023-07-08 12:27:27.708676+00	1 bag
+704	230	gram	2023-07-08 12:27:27.710575+00	2023-07-08 12:27:27.710575+00	\N
+705	1	kilogram	2023-07-08 12:27:27.722708+00	2023-07-08 12:27:27.722708+00	\N
+706	2	cloves	2023-07-08 12:27:27.724601+00	2023-07-08 12:27:27.724601+00	\N
+707	300	millilitre	2023-07-08 12:27:27.726454+00	2023-07-08 12:27:27.726454+00	\N
+708	200	millilitre	2023-07-08 12:27:27.728307+00	2023-07-08 12:27:27.728307+00	\N
+709	100	gram	2023-07-08 12:27:27.730158+00	2023-07-08 12:27:27.730158+00	\N
+710	50	gram	2023-07-08 12:27:27.732045+00	2023-07-08 12:27:27.732045+00	\N
+711	1	teaspoon	2023-07-08 12:27:27.733985+00	2023-07-08 12:27:27.733985+00	\N
+712	\N	arbitrary	2023-07-08 12:27:27.735905+00	2023-07-08 12:27:27.735905+00	1 pinch
+713	\N	arbitrary	2023-07-08 12:27:27.737841+00	2023-07-08 12:27:27.737841+00	to taste
+714	\N	arbitrary	2023-07-08 12:27:27.739499+00	2023-07-08 12:27:27.739499+00	to taste
+715	2	cup	2023-07-08 12:27:27.756557+00	2023-07-08 12:27:27.756557+00	\N
+716	4	count	2023-07-08 12:27:27.758683+00	2023-07-08 12:27:27.758683+00	\N
+717	0.5	cup	2023-07-08 12:27:27.760713+00	2023-07-08 12:27:27.760713+00	\N
+718	0.5	teaspoon	2023-07-08 12:27:27.762475+00	2023-07-08 12:27:27.762475+00	\N
+719	0.5	cup	2023-07-08 12:27:27.764875+00	2023-07-08 12:27:27.764875+00	\N
+720	3	tablespoon	2023-07-08 12:27:27.766766+00	2023-07-08 12:27:27.766766+00	\N
+721	2	cup	2023-07-08 12:27:27.768438+00	2023-07-08 12:27:27.768438+00	\N
+722	1	cup	2023-07-08 12:27:27.770137+00	2023-07-08 12:27:27.770137+00	\N
+723	0.5	cup	2023-07-08 12:27:27.772441+00	2023-07-08 12:27:27.772441+00	\N
+724	0.25	teaspoon	2023-07-08 12:27:27.774152+00	2023-07-08 12:27:27.774152+00	\N
+725	0.5	teaspoon	2023-07-08 12:27:27.775903+00	2023-07-08 12:27:27.775903+00	\N
+726	0.25	teaspoon	2023-07-08 12:27:27.777669+00	2023-07-08 12:27:27.777669+00	\N
+727	3	tablespoon	2023-07-08 12:27:27.779431+00	2023-07-08 12:27:27.779431+00	\N
+728	0.5	cup	2023-07-08 12:27:27.781155+00	2023-07-08 12:27:27.781155+00	\N
+729	3	tablespoon	2023-07-08 12:27:27.796145+00	2023-07-08 12:27:27.796145+00	\N
+730	4	count	2023-07-08 12:27:27.79832+00	2023-07-08 12:27:27.79832+00	\N
+731	4	count	2023-07-08 12:27:27.800136+00	2023-07-08 12:27:27.800136+00	\N
+732	2	count	2023-07-08 12:27:27.801916+00	2023-07-08 12:27:27.801916+00	\N
+733	4	cup	2023-07-08 12:27:27.803853+00	2023-07-08 12:27:27.803853+00	\N
+734	1	cup	2023-07-08 12:27:27.805816+00	2023-07-08 12:27:27.805816+00	\N
+735	\N	arbitrary	2023-07-08 12:27:27.807688+00	2023-07-08 12:27:27.807688+00	1 bay leaf
+736	0.5	cup	2023-07-08 12:27:27.809437+00	2023-07-08 12:27:27.809437+00	\N
+737	0.5	teaspoon	2023-07-08 12:27:27.81145+00	2023-07-08 12:27:27.81145+00	\N
+738	0.25	teaspoon	2023-07-08 12:27:27.813492+00	2023-07-08 12:27:27.813492+00	\N
+739	2	tablespoon	2023-07-08 12:27:27.815316+00	2023-07-08 12:27:27.815316+00	\N
+740	2	tablespoon	2023-07-08 12:27:27.817157+00	2023-07-08 12:27:27.817157+00	\N
+741	2	cup	2023-07-08 12:27:27.833534+00	2023-07-08 12:27:27.833534+00	\N
+742	1	tablespoon	2023-07-08 12:27:27.835188+00	2023-07-08 12:27:27.835188+00	\N
+743	1	count	2023-07-08 12:27:27.837132+00	2023-07-08 12:27:27.837132+00	\N
+744	2	cloves	2023-07-08 12:27:27.838996+00	2023-07-08 12:27:27.838996+00	\N
+745	2	cup	2023-07-08 12:27:27.840788+00	2023-07-08 12:27:27.840788+00	\N
+746	1	count	2023-07-08 12:27:27.842875+00	2023-07-08 12:27:27.842875+00	\N
+747	4	count	2023-07-08 12:27:27.844795+00	2023-07-08 12:27:27.844795+00	\N
+748	\N	arbitrary	2023-07-08 12:27:27.846543+00	2023-07-08 12:27:27.846543+00	1 1/2 cups
+749	0.5	cup	2023-07-08 12:27:27.848337+00	2023-07-08 12:27:27.848337+00	\N
+750	0.5	teaspoon	2023-07-08 12:27:27.849922+00	2023-07-08 12:27:27.849922+00	\N
+751	0.25	teaspoon	2023-07-08 12:27:27.851484+00	2023-07-08 12:27:27.851484+00	\N
+752	0.25	teaspoon	2023-07-08 12:27:27.853331+00	2023-07-08 12:27:27.853331+00	\N
+753	\N	arbitrary	2023-07-08 12:27:27.855124+00	2023-07-08 12:27:27.855124+00	1 1/2 cups
+754	0.25	cup	2023-07-08 12:27:27.857015+00	2023-07-08 12:27:27.857015+00	\N
+755	1.5	kilogram	2023-07-08 12:27:27.877165+00	2023-07-08 12:27:27.877165+00	\N
+756	2	tablespoon	2023-07-08 12:27:27.87901+00	2023-07-08 12:27:27.87901+00	\N
+757	2	count	2023-07-08 12:27:27.880783+00	2023-07-08 12:27:27.880783+00	\N
+758	2	count	2023-07-08 12:27:27.882472+00	2023-07-08 12:27:27.882472+00	\N
+759	2	count	2023-07-08 12:27:27.884526+00	2023-07-08 12:27:27.884526+00	\N
+760	2	tablespoon	2023-07-08 12:27:27.886358+00	2023-07-08 12:27:27.886358+00	\N
+761	2	tablespoon	2023-07-08 12:27:27.888217+00	2023-07-08 12:27:27.888217+00	\N
+762	500	millilitre	2023-07-08 12:27:27.889906+00	2023-07-08 12:27:27.889906+00	\N
+763	2	tablespoon	2023-07-08 12:27:27.892026+00	2023-07-08 12:27:27.892026+00	\N
+764	\N	arbitrary	2023-07-08 12:27:27.893973+00	2023-07-08 12:27:27.893973+00	few
+765	\N	arbitrary	2023-07-08 12:27:27.895908+00	2023-07-08 12:27:27.895908+00	few
+766	2	count	2023-07-08 12:27:27.897943+00	2023-07-08 12:27:27.897943+00	\N
+767	3	count	2023-07-08 12:27:27.900946+00	2023-07-08 12:27:27.900946+00	\N
+768	500	gram	2023-07-08 12:27:27.902776+00	2023-07-08 12:27:27.902776+00	\N
+769	2	count	2023-07-08 12:27:27.904779+00	2023-07-08 12:27:27.904779+00	\N
+770	150	gram	2023-07-08 12:27:27.906743+00	2023-07-08 12:27:27.906743+00	\N
+771	2	tablespoon	2023-07-08 12:27:27.908489+00	2023-07-08 12:27:27.908489+00	\N
+772	\N	arbitrary	2023-07-08 12:27:27.910307+00	2023-07-08 12:27:27.910307+00	salt
+773	\N	arbitrary	2023-07-08 12:27:27.91225+00	2023-07-08 12:27:27.91225+00	black pepper
+774	320	gram	2023-07-08 12:27:27.924905+00	2023-07-08 12:27:27.924905+00	\N
+775	4	count	2023-07-08 12:27:27.926874+00	2023-07-08 12:27:27.926874+00	\N
+776	4	count	2023-07-08 12:27:27.928588+00	2023-07-08 12:27:27.928588+00	\N
+777	200	millilitre	2023-07-08 12:27:27.930193+00	2023-07-08 12:27:27.930193+00	\N
+778	200	millilitre	2023-07-08 12:27:27.931999+00	2023-07-08 12:27:27.931999+00	\N
+779	200	gram	2023-07-08 12:27:27.933892+00	2023-07-08 12:27:27.933892+00	\N
+780	\N	arbitrary	2023-07-08 12:27:27.935746+00	2023-07-08 12:27:27.935746+00	1 bunch
+781	100	gram	2023-07-08 12:27:27.937622+00	2023-07-08 12:27:27.937622+00	\N
+782	\N	arbitrary	2023-07-08 12:27:27.939559+00	2023-07-08 12:27:27.939559+00	salt
+783	\N	arbitrary	2023-07-08 12:27:27.941398+00	2023-07-08 12:27:27.941398+00	black pepper
+784	\N	arbitrary	2023-07-08 12:27:27.943288+00	2023-07-08 12:27:27.943288+00	1 knob
+785	\N	arbitrary	2023-07-08 12:27:27.945054+00	2023-07-08 12:27:27.945054+00	olive oil
+786	1	kilogram	2023-07-08 12:27:27.956443+00	2023-07-08 12:27:27.956443+00	\N
+787	2	count	2023-07-08 12:27:27.958187+00	2023-07-08 12:27:27.958187+00	\N
+788	4	tablespoon	2023-07-08 12:27:27.959932+00	2023-07-08 12:27:27.959932+00	\N
+789	1	count	2023-07-08 12:27:27.961706+00	2023-07-08 12:27:27.961706+00	\N
+790	2	cloves	2023-07-08 12:27:27.963467+00	2023-07-08 12:27:27.963467+00	\N
+791	2	tablespoon	2023-07-08 12:27:27.965236+00	2023-07-08 12:27:27.965236+00	\N
+792	1	teaspoon	2023-07-08 12:27:27.967112+00	2023-07-08 12:27:27.967112+00	\N
+793	0.5	teaspoon	2023-07-08 12:27:27.968852+00	2023-07-08 12:27:27.968852+00	\N
+794	\N	arbitrary	2023-07-08 12:27:27.970526+00	2023-07-08 12:27:27.970526+00	vegetable oil
+795	2	count	2023-07-08 12:27:27.977688+00	2023-07-08 12:27:27.977688+00	\N
+796	1	count	2023-07-08 12:27:27.979663+00	2023-07-08 12:27:27.979663+00	\N
+797	100	gram	2023-07-08 12:27:27.98157+00	2023-07-08 12:27:27.98157+00	\N
+798	\N	arbitrary	2023-07-08 12:27:27.98349+00	2023-07-08 12:27:27.98349+00	1 bunch
+799	\N	arbitrary	2023-07-08 12:27:27.985499+00	2023-07-08 12:27:27.985499+00	1 pack
+800	2	tablespoon	2023-07-08 12:27:27.99168+00	2023-07-08 12:27:27.99168+00	\N
+801	\N	arbitrary	2023-07-08 12:27:27.993481+00	2023-07-08 12:27:27.993481+00	3 small
+802	\N	arbitrary	2023-07-08 12:27:27.995401+00	2023-07-08 12:27:27.995401+00	1 sheet
+803	100	gram	2023-07-08 12:27:27.997338+00	2023-07-08 12:27:27.997338+00	\N
+804	\N	arbitrary	2023-07-08 12:27:28.006146+00	2023-07-08 12:27:28.006146+00	2 handfuls
+805	2	count	2023-07-08 12:27:28.008108+00	2023-07-08 12:27:28.008108+00	\N
+806	2	count	2023-07-08 12:27:28.010164+00	2023-07-08 12:27:28.010164+00	\N
+807	100	gram	2023-07-08 12:27:28.012073+00	2023-07-08 12:27:28.012073+00	\N
+808	100	millilitre	2023-07-08 12:27:28.013797+00	2023-07-08 12:27:28.013797+00	\N
+809	\N	arbitrary	2023-07-08 12:27:28.015618+00	2023-07-08 12:27:28.015618+00	10 leaves
+810	\N	arbitrary	2023-07-08 12:27:28.024344+00	2023-07-08 12:27:28.024344+00	enough for at least 2 pizzas
+811	2	tablespoon	2023-07-08 12:27:28.026603+00	2023-07-08 12:27:28.026603+00	\N
+812	2	count	2023-07-08 12:27:28.028556+00	2023-07-08 12:27:28.028556+00	\N
+813	\N	arbitrary	2023-07-08 12:27:28.030382+00	2023-07-08 12:27:28.030382+00	1 pack
+814	125	gram	2023-07-08 12:27:28.042024+00	2023-07-08 12:27:28.042024+00	\N
+815	325	millilitre	2023-07-08 12:27:28.044102+00	2023-07-08 12:27:28.044102+00	\N
+816	400	gram	2023-07-08 12:27:28.045987+00	2023-07-08 12:27:28.045987+00	\N
+817	1	count	2023-07-08 12:27:28.047694+00	2023-07-08 12:27:28.047694+00	\N
+818	150	gram	2023-07-08 12:27:28.049564+00	2023-07-08 12:27:28.049564+00	\N
+819	200	gram	2023-07-08 12:27:28.051996+00	2023-07-08 12:27:28.051996+00	\N
+820	40	gram	2023-07-08 12:27:28.053953+00	2023-07-08 12:27:28.053953+00	\N
+821	15	gram	2023-07-08 12:27:28.055913+00	2023-07-08 12:27:28.055913+00	\N
+822	2	count	2023-07-08 12:27:28.057683+00	2023-07-08 12:27:28.057683+00	\N
+823	800	gram	2023-07-08 12:27:28.069748+00	2023-07-08 12:27:28.069748+00	\N
+824	1	count	2023-07-08 12:27:28.07178+00	2023-07-08 12:27:28.07178+00	\N
+825	8	count	2023-07-08 12:27:28.073617+00	2023-07-08 12:27:28.073617+00	\N
+826	8	count	2023-07-08 12:27:28.075472+00	2023-07-08 12:27:28.075472+00	\N
+827	1	count	2023-07-08 12:27:28.077323+00	2023-07-08 12:27:28.077323+00	\N
+828	280	gram	2023-07-08 12:27:28.079114+00	2023-07-08 12:27:28.079114+00	\N
+829	\N	arbitrary	2023-07-08 12:27:28.081062+00	2023-07-08 12:27:28.081062+00	3-4 sprigs
+830	\N	arbitrary	2023-07-08 12:27:28.082699+00	2023-07-08 12:27:28.082699+00	5-6 sprigs
+831	340	gram	2023-07-08 12:27:28.084606+00	2023-07-08 12:27:28.084606+00	\N
+832	20	gram	2023-07-08 12:27:28.086442+00	2023-07-08 12:27:28.086442+00	\N
+833	1	count	2023-07-08 12:27:28.097759+00	2023-07-08 12:27:28.097759+00	\N
+834	2	count	2023-07-08 12:27:28.099594+00	2023-07-08 12:27:28.099594+00	\N
+835	2	count	2023-07-08 12:27:28.101332+00	2023-07-08 12:27:28.101332+00	\N
+836	6	count	2023-07-08 12:27:28.103142+00	2023-07-08 12:27:28.103142+00	\N
+837	150	gram	2023-07-08 12:27:28.105095+00	2023-07-08 12:27:28.105095+00	\N
+838	\N	arbitrary	2023-07-08 12:27:28.106886+00	2023-07-08 12:27:28.106886+00	4 pinches
+839	250	gram	2023-07-08 12:27:28.108895+00	2023-07-08 12:27:28.108895+00	\N
+840	600	millilitre	2023-07-08 12:27:28.110551+00	2023-07-08 12:27:28.110551+00	\N
+841	1	count	2023-07-08 12:27:28.112277+00	2023-07-08 12:27:28.112277+00	\N
+842	20	gram	2023-07-08 12:27:28.113986+00	2023-07-08 12:27:28.113986+00	\N
+843	2	count	2023-07-08 12:27:28.130422+00	2023-07-08 12:27:28.130422+00	\N
+844	2	count	2023-07-08 12:27:28.132238+00	2023-07-08 12:27:28.132238+00	\N
+845	15	gram	2023-07-08 12:27:28.134022+00	2023-07-08 12:27:28.134022+00	\N
+846	400	gram	2023-07-08 12:27:28.135896+00	2023-07-08 12:27:28.135896+00	\N
+847	400	gram	2023-07-08 12:27:28.137686+00	2023-07-08 12:27:28.137686+00	\N
+848	1	count	2023-07-08 12:27:28.13953+00	2023-07-08 12:27:28.13953+00	\N
+849	4	tablespoon	2023-07-08 12:27:28.141296+00	2023-07-08 12:27:28.141296+00	\N
+850	600	millilitre	2023-07-08 12:27:28.143023+00	2023-07-08 12:27:28.143023+00	\N
+851	1	count	2023-07-08 12:27:28.14488+00	2023-07-08 12:27:28.14488+00	\N
+852	20	gram	2023-07-08 12:27:28.14695+00	2023-07-08 12:27:28.14695+00	\N
+853	1	tablespoon	2023-07-08 12:27:28.148946+00	2023-07-08 12:27:28.148946+00	\N
+854	1	tablespoon	2023-07-08 12:27:28.150909+00	2023-07-08 12:27:28.150909+00	\N
+855	800	gram	2023-07-08 12:27:28.152849+00	2023-07-08 12:27:28.152849+00	\N
+856	2	cloves	2023-07-08 12:27:28.155588+00	2023-07-08 12:27:28.155588+00	\N
+857	150	gram	2023-07-08 12:27:28.157488+00	2023-07-08 12:27:28.157488+00	\N
+858	\N	arbitrary	2023-07-08 12:27:28.167539+00	2023-07-08 12:27:28.167539+00	1 pound
+859	0.25	cup	2023-07-08 12:27:28.169479+00	2023-07-08 12:27:28.169479+00	\N
+860	\N	arbitrary	2023-07-08 12:27:28.171206+00	2023-07-08 12:27:28.171206+00	1 clove
+861	\N	arbitrary	2023-07-08 12:27:28.17313+00	2023-07-08 12:27:28.17313+00	6 ounces
+862	2	cup	2023-07-08 12:27:28.17505+00	2023-07-08 12:27:28.17505+00	\N
+863	2	cup	2023-07-08 12:27:28.177083+00	2023-07-08 12:27:28.177083+00	\N
+864	0.5	cup	2023-07-08 12:27:28.179003+00	2023-07-08 12:27:28.179003+00	\N
+865	0.5	cup	2023-07-08 12:27:28.258286+00	2023-07-08 12:27:28.258286+00	\N
+866	1	count	2023-07-08 12:27:28.27011+00	2023-07-08 12:27:28.27011+00	\N
+867	1	count	2023-07-08 12:27:28.271911+00	2023-07-08 12:27:28.271911+00	\N
+868	3	count	2023-07-08 12:27:28.273781+00	2023-07-08 12:27:28.273781+00	\N
+869	0.5	cup	2023-07-08 12:27:28.276148+00	2023-07-08 12:27:28.276148+00	\N
+870	1	count	2023-07-08 12:27:28.278166+00	2023-07-08 12:27:28.278166+00	\N
+871	2	cup	2023-07-08 12:27:28.280187+00	2023-07-08 12:27:28.280187+00	\N
+872	5	tablespoon	2023-07-08 12:27:28.282012+00	2023-07-08 12:27:28.282012+00	\N
+873	0.25	teaspoon	2023-07-08 12:27:28.284644+00	2023-07-08 12:27:28.284644+00	\N
+874	1	count	2023-07-08 12:27:28.296587+00	2023-07-08 12:27:28.296587+00	\N
+875	250	gram	2023-07-08 12:27:28.299843+00	2023-07-08 12:27:28.299843+00	\N
+876	1	count	2023-07-08 12:27:28.302215+00	2023-07-08 12:27:28.302215+00	\N
+877	100	millilitre	2023-07-08 12:27:28.30543+00	2023-07-08 12:27:28.30543+00	\N
+878	200	millilitre	2023-07-08 12:27:28.308153+00	2023-07-08 12:27:28.308153+00	\N
+879	1	count	2023-07-08 12:27:28.310237+00	2023-07-08 12:27:28.310237+00	\N
+880	200	gram	2023-07-08 12:27:28.312867+00	2023-07-08 12:27:28.312867+00	\N
+881	300	gram	2023-07-08 12:27:28.314927+00	2023-07-08 12:27:28.314927+00	\N
+882	\N	arbitrary	2023-07-08 12:27:28.317478+00	2023-07-08 12:27:28.317478+00	1/2 bunch
+883	4	count	2023-07-08 12:27:28.33141+00	2023-07-08 12:27:28.33141+00	\N
+884	280	gram	2023-07-08 12:27:28.334341+00	2023-07-08 12:27:28.334341+00	\N
+885	200	gram	2023-07-08 12:27:28.337041+00	2023-07-08 12:27:28.337041+00	\N
+886	100	gram	2023-07-08 12:27:28.339749+00	2023-07-08 12:27:28.339749+00	\N
+887	\N	arbitrary	2023-07-08 12:27:28.34237+00	2023-07-08 12:27:28.34237+00	1 bunch
+888	1	count	2023-07-08 12:27:28.346026+00	2023-07-08 12:27:28.346026+00	\N
+889	50	gram	2023-07-08 12:27:28.348294+00	2023-07-08 12:27:28.348294+00	\N
+890	1	count	2023-07-08 12:27:28.36415+00	2023-07-08 12:27:28.36415+00	\N
+891	150	gram	2023-07-08 12:27:28.366303+00	2023-07-08 12:27:28.366303+00	\N
+892	0.5	teaspoon	2023-07-08 12:27:28.368693+00	2023-07-08 12:27:28.368693+00	\N
+893	1	count	2023-07-08 12:27:28.371415+00	2023-07-08 12:27:28.371415+00	\N
+894	1	count	2023-07-08 12:27:28.373529+00	2023-07-08 12:27:28.373529+00	\N
+895	2	count	2023-07-08 12:27:28.376191+00	2023-07-08 12:27:28.376191+00	\N
+896	4	count	2023-07-08 12:27:28.378292+00	2023-07-08 12:27:28.378292+00	\N
+897	1	count	2023-07-08 12:27:28.380419+00	2023-07-08 12:27:28.380419+00	\N
+898	1	count	2023-07-08 12:27:28.382564+00	2023-07-08 12:27:28.382564+00	\N
+899	200	gram	2023-07-08 12:27:28.400476+00	2023-07-08 12:27:28.400476+00	\N
+900	200	gram	2023-07-08 12:27:28.402342+00	2023-07-08 12:27:28.402342+00	\N
+901	1	count	2023-07-08 12:27:28.404297+00	2023-07-08 12:27:28.404297+00	\N
+902	1	count	2023-07-08 12:27:28.406028+00	2023-07-08 12:27:28.406028+00	\N
+903	2	count	2023-07-08 12:27:28.408055+00	2023-07-08 12:27:28.408055+00	\N
+904	1	count	2023-07-08 12:27:28.409821+00	2023-07-08 12:27:28.409821+00	\N
+905	1	count	2023-07-08 12:27:28.411823+00	2023-07-08 12:27:28.411823+00	\N
+906	1	count	2023-07-08 12:27:28.414068+00	2023-07-08 12:27:28.414068+00	\N
+907	2	count	2023-07-08 12:27:28.422627+00	2023-07-08 12:27:28.422627+00	\N
+908	3	count	2023-07-08 12:27:28.424351+00	2023-07-08 12:27:28.424351+00	\N
+909	2	count	2023-07-08 12:27:28.426148+00	2023-07-08 12:27:28.426148+00	\N
+910	2	count	2023-07-08 12:27:28.428133+00	2023-07-08 12:27:28.428133+00	\N
+911	4	count	2023-07-08 12:27:28.430329+00	2023-07-08 12:27:28.430329+00	\N
+912	500	gram	2023-07-08 12:27:28.432257+00	2023-07-08 12:27:28.432257+00	\N
+913	1	count	2023-07-08 12:27:28.445169+00	2023-07-08 12:27:28.445169+00	\N
+914	1	count	2023-07-08 12:27:28.447447+00	2023-07-08 12:27:28.447447+00	\N
+915	1	count	2023-07-08 12:27:28.449537+00	2023-07-08 12:27:28.449537+00	\N
+916	2	count	2023-07-08 12:27:28.451588+00	2023-07-08 12:27:28.451588+00	\N
+917	1	count	2023-07-08 12:27:28.45383+00	2023-07-08 12:27:28.45383+00	\N
+918	300	gram	2023-07-08 12:27:28.456027+00	2023-07-08 12:27:28.456027+00	\N
+919	600	millilitre	2023-07-08 12:27:28.459348+00	2023-07-08 12:27:28.459348+00	\N
+920	2	count	2023-07-08 12:27:28.461523+00	2023-07-08 12:27:28.461523+00	\N
+921	75	gram	2023-07-08 12:27:28.463487+00	2023-07-08 12:27:28.463487+00	\N
+922	20	gram	2023-07-08 12:27:28.465419+00	2023-07-08 12:27:28.465419+00	\N
+923	100	gram	2023-07-08 12:27:28.46722+00	2023-07-08 12:27:28.46722+00	\N
+924	200	gram	2023-07-08 12:27:28.48406+00	2023-07-08 12:27:28.48406+00	\N
+925	800	gram	2023-07-08 12:27:28.487142+00	2023-07-08 12:27:28.487142+00	\N
+926	800	gram	2023-07-08 12:27:28.495583+00	2023-07-08 12:27:28.495583+00	\N
+927	130	gram	2023-07-08 12:27:28.500053+00	2023-07-08 12:27:28.500053+00	\N
+928	12	count	2023-07-08 12:27:28.510237+00	2023-07-08 12:27:28.510237+00	\N
+929	500	gram	2023-07-08 12:27:28.512497+00	2023-07-08 12:27:28.512497+00	\N
+930	\N	arbitrary	2023-07-08 12:27:28.515751+00	2023-07-08 12:27:28.515751+00	Bunch
+931	200	gram	2023-07-08 12:27:28.518109+00	2023-07-08 12:27:28.518109+00	\N
+932	1200	gram	2023-07-08 12:27:28.53932+00	2023-07-08 12:27:28.53932+00	\N
+933	3	tablespoon	2023-07-08 12:27:28.541375+00	2023-07-08 12:27:28.541375+00	\N
+934	\N	arbitrary	2023-07-08 12:27:28.54356+00	2023-07-08 12:27:28.54356+00	1 1/2 tbsp
+935	\N	arbitrary	2023-07-08 12:27:28.545691+00	2023-07-08 12:27:28.545691+00	1 1/2 tbsp
+936	\N	arbitrary	2023-07-08 12:27:28.547721+00	2023-07-08 12:27:28.547721+00	1 1/2 tbsp
+937	\N	arbitrary	2023-07-08 12:27:28.549995+00	2023-07-08 12:27:28.549995+00	1 Clove
+938	2	tablespoon	2023-07-08 12:27:28.552044+00	2023-07-08 12:27:28.552044+00	\N
+939	2	count	2023-07-08 12:27:28.554161+00	2023-07-08 12:27:28.554161+00	\N
+940	2	count	2023-07-08 12:27:28.556482+00	2023-07-08 12:27:28.556482+00	\N
+941	1	count	2023-07-08 12:27:28.558517+00	2023-07-08 12:27:28.558517+00	\N
+942	110	gram	2023-07-08 12:27:28.560445+00	2023-07-08 12:27:28.560445+00	\N
+943	1	count	2023-07-08 12:27:28.562333+00	2023-07-08 12:27:28.562333+00	\N
+944	12	count	2023-07-08 12:27:28.56456+00	2023-07-08 12:27:28.56456+00	\N
+945	150	millilitre	2023-07-08 12:27:28.567173+00	2023-07-08 12:27:28.567173+00	\N
+946	4	count	2023-07-08 12:27:28.577394+00	2023-07-08 12:27:28.577394+00	\N
+947	100	gram	2023-07-08 12:27:28.579509+00	2023-07-08 12:27:28.579509+00	\N
+948	200	gram	2023-07-08 12:27:28.581537+00	2023-07-08 12:27:28.581537+00	\N
+949	500	gram	2023-07-08 12:27:28.583526+00	2023-07-08 12:27:28.583526+00	\N
+950	200	gram	2023-07-08 12:27:28.58551+00	2023-07-08 12:27:28.58551+00	\N
+951	\N	arbitrary	2023-07-08 12:27:28.587451+00	2023-07-08 12:27:28.587451+00	1 bunch
+952	15	gram	2023-07-16 08:44:42.375354+00	2023-07-16 08:44:42.375354+00	\N
+953	140	gram	2023-07-16 08:44:42.378105+00	2023-07-16 08:44:42.378105+00	\N
+954	1	kilogram	2023-07-16 08:44:42.380005+00	2023-07-16 08:44:42.380005+00	\N
+955	140	gram	2023-07-16 08:44:42.381934+00	2023-07-16 08:44:42.381934+00	\N
+956	140	gram	2023-07-16 08:44:42.383935+00	2023-07-16 08:44:42.383935+00	\N
+957	100	millilitre	2023-07-16 08:44:42.386119+00	2023-07-16 08:44:42.386119+00	\N
+958	100	millilitre	2023-07-16 08:44:42.388962+00	2023-07-16 08:44:42.388962+00	\N
+959	\N	arbitrary	2023-07-16 08:44:42.3908+00	2023-07-16 08:44:42.3908+00	pinch
+960	250	gram	2023-07-16 08:44:42.392651+00	2023-07-16 08:44:42.392651+00	\N
+961	0.5	count	2023-07-16 08:44:42.394453+00	2023-07-16 08:44:42.394453+00	\N
+962	4	count	2023-07-16 08:44:42.417648+00	2023-07-16 08:44:42.417648+00	\N
+963	5	tablespoon	2023-07-16 08:44:42.419647+00	2023-07-16 08:44:42.419647+00	\N
+964	250	gram	2023-07-16 08:44:42.422054+00	2023-07-16 08:44:42.422054+00	\N
+965	1	tablespoon	2023-07-16 08:44:42.424142+00	2023-07-16 08:44:42.424142+00	\N
+966	1	count	2023-07-16 08:44:42.426119+00	2023-07-16 08:44:42.426119+00	\N
+967	800	gram	2023-07-16 08:44:42.428092+00	2023-07-16 08:44:42.428092+00	\N
+968	1	count	2023-07-16 08:44:42.429966+00	2023-07-16 08:44:42.429966+00	\N
+969	1	tablespoon	2023-07-16 08:44:42.431987+00	2023-07-16 08:44:42.431987+00	\N
+970	1	tablespoon	2023-07-16 08:44:42.434+00	2023-07-16 08:44:42.434+00	\N
+971	0.5	teaspoon	2023-07-16 08:44:42.436005+00	2023-07-16 08:44:42.436005+00	\N
+972	1	tablespoon	2023-07-16 08:44:42.438516+00	2023-07-16 08:44:42.438516+00	\N
+973	1	litre	2023-07-16 08:44:42.440798+00	2023-07-16 08:44:42.440798+00	\N
+974	100	gram	2023-07-16 08:44:42.442779+00	2023-07-16 08:44:42.442779+00	\N
+975	1	count	2023-07-16 08:44:42.444588+00	2023-07-16 08:44:42.444588+00	\N
+976	2	tablespoon	2023-07-16 08:44:42.446428+00	2023-07-16 08:44:42.446428+00	\N
+977	1	tablespoon	2023-07-16 08:44:42.448243+00	2023-07-16 08:44:42.448243+00	\N
+978	200	gram	2023-07-16 08:44:42.450027+00	2023-07-16 08:44:42.450027+00	\N
+979	\N	arbitrary	2023-07-16 08:44:42.451896+00	2023-07-16 08:44:42.451896+00	1 handful
+980	2	count	2023-07-16 08:44:42.469915+00	2023-07-16 08:44:42.469915+00	\N
+981	1	count	2023-07-16 08:44:42.47186+00	2023-07-16 08:44:42.47186+00	\N
+982	1	count	2023-07-16 08:44:42.473769+00	2023-07-16 08:44:42.473769+00	\N
+983	1	count	2023-07-16 08:44:42.476207+00	2023-07-16 08:44:42.476207+00	\N
+984	\N	arbitrary	2023-07-16 08:44:42.478421+00	2023-07-16 08:44:42.478421+00	pinch
+985	1	tablespoon	2023-07-16 08:44:42.480556+00	2023-07-16 08:44:42.480556+00	\N
+986	\N	arbitrary	2023-07-16 08:44:42.482611+00	2023-07-16 08:44:42.482611+00	pinch
+987	2	count	2023-07-16 08:44:42.484713+00	2023-07-16 08:44:42.484713+00	\N
+988	4	tablespoon	2023-07-16 08:44:42.486541+00	2023-07-16 08:44:42.486541+00	\N
+989	1	count	2023-07-16 08:44:42.489174+00	2023-07-16 08:44:42.489174+00	\N
+990	4	tablespoon	2023-07-16 08:44:42.491056+00	2023-07-16 08:44:42.491056+00	\N
+991	8	count	2023-07-16 08:44:42.493091+00	2023-07-16 08:44:42.493091+00	\N
+992	\N	arbitrary	2023-07-16 08:44:42.494882+00	2023-07-16 08:44:42.494882+00	1 bag
+993	230	gram	2023-07-16 08:44:42.496949+00	2023-07-16 08:44:42.496949+00	\N
+994	1	kilogram	2023-07-16 08:44:42.509082+00	2023-07-16 08:44:42.509082+00	\N
+995	2	cloves	2023-07-16 08:44:42.511264+00	2023-07-16 08:44:42.511264+00	\N
+996	300	millilitre	2023-07-16 08:44:42.513018+00	2023-07-16 08:44:42.513018+00	\N
+997	200	millilitre	2023-07-16 08:44:42.515721+00	2023-07-16 08:44:42.515721+00	\N
+998	100	gram	2023-07-16 08:44:42.517722+00	2023-07-16 08:44:42.517722+00	\N
+999	50	gram	2023-07-16 08:44:42.519593+00	2023-07-16 08:44:42.519593+00	\N
+1000	1	teaspoon	2023-07-16 08:44:42.521562+00	2023-07-16 08:44:42.521562+00	\N
+1001	\N	arbitrary	2023-07-16 08:44:42.523469+00	2023-07-16 08:44:42.523469+00	1 pinch
+1002	\N	arbitrary	2023-07-16 08:44:42.525612+00	2023-07-16 08:44:42.525612+00	to taste
+1003	\N	arbitrary	2023-07-16 08:44:42.527651+00	2023-07-16 08:44:42.527651+00	to taste
+1004	2	cup	2023-07-16 08:44:42.545188+00	2023-07-16 08:44:42.545188+00	\N
+1005	4	count	2023-07-16 08:44:42.546999+00	2023-07-16 08:44:42.546999+00	\N
+1006	0.5	cup	2023-07-16 08:44:42.548911+00	2023-07-16 08:44:42.548911+00	\N
+1007	0.5	teaspoon	2023-07-16 08:44:42.550806+00	2023-07-16 08:44:42.550806+00	\N
+1008	0.5	cup	2023-07-16 08:44:42.552689+00	2023-07-16 08:44:42.552689+00	\N
+1009	3	tablespoon	2023-07-16 08:44:42.554596+00	2023-07-16 08:44:42.554596+00	\N
+1010	2	cup	2023-07-16 08:44:42.556751+00	2023-07-16 08:44:42.556751+00	\N
+1011	1	cup	2023-07-16 08:44:42.559191+00	2023-07-16 08:44:42.559191+00	\N
+1012	0.5	cup	2023-07-16 08:44:42.561775+00	2023-07-16 08:44:42.561775+00	\N
+1013	0.25	teaspoon	2023-07-16 08:44:42.564515+00	2023-07-16 08:44:42.564515+00	\N
+1014	0.5	teaspoon	2023-07-16 08:44:42.566767+00	2023-07-16 08:44:42.566767+00	\N
+1015	0.25	teaspoon	2023-07-16 08:44:42.568677+00	2023-07-16 08:44:42.568677+00	\N
+1016	3	tablespoon	2023-07-16 08:44:42.570557+00	2023-07-16 08:44:42.570557+00	\N
+1017	0.5	cup	2023-07-16 08:44:42.572893+00	2023-07-16 08:44:42.572893+00	\N
+1018	3	tablespoon	2023-07-16 08:44:42.588588+00	2023-07-16 08:44:42.588588+00	\N
+1019	4	count	2023-07-16 08:44:42.59074+00	2023-07-16 08:44:42.59074+00	\N
+1020	4	count	2023-07-16 08:44:42.593048+00	2023-07-16 08:44:42.593048+00	\N
+1021	2	count	2023-07-16 08:44:42.594905+00	2023-07-16 08:44:42.594905+00	\N
+1022	4	cup	2023-07-16 08:44:42.596907+00	2023-07-16 08:44:42.596907+00	\N
+1023	1	cup	2023-07-16 08:44:42.598789+00	2023-07-16 08:44:42.598789+00	\N
+1024	\N	arbitrary	2023-07-16 08:44:42.600703+00	2023-07-16 08:44:42.600703+00	1 bay leaf
+1025	0.5	cup	2023-07-16 08:44:42.602618+00	2023-07-16 08:44:42.602618+00	\N
+1026	0.5	teaspoon	2023-07-16 08:44:42.604474+00	2023-07-16 08:44:42.604474+00	\N
+1027	0.25	teaspoon	2023-07-16 08:44:42.606446+00	2023-07-16 08:44:42.606446+00	\N
+1028	2	tablespoon	2023-07-16 08:44:42.608341+00	2023-07-16 08:44:42.608341+00	\N
+1029	2	tablespoon	2023-07-16 08:44:42.610224+00	2023-07-16 08:44:42.610224+00	\N
+1030	2	cup	2023-07-16 08:44:42.627397+00	2023-07-16 08:44:42.627397+00	\N
+1031	1	tablespoon	2023-07-16 08:44:42.630415+00	2023-07-16 08:44:42.630415+00	\N
+1032	1	count	2023-07-16 08:44:42.6327+00	2023-07-16 08:44:42.6327+00	\N
+1033	2	cloves	2023-07-16 08:44:42.6349+00	2023-07-16 08:44:42.6349+00	\N
+1034	2	cup	2023-07-16 08:44:42.636647+00	2023-07-16 08:44:42.636647+00	\N
+1035	1	count	2023-07-16 08:44:42.638644+00	2023-07-16 08:44:42.638644+00	\N
+1036	4	count	2023-07-16 08:44:42.640301+00	2023-07-16 08:44:42.640301+00	\N
+1037	\N	arbitrary	2023-07-16 08:44:42.642098+00	2023-07-16 08:44:42.642098+00	1 1/2 cups
+1038	0.5	cup	2023-07-16 08:44:42.643918+00	2023-07-16 08:44:42.643918+00	\N
+1039	0.5	teaspoon	2023-07-16 08:44:42.645889+00	2023-07-16 08:44:42.645889+00	\N
+1040	0.25	teaspoon	2023-07-16 08:44:42.647949+00	2023-07-16 08:44:42.647949+00	\N
+1041	0.25	teaspoon	2023-07-16 08:44:42.650489+00	2023-07-16 08:44:42.650489+00	\N
+1042	\N	arbitrary	2023-07-16 08:44:42.65242+00	2023-07-16 08:44:42.65242+00	1 1/2 cups
+1043	0.25	cup	2023-07-16 08:44:42.654327+00	2023-07-16 08:44:42.654327+00	\N
+1044	1.5	kilogram	2023-07-16 08:44:42.675861+00	2023-07-16 08:44:42.675861+00	\N
+1045	2	tablespoon	2023-07-16 08:44:42.677895+00	2023-07-16 08:44:42.677895+00	\N
+1046	2	count	2023-07-16 08:44:42.679639+00	2023-07-16 08:44:42.679639+00	\N
+1047	2	count	2023-07-16 08:44:42.681581+00	2023-07-16 08:44:42.681581+00	\N
+1048	2	count	2023-07-16 08:44:42.683382+00	2023-07-16 08:44:42.683382+00	\N
+1049	2	tablespoon	2023-07-16 08:44:42.685091+00	2023-07-16 08:44:42.685091+00	\N
+1050	2	tablespoon	2023-07-16 08:44:42.686962+00	2023-07-16 08:44:42.686962+00	\N
+1051	500	millilitre	2023-07-16 08:44:42.688849+00	2023-07-16 08:44:42.688849+00	\N
+1052	2	tablespoon	2023-07-16 08:44:42.690594+00	2023-07-16 08:44:42.690594+00	\N
+1053	\N	arbitrary	2023-07-16 08:44:42.692355+00	2023-07-16 08:44:42.692355+00	few
+1054	\N	arbitrary	2023-07-16 08:44:42.694131+00	2023-07-16 08:44:42.694131+00	few
+1055	2	count	2023-07-16 08:44:42.6958+00	2023-07-16 08:44:42.6958+00	\N
+1056	3	count	2023-07-16 08:44:42.697616+00	2023-07-16 08:44:42.697616+00	\N
+1057	500	gram	2023-07-16 08:44:42.699197+00	2023-07-16 08:44:42.699197+00	\N
+1058	2	count	2023-07-16 08:44:42.700864+00	2023-07-16 08:44:42.700864+00	\N
+1059	150	gram	2023-07-16 08:44:42.702583+00	2023-07-16 08:44:42.702583+00	\N
+1060	2	tablespoon	2023-07-16 08:44:42.704217+00	2023-07-16 08:44:42.704217+00	\N
+1061	\N	arbitrary	2023-07-16 08:44:42.705847+00	2023-07-16 08:44:42.705847+00	salt
+1062	\N	arbitrary	2023-07-16 08:44:42.707611+00	2023-07-16 08:44:42.707611+00	black pepper
+1063	320	gram	2023-07-16 08:44:42.720673+00	2023-07-16 08:44:42.720673+00	\N
+1064	4	count	2023-07-16 08:44:42.722476+00	2023-07-16 08:44:42.722476+00	\N
+1065	4	count	2023-07-16 08:44:42.725083+00	2023-07-16 08:44:42.725083+00	\N
+1066	200	millilitre	2023-07-16 08:44:42.727176+00	2023-07-16 08:44:42.727176+00	\N
+1067	200	millilitre	2023-07-16 08:44:42.728908+00	2023-07-16 08:44:42.728908+00	\N
+1068	200	gram	2023-07-16 08:44:42.730761+00	2023-07-16 08:44:42.730761+00	\N
+1069	\N	arbitrary	2023-07-16 08:44:42.733137+00	2023-07-16 08:44:42.733137+00	1 bunch
+1070	100	gram	2023-07-16 08:44:42.73534+00	2023-07-16 08:44:42.73534+00	\N
+1071	\N	arbitrary	2023-07-16 08:44:42.737318+00	2023-07-16 08:44:42.737318+00	salt
+1072	\N	arbitrary	2023-07-16 08:44:42.739215+00	2023-07-16 08:44:42.739215+00	black pepper
+1073	\N	arbitrary	2023-07-16 08:44:42.741054+00	2023-07-16 08:44:42.741054+00	1 knob
+1074	\N	arbitrary	2023-07-16 08:44:42.742725+00	2023-07-16 08:44:42.742725+00	olive oil
+1075	1	kilogram	2023-07-16 08:44:42.754016+00	2023-07-16 08:44:42.754016+00	\N
+1076	2	count	2023-07-16 08:44:42.756373+00	2023-07-16 08:44:42.756373+00	\N
+1077	4	tablespoon	2023-07-16 08:44:42.758376+00	2023-07-16 08:44:42.758376+00	\N
+1078	1	count	2023-07-16 08:44:42.760162+00	2023-07-16 08:44:42.760162+00	\N
+1079	2	cloves	2023-07-16 08:44:42.762008+00	2023-07-16 08:44:42.762008+00	\N
+1080	2	tablespoon	2023-07-16 08:44:42.764283+00	2023-07-16 08:44:42.764283+00	\N
+1081	1	teaspoon	2023-07-16 08:44:42.766156+00	2023-07-16 08:44:42.766156+00	\N
+1082	0.5	teaspoon	2023-07-16 08:44:42.767905+00	2023-07-16 08:44:42.767905+00	\N
+1083	\N	arbitrary	2023-07-16 08:44:42.769981+00	2023-07-16 08:44:42.769981+00	vegetable oil
+1084	2	count	2023-07-16 08:44:42.777221+00	2023-07-16 08:44:42.777221+00	\N
+1085	1	count	2023-07-16 08:44:42.779208+00	2023-07-16 08:44:42.779208+00	\N
+1086	100	gram	2023-07-16 08:44:42.781117+00	2023-07-16 08:44:42.781117+00	\N
+1087	\N	arbitrary	2023-07-16 08:44:42.783895+00	2023-07-16 08:44:42.783895+00	1 bunch
+1088	\N	arbitrary	2023-07-16 08:44:42.785994+00	2023-07-16 08:44:42.785994+00	1 pack
+1089	2	tablespoon	2023-07-16 08:44:42.793235+00	2023-07-16 08:44:42.793235+00	\N
+1090	\N	arbitrary	2023-07-16 08:44:42.795153+00	2023-07-16 08:44:42.795153+00	3 small
+1091	\N	arbitrary	2023-07-16 08:44:42.797189+00	2023-07-16 08:44:42.797189+00	1 sheet
+1092	100	gram	2023-07-16 08:44:42.799145+00	2023-07-16 08:44:42.799145+00	\N
+1093	\N	arbitrary	2023-07-16 08:44:42.807847+00	2023-07-16 08:44:42.807847+00	2 handfuls
+1094	2	count	2023-07-16 08:44:42.810188+00	2023-07-16 08:44:42.810188+00	\N
+1095	2	count	2023-07-16 08:44:42.812436+00	2023-07-16 08:44:42.812436+00	\N
+1096	100	gram	2023-07-16 08:44:42.814073+00	2023-07-16 08:44:42.814073+00	\N
+1097	100	millilitre	2023-07-16 08:44:42.815867+00	2023-07-16 08:44:42.815867+00	\N
+1098	\N	arbitrary	2023-07-16 08:44:42.817805+00	2023-07-16 08:44:42.817805+00	10 leaves
+1099	\N	arbitrary	2023-07-16 08:44:42.824768+00	2023-07-16 08:44:42.824768+00	enough for at least 2 pizzas
+1100	2	tablespoon	2023-07-16 08:44:42.827257+00	2023-07-16 08:44:42.827257+00	\N
+1101	2	count	2023-07-16 08:44:42.829816+00	2023-07-16 08:44:42.829816+00	\N
+1102	\N	arbitrary	2023-07-16 08:44:42.831723+00	2023-07-16 08:44:42.831723+00	1 pack
+1103	125	gram	2023-07-16 08:44:42.842852+00	2023-07-16 08:44:42.842852+00	\N
+1104	325	millilitre	2023-07-16 08:44:42.844749+00	2023-07-16 08:44:42.844749+00	\N
+1105	400	gram	2023-07-16 08:44:42.84648+00	2023-07-16 08:44:42.84648+00	\N
+1106	1	count	2023-07-16 08:44:42.848916+00	2023-07-16 08:44:42.848916+00	\N
+1107	150	gram	2023-07-16 08:44:42.850882+00	2023-07-16 08:44:42.850882+00	\N
+1108	200	gram	2023-07-16 08:44:42.852682+00	2023-07-16 08:44:42.852682+00	\N
+1109	40	gram	2023-07-16 08:44:42.854705+00	2023-07-16 08:44:42.854705+00	\N
+1110	15	gram	2023-07-16 08:44:42.856648+00	2023-07-16 08:44:42.856648+00	\N
+1111	2	count	2023-07-16 08:44:42.858432+00	2023-07-16 08:44:42.858432+00	\N
+1112	800	gram	2023-07-16 08:44:42.873637+00	2023-07-16 08:44:42.873637+00	\N
+1113	1	count	2023-07-16 08:44:42.875396+00	2023-07-16 08:44:42.875396+00	\N
+1114	8	count	2023-07-16 08:44:42.877333+00	2023-07-16 08:44:42.877333+00	\N
+1115	8	count	2023-07-16 08:44:42.879149+00	2023-07-16 08:44:42.879149+00	\N
+1116	1	count	2023-07-16 08:44:42.881352+00	2023-07-16 08:44:42.881352+00	\N
+1117	280	gram	2023-07-16 08:44:42.88333+00	2023-07-16 08:44:42.88333+00	\N
+1118	\N	arbitrary	2023-07-16 08:44:42.885768+00	2023-07-16 08:44:42.885768+00	3-4 sprigs
+1119	\N	arbitrary	2023-07-16 08:44:42.887714+00	2023-07-16 08:44:42.887714+00	5-6 sprigs
+1120	340	gram	2023-07-16 08:44:42.890544+00	2023-07-16 08:44:42.890544+00	\N
+1121	20	gram	2023-07-16 08:44:42.892345+00	2023-07-16 08:44:42.892345+00	\N
+1122	1	count	2023-07-16 08:44:42.905349+00	2023-07-16 08:44:42.905349+00	\N
+1123	2	count	2023-07-16 08:44:42.90755+00	2023-07-16 08:44:42.90755+00	\N
+1124	2	count	2023-07-16 08:44:42.909487+00	2023-07-16 08:44:42.909487+00	\N
+1125	6	count	2023-07-16 08:44:42.911351+00	2023-07-16 08:44:42.911351+00	\N
+1126	150	gram	2023-07-16 08:44:42.913174+00	2023-07-16 08:44:42.913174+00	\N
+1127	\N	arbitrary	2023-07-16 08:44:42.915104+00	2023-07-16 08:44:42.915104+00	4 pinches
+1128	250	gram	2023-07-16 08:44:42.91701+00	2023-07-16 08:44:42.91701+00	\N
+1129	600	millilitre	2023-07-16 08:44:42.918962+00	2023-07-16 08:44:42.918962+00	\N
+1130	1	count	2023-07-16 08:44:42.920843+00	2023-07-16 08:44:42.920843+00	\N
+1131	20	gram	2023-07-16 08:44:42.922756+00	2023-07-16 08:44:42.922756+00	\N
+1132	2	count	2023-07-16 08:44:42.939503+00	2023-07-16 08:44:42.939503+00	\N
+1133	2	count	2023-07-16 08:44:42.941298+00	2023-07-16 08:44:42.941298+00	\N
+1134	15	gram	2023-07-16 08:44:42.942941+00	2023-07-16 08:44:42.942941+00	\N
+1135	400	gram	2023-07-16 08:44:42.944561+00	2023-07-16 08:44:42.944561+00	\N
+1136	400	gram	2023-07-16 08:44:42.946228+00	2023-07-16 08:44:42.946228+00	\N
+1137	1	count	2023-07-16 08:44:42.947872+00	2023-07-16 08:44:42.947872+00	\N
+1138	4	tablespoon	2023-07-16 08:44:42.949585+00	2023-07-16 08:44:42.949585+00	\N
+1139	600	millilitre	2023-07-16 08:44:42.951143+00	2023-07-16 08:44:42.951143+00	\N
+1140	1	count	2023-07-16 08:44:42.952996+00	2023-07-16 08:44:42.952996+00	\N
+1141	20	gram	2023-07-16 08:44:42.955302+00	2023-07-16 08:44:42.955302+00	\N
+1142	1	tablespoon	2023-07-16 08:44:42.957027+00	2023-07-16 08:44:42.957027+00	\N
+1143	1	tablespoon	2023-07-16 08:44:42.958976+00	2023-07-16 08:44:42.958976+00	\N
+1144	800	gram	2023-07-16 08:44:42.96073+00	2023-07-16 08:44:42.96073+00	\N
+1145	2	cloves	2023-07-16 08:44:42.962841+00	2023-07-16 08:44:42.962841+00	\N
+1146	150	gram	2023-07-16 08:44:42.964602+00	2023-07-16 08:44:42.964602+00	\N
+1147	\N	arbitrary	2023-07-16 08:44:42.974269+00	2023-07-16 08:44:42.974269+00	1 pound
+1148	0.25	cup	2023-07-16 08:44:42.976355+00	2023-07-16 08:44:42.976355+00	\N
+1149	\N	arbitrary	2023-07-16 08:44:42.978385+00	2023-07-16 08:44:42.978385+00	1 clove
+1150	\N	arbitrary	2023-07-16 08:44:42.980237+00	2023-07-16 08:44:42.980237+00	6 ounces
+1151	2	cup	2023-07-16 08:44:42.98223+00	2023-07-16 08:44:42.98223+00	\N
+1152	2	cup	2023-07-16 08:44:42.98393+00	2023-07-16 08:44:42.98393+00	\N
+1153	0.5	cup	2023-07-16 08:44:42.985753+00	2023-07-16 08:44:42.985753+00	\N
+1154	0.5	cup	2023-07-16 08:44:42.987789+00	2023-07-16 08:44:42.987789+00	\N
+1155	1	count	2023-07-16 08:44:42.99818+00	2023-07-16 08:44:42.99818+00	\N
+1156	1	count	2023-07-16 08:44:43.000067+00	2023-07-16 08:44:43.000067+00	\N
+1157	3	count	2023-07-16 08:44:43.002131+00	2023-07-16 08:44:43.002131+00	\N
+1158	0.5	cup	2023-07-16 08:44:43.004184+00	2023-07-16 08:44:43.004184+00	\N
+1159	1	count	2023-07-16 08:44:43.006147+00	2023-07-16 08:44:43.006147+00	\N
+1160	2	cup	2023-07-16 08:44:43.008092+00	2023-07-16 08:44:43.008092+00	\N
+1161	5	tablespoon	2023-07-16 08:44:43.010151+00	2023-07-16 08:44:43.010151+00	\N
+1162	0.25	teaspoon	2023-07-16 08:44:43.012174+00	2023-07-16 08:44:43.012174+00	\N
+1163	1	count	2023-07-16 08:44:43.025224+00	2023-07-16 08:44:43.025224+00	\N
+1164	250	gram	2023-07-16 08:44:43.026872+00	2023-07-16 08:44:43.026872+00	\N
+1165	1	count	2023-07-16 08:44:43.028734+00	2023-07-16 08:44:43.028734+00	\N
+1166	100	millilitre	2023-07-16 08:44:43.030952+00	2023-07-16 08:44:43.030952+00	\N
+1167	200	millilitre	2023-07-16 08:44:43.03269+00	2023-07-16 08:44:43.03269+00	\N
+1168	1	count	2023-07-16 08:44:43.034539+00	2023-07-16 08:44:43.034539+00	\N
+1169	200	gram	2023-07-16 08:44:43.036362+00	2023-07-16 08:44:43.036362+00	\N
+1170	300	gram	2023-07-16 08:44:43.03818+00	2023-07-16 08:44:43.03818+00	\N
+1171	\N	arbitrary	2023-07-16 08:44:43.040156+00	2023-07-16 08:44:43.040156+00	1/2 bunch
+1172	4	count	2023-07-16 08:44:43.048985+00	2023-07-16 08:44:43.048985+00	\N
+1173	280	gram	2023-07-16 08:44:43.050813+00	2023-07-16 08:44:43.050813+00	\N
+1174	200	gram	2023-07-16 08:44:43.052698+00	2023-07-16 08:44:43.052698+00	\N
+1175	100	gram	2023-07-16 08:44:43.054427+00	2023-07-16 08:44:43.054427+00	\N
+1176	\N	arbitrary	2023-07-16 08:44:43.056295+00	2023-07-16 08:44:43.056295+00	1 bunch
+1177	1	count	2023-07-16 08:44:43.058212+00	2023-07-16 08:44:43.058212+00	\N
+1178	50	gram	2023-07-16 08:44:43.060233+00	2023-07-16 08:44:43.060233+00	\N
+1179	1	count	2023-07-16 08:44:43.080862+00	2023-07-16 08:44:43.080862+00	\N
+1180	150	gram	2023-07-16 08:44:43.083141+00	2023-07-16 08:44:43.083141+00	\N
+1181	0.5	teaspoon	2023-07-16 08:44:43.085087+00	2023-07-16 08:44:43.085087+00	\N
+1182	1	count	2023-07-16 08:44:43.08826+00	2023-07-16 08:44:43.08826+00	\N
+1183	1	count	2023-07-16 08:44:43.090259+00	2023-07-16 08:44:43.090259+00	\N
+1184	2	count	2023-07-16 08:44:43.092432+00	2023-07-16 08:44:43.092432+00	\N
+1185	4	count	2023-07-16 08:44:43.094399+00	2023-07-16 08:44:43.094399+00	\N
+1186	1	count	2023-07-16 08:44:43.096204+00	2023-07-16 08:44:43.096204+00	\N
+1187	1	count	2023-07-16 08:44:43.098028+00	2023-07-16 08:44:43.098028+00	\N
+1188	200	gram	2023-07-16 08:44:43.109443+00	2023-07-16 08:44:43.109443+00	\N
+1189	200	gram	2023-07-16 08:44:43.111546+00	2023-07-16 08:44:43.111546+00	\N
+1190	1	count	2023-07-16 08:44:43.113682+00	2023-07-16 08:44:43.113682+00	\N
+1191	1	count	2023-07-16 08:44:43.115609+00	2023-07-16 08:44:43.115609+00	\N
+1192	2	count	2023-07-16 08:44:43.11735+00	2023-07-16 08:44:43.11735+00	\N
+1193	1	count	2023-07-16 08:44:43.119225+00	2023-07-16 08:44:43.119225+00	\N
+1194	1	count	2023-07-16 08:44:43.1211+00	2023-07-16 08:44:43.1211+00	\N
+1195	1	count	2023-07-16 08:44:43.12282+00	2023-07-16 08:44:43.12282+00	\N
+1196	2	count	2023-07-16 08:44:43.130593+00	2023-07-16 08:44:43.130593+00	\N
+1197	3	count	2023-07-16 08:44:43.132298+00	2023-07-16 08:44:43.132298+00	\N
+1198	2	count	2023-07-16 08:44:43.134009+00	2023-07-16 08:44:43.134009+00	\N
+1199	2	count	2023-07-16 08:44:43.135679+00	2023-07-16 08:44:43.135679+00	\N
+1200	4	count	2023-07-16 08:44:43.137462+00	2023-07-16 08:44:43.137462+00	\N
+1201	500	gram	2023-07-16 08:44:43.139751+00	2023-07-16 08:44:43.139751+00	\N
+1202	1	count	2023-07-16 08:44:43.153716+00	2023-07-16 08:44:43.153716+00	\N
+1203	1	count	2023-07-16 08:44:43.15525+00	2023-07-16 08:44:43.15525+00	\N
+1204	1	count	2023-07-16 08:44:43.157078+00	2023-07-16 08:44:43.157078+00	\N
+1205	2	count	2023-07-16 08:44:43.15888+00	2023-07-16 08:44:43.15888+00	\N
+1206	1	count	2023-07-16 08:44:43.160824+00	2023-07-16 08:44:43.160824+00	\N
+1207	300	gram	2023-07-16 08:44:43.16906+00	2023-07-16 08:44:43.16906+00	\N
+1208	600	millilitre	2023-07-16 08:44:43.172282+00	2023-07-16 08:44:43.172282+00	\N
+1209	2	count	2023-07-16 08:44:43.175038+00	2023-07-16 08:44:43.175038+00	\N
+1210	75	gram	2023-07-16 08:44:43.177812+00	2023-07-16 08:44:43.177812+00	\N
+1211	20	gram	2023-07-16 08:44:43.180258+00	2023-07-16 08:44:43.180258+00	\N
+1212	100	gram	2023-07-16 08:44:43.183052+00	2023-07-16 08:44:43.183052+00	\N
+1213	200	gram	2023-07-16 08:44:43.190658+00	2023-07-16 08:44:43.190658+00	\N
+1214	800	gram	2023-07-16 08:44:43.192292+00	2023-07-16 08:44:43.192292+00	\N
+1215	800	gram	2023-07-16 08:44:43.194103+00	2023-07-16 08:44:43.194103+00	\N
+1216	130	gram	2023-07-16 08:44:43.195865+00	2023-07-16 08:44:43.195865+00	\N
+1217	12	count	2023-07-16 08:44:43.203108+00	2023-07-16 08:44:43.203108+00	\N
+1218	500	gram	2023-07-16 08:44:43.204774+00	2023-07-16 08:44:43.204774+00	\N
+1219	\N	arbitrary	2023-07-16 08:44:43.206557+00	2023-07-16 08:44:43.206557+00	Bunch
+1220	200	gram	2023-07-16 08:44:43.208392+00	2023-07-16 08:44:43.208392+00	\N
+1221	1200	gram	2023-07-16 08:44:43.224794+00	2023-07-16 08:44:43.224794+00	\N
+1222	3	tablespoon	2023-07-16 08:44:43.226656+00	2023-07-16 08:44:43.226656+00	\N
+1223	\N	arbitrary	2023-07-16 08:44:43.228555+00	2023-07-16 08:44:43.228555+00	1 1/2 tbsp
+1224	\N	arbitrary	2023-07-16 08:44:43.230129+00	2023-07-16 08:44:43.230129+00	1 1/2 tbsp
+1225	\N	arbitrary	2023-07-16 08:44:43.23168+00	2023-07-16 08:44:43.23168+00	1 1/2 tbsp
+1226	\N	arbitrary	2023-07-16 08:44:43.233648+00	2023-07-16 08:44:43.233648+00	1 Clove
+1227	2	tablespoon	2023-07-16 08:44:43.235286+00	2023-07-16 08:44:43.235286+00	\N
+1228	2	count	2023-07-16 08:44:43.237133+00	2023-07-16 08:44:43.237133+00	\N
+1229	2	count	2023-07-16 08:44:43.238674+00	2023-07-16 08:44:43.238674+00	\N
+1230	1	count	2023-07-16 08:44:43.240794+00	2023-07-16 08:44:43.240794+00	\N
+1231	110	gram	2023-07-16 08:44:43.242614+00	2023-07-16 08:44:43.242614+00	\N
+1232	1	count	2023-07-16 08:44:43.244282+00	2023-07-16 08:44:43.244282+00	\N
+1233	12	count	2023-07-16 08:44:43.24584+00	2023-07-16 08:44:43.24584+00	\N
+1234	150	millilitre	2023-07-16 08:44:43.247465+00	2023-07-16 08:44:43.247465+00	\N
+1235	4	count	2023-07-16 08:44:43.25541+00	2023-07-16 08:44:43.25541+00	\N
+1236	100	gram	2023-07-16 08:44:43.257117+00	2023-07-16 08:44:43.257117+00	\N
+1237	200	gram	2023-07-16 08:44:43.25905+00	2023-07-16 08:44:43.25905+00	\N
+1238	500	gram	2023-07-16 08:44:43.260951+00	2023-07-16 08:44:43.260951+00	\N
+1239	200	gram	2023-07-16 08:44:43.262797+00	2023-07-16 08:44:43.262797+00	\N
+1240	\N	arbitrary	2023-07-16 08:44:43.264559+00	2023-07-16 08:44:43.264559+00	1 bunch
+1241	6	count	2023-07-16 08:44:43.271848+00	2023-07-16 08:44:43.271848+00	\N
+1242	200	gram	2023-07-16 08:44:43.276111+00	2023-07-16 08:44:43.276111+00	\N
+1243	140	gram	2023-07-16 08:44:43.278181+00	2023-07-16 08:44:43.278181+00	\N
+1244	120	gram	2023-07-16 08:44:43.280299+00	2023-07-16 08:44:43.280299+00	\N
+1245	40	gram	2023-07-16 08:44:43.282385+00	2023-07-16 08:44:43.282385+00	\N
+1246	1.5	kilogram	2023-07-16 08:44:43.293014+00	2023-07-16 08:44:43.293014+00	\N
+1247	\N	arbitrary	2023-07-16 08:44:43.295557+00	2023-07-16 08:44:43.295557+00	1/2 liter
+1248	125	millilitre	2023-07-16 08:44:43.297556+00	2023-07-16 08:44:43.297556+00	\N
+1249	100	millilitre	2023-07-16 08:44:43.299596+00	2023-07-16 08:44:43.299596+00	\N
+1250	1	tablespoon	2023-07-16 08:44:43.30139+00	2023-07-16 08:44:43.30139+00	\N
+1251	15	gram	2023-07-16 08:53:45.277849+00	2023-07-16 08:53:45.277849+00	\N
+1252	140	gram	2023-07-16 08:53:45.280105+00	2023-07-16 08:53:45.280105+00	\N
+1253	1	kilogram	2023-07-16 08:53:45.282108+00	2023-07-16 08:53:45.282108+00	\N
+1254	140	gram	2023-07-16 08:53:45.28413+00	2023-07-16 08:53:45.28413+00	\N
+1255	140	gram	2023-07-16 08:53:45.286087+00	2023-07-16 08:53:45.286087+00	\N
+1256	100	millilitre	2023-07-16 08:53:45.287932+00	2023-07-16 08:53:45.287932+00	\N
+1257	100	millilitre	2023-07-16 08:53:45.289985+00	2023-07-16 08:53:45.289985+00	\N
+1258	\N	arbitrary	2023-07-16 08:53:45.292067+00	2023-07-16 08:53:45.292067+00	pinch
+1259	250	gram	2023-07-16 08:53:45.29403+00	2023-07-16 08:53:45.29403+00	\N
+1260	0.5	count	2023-07-16 08:53:45.295925+00	2023-07-16 08:53:45.295925+00	\N
+1261	4	count	2023-07-16 08:53:45.316733+00	2023-07-16 08:53:45.316733+00	\N
+1262	5	tablespoon	2023-07-16 08:53:45.318616+00	2023-07-16 08:53:45.318616+00	\N
+1263	250	gram	2023-07-16 08:53:45.320474+00	2023-07-16 08:53:45.320474+00	\N
+1264	1	tablespoon	2023-07-16 08:53:45.322336+00	2023-07-16 08:53:45.322336+00	\N
+1265	1	count	2023-07-16 08:53:45.32415+00	2023-07-16 08:53:45.32415+00	\N
+1266	800	gram	2023-07-16 08:53:45.325786+00	2023-07-16 08:53:45.325786+00	\N
+1267	1	count	2023-07-16 08:53:45.327696+00	2023-07-16 08:53:45.327696+00	\N
+1268	1	tablespoon	2023-07-16 08:53:45.329574+00	2023-07-16 08:53:45.329574+00	\N
+1269	1	tablespoon	2023-07-16 08:53:45.331551+00	2023-07-16 08:53:45.331551+00	\N
+1270	0.5	teaspoon	2023-07-16 08:53:45.333544+00	2023-07-16 08:53:45.333544+00	\N
+1271	1	tablespoon	2023-07-16 08:53:45.335841+00	2023-07-16 08:53:45.335841+00	\N
+1272	1	litre	2023-07-16 08:53:45.337743+00	2023-07-16 08:53:45.337743+00	\N
+1273	100	gram	2023-07-16 08:53:45.339816+00	2023-07-16 08:53:45.339816+00	\N
+1274	1	count	2023-07-16 08:53:45.34153+00	2023-07-16 08:53:45.34153+00	\N
+1275	2	tablespoon	2023-07-16 08:53:45.343138+00	2023-07-16 08:53:45.343138+00	\N
+1276	1	tablespoon	2023-07-16 08:53:45.344883+00	2023-07-16 08:53:45.344883+00	\N
+1277	200	gram	2023-07-16 08:53:45.346995+00	2023-07-16 08:53:45.346995+00	\N
+1278	\N	arbitrary	2023-07-16 08:53:45.348955+00	2023-07-16 08:53:45.348955+00	1 handful
+1279	2	count	2023-07-16 08:53:45.365049+00	2023-07-16 08:53:45.365049+00	\N
+1280	1	count	2023-07-16 08:53:45.367043+00	2023-07-16 08:53:45.367043+00	\N
+1281	1	count	2023-07-16 08:53:45.368932+00	2023-07-16 08:53:45.368932+00	\N
+1282	1	count	2023-07-16 08:53:45.370781+00	2023-07-16 08:53:45.370781+00	\N
+1283	\N	arbitrary	2023-07-16 08:53:45.372765+00	2023-07-16 08:53:45.372765+00	pinch
+1284	1	tablespoon	2023-07-16 08:53:45.375548+00	2023-07-16 08:53:45.375548+00	\N
+1285	\N	arbitrary	2023-07-16 08:53:45.377488+00	2023-07-16 08:53:45.377488+00	pinch
+1286	2	count	2023-07-16 08:53:45.379464+00	2023-07-16 08:53:45.379464+00	\N
+1287	4	tablespoon	2023-07-16 08:53:45.381321+00	2023-07-16 08:53:45.381321+00	\N
+1288	1	count	2023-07-16 08:53:45.384965+00	2023-07-16 08:53:45.384965+00	\N
+1289	4	tablespoon	2023-07-16 08:53:45.387039+00	2023-07-16 08:53:45.387039+00	\N
+1290	8	count	2023-07-16 08:53:45.388987+00	2023-07-16 08:53:45.388987+00	\N
+1291	\N	arbitrary	2023-07-16 08:53:45.391093+00	2023-07-16 08:53:45.391093+00	1 bag
+1292	230	gram	2023-07-16 08:53:45.392928+00	2023-07-16 08:53:45.392928+00	\N
+1293	1	kilogram	2023-07-16 08:53:45.405821+00	2023-07-16 08:53:45.405821+00	\N
+1294	2	cloves	2023-07-16 08:53:45.408125+00	2023-07-16 08:53:45.408125+00	\N
+1295	300	millilitre	2023-07-16 08:53:45.410059+00	2023-07-16 08:53:45.410059+00	\N
+1296	200	millilitre	2023-07-16 08:53:45.412254+00	2023-07-16 08:53:45.412254+00	\N
+1297	100	gram	2023-07-16 08:53:45.414247+00	2023-07-16 08:53:45.414247+00	\N
+1298	50	gram	2023-07-16 08:53:45.416062+00	2023-07-16 08:53:45.416062+00	\N
+1299	1	teaspoon	2023-07-16 08:53:45.417864+00	2023-07-16 08:53:45.417864+00	\N
+1300	\N	arbitrary	2023-07-16 08:53:45.419988+00	2023-07-16 08:53:45.419988+00	1 pinch
+1301	\N	arbitrary	2023-07-16 08:53:45.422242+00	2023-07-16 08:53:45.422242+00	to taste
+1302	\N	arbitrary	2023-07-16 08:53:45.424293+00	2023-07-16 08:53:45.424293+00	to taste
+1303	2	cup	2023-07-16 08:53:45.440435+00	2023-07-16 08:53:45.440435+00	\N
+1304	4	count	2023-07-16 08:53:45.442458+00	2023-07-16 08:53:45.442458+00	\N
+1305	0.5	cup	2023-07-16 08:53:45.444278+00	2023-07-16 08:53:45.444278+00	\N
+1306	0.5	teaspoon	2023-07-16 08:53:45.446186+00	2023-07-16 08:53:45.446186+00	\N
+1307	0.5	cup	2023-07-16 08:53:45.44804+00	2023-07-16 08:53:45.44804+00	\N
+1308	3	tablespoon	2023-07-16 08:53:45.450183+00	2023-07-16 08:53:45.450183+00	\N
+1309	2	cup	2023-07-16 08:53:45.452916+00	2023-07-16 08:53:45.452916+00	\N
+1310	1	cup	2023-07-16 08:53:45.455177+00	2023-07-16 08:53:45.455177+00	\N
+1311	0.5	cup	2023-07-16 08:53:45.45746+00	2023-07-16 08:53:45.45746+00	\N
+1312	0.25	teaspoon	2023-07-16 08:53:45.459842+00	2023-07-16 08:53:45.459842+00	\N
+1313	0.5	teaspoon	2023-07-16 08:53:45.46183+00	2023-07-16 08:53:45.46183+00	\N
+1314	0.25	teaspoon	2023-07-16 08:53:45.463912+00	2023-07-16 08:53:45.463912+00	\N
+1315	3	tablespoon	2023-07-16 08:53:45.466062+00	2023-07-16 08:53:45.466062+00	\N
+1316	0.5	cup	2023-07-16 08:53:45.468225+00	2023-07-16 08:53:45.468225+00	\N
+1317	3	tablespoon	2023-07-16 08:53:45.484665+00	2023-07-16 08:53:45.484665+00	\N
+1318	4	count	2023-07-16 08:53:45.487095+00	2023-07-16 08:53:45.487095+00	\N
+1319	4	count	2023-07-16 08:53:45.488996+00	2023-07-16 08:53:45.488996+00	\N
+1320	2	count	2023-07-16 08:53:45.491276+00	2023-07-16 08:53:45.491276+00	\N
+1321	4	cup	2023-07-16 08:53:45.493386+00	2023-07-16 08:53:45.493386+00	\N
+1322	1	cup	2023-07-16 08:53:45.49572+00	2023-07-16 08:53:45.49572+00	\N
+1323	\N	arbitrary	2023-07-16 08:53:45.497438+00	2023-07-16 08:53:45.497438+00	1 bay leaf
+1324	0.5	cup	2023-07-16 08:53:45.49915+00	2023-07-16 08:53:45.49915+00	\N
+1325	0.5	teaspoon	2023-07-16 08:53:45.500973+00	2023-07-16 08:53:45.500973+00	\N
+1326	0.25	teaspoon	2023-07-16 08:53:45.502917+00	2023-07-16 08:53:45.502917+00	\N
+1327	2	tablespoon	2023-07-16 08:53:45.505052+00	2023-07-16 08:53:45.505052+00	\N
+1328	2	tablespoon	2023-07-16 08:53:45.506992+00	2023-07-16 08:53:45.506992+00	\N
+1329	2	cup	2023-07-16 08:53:45.521856+00	2023-07-16 08:53:45.521856+00	\N
+1330	1	tablespoon	2023-07-16 08:53:45.523724+00	2023-07-16 08:53:45.523724+00	\N
+1331	1	count	2023-07-16 08:53:45.525435+00	2023-07-16 08:53:45.525435+00	\N
+1332	2	cloves	2023-07-16 08:53:45.527306+00	2023-07-16 08:53:45.527306+00	\N
+1333	2	cup	2023-07-16 08:53:45.529035+00	2023-07-16 08:53:45.529035+00	\N
+1334	1	count	2023-07-16 08:53:45.530882+00	2023-07-16 08:53:45.530882+00	\N
+1335	4	count	2023-07-16 08:53:45.532674+00	2023-07-16 08:53:45.532674+00	\N
+1336	\N	arbitrary	2023-07-16 08:53:45.534269+00	2023-07-16 08:53:45.534269+00	1 1/2 cups
+1337	0.5	cup	2023-07-16 08:53:45.536202+00	2023-07-16 08:53:45.536202+00	\N
+1338	0.5	teaspoon	2023-07-16 08:53:45.537877+00	2023-07-16 08:53:45.537877+00	\N
+1339	0.25	teaspoon	2023-07-16 08:53:45.539784+00	2023-07-16 08:53:45.539784+00	\N
+1340	0.25	teaspoon	2023-07-16 08:53:45.541493+00	2023-07-16 08:53:45.541493+00	\N
+1341	\N	arbitrary	2023-07-16 08:53:45.543428+00	2023-07-16 08:53:45.543428+00	1 1/2 cups
+1342	0.25	cup	2023-07-16 08:53:45.545278+00	2023-07-16 08:53:45.545278+00	\N
+1343	1.5	kilogram	2023-07-16 08:53:45.563323+00	2023-07-16 08:53:45.563323+00	\N
+1344	2	tablespoon	2023-07-16 08:53:45.565041+00	2023-07-16 08:53:45.565041+00	\N
+1345	2	count	2023-07-16 08:53:45.566783+00	2023-07-16 08:53:45.566783+00	\N
+1346	2	count	2023-07-16 08:53:45.568648+00	2023-07-16 08:53:45.568648+00	\N
+1347	2	count	2023-07-16 08:53:45.570458+00	2023-07-16 08:53:45.570458+00	\N
+1348	2	tablespoon	2023-07-16 08:53:45.573065+00	2023-07-16 08:53:45.573065+00	\N
+1349	2	tablespoon	2023-07-16 08:53:45.575102+00	2023-07-16 08:53:45.575102+00	\N
+1350	500	millilitre	2023-07-16 08:53:45.576873+00	2023-07-16 08:53:45.576873+00	\N
+1351	2	tablespoon	2023-07-16 08:53:45.579185+00	2023-07-16 08:53:45.579185+00	\N
+1352	\N	arbitrary	2023-07-16 08:53:45.581016+00	2023-07-16 08:53:45.581016+00	few
+1353	\N	arbitrary	2023-07-16 08:53:45.582854+00	2023-07-16 08:53:45.582854+00	few
+1354	2	count	2023-07-16 08:53:45.584657+00	2023-07-16 08:53:45.584657+00	\N
+1355	3	count	2023-07-16 08:53:45.586357+00	2023-07-16 08:53:45.586357+00	\N
+1356	500	gram	2023-07-16 08:53:45.588052+00	2023-07-16 08:53:45.588052+00	\N
+1357	2	count	2023-07-16 08:53:45.589806+00	2023-07-16 08:53:45.589806+00	\N
+1358	150	gram	2023-07-16 08:53:45.591511+00	2023-07-16 08:53:45.591511+00	\N
+1359	2	tablespoon	2023-07-16 08:53:45.593128+00	2023-07-16 08:53:45.593128+00	\N
+1360	\N	arbitrary	2023-07-16 08:53:45.59525+00	2023-07-16 08:53:45.59525+00	salt
+1361	\N	arbitrary	2023-07-16 08:53:45.597052+00	2023-07-16 08:53:45.597052+00	black pepper
+1362	320	gram	2023-07-16 08:53:45.611228+00	2023-07-16 08:53:45.611228+00	\N
+1363	4	count	2023-07-16 08:53:45.613321+00	2023-07-16 08:53:45.613321+00	\N
+1364	4	count	2023-07-16 08:53:45.615604+00	2023-07-16 08:53:45.615604+00	\N
+1365	200	millilitre	2023-07-16 08:53:45.617699+00	2023-07-16 08:53:45.617699+00	\N
+1366	200	millilitre	2023-07-16 08:53:45.619554+00	2023-07-16 08:53:45.619554+00	\N
+1367	200	gram	2023-07-16 08:53:45.621254+00	2023-07-16 08:53:45.621254+00	\N
+1368	\N	arbitrary	2023-07-16 08:53:45.623046+00	2023-07-16 08:53:45.623046+00	1 bunch
+1369	100	gram	2023-07-16 08:53:45.624784+00	2023-07-16 08:53:45.624784+00	\N
+1370	\N	arbitrary	2023-07-16 08:53:45.626655+00	2023-07-16 08:53:45.626655+00	salt
+1371	\N	arbitrary	2023-07-16 08:53:45.628893+00	2023-07-16 08:53:45.628893+00	black pepper
+1372	\N	arbitrary	2023-07-16 08:53:45.630862+00	2023-07-16 08:53:45.630862+00	1 knob
+1373	\N	arbitrary	2023-07-16 08:53:45.633044+00	2023-07-16 08:53:45.633044+00	olive oil
+1374	1	kilogram	2023-07-16 08:53:45.646186+00	2023-07-16 08:53:45.646186+00	\N
+1375	2	count	2023-07-16 08:53:45.655382+00	2023-07-16 08:53:45.655382+00	\N
+1376	4	tablespoon	2023-07-16 08:53:45.657607+00	2023-07-16 08:53:45.657607+00	\N
+1377	1	count	2023-07-16 08:53:45.659582+00	2023-07-16 08:53:45.659582+00	\N
+1378	2	cloves	2023-07-16 08:53:45.661627+00	2023-07-16 08:53:45.661627+00	\N
+1379	2	tablespoon	2023-07-16 08:53:45.663511+00	2023-07-16 08:53:45.663511+00	\N
+1380	1	teaspoon	2023-07-16 08:53:45.665255+00	2023-07-16 08:53:45.665255+00	\N
+1381	0.5	teaspoon	2023-07-16 08:53:45.667274+00	2023-07-16 08:53:45.667274+00	\N
+1382	\N	arbitrary	2023-07-16 08:53:45.669163+00	2023-07-16 08:53:45.669163+00	vegetable oil
+1383	2	count	2023-07-16 08:53:45.677051+00	2023-07-16 08:53:45.677051+00	\N
+1384	1	count	2023-07-16 08:53:45.679073+00	2023-07-16 08:53:45.679073+00	\N
+1385	100	gram	2023-07-16 08:53:45.680974+00	2023-07-16 08:53:45.680974+00	\N
+1386	\N	arbitrary	2023-07-16 08:53:45.682808+00	2023-07-16 08:53:45.682808+00	1 bunch
+1387	\N	arbitrary	2023-07-16 08:53:45.686206+00	2023-07-16 08:53:45.686206+00	1 pack
+1388	2	tablespoon	2023-07-16 08:53:45.692988+00	2023-07-16 08:53:45.692988+00	\N
+1389	\N	arbitrary	2023-07-16 08:53:45.695036+00	2023-07-16 08:53:45.695036+00	3 small
+1390	\N	arbitrary	2023-07-16 08:53:45.696956+00	2023-07-16 08:53:45.696956+00	1 sheet
+1391	100	gram	2023-07-16 08:53:45.698829+00	2023-07-16 08:53:45.698829+00	\N
+1392	\N	arbitrary	2023-07-16 08:53:45.707508+00	2023-07-16 08:53:45.707508+00	2 handfuls
+1393	2	count	2023-07-16 08:53:45.709409+00	2023-07-16 08:53:45.709409+00	\N
+1394	2	count	2023-07-16 08:53:45.711399+00	2023-07-16 08:53:45.711399+00	\N
+1395	100	gram	2023-07-16 08:53:45.713397+00	2023-07-16 08:53:45.713397+00	\N
+1396	100	millilitre	2023-07-16 08:53:45.715436+00	2023-07-16 08:53:45.715436+00	\N
+1397	\N	arbitrary	2023-07-16 08:53:45.717607+00	2023-07-16 08:53:45.717607+00	10 leaves
+1398	\N	arbitrary	2023-07-16 08:53:45.725418+00	2023-07-16 08:53:45.725418+00	enough for at least 2 pizzas
+1399	2	tablespoon	2023-07-16 08:53:45.72749+00	2023-07-16 08:53:45.72749+00	\N
+1400	2	count	2023-07-16 08:53:45.729349+00	2023-07-16 08:53:45.729349+00	\N
+1401	\N	arbitrary	2023-07-16 08:53:45.731184+00	2023-07-16 08:53:45.731184+00	1 pack
+1402	125	gram	2023-07-16 08:53:45.741948+00	2023-07-16 08:53:45.741948+00	\N
+1403	325	millilitre	2023-07-16 08:53:45.743802+00	2023-07-16 08:53:45.743802+00	\N
+1404	400	gram	2023-07-16 08:53:45.745949+00	2023-07-16 08:53:45.745949+00	\N
+1405	1	count	2023-07-16 08:53:45.747797+00	2023-07-16 08:53:45.747797+00	\N
+1406	150	gram	2023-07-16 08:53:45.749712+00	2023-07-16 08:53:45.749712+00	\N
+1407	200	gram	2023-07-16 08:53:45.752199+00	2023-07-16 08:53:45.752199+00	\N
+1408	40	gram	2023-07-16 08:53:45.754048+00	2023-07-16 08:53:45.754048+00	\N
+1409	15	gram	2023-07-16 08:53:45.756119+00	2023-07-16 08:53:45.756119+00	\N
+1410	2	count	2023-07-16 08:53:45.757965+00	2023-07-16 08:53:45.757965+00	\N
+1411	800	gram	2023-07-16 08:53:45.770822+00	2023-07-16 08:53:45.770822+00	\N
+1412	1	count	2023-07-16 08:53:45.773076+00	2023-07-16 08:53:45.773076+00	\N
+1413	8	count	2023-07-16 08:53:45.775307+00	2023-07-16 08:53:45.775307+00	\N
+1414	8	count	2023-07-16 08:53:45.777241+00	2023-07-16 08:53:45.777241+00	\N
+1415	1	count	2023-07-16 08:53:45.779532+00	2023-07-16 08:53:45.779532+00	\N
+1416	280	gram	2023-07-16 08:53:45.781409+00	2023-07-16 08:53:45.781409+00	\N
+1417	\N	arbitrary	2023-07-16 08:53:45.783542+00	2023-07-16 08:53:45.783542+00	3-4 sprigs
+1418	\N	arbitrary	2023-07-16 08:53:45.78539+00	2023-07-16 08:53:45.78539+00	5-6 sprigs
+1419	340	gram	2023-07-16 08:53:45.786963+00	2023-07-16 08:53:45.786963+00	\N
+1420	20	gram	2023-07-16 08:53:45.788759+00	2023-07-16 08:53:45.788759+00	\N
+1421	1	count	2023-07-16 08:53:45.800776+00	2023-07-16 08:53:45.800776+00	\N
+1422	2	count	2023-07-16 08:53:45.802619+00	2023-07-16 08:53:45.802619+00	\N
+1423	2	count	2023-07-16 08:53:45.804948+00	2023-07-16 08:53:45.804948+00	\N
+1424	6	count	2023-07-16 08:53:45.806865+00	2023-07-16 08:53:45.806865+00	\N
+1425	150	gram	2023-07-16 08:53:45.80872+00	2023-07-16 08:53:45.80872+00	\N
+1426	\N	arbitrary	2023-07-16 08:53:45.810399+00	2023-07-16 08:53:45.810399+00	4 pinches
+1427	250	gram	2023-07-16 08:53:45.812378+00	2023-07-16 08:53:45.812378+00	\N
+1428	600	millilitre	2023-07-16 08:53:45.814229+00	2023-07-16 08:53:45.814229+00	\N
+1429	1	count	2023-07-16 08:53:45.816278+00	2023-07-16 08:53:45.816278+00	\N
+1430	20	gram	2023-07-16 08:53:45.81808+00	2023-07-16 08:53:45.81808+00	\N
+1431	2	count	2023-07-16 08:53:45.836118+00	2023-07-16 08:53:45.836118+00	\N
+1432	2	count	2023-07-16 08:53:45.838181+00	2023-07-16 08:53:45.838181+00	\N
+1433	15	gram	2023-07-16 08:53:45.84071+00	2023-07-16 08:53:45.84071+00	\N
+1434	400	gram	2023-07-16 08:53:45.842972+00	2023-07-16 08:53:45.842972+00	\N
+1435	400	gram	2023-07-16 08:53:45.845612+00	2023-07-16 08:53:45.845612+00	\N
+1436	1	count	2023-07-16 08:53:45.847887+00	2023-07-16 08:53:45.847887+00	\N
+1437	4	tablespoon	2023-07-16 08:53:45.849609+00	2023-07-16 08:53:45.849609+00	\N
+1438	600	millilitre	2023-07-16 08:53:45.851891+00	2023-07-16 08:53:45.851891+00	\N
+1439	1	count	2023-07-16 08:53:45.854181+00	2023-07-16 08:53:45.854181+00	\N
+1440	20	gram	2023-07-16 08:53:45.856478+00	2023-07-16 08:53:45.856478+00	\N
+1441	1	tablespoon	2023-07-16 08:53:45.858353+00	2023-07-16 08:53:45.858353+00	\N
+1442	1	tablespoon	2023-07-16 08:53:45.860293+00	2023-07-16 08:53:45.860293+00	\N
+1443	800	gram	2023-07-16 08:53:45.862475+00	2023-07-16 08:53:45.862475+00	\N
+1444	2	cloves	2023-07-16 08:53:45.8647+00	2023-07-16 08:53:45.8647+00	\N
+1445	150	gram	2023-07-16 08:53:45.866881+00	2023-07-16 08:53:45.866881+00	\N
+1446	\N	arbitrary	2023-07-16 08:53:45.878562+00	2023-07-16 08:53:45.878562+00	1 pound
+1447	0.25	cup	2023-07-16 08:53:45.880705+00	2023-07-16 08:53:45.880705+00	\N
+1448	\N	arbitrary	2023-07-16 08:53:45.88269+00	2023-07-16 08:53:45.88269+00	1 clove
+1449	\N	arbitrary	2023-07-16 08:53:45.88462+00	2023-07-16 08:53:45.88462+00	6 ounces
+1450	2	cup	2023-07-16 08:53:45.886867+00	2023-07-16 08:53:45.886867+00	\N
+1451	2	cup	2023-07-16 08:53:45.888897+00	2023-07-16 08:53:45.888897+00	\N
+1452	0.5	cup	2023-07-16 08:53:45.890784+00	2023-07-16 08:53:45.890784+00	\N
+1453	0.5	cup	2023-07-16 08:53:45.892885+00	2023-07-16 08:53:45.892885+00	\N
+1454	1	count	2023-07-16 08:53:45.903655+00	2023-07-16 08:53:45.903655+00	\N
+1455	1	count	2023-07-16 08:53:45.905723+00	2023-07-16 08:53:45.905723+00	\N
+1456	3	count	2023-07-16 08:53:45.907702+00	2023-07-16 08:53:45.907702+00	\N
+1457	0.5	cup	2023-07-16 08:53:45.909479+00	2023-07-16 08:53:45.909479+00	\N
+1458	1	count	2023-07-16 08:53:45.911388+00	2023-07-16 08:53:45.911388+00	\N
+1459	2	cup	2023-07-16 08:53:45.9135+00	2023-07-16 08:53:45.9135+00	\N
+1460	5	tablespoon	2023-07-16 08:53:45.915468+00	2023-07-16 08:53:45.915468+00	\N
+1461	0.25	teaspoon	2023-07-16 08:53:45.917139+00	2023-07-16 08:53:45.917139+00	\N
+1462	1	count	2023-07-16 08:53:45.927595+00	2023-07-16 08:53:45.927595+00	\N
+1463	250	gram	2023-07-16 08:53:45.929717+00	2023-07-16 08:53:45.929717+00	\N
+1464	1	count	2023-07-16 08:53:45.931787+00	2023-07-16 08:53:45.931787+00	\N
+1465	100	millilitre	2023-07-16 08:53:45.933676+00	2023-07-16 08:53:45.933676+00	\N
+1466	200	millilitre	2023-07-16 08:53:45.93555+00	2023-07-16 08:53:45.93555+00	\N
+1467	1	count	2023-07-16 08:53:45.937297+00	2023-07-16 08:53:45.937297+00	\N
+1468	200	gram	2023-07-16 08:53:45.939049+00	2023-07-16 08:53:45.939049+00	\N
+1469	300	gram	2023-07-16 08:53:45.940792+00	2023-07-16 08:53:45.940792+00	\N
+1470	\N	arbitrary	2023-07-16 08:53:45.942483+00	2023-07-16 08:53:45.942483+00	1/2 bunch
+1471	4	count	2023-07-16 08:53:45.953312+00	2023-07-16 08:53:45.953312+00	\N
+1472	280	gram	2023-07-16 08:53:45.955103+00	2023-07-16 08:53:45.955103+00	\N
+1473	200	gram	2023-07-16 08:53:45.957362+00	2023-07-16 08:53:45.957362+00	\N
+1474	100	gram	2023-07-16 08:53:45.959741+00	2023-07-16 08:53:45.959741+00	\N
+1475	\N	arbitrary	2023-07-16 08:53:45.961844+00	2023-07-16 08:53:45.961844+00	1 bunch
+1476	1	count	2023-07-16 08:53:45.964031+00	2023-07-16 08:53:45.964031+00	\N
+1477	50	gram	2023-07-16 08:53:45.966742+00	2023-07-16 08:53:45.966742+00	\N
+1478	1	count	2023-07-16 08:53:45.979433+00	2023-07-16 08:53:45.979433+00	\N
+1479	150	gram	2023-07-16 08:53:45.981314+00	2023-07-16 08:53:45.981314+00	\N
+1480	0.5	teaspoon	2023-07-16 08:53:45.983859+00	2023-07-16 08:53:45.983859+00	\N
+1481	1	count	2023-07-16 08:53:45.985739+00	2023-07-16 08:53:45.985739+00	\N
+1482	1	count	2023-07-16 08:53:45.987944+00	2023-07-16 08:53:45.987944+00	\N
+1483	2	count	2023-07-16 08:53:45.98994+00	2023-07-16 08:53:45.98994+00	\N
+1484	4	count	2023-07-16 08:53:46.002119+00	2023-07-16 08:53:46.002119+00	\N
+1485	1	count	2023-07-16 08:53:46.004198+00	2023-07-16 08:53:46.004198+00	\N
+1486	1	count	2023-07-16 08:53:46.006341+00	2023-07-16 08:53:46.006341+00	\N
+1487	200	gram	2023-07-16 08:53:46.016476+00	2023-07-16 08:53:46.016476+00	\N
+1488	200	gram	2023-07-16 08:53:46.018153+00	2023-07-16 08:53:46.018153+00	\N
+1489	1	count	2023-07-16 08:53:46.019807+00	2023-07-16 08:53:46.019807+00	\N
+1490	1	count	2023-07-16 08:53:46.021406+00	2023-07-16 08:53:46.021406+00	\N
+1491	2	count	2023-07-16 08:53:46.023018+00	2023-07-16 08:53:46.023018+00	\N
+1492	1	count	2023-07-16 08:53:46.024821+00	2023-07-16 08:53:46.024821+00	\N
+1493	1	count	2023-07-16 08:53:46.026628+00	2023-07-16 08:53:46.026628+00	\N
+1494	1	count	2023-07-16 08:53:46.028481+00	2023-07-16 08:53:46.028481+00	\N
+1495	2	count	2023-07-16 08:53:46.037296+00	2023-07-16 08:53:46.037296+00	\N
+1496	3	count	2023-07-16 08:53:46.039081+00	2023-07-16 08:53:46.039081+00	\N
+1497	2	count	2023-07-16 08:53:46.040959+00	2023-07-16 08:53:46.040959+00	\N
+1498	2	count	2023-07-16 08:53:46.043195+00	2023-07-16 08:53:46.043195+00	\N
+1499	4	count	2023-07-16 08:53:46.045552+00	2023-07-16 08:53:46.045552+00	\N
+1500	500	gram	2023-07-16 08:53:46.047693+00	2023-07-16 08:53:46.047693+00	\N
+1501	1	count	2023-07-16 08:53:46.063417+00	2023-07-16 08:53:46.063417+00	\N
+1502	1	count	2023-07-16 08:53:46.065442+00	2023-07-16 08:53:46.065442+00	\N
+1503	1	count	2023-07-16 08:53:46.067528+00	2023-07-16 08:53:46.067528+00	\N
+1504	2	count	2023-07-16 08:53:46.06961+00	2023-07-16 08:53:46.06961+00	\N
+1505	1	count	2023-07-16 08:53:46.071685+00	2023-07-16 08:53:46.071685+00	\N
+1506	300	gram	2023-07-16 08:53:46.073592+00	2023-07-16 08:53:46.073592+00	\N
+1507	600	millilitre	2023-07-16 08:53:46.075958+00	2023-07-16 08:53:46.075958+00	\N
+1508	2	count	2023-07-16 08:53:46.078259+00	2023-07-16 08:53:46.078259+00	\N
+1509	75	gram	2023-07-16 08:53:46.080624+00	2023-07-16 08:53:46.080624+00	\N
+1510	20	gram	2023-07-16 08:53:46.082383+00	2023-07-16 08:53:46.082383+00	\N
+1511	100	gram	2023-07-16 08:53:46.084247+00	2023-07-16 08:53:46.084247+00	\N
+1512	200	gram	2023-07-16 08:53:46.091149+00	2023-07-16 08:53:46.091149+00	\N
+1513	800	gram	2023-07-16 08:53:46.093278+00	2023-07-16 08:53:46.093278+00	\N
+1514	800	gram	2023-07-16 08:53:46.09528+00	2023-07-16 08:53:46.09528+00	\N
+1515	130	gram	2023-07-16 08:53:46.097392+00	2023-07-16 08:53:46.097392+00	\N
+1516	12	count	2023-07-16 08:53:46.104896+00	2023-07-16 08:53:46.104896+00	\N
+1517	500	gram	2023-07-16 08:53:46.107297+00	2023-07-16 08:53:46.107297+00	\N
+1518	\N	arbitrary	2023-07-16 08:53:46.109093+00	2023-07-16 08:53:46.109093+00	Bunch
+1519	200	gram	2023-07-16 08:53:46.11092+00	2023-07-16 08:53:46.11092+00	\N
+1520	1200	gram	2023-07-16 08:53:46.127236+00	2023-07-16 08:53:46.127236+00	\N
+1521	3	tablespoon	2023-07-16 08:53:46.12911+00	2023-07-16 08:53:46.12911+00	\N
+1522	\N	arbitrary	2023-07-16 08:53:46.131234+00	2023-07-16 08:53:46.131234+00	1 1/2 tbsp
+1523	\N	arbitrary	2023-07-16 08:53:46.133162+00	2023-07-16 08:53:46.133162+00	1 1/2 tbsp
+1524	\N	arbitrary	2023-07-16 08:53:46.134926+00	2023-07-16 08:53:46.134926+00	1 1/2 tbsp
+1525	\N	arbitrary	2023-07-16 08:53:46.136576+00	2023-07-16 08:53:46.136576+00	1 Clove
+1526	2	tablespoon	2023-07-16 08:53:46.138379+00	2023-07-16 08:53:46.138379+00	\N
+1527	2	count	2023-07-16 08:53:46.140128+00	2023-07-16 08:53:46.140128+00	\N
+1528	2	count	2023-07-16 08:53:46.141857+00	2023-07-16 08:53:46.141857+00	\N
+1529	1	count	2023-07-16 08:53:46.14368+00	2023-07-16 08:53:46.14368+00	\N
+1530	110	gram	2023-07-16 08:53:46.145595+00	2023-07-16 08:53:46.145595+00	\N
+1531	1	count	2023-07-16 08:53:46.147416+00	2023-07-16 08:53:46.147416+00	\N
+1532	12	count	2023-07-16 08:53:46.149328+00	2023-07-16 08:53:46.149328+00	\N
+1533	150	millilitre	2023-07-16 08:53:46.151048+00	2023-07-16 08:53:46.151048+00	\N
+1534	4	count	2023-07-16 08:53:46.159615+00	2023-07-16 08:53:46.159615+00	\N
+1535	100	gram	2023-07-16 08:53:46.161641+00	2023-07-16 08:53:46.161641+00	\N
+1536	200	gram	2023-07-16 08:53:46.163472+00	2023-07-16 08:53:46.163472+00	\N
+1537	500	gram	2023-07-16 08:53:46.165246+00	2023-07-16 08:53:46.165246+00	\N
+1538	200	gram	2023-07-16 08:53:46.167196+00	2023-07-16 08:53:46.167196+00	\N
+1539	\N	arbitrary	2023-07-16 08:53:46.169131+00	2023-07-16 08:53:46.169131+00	1 bunch
+1540	6	count	2023-07-16 08:53:46.176337+00	2023-07-16 08:53:46.176337+00	\N
+1541	200	gram	2023-07-16 08:53:46.178721+00	2023-07-16 08:53:46.178721+00	\N
+1542	140	gram	2023-07-16 08:53:46.180678+00	2023-07-16 08:53:46.180678+00	\N
+1543	120	gram	2023-07-16 08:53:46.182305+00	2023-07-16 08:53:46.182305+00	\N
+1544	40	gram	2023-07-16 08:53:46.184267+00	2023-07-16 08:53:46.184267+00	\N
+1545	1.5	kilogram	2023-07-16 08:53:46.191505+00	2023-07-16 08:53:46.191505+00	\N
+1546	\N	arbitrary	2023-07-16 08:53:46.193365+00	2023-07-16 08:53:46.193365+00	1/2 liter
+1547	125	millilitre	2023-07-16 08:53:46.195352+00	2023-07-16 08:53:46.195352+00	\N
+1548	100	millilitre	2023-07-16 08:53:46.197454+00	2023-07-16 08:53:46.197454+00	\N
+1549	1	tablespoon	2023-07-16 08:53:46.199558+00	2023-07-16 08:53:46.199558+00	\N
+1550	1	count	2023-07-16 08:53:46.212103+00	2023-07-16 08:53:46.212103+00	\N
+1551	200	gram	2023-07-16 08:53:46.21492+00	2023-07-16 08:53:46.21492+00	\N
+1552	4	count	2023-07-16 08:53:46.217033+00	2023-07-16 08:53:46.217033+00	\N
+1553	500	millilitre	2023-07-16 08:53:46.219307+00	2023-07-16 08:53:46.219307+00	\N
+1554	0.25	tablespoon	2023-07-16 08:53:46.221445+00	2023-07-16 08:53:46.221445+00	\N
+1555	2	tablespoon	2023-07-16 08:53:46.22342+00	2023-07-16 08:53:46.22342+00	\N
+1556	1	count	2023-07-16 08:53:46.225755+00	2023-07-16 08:53:46.225755+00	\N
+1557	2	count	2023-07-27 22:04:35.442212+00	2023-07-27 22:04:35.442212+00	\N
+1558	1	litre	2023-07-28 06:29:23.921433+00	2023-07-28 06:29:23.921433+00	\N
+1559	4	count	2023-07-29 02:57:06.323503+00	2023-07-29 02:57:06.323503+00	\N
+1560	\N	arbitrary	2023-07-29 09:11:30.656334+00	2023-07-29 09:11:30.656334+00	1 jar
+1561	1	count	2023-07-29 09:12:04.008766+00	2023-07-29 09:12:04.008766+00	\N
+1562	8	count	2023-07-29 09:13:10.303012+00	2023-07-29 09:13:10.303012+00	\N
+1563	1	count	2023-07-29 09:46:08.92619+00	2023-07-29 09:46:08.92619+00	\N
+1564	1	kilogram	2023-08-05 10:26:44.269873+00	2023-08-05 10:26:44.269873+00	\N
+1565	300	gram	2023-08-05 10:26:51.006467+00	2023-08-05 10:26:51.006467+00	\N
+1566	100	gram	2023-08-05 10:27:14.638707+00	2023-08-05 10:27:14.638707+00	\N
+1567	100	gram	2023-08-05 10:29:43.151933+00	2023-08-05 10:29:43.151933+00	\N
+1568	100	gram	2023-08-05 10:29:47.80207+00	2023-08-05 10:29:47.80207+00	\N
+1569	300	gram	2023-08-05 10:30:31.618896+00	2023-08-05 10:30:31.618896+00	\N
+1570	120	gram	2023-08-05 10:31:23.382678+00	2023-08-05 10:31:23.382678+00	\N
+1571	1	count	2023-08-05 10:31:53.315845+00	2023-08-05 10:31:53.315845+00	\N
+1572	150	gram	2023-08-05 10:32:06.95292+00	2023-08-05 10:32:06.95292+00	\N
+1573	2	count	2023-08-05 10:34:24.832759+00	2023-08-05 10:34:24.832759+00	\N
+1574	100	gram	2023-08-05 10:34:55.851032+00	2023-08-05 10:34:55.851032+00	\N
+1575	1	count	2023-08-05 10:35:54.118436+00	2023-08-05 10:35:54.118436+00	\N
+1576	200	gram	2023-08-05 10:36:12.330116+00	2023-08-05 10:36:12.330116+00	\N
+1577	2	count	2023-08-05 10:36:34.82373+00	2023-08-05 10:36:34.82373+00	\N
+1578	50	gram	2023-08-05 10:37:24.261908+00	2023-08-05 10:37:24.261908+00	\N
+1579	50	gram	2023-08-05 10:37:52.889603+00	2023-08-05 10:37:52.889603+00	\N
+1580	2	count	2023-08-05 10:38:29.433529+00	2023-08-05 10:38:29.433529+00	\N
+1581	\N	arbitrary	2023-08-05 10:40:29.839084+00	2023-08-05 10:40:29.839084+00	butcher
+1582	1	count	2023-08-05 10:41:05.589108+00	2023-08-05 10:41:05.589108+00	\N
+1583	200	gram	2023-08-05 10:44:49.770726+00	2023-08-05 10:44:49.770726+00	\N
+1584	200	gram	2023-08-05 10:45:14.536524+00	2023-08-05 10:45:14.536524+00	\N
+1585	150	gram	2023-08-05 10:47:25.365164+00	2023-08-05 10:47:25.365164+00	\N
+1586	150	gram	2023-08-05 10:48:57.230358+00	2023-08-05 10:48:57.230358+00	\N
+1587	2	count	2023-08-05 10:49:19.559735+00	2023-08-05 10:49:19.559735+00	\N
+1588	150	gram	2023-08-05 10:49:51.478219+00	2023-08-05 10:49:51.478219+00	\N
+1589	50	count	2023-08-05 10:50:03.954386+00	2023-08-05 10:50:03.954386+00	\N
+1590	50	gram	2023-08-05 10:50:10.083305+00	2023-08-05 10:50:10.083305+00	\N
+1591	4	count	2023-08-05 10:51:54.16316+00	2023-08-05 10:51:54.16316+00	\N
+1592	450	gram	2023-08-13 08:46:22.082003+00	2023-08-13 08:46:22.082003+00	\N
+1593	350	gram	2023-08-13 08:46:38.829319+00	2023-08-13 08:46:38.829319+00	\N
+1594	2	count	2023-08-13 08:46:51.967678+00	2023-08-13 08:46:51.967678+00	\N
+1595	450	gram	2023-08-13 08:47:06.325645+00	2023-08-13 08:47:06.325645+00	\N
+1596	80	gram	2023-08-19 11:54:21.108447+00	2023-08-19 11:54:21.108447+00	\N
+1597	40	gram	2023-08-19 11:54:21.112725+00	2023-08-19 11:54:21.112725+00	\N
+1598	50	gram	2023-08-19 11:54:21.115209+00	2023-08-19 11:54:21.115209+00	\N
+1599	200	gram	2023-08-19 11:54:21.118324+00	2023-08-19 11:54:21.118324+00	\N
+1600	100	gram	2023-08-19 11:54:21.120903+00	2023-08-19 11:54:21.120903+00	\N
+1601	200	gram	2023-08-19 11:54:21.122804+00	2023-08-19 11:54:21.122804+00	\N
+1602	450	gram	2023-08-19 11:54:21.124939+00	2023-08-19 11:54:21.124939+00	\N
+1603	150	gram	2023-08-19 11:54:21.127063+00	2023-08-19 11:54:21.127063+00	\N
+1604	30	gram	2023-08-19 11:54:21.129075+00	2023-08-19 11:54:21.129075+00	\N
+1605	\N	arbitrary	2023-08-19 11:54:21.131107+00	2023-08-19 11:54:21.131107+00	3 pinches
+1606	10	count	2023-08-19 11:54:21.134045+00	2023-08-19 11:54:21.134045+00	\N
+1607	15	gram	2023-08-19 11:54:21.147201+00	2023-08-19 11:54:21.147201+00	\N
+1608	20	gram	2023-08-19 11:54:21.149276+00	2023-08-19 11:54:21.149276+00	\N
+1609	30	gram	2023-08-19 11:54:21.151695+00	2023-08-19 11:54:21.151695+00	\N
+1610	100	gram	2023-08-19 11:54:21.153595+00	2023-08-19 11:54:21.153595+00	\N
+1611	200	gram	2023-08-19 11:54:21.155486+00	2023-08-19 11:54:21.155486+00	\N
+1612	100	gram	2023-08-19 11:54:21.157428+00	2023-08-19 11:54:21.157428+00	\N
+1613	150	gram	2023-08-19 11:54:21.159527+00	2023-08-19 11:54:21.159527+00	\N
+1614	6	count	2023-08-19 11:54:21.161529+00	2023-08-19 11:54:21.161529+00	\N
+1615	80	gram	2023-08-19 11:54:21.16357+00	2023-08-19 11:54:21.16357+00	\N
+1616	50	gram	2023-08-19 11:54:21.17614+00	2023-08-19 11:54:21.17614+00	\N
+1617	0.25	teaspoon	2023-08-19 11:54:21.17842+00	2023-08-19 11:54:21.17842+00	\N
+1618	350	gram	2023-08-19 11:54:21.180571+00	2023-08-19 11:54:21.180571+00	\N
+1619	450	gram	2023-08-19 11:54:21.18334+00	2023-08-19 11:54:21.18334+00	\N
+1620	200	gram	2023-08-19 11:54:21.185706+00	2023-08-19 11:54:21.185706+00	\N
+1621	0.25	teaspoon	2023-08-19 11:54:21.191436+00	2023-08-19 11:54:21.191436+00	\N
+1622	50	gram	2023-08-19 11:54:21.193677+00	2023-08-19 11:54:21.193677+00	\N
+1623	2	count	2023-08-19 11:54:21.195754+00	2023-08-19 11:54:21.195754+00	\N
+1624	\N	arbitrary	2023-08-19 11:54:21.214003+00	2023-08-19 11:54:21.214003+00	4 sprigs
+1625	200	gram	2023-08-19 11:54:21.216353+00	2023-08-19 11:54:21.216353+00	\N
+1626	1	teaspoon	2023-08-19 11:54:21.218288+00	2023-08-19 11:54:21.218288+00	\N
+1627	\N	arbitrary	2023-08-19 11:54:21.220204+00	2023-08-19 11:54:21.220204+00	2 garlic
+1628	2	count	2023-08-19 11:54:21.222155+00	2023-08-19 11:54:21.222155+00	\N
+1629	60	gram	2023-08-19 11:54:21.224042+00	2023-08-19 11:54:21.224042+00	\N
+1630	30	gram	2023-08-19 11:54:21.225928+00	2023-08-19 11:54:21.225928+00	\N
+1631	0.5	teaspoon	2023-08-19 11:54:21.228362+00	2023-08-19 11:54:21.228362+00	\N
+1632	250	gram	2023-08-19 11:54:21.230408+00	2023-08-19 11:54:21.230408+00	\N
+1633	250	gram	2023-08-19 11:54:21.232745+00	2023-08-19 11:54:21.232745+00	\N
+1634	680	gram	2023-08-19 11:54:21.234982+00	2023-08-19 11:54:21.234982+00	\N
+1635	\N	arbitrary	2023-08-19 11:54:21.238141+00	2023-08-19 11:54:21.238141+00	1 Tbsp
+1636	6	count	2023-08-30 08:27:28.02793+00	2023-08-30 08:27:28.02793+00	\N
+1637	\N	arbitrary	2023-08-30 08:27:38.075454+00	2023-08-30 08:27:38.075454+00	1-2
+1638	\N	arbitrary	2023-08-30 08:27:49.618196+00	2023-08-30 08:27:49.618196+00	Small
+1639	80	gram	2023-09-03 21:33:19.917752+00	2023-09-03 21:33:19.917752+00	\N
+1640	40	gram	2023-09-03 21:33:19.920492+00	2023-09-03 21:33:19.920492+00	\N
+1641	50	gram	2023-09-03 21:33:19.922408+00	2023-09-03 21:33:19.922408+00	\N
+1642	200	gram	2023-09-03 21:33:19.924506+00	2023-09-03 21:33:19.924506+00	\N
+1643	100	gram	2023-09-03 21:33:19.926505+00	2023-09-03 21:33:19.926505+00	\N
+1644	200	gram	2023-09-03 21:33:19.928403+00	2023-09-03 21:33:19.928403+00	\N
+1645	450	gram	2023-09-03 21:33:19.930456+00	2023-09-03 21:33:19.930456+00	\N
+1646	150	gram	2023-09-03 21:33:19.932694+00	2023-09-03 21:33:19.932694+00	\N
+1647	30	gram	2023-09-03 21:33:19.934698+00	2023-09-03 21:33:19.934698+00	\N
+1648	\N	arbitrary	2023-09-03 21:33:19.93682+00	2023-09-03 21:33:19.93682+00	3 pinches
+1649	10	count	2023-09-03 21:33:19.938991+00	2023-09-03 21:33:19.938991+00	\N
+1650	15	gram	2023-09-03 21:33:19.95174+00	2023-09-03 21:33:19.95174+00	\N
+1651	20	gram	2023-09-03 21:33:19.953683+00	2023-09-03 21:33:19.953683+00	\N
+1652	30	gram	2023-09-03 21:33:19.955939+00	2023-09-03 21:33:19.955939+00	\N
+1653	100	gram	2023-09-03 21:33:19.958332+00	2023-09-03 21:33:19.958332+00	\N
+1654	200	gram	2023-09-03 21:33:19.96082+00	2023-09-03 21:33:19.96082+00	\N
+1655	100	gram	2023-09-03 21:33:19.962782+00	2023-09-03 21:33:19.962782+00	\N
+1656	150	gram	2023-09-03 21:33:19.964965+00	2023-09-03 21:33:19.964965+00	\N
+1657	6	count	2023-09-03 21:33:19.966978+00	2023-09-03 21:33:19.966978+00	\N
+1658	80	gram	2023-09-03 21:33:19.969271+00	2023-09-03 21:33:19.969271+00	\N
+1659	50	gram	2023-09-03 21:33:19.981797+00	2023-09-03 21:33:19.981797+00	\N
+1660	0.25	teaspoon	2023-09-03 21:33:19.983966+00	2023-09-03 21:33:19.983966+00	\N
+1661	350	gram	2023-09-03 21:33:19.986333+00	2023-09-03 21:33:19.986333+00	\N
+1662	450	gram	2023-09-03 21:33:19.98901+00	2023-09-03 21:33:19.98901+00	\N
+1663	200	gram	2023-09-03 21:33:19.99137+00	2023-09-03 21:33:19.99137+00	\N
+1664	0.25	teaspoon	2023-09-03 21:33:19.993593+00	2023-09-03 21:33:19.993593+00	\N
+1665	50	gram	2023-09-03 21:33:19.995743+00	2023-09-03 21:33:19.995743+00	\N
+1666	2	count	2023-09-03 21:33:19.997648+00	2023-09-03 21:33:19.997648+00	\N
+1667	\N	arbitrary	2023-09-03 21:33:20.015093+00	2023-09-03 21:33:20.015093+00	4 sprigs
+1668	200	gram	2023-09-03 21:33:20.016808+00	2023-09-03 21:33:20.016808+00	\N
+1669	1	teaspoon	2023-09-03 21:33:20.019504+00	2023-09-03 21:33:20.019504+00	\N
+1670	\N	arbitrary	2023-09-03 21:33:20.021577+00	2023-09-03 21:33:20.021577+00	2 garlic
+1671	2	count	2023-09-03 21:33:20.023665+00	2023-09-03 21:33:20.023665+00	\N
+1672	60	gram	2023-09-03 21:33:20.02562+00	2023-09-03 21:33:20.02562+00	\N
+1673	30	gram	2023-09-03 21:33:20.027841+00	2023-09-03 21:33:20.027841+00	\N
+1674	0.5	teaspoon	2023-09-03 21:33:20.030367+00	2023-09-03 21:33:20.030367+00	\N
+1675	250	gram	2023-09-03 21:33:20.032076+00	2023-09-03 21:33:20.032076+00	\N
+1676	250	gram	2023-09-03 21:33:20.03393+00	2023-09-03 21:33:20.03393+00	\N
+1677	680	gram	2023-09-03 21:33:20.035821+00	2023-09-03 21:33:20.035821+00	\N
+1678	\N	arbitrary	2023-09-03 21:33:20.037738+00	2023-09-03 21:33:20.037738+00	1 Tbsp
+1679	\N	arbitrary	2023-09-03 21:33:20.055465+00	2023-09-03 21:33:20.055465+00	1 cube
+1680	\N	arbitrary	2023-09-03 21:33:20.059056+00	2023-09-03 21:33:20.059056+00	1 pinch
+1681	1	teaspoon	2023-09-03 21:33:20.061438+00	2023-09-03 21:33:20.061438+00	\N
+1682	100	gram	2023-09-03 21:33:20.063722+00	2023-09-03 21:33:20.063722+00	\N
+1683	80	gram	2023-09-03 21:33:20.066792+00	2023-09-03 21:33:20.066792+00	\N
+1684	300	gram	2023-09-03 21:33:20.069367+00	2023-09-03 21:33:20.069367+00	\N
+1685	600	gram	2023-09-03 21:33:20.071918+00	2023-09-03 21:33:20.071918+00	\N
+1686	350	gram	2023-09-03 21:33:20.074579+00	2023-09-03 21:33:20.074579+00	\N
+1687	80	gram	2023-09-03 21:55:43.455503+00	2023-09-03 21:55:43.455503+00	\N
+1688	40	gram	2023-09-03 21:55:43.457936+00	2023-09-03 21:55:43.457936+00	\N
+1689	50	gram	2023-09-03 21:55:43.459757+00	2023-09-03 21:55:43.459757+00	\N
+1690	200	gram	2023-09-03 21:55:43.46156+00	2023-09-03 21:55:43.46156+00	\N
+1691	100	gram	2023-09-03 21:55:43.463837+00	2023-09-03 21:55:43.463837+00	\N
+1692	200	gram	2023-09-03 21:55:43.465871+00	2023-09-03 21:55:43.465871+00	\N
+1693	450	gram	2023-09-03 21:55:43.467878+00	2023-09-03 21:55:43.467878+00	\N
+1694	150	gram	2023-09-03 21:55:43.470947+00	2023-09-03 21:55:43.470947+00	\N
+1695	30	gram	2023-09-03 21:55:43.473651+00	2023-09-03 21:55:43.473651+00	\N
+1696	\N	arbitrary	2023-09-03 21:55:43.476024+00	2023-09-03 21:55:43.476024+00	3 pinches
+1697	10	count	2023-09-03 21:55:43.478141+00	2023-09-03 21:55:43.478141+00	\N
+1698	15	gram	2023-09-03 21:55:43.491257+00	2023-09-03 21:55:43.491257+00	\N
+1699	20	gram	2023-09-03 21:55:43.50169+00	2023-09-03 21:55:43.50169+00	\N
+1700	30	gram	2023-09-03 21:55:43.516316+00	2023-09-03 21:55:43.516316+00	\N
+1701	100	gram	2023-09-03 21:55:43.518487+00	2023-09-03 21:55:43.518487+00	\N
+1702	200	gram	2023-09-03 21:55:43.520482+00	2023-09-03 21:55:43.520482+00	\N
+1703	100	gram	2023-09-03 21:55:43.522349+00	2023-09-03 21:55:43.522349+00	\N
+1704	150	gram	2023-09-03 21:55:43.524279+00	2023-09-03 21:55:43.524279+00	\N
+1705	6	count	2023-09-03 21:55:43.526476+00	2023-09-03 21:55:43.526476+00	\N
+1706	80	gram	2023-09-03 21:55:43.528702+00	2023-09-03 21:55:43.528702+00	\N
+1707	50	gram	2023-09-03 21:55:43.539216+00	2023-09-03 21:55:43.539216+00	\N
+1708	0.25	teaspoon	2023-09-03 21:55:43.541612+00	2023-09-03 21:55:43.541612+00	\N
+1709	350	gram	2023-09-03 21:55:43.543538+00	2023-09-03 21:55:43.543538+00	\N
+1710	450	gram	2023-09-03 21:55:43.545515+00	2023-09-03 21:55:43.545515+00	\N
+1711	200	gram	2023-09-03 21:55:43.547368+00	2023-09-03 21:55:43.547368+00	\N
+1712	0.25	teaspoon	2023-09-03 21:55:43.549096+00	2023-09-03 21:55:43.549096+00	\N
+1713	50	gram	2023-09-03 21:55:43.550827+00	2023-09-03 21:55:43.550827+00	\N
+1714	2	count	2023-09-03 21:55:43.553393+00	2023-09-03 21:55:43.553393+00	\N
+1715	\N	arbitrary	2023-09-03 21:55:43.566977+00	2023-09-03 21:55:43.566977+00	4 sprigs
+1716	200	gram	2023-09-03 21:55:43.568714+00	2023-09-03 21:55:43.568714+00	\N
+1717	1	teaspoon	2023-09-03 21:55:43.570485+00	2023-09-03 21:55:43.570485+00	\N
+1718	\N	arbitrary	2023-09-03 21:55:43.572279+00	2023-09-03 21:55:43.572279+00	2 garlic
+1719	2	count	2023-09-03 21:55:43.574038+00	2023-09-03 21:55:43.574038+00	\N
+1720	60	gram	2023-09-03 21:55:43.575898+00	2023-09-03 21:55:43.575898+00	\N
+1721	30	gram	2023-09-03 21:55:43.577867+00	2023-09-03 21:55:43.577867+00	\N
+1722	0.5	teaspoon	2023-09-03 21:55:43.579645+00	2023-09-03 21:55:43.579645+00	\N
+1723	250	gram	2023-09-03 21:55:43.581412+00	2023-09-03 21:55:43.581412+00	\N
+1724	250	gram	2023-09-03 21:55:43.583343+00	2023-09-03 21:55:43.583343+00	\N
+1725	680	gram	2023-09-03 21:55:43.585224+00	2023-09-03 21:55:43.585224+00	\N
+1726	\N	arbitrary	2023-09-03 21:55:43.586981+00	2023-09-03 21:55:43.586981+00	1 Tbsp
+1727	\N	arbitrary	2023-09-03 21:55:43.59983+00	2023-09-03 21:55:43.59983+00	1 cube
+1728	\N	arbitrary	2023-09-03 21:55:43.602103+00	2023-09-03 21:55:43.602103+00	1 pinch
+1729	1	teaspoon	2023-09-03 21:55:43.604002+00	2023-09-03 21:55:43.604002+00	\N
+1730	100	gram	2023-09-03 21:55:43.606069+00	2023-09-03 21:55:43.606069+00	\N
+1731	80	gram	2023-09-03 21:55:43.608173+00	2023-09-03 21:55:43.608173+00	\N
+1732	300	gram	2023-09-03 21:55:43.6101+00	2023-09-03 21:55:43.6101+00	\N
+1733	600	gram	2023-09-03 21:55:43.611996+00	2023-09-03 21:55:43.611996+00	\N
+1734	350	gram	2023-09-03 21:55:43.613948+00	2023-09-03 21:55:43.613948+00	\N
+1735	1	count	2023-09-03 21:55:43.631633+00	2023-09-03 21:55:43.631633+00	\N
+1736	60	gram	2023-09-03 21:55:43.636515+00	2023-09-03 21:55:43.636515+00	\N
+1737	300	gram	2023-09-03 21:55:43.639088+00	2023-09-03 21:55:43.639088+00	\N
+1738	0.5	count	2023-09-03 21:55:43.641414+00	2023-09-03 21:55:43.641414+00	\N
+1739	130	gram	2023-09-03 21:55:43.643857+00	2023-09-03 21:55:43.643857+00	\N
+1740	\N	arbitrary	2023-09-03 21:55:43.646359+00	2023-09-03 21:55:43.646359+00	3 sprigs
+1741	\N	arbitrary	2023-09-03 21:55:43.649164+00	2023-09-03 21:55:43.649164+00	1 pinch
+1742	\N	arbitrary	2023-09-03 21:55:43.651579+00	2023-09-03 21:55:43.651579+00	2 pinches
+1743	80	gram	2023-09-03 21:55:43.65394+00	2023-09-03 21:55:43.65394+00	\N
+1744	\N	arbitrary	2023-09-03 21:55:43.656325+00	2023-09-03 21:55:43.656325+00	5 medium
+1745	15	gram	2023-09-03 22:06:41.595152+00	2023-09-03 22:06:41.595152+00	\N
+1746	140	gram	2023-09-03 22:06:41.597981+00	2023-09-03 22:06:41.597981+00	\N
+1747	1	kilogram	2023-09-03 22:06:41.599842+00	2023-09-03 22:06:41.599842+00	\N
+1748	140	gram	2023-09-03 22:06:41.601815+00	2023-09-03 22:06:41.601815+00	\N
+1749	140	gram	2023-09-03 22:06:41.603608+00	2023-09-03 22:06:41.603608+00	\N
+1750	100	millilitre	2023-09-03 22:06:41.605575+00	2023-09-03 22:06:41.605575+00	\N
+1751	100	millilitre	2023-09-03 22:06:41.607622+00	2023-09-03 22:06:41.607622+00	\N
+1752	\N	arbitrary	2023-09-03 22:06:41.609848+00	2023-09-03 22:06:41.609848+00	pinch
+1753	250	gram	2023-09-03 22:06:41.611925+00	2023-09-03 22:06:41.611925+00	\N
+1754	0.5	count	2023-09-03 22:06:41.613876+00	2023-09-03 22:06:41.613876+00	\N
+1755	4	count	2023-09-03 22:06:41.645934+00	2023-09-03 22:06:41.645934+00	\N
+1756	5	tablespoon	2023-09-03 22:06:41.647903+00	2023-09-03 22:06:41.647903+00	\N
+1757	250	gram	2023-09-03 22:06:41.649908+00	2023-09-03 22:06:41.649908+00	\N
+1758	1	tablespoon	2023-09-03 22:06:41.652644+00	2023-09-03 22:06:41.652644+00	\N
+1759	1	count	2023-09-03 22:06:41.65461+00	2023-09-03 22:06:41.65461+00	\N
+1760	800	gram	2023-09-03 22:06:41.656426+00	2023-09-03 22:06:41.656426+00	\N
+1761	1	count	2023-09-03 22:06:41.658343+00	2023-09-03 22:06:41.658343+00	\N
+1762	1	tablespoon	2023-09-03 22:06:41.660246+00	2023-09-03 22:06:41.660246+00	\N
+1763	1	tablespoon	2023-09-03 22:06:41.662111+00	2023-09-03 22:06:41.662111+00	\N
+1764	0.5	teaspoon	2023-09-03 22:06:41.664089+00	2023-09-03 22:06:41.664089+00	\N
+1765	1	tablespoon	2023-09-03 22:06:41.666034+00	2023-09-03 22:06:41.666034+00	\N
+1766	1	litre	2023-09-03 22:06:41.667861+00	2023-09-03 22:06:41.667861+00	\N
+1767	100	gram	2023-09-03 22:06:41.669666+00	2023-09-03 22:06:41.669666+00	\N
+1768	1	count	2023-09-03 22:06:41.671639+00	2023-09-03 22:06:41.671639+00	\N
+1769	2	tablespoon	2023-09-03 22:06:41.674361+00	2023-09-03 22:06:41.674361+00	\N
+1770	1	tablespoon	2023-09-03 22:06:41.676527+00	2023-09-03 22:06:41.676527+00	\N
+1771	200	gram	2023-09-03 22:06:41.678351+00	2023-09-03 22:06:41.678351+00	\N
+1772	\N	arbitrary	2023-09-03 22:06:41.680041+00	2023-09-03 22:06:41.680041+00	1 handful
+1773	2	count	2023-09-03 22:06:41.698966+00	2023-09-03 22:06:41.698966+00	\N
+1774	1	count	2023-09-03 22:06:41.701678+00	2023-09-03 22:06:41.701678+00	\N
+1775	1	count	2023-09-03 22:06:41.703644+00	2023-09-03 22:06:41.703644+00	\N
+1776	1	count	2023-09-03 22:06:41.705521+00	2023-09-03 22:06:41.705521+00	\N
+1777	\N	arbitrary	2023-09-03 22:06:41.707453+00	2023-09-03 22:06:41.707453+00	pinch
+1778	1	tablespoon	2023-09-03 22:06:41.709604+00	2023-09-03 22:06:41.709604+00	\N
+1779	\N	arbitrary	2023-09-03 22:06:41.711713+00	2023-09-03 22:06:41.711713+00	pinch
+1780	2	count	2023-09-03 22:06:41.714572+00	2023-09-03 22:06:41.714572+00	\N
+1781	4	tablespoon	2023-09-03 22:06:41.716512+00	2023-09-03 22:06:41.716512+00	\N
+1782	1	count	2023-09-03 22:06:41.718369+00	2023-09-03 22:06:41.718369+00	\N
+1783	4	tablespoon	2023-09-03 22:06:41.720223+00	2023-09-03 22:06:41.720223+00	\N
+1784	8	count	2023-09-03 22:06:41.72205+00	2023-09-03 22:06:41.72205+00	\N
+1785	\N	arbitrary	2023-09-03 22:06:41.723825+00	2023-09-03 22:06:41.723825+00	1 bag
+1786	230	gram	2023-09-03 22:06:41.725815+00	2023-09-03 22:06:41.725815+00	\N
+1787	1	kilogram	2023-09-03 22:06:41.738718+00	2023-09-03 22:06:41.738718+00	\N
+1788	2	cloves	2023-09-03 22:06:41.741103+00	2023-09-03 22:06:41.741103+00	\N
+1789	300	millilitre	2023-09-03 22:06:41.743427+00	2023-09-03 22:06:41.743427+00	\N
+1790	200	millilitre	2023-09-03 22:06:41.745327+00	2023-09-03 22:06:41.745327+00	\N
+1791	100	gram	2023-09-03 22:06:41.74709+00	2023-09-03 22:06:41.74709+00	\N
+1792	50	gram	2023-09-03 22:06:41.74899+00	2023-09-03 22:06:41.74899+00	\N
+1793	1	teaspoon	2023-09-03 22:06:41.750808+00	2023-09-03 22:06:41.750808+00	\N
+1794	\N	arbitrary	2023-09-03 22:06:41.752834+00	2023-09-03 22:06:41.752834+00	1 pinch
+1795	\N	arbitrary	2023-09-03 22:06:41.754878+00	2023-09-03 22:06:41.754878+00	to taste
+1796	\N	arbitrary	2023-09-03 22:06:41.756879+00	2023-09-03 22:06:41.756879+00	to taste
+1797	2	cup	2023-09-03 22:06:41.773031+00	2023-09-03 22:06:41.773031+00	\N
+1798	4	count	2023-09-03 22:06:41.774869+00	2023-09-03 22:06:41.774869+00	\N
+1799	0.5	cup	2023-09-03 22:06:41.776656+00	2023-09-03 22:06:41.776656+00	\N
+1800	0.5	teaspoon	2023-09-03 22:06:41.778676+00	2023-09-03 22:06:41.778676+00	\N
+1801	0.5	cup	2023-09-03 22:06:41.780974+00	2023-09-03 22:06:41.780974+00	\N
+1802	3	tablespoon	2023-09-03 22:06:41.783018+00	2023-09-03 22:06:41.783018+00	\N
+1803	2	cup	2023-09-03 22:06:41.785578+00	2023-09-03 22:06:41.785578+00	\N
+1804	1	cup	2023-09-03 22:06:41.787516+00	2023-09-03 22:06:41.787516+00	\N
+1805	0.5	cup	2023-09-03 22:06:41.789698+00	2023-09-03 22:06:41.789698+00	\N
+1806	0.25	teaspoon	2023-09-03 22:06:41.791728+00	2023-09-03 22:06:41.791728+00	\N
+1807	0.5	teaspoon	2023-09-03 22:06:41.794407+00	2023-09-03 22:06:41.794407+00	\N
+1808	0.25	teaspoon	2023-09-03 22:06:41.796789+00	2023-09-03 22:06:41.796789+00	\N
+1809	3	tablespoon	2023-09-03 22:06:41.798838+00	2023-09-03 22:06:41.798838+00	\N
+1810	0.5	cup	2023-09-03 22:06:41.801072+00	2023-09-03 22:06:41.801072+00	\N
+1811	3	tablespoon	2023-09-03 22:06:41.816884+00	2023-09-03 22:06:41.816884+00	\N
+1812	4	count	2023-09-03 22:06:41.818828+00	2023-09-03 22:06:41.818828+00	\N
+1813	4	count	2023-09-03 22:06:41.82073+00	2023-09-03 22:06:41.82073+00	\N
+1814	2	count	2023-09-03 22:06:41.822826+00	2023-09-03 22:06:41.822826+00	\N
+1815	4	cup	2023-09-03 22:06:41.825034+00	2023-09-03 22:06:41.825034+00	\N
+1816	1	cup	2023-09-03 22:06:41.826928+00	2023-09-03 22:06:41.826928+00	\N
+1817	\N	arbitrary	2023-09-03 22:06:41.828799+00	2023-09-03 22:06:41.828799+00	1 bay leaf
+1818	0.5	cup	2023-09-03 22:06:41.831222+00	2023-09-03 22:06:41.831222+00	\N
+1819	0.5	teaspoon	2023-09-03 22:06:41.833362+00	2023-09-03 22:06:41.833362+00	\N
+1820	0.25	teaspoon	2023-09-03 22:06:41.835235+00	2023-09-03 22:06:41.835235+00	\N
+1821	2	tablespoon	2023-09-03 22:06:41.836995+00	2023-09-03 22:06:41.836995+00	\N
+1822	2	tablespoon	2023-09-03 22:06:41.838941+00	2023-09-03 22:06:41.838941+00	\N
+1823	2	cup	2023-09-03 22:06:41.856011+00	2023-09-03 22:06:41.856011+00	\N
+1824	1	tablespoon	2023-09-03 22:06:41.858003+00	2023-09-03 22:06:41.858003+00	\N
+1825	1	count	2023-09-03 22:06:41.860383+00	2023-09-03 22:06:41.860383+00	\N
+1826	2	cloves	2023-09-03 22:06:41.862399+00	2023-09-03 22:06:41.862399+00	\N
+1827	2	cup	2023-09-03 22:06:41.864306+00	2023-09-03 22:06:41.864306+00	\N
+1828	1	count	2023-09-03 22:06:41.865999+00	2023-09-03 22:06:41.865999+00	\N
+1829	4	count	2023-09-03 22:06:41.86793+00	2023-09-03 22:06:41.86793+00	\N
+1830	\N	arbitrary	2023-09-03 22:06:41.869952+00	2023-09-03 22:06:41.869952+00	1 1/2 cups
+1831	0.5	cup	2023-09-03 22:06:41.871656+00	2023-09-03 22:06:41.871656+00	\N
+1832	0.5	teaspoon	2023-09-03 22:06:41.873689+00	2023-09-03 22:06:41.873689+00	\N
+1833	0.25	teaspoon	2023-09-03 22:06:41.875767+00	2023-09-03 22:06:41.875767+00	\N
+1834	0.25	teaspoon	2023-09-03 22:06:41.877939+00	2023-09-03 22:06:41.877939+00	\N
+1835	\N	arbitrary	2023-09-03 22:06:41.883925+00	2023-09-03 22:06:41.883925+00	1 1/2 cups
+1836	0.25	cup	2023-09-03 22:06:41.88613+00	2023-09-03 22:06:41.88613+00	\N
+1837	1.5	kilogram	2023-09-03 22:06:41.914125+00	2023-09-03 22:06:41.914125+00	\N
+1838	2	tablespoon	2023-09-03 22:06:41.916054+00	2023-09-03 22:06:41.916054+00	\N
+1839	2	count	2023-09-03 22:06:41.917939+00	2023-09-03 22:06:41.917939+00	\N
+1840	2	count	2023-09-03 22:06:41.920019+00	2023-09-03 22:06:41.920019+00	\N
+1841	2	count	2023-09-03 22:06:41.921762+00	2023-09-03 22:06:41.921762+00	\N
+1842	2	tablespoon	2023-09-03 22:06:41.92384+00	2023-09-03 22:06:41.92384+00	\N
+1843	2	tablespoon	2023-09-03 22:06:41.925763+00	2023-09-03 22:06:41.925763+00	\N
+1844	500	millilitre	2023-09-03 22:06:41.92752+00	2023-09-03 22:06:41.92752+00	\N
+1845	2	tablespoon	2023-09-03 22:06:41.929284+00	2023-09-03 22:06:41.929284+00	\N
+1846	\N	arbitrary	2023-09-03 22:06:41.931165+00	2023-09-03 22:06:41.931165+00	few
+1847	\N	arbitrary	2023-09-03 22:06:41.933234+00	2023-09-03 22:06:41.933234+00	few
+1848	2	count	2023-09-03 22:06:41.935224+00	2023-09-03 22:06:41.935224+00	\N
+1849	3	count	2023-09-03 22:06:41.937009+00	2023-09-03 22:06:41.937009+00	\N
+1850	500	gram	2023-09-03 22:06:41.939032+00	2023-09-03 22:06:41.939032+00	\N
+1851	2	count	2023-09-03 22:06:41.940983+00	2023-09-03 22:06:41.940983+00	\N
+1852	150	gram	2023-09-03 22:06:41.942895+00	2023-09-03 22:06:41.942895+00	\N
+1853	2	tablespoon	2023-09-03 22:06:41.94473+00	2023-09-03 22:06:41.94473+00	\N
+1854	\N	arbitrary	2023-09-03 22:06:41.94665+00	2023-09-03 22:06:41.94665+00	salt
+1855	\N	arbitrary	2023-09-03 22:06:41.948551+00	2023-09-03 22:06:41.948551+00	black pepper
+1856	320	gram	2023-09-03 22:06:41.96157+00	2023-09-03 22:06:41.96157+00	\N
+1857	4	count	2023-09-03 22:06:41.963476+00	2023-09-03 22:06:41.963476+00	\N
+1858	4	count	2023-09-03 22:06:41.965322+00	2023-09-03 22:06:41.965322+00	\N
+1859	200	millilitre	2023-09-03 22:06:41.967254+00	2023-09-03 22:06:41.967254+00	\N
+1860	200	millilitre	2023-09-03 22:06:41.968953+00	2023-09-03 22:06:41.968953+00	\N
+1861	200	gram	2023-09-03 22:06:41.970741+00	2023-09-03 22:06:41.970741+00	\N
+1862	\N	arbitrary	2023-09-03 22:06:41.972561+00	2023-09-03 22:06:41.972561+00	1 bunch
+1863	100	gram	2023-09-03 22:06:41.974332+00	2023-09-03 22:06:41.974332+00	\N
+1864	\N	arbitrary	2023-09-03 22:06:41.976194+00	2023-09-03 22:06:41.976194+00	salt
+1865	\N	arbitrary	2023-09-03 22:06:41.977884+00	2023-09-03 22:06:41.977884+00	black pepper
+1866	\N	arbitrary	2023-09-03 22:06:41.97985+00	2023-09-03 22:06:41.97985+00	1 knob
+1867	\N	arbitrary	2023-09-03 22:06:41.982075+00	2023-09-03 22:06:41.982075+00	olive oil
+1868	1	kilogram	2023-09-03 22:06:41.994103+00	2023-09-03 22:06:41.994103+00	\N
+1869	2	count	2023-09-03 22:06:41.996166+00	2023-09-03 22:06:41.996166+00	\N
+1870	4	tablespoon	2023-09-03 22:06:41.997949+00	2023-09-03 22:06:41.997949+00	\N
+1871	1	count	2023-09-03 22:06:41.9999+00	2023-09-03 22:06:41.9999+00	\N
+1872	2	cloves	2023-09-03 22:06:42.001851+00	2023-09-03 22:06:42.001851+00	\N
+1873	2	tablespoon	2023-09-03 22:06:42.005243+00	2023-09-03 22:06:42.005243+00	\N
+1874	1	teaspoon	2023-09-03 22:06:42.007295+00	2023-09-03 22:06:42.007295+00	\N
+1875	0.5	teaspoon	2023-09-03 22:06:42.009337+00	2023-09-03 22:06:42.009337+00	\N
+1876	\N	arbitrary	2023-09-03 22:06:42.011453+00	2023-09-03 22:06:42.011453+00	vegetable oil
+1877	2	count	2023-09-03 22:06:42.020787+00	2023-09-03 22:06:42.020787+00	\N
+1878	1	count	2023-09-03 22:06:42.023334+00	2023-09-03 22:06:42.023334+00	\N
+1879	100	gram	2023-09-03 22:06:42.025633+00	2023-09-03 22:06:42.025633+00	\N
+1880	\N	arbitrary	2023-09-03 22:06:42.027984+00	2023-09-03 22:06:42.027984+00	1 bunch
+1881	\N	arbitrary	2023-09-03 22:06:42.030578+00	2023-09-03 22:06:42.030578+00	1 pack
+1882	2	tablespoon	2023-09-03 22:06:42.037885+00	2023-09-03 22:06:42.037885+00	\N
+1883	\N	arbitrary	2023-09-03 22:06:42.039631+00	2023-09-03 22:06:42.039631+00	3 small
+1884	\N	arbitrary	2023-09-03 22:06:42.041308+00	2023-09-03 22:06:42.041308+00	1 sheet
+1885	100	gram	2023-09-03 22:06:42.047265+00	2023-09-03 22:06:42.047265+00	\N
+1886	\N	arbitrary	2023-09-03 22:06:42.055825+00	2023-09-03 22:06:42.055825+00	2 handfuls
+1887	2	count	2023-09-03 22:06:42.057638+00	2023-09-03 22:06:42.057638+00	\N
+1888	2	count	2023-09-03 22:06:42.059431+00	2023-09-03 22:06:42.059431+00	\N
+1889	100	gram	2023-09-03 22:06:42.061248+00	2023-09-03 22:06:42.061248+00	\N
+1890	100	millilitre	2023-09-03 22:06:42.063173+00	2023-09-03 22:06:42.063173+00	\N
+1891	\N	arbitrary	2023-09-03 22:06:42.065402+00	2023-09-03 22:06:42.065402+00	10 leaves
+1892	\N	arbitrary	2023-09-03 22:06:42.07251+00	2023-09-03 22:06:42.07251+00	enough for at least 2 pizzas
+1893	2	tablespoon	2023-09-03 22:06:42.074541+00	2023-09-03 22:06:42.074541+00	\N
+1894	2	count	2023-09-03 22:06:42.076667+00	2023-09-03 22:06:42.076667+00	\N
+1895	\N	arbitrary	2023-09-03 22:06:42.078529+00	2023-09-03 22:06:42.078529+00	1 pack
+1896	125	gram	2023-09-03 22:06:42.090036+00	2023-09-03 22:06:42.090036+00	\N
+1897	325	millilitre	2023-09-03 22:06:42.092231+00	2023-09-03 22:06:42.092231+00	\N
+1898	400	gram	2023-09-03 22:06:42.094184+00	2023-09-03 22:06:42.094184+00	\N
+1899	1	count	2023-09-03 22:06:42.096142+00	2023-09-03 22:06:42.096142+00	\N
+1900	150	gram	2023-09-03 22:06:42.097925+00	2023-09-03 22:06:42.097925+00	\N
+1901	200	gram	2023-09-03 22:06:42.099816+00	2023-09-03 22:06:42.099816+00	\N
+1902	40	gram	2023-09-03 22:06:42.101766+00	2023-09-03 22:06:42.101766+00	\N
+1903	15	gram	2023-09-03 22:06:42.103776+00	2023-09-03 22:06:42.103776+00	\N
+1904	2	count	2023-09-03 22:06:42.105496+00	2023-09-03 22:06:42.105496+00	\N
+1905	800	gram	2023-09-03 22:06:42.117969+00	2023-09-03 22:06:42.117969+00	\N
+1906	1	count	2023-09-03 22:06:42.119932+00	2023-09-03 22:06:42.119932+00	\N
+1907	8	count	2023-09-03 22:06:42.121567+00	2023-09-03 22:06:42.121567+00	\N
+1908	8	count	2023-09-03 22:06:42.123298+00	2023-09-03 22:06:42.123298+00	\N
+1909	1	count	2023-09-03 22:06:42.125294+00	2023-09-03 22:06:42.125294+00	\N
+1910	280	gram	2023-09-03 22:06:42.127323+00	2023-09-03 22:06:42.127323+00	\N
+1911	\N	arbitrary	2023-09-03 22:06:42.129362+00	2023-09-03 22:06:42.129362+00	3-4 sprigs
+1912	\N	arbitrary	2023-09-03 22:06:42.131255+00	2023-09-03 22:06:42.131255+00	5-6 sprigs
+1913	340	gram	2023-09-03 22:06:42.132958+00	2023-09-03 22:06:42.132958+00	\N
+1914	20	gram	2023-09-03 22:06:42.13471+00	2023-09-03 22:06:42.13471+00	\N
+1915	1	count	2023-09-03 22:06:42.146466+00	2023-09-03 22:06:42.146466+00	\N
+1916	2	count	2023-09-03 22:06:42.148322+00	2023-09-03 22:06:42.148322+00	\N
+1917	2	count	2023-09-03 22:06:42.150323+00	2023-09-03 22:06:42.150323+00	\N
+1918	6	count	2023-09-03 22:06:42.152472+00	2023-09-03 22:06:42.152472+00	\N
+1919	150	gram	2023-09-03 22:06:42.154469+00	2023-09-03 22:06:42.154469+00	\N
+1920	\N	arbitrary	2023-09-03 22:06:42.156368+00	2023-09-03 22:06:42.156368+00	4 pinches
+1921	250	gram	2023-09-03 22:06:42.15836+00	2023-09-03 22:06:42.15836+00	\N
+1922	600	millilitre	2023-09-03 22:06:42.160284+00	2023-09-03 22:06:42.160284+00	\N
+1923	1	count	2023-09-03 22:06:42.162225+00	2023-09-03 22:06:42.162225+00	\N
+1924	20	gram	2023-09-03 22:06:42.164149+00	2023-09-03 22:06:42.164149+00	\N
+1925	2	count	2023-09-03 22:06:42.186924+00	2023-09-03 22:06:42.186924+00	\N
+1926	2	count	2023-09-03 22:06:42.191468+00	2023-09-03 22:06:42.191468+00	\N
+1927	15	gram	2023-09-03 22:06:42.193495+00	2023-09-03 22:06:42.193495+00	\N
+1928	400	gram	2023-09-03 22:06:42.195982+00	2023-09-03 22:06:42.195982+00	\N
+1929	400	gram	2023-09-03 22:06:42.197951+00	2023-09-03 22:06:42.197951+00	\N
+1930	1	count	2023-09-03 22:06:42.200186+00	2023-09-03 22:06:42.200186+00	\N
+1931	4	tablespoon	2023-09-03 22:06:42.202427+00	2023-09-03 22:06:42.202427+00	\N
+1932	600	millilitre	2023-09-03 22:06:42.205674+00	2023-09-03 22:06:42.205674+00	\N
+1933	1	count	2023-09-03 22:06:42.207574+00	2023-09-03 22:06:42.207574+00	\N
+1934	20	gram	2023-09-03 22:06:42.210484+00	2023-09-03 22:06:42.210484+00	\N
+1935	1	tablespoon	2023-09-03 22:06:42.212473+00	2023-09-03 22:06:42.212473+00	\N
+1936	1	tablespoon	2023-09-03 22:06:42.214422+00	2023-09-03 22:06:42.214422+00	\N
+1937	800	gram	2023-09-03 22:06:42.217348+00	2023-09-03 22:06:42.217348+00	\N
+1938	2	cloves	2023-09-03 22:06:42.219564+00	2023-09-03 22:06:42.219564+00	\N
+1939	150	gram	2023-09-03 22:06:42.222431+00	2023-09-03 22:06:42.222431+00	\N
+1940	\N	arbitrary	2023-09-03 22:06:42.234285+00	2023-09-03 22:06:42.234285+00	1 pound
+1941	0.25	cup	2023-09-03 22:06:42.23655+00	2023-09-03 22:06:42.23655+00	\N
+1942	\N	arbitrary	2023-09-03 22:06:42.238621+00	2023-09-03 22:06:42.238621+00	1 clove
+1943	\N	arbitrary	2023-09-03 22:06:42.241397+00	2023-09-03 22:06:42.241397+00	6 ounces
+1944	2	cup	2023-09-03 22:06:42.243509+00	2023-09-03 22:06:42.243509+00	\N
+1945	2	cup	2023-09-03 22:06:42.245454+00	2023-09-03 22:06:42.245454+00	\N
+1946	0.5	cup	2023-09-03 22:06:42.24738+00	2023-09-03 22:06:42.24738+00	\N
+1947	0.5	cup	2023-09-03 22:06:42.24945+00	2023-09-03 22:06:42.24945+00	\N
+1948	1	count	2023-09-03 22:06:42.261379+00	2023-09-03 22:06:42.261379+00	\N
+1949	1	count	2023-09-03 22:06:42.2634+00	2023-09-03 22:06:42.2634+00	\N
+1950	3	count	2023-09-03 22:06:42.265338+00	2023-09-03 22:06:42.265338+00	\N
+1951	0.5	cup	2023-09-03 22:06:42.267057+00	2023-09-03 22:06:42.267057+00	\N
+1952	1	count	2023-09-03 22:06:42.268938+00	2023-09-03 22:06:42.268938+00	\N
+1953	2	cup	2023-09-03 22:06:42.270762+00	2023-09-03 22:06:42.270762+00	\N
+1954	5	tablespoon	2023-09-03 22:06:42.27283+00	2023-09-03 22:06:42.27283+00	\N
+1955	0.25	teaspoon	2023-09-03 22:06:42.274714+00	2023-09-03 22:06:42.274714+00	\N
+1956	1	count	2023-09-03 22:06:42.287321+00	2023-09-03 22:06:42.287321+00	\N
+1957	250	gram	2023-09-03 22:06:42.289236+00	2023-09-03 22:06:42.289236+00	\N
+1958	1	count	2023-09-03 22:06:42.291308+00	2023-09-03 22:06:42.291308+00	\N
+1959	100	millilitre	2023-09-03 22:06:42.293383+00	2023-09-03 22:06:42.293383+00	\N
+1960	200	millilitre	2023-09-03 22:06:42.295246+00	2023-09-03 22:06:42.295246+00	\N
+1961	1	count	2023-09-03 22:06:42.297116+00	2023-09-03 22:06:42.297116+00	\N
+1962	200	gram	2023-09-03 22:06:42.298975+00	2023-09-03 22:06:42.298975+00	\N
+1963	300	gram	2023-09-03 22:06:42.300762+00	2023-09-03 22:06:42.300762+00	\N
+1964	\N	arbitrary	2023-09-03 22:06:42.302663+00	2023-09-03 22:06:42.302663+00	1/2 bunch
+1965	4	count	2023-09-03 22:06:42.312585+00	2023-09-03 22:06:42.312585+00	\N
+1966	280	gram	2023-09-03 22:06:42.315264+00	2023-09-03 22:06:42.315264+00	\N
+1967	200	gram	2023-09-03 22:06:42.317437+00	2023-09-03 22:06:42.317437+00	\N
+1968	100	gram	2023-09-03 22:06:42.319667+00	2023-09-03 22:06:42.319667+00	\N
+1969	\N	arbitrary	2023-09-03 22:06:42.322068+00	2023-09-03 22:06:42.322068+00	1 bunch
+1970	1	count	2023-09-03 22:06:42.324275+00	2023-09-03 22:06:42.324275+00	\N
+1971	50	gram	2023-09-03 22:06:42.327235+00	2023-09-03 22:06:42.327235+00	\N
+1972	1	count	2023-09-03 22:06:42.34436+00	2023-09-03 22:06:42.34436+00	\N
+1973	150	gram	2023-09-03 22:06:42.34655+00	2023-09-03 22:06:42.34655+00	\N
+1974	0.5	teaspoon	2023-09-03 22:06:42.348716+00	2023-09-03 22:06:42.348716+00	\N
+1975	1	count	2023-09-03 22:06:42.350674+00	2023-09-03 22:06:42.350674+00	\N
+1976	1	count	2023-09-03 22:06:42.352536+00	2023-09-03 22:06:42.352536+00	\N
+1977	2	count	2023-09-03 22:06:42.35458+00	2023-09-03 22:06:42.35458+00	\N
+1978	4	count	2023-09-03 22:06:42.356663+00	2023-09-03 22:06:42.356663+00	\N
+1979	1	count	2023-09-03 22:06:42.358593+00	2023-09-03 22:06:42.358593+00	\N
+1980	1	count	2023-09-03 22:06:42.360909+00	2023-09-03 22:06:42.360909+00	\N
+1981	200	gram	2023-09-03 22:06:42.372658+00	2023-09-03 22:06:42.372658+00	\N
+1982	200	gram	2023-09-03 22:06:42.374884+00	2023-09-03 22:06:42.374884+00	\N
+1983	1	count	2023-09-03 22:06:42.377419+00	2023-09-03 22:06:42.377419+00	\N
+1984	1	count	2023-09-03 22:06:42.379395+00	2023-09-03 22:06:42.379395+00	\N
+1985	2	count	2023-09-03 22:06:42.381529+00	2023-09-03 22:06:42.381529+00	\N
+1986	1	count	2023-09-03 22:06:42.383367+00	2023-09-03 22:06:42.383367+00	\N
+1987	1	count	2023-09-03 22:06:42.385136+00	2023-09-03 22:06:42.385136+00	\N
+1988	1	count	2023-09-03 22:06:42.386856+00	2023-09-03 22:06:42.386856+00	\N
+1989	2	count	2023-09-03 22:06:42.39553+00	2023-09-03 22:06:42.39553+00	\N
+1990	3	count	2023-09-03 22:06:42.397465+00	2023-09-03 22:06:42.397465+00	\N
+1991	2	count	2023-09-03 22:06:42.399563+00	2023-09-03 22:06:42.399563+00	\N
+1992	2	count	2023-09-03 22:06:42.401756+00	2023-09-03 22:06:42.401756+00	\N
+1993	4	count	2023-09-03 22:06:42.404193+00	2023-09-03 22:06:42.404193+00	\N
+1994	500	gram	2023-09-03 22:06:42.406466+00	2023-09-03 22:06:42.406466+00	\N
+1995	1	count	2023-09-03 22:06:42.420367+00	2023-09-03 22:06:42.420367+00	\N
+1996	1	count	2023-09-03 22:06:42.422741+00	2023-09-03 22:06:42.422741+00	\N
+1997	1	count	2023-09-03 22:06:42.424948+00	2023-09-03 22:06:42.424948+00	\N
+1998	2	count	2023-09-03 22:06:42.427038+00	2023-09-03 22:06:42.427038+00	\N
+1999	1	count	2023-09-03 22:06:42.429085+00	2023-09-03 22:06:42.429085+00	\N
+2000	300	gram	2023-09-03 22:06:42.430984+00	2023-09-03 22:06:42.430984+00	\N
+2001	600	millilitre	2023-09-03 22:06:42.433185+00	2023-09-03 22:06:42.433185+00	\N
+2002	2	count	2023-09-03 22:06:42.435094+00	2023-09-03 22:06:42.435094+00	\N
+2003	75	gram	2023-09-03 22:06:42.438298+00	2023-09-03 22:06:42.438298+00	\N
+2004	20	gram	2023-09-03 22:06:42.44048+00	2023-09-03 22:06:42.44048+00	\N
+2005	100	gram	2023-09-03 22:06:42.442387+00	2023-09-03 22:06:42.442387+00	\N
+2006	200	gram	2023-09-03 22:06:42.449242+00	2023-09-03 22:06:42.449242+00	\N
+2007	800	gram	2023-09-03 22:06:42.451039+00	2023-09-03 22:06:42.451039+00	\N
+2008	800	gram	2023-09-03 22:06:42.452841+00	2023-09-03 22:06:42.452841+00	\N
+2009	130	gram	2023-09-03 22:06:42.45475+00	2023-09-03 22:06:42.45475+00	\N
+2010	12	count	2023-09-03 22:06:42.461739+00	2023-09-03 22:06:42.461739+00	\N
+2011	500	gram	2023-09-03 22:06:42.463763+00	2023-09-03 22:06:42.463763+00	\N
+2012	\N	arbitrary	2023-09-03 22:06:42.465529+00	2023-09-03 22:06:42.465529+00	Bunch
+2013	200	gram	2023-09-03 22:06:42.467374+00	2023-09-03 22:06:42.467374+00	\N
+2014	1200	gram	2023-09-03 22:06:42.484738+00	2023-09-03 22:06:42.484738+00	\N
+2015	3	tablespoon	2023-09-03 22:06:42.486996+00	2023-09-03 22:06:42.486996+00	\N
+2016	\N	arbitrary	2023-09-03 22:06:42.489347+00	2023-09-03 22:06:42.489347+00	1 1/2 tbsp
+2017	\N	arbitrary	2023-09-03 22:06:42.491812+00	2023-09-03 22:06:42.491812+00	1 1/2 tbsp
+2018	\N	arbitrary	2023-09-03 22:06:42.493877+00	2023-09-03 22:06:42.493877+00	1 1/2 tbsp
+2019	\N	arbitrary	2023-09-03 22:06:42.496045+00	2023-09-03 22:06:42.496045+00	1 Clove
+2020	2	tablespoon	2023-09-03 22:06:42.49788+00	2023-09-03 22:06:42.49788+00	\N
+2021	2	count	2023-09-03 22:06:42.49991+00	2023-09-03 22:06:42.49991+00	\N
+2022	2	count	2023-09-03 22:06:42.501918+00	2023-09-03 22:06:42.501918+00	\N
+2023	1	count	2023-09-03 22:06:42.503979+00	2023-09-03 22:06:42.503979+00	\N
+2024	110	gram	2023-09-03 22:06:42.506069+00	2023-09-03 22:06:42.506069+00	\N
+2025	1	count	2023-09-03 22:06:42.507865+00	2023-09-03 22:06:42.507865+00	\N
+2026	12	count	2023-09-03 22:06:42.509713+00	2023-09-03 22:06:42.509713+00	\N
+2027	150	millilitre	2023-09-03 22:06:42.511719+00	2023-09-03 22:06:42.511719+00	\N
+2028	4	count	2023-09-03 22:06:42.521362+00	2023-09-03 22:06:42.521362+00	\N
+2029	100	gram	2023-09-03 22:06:42.523456+00	2023-09-03 22:06:42.523456+00	\N
+2030	200	gram	2023-09-03 22:06:42.526043+00	2023-09-03 22:06:42.526043+00	\N
+2031	500	gram	2023-09-03 22:06:42.528116+00	2023-09-03 22:06:42.528116+00	\N
+2032	200	gram	2023-09-03 22:06:42.530554+00	2023-09-03 22:06:42.530554+00	\N
+2033	\N	arbitrary	2023-09-03 22:06:42.533401+00	2023-09-03 22:06:42.533401+00	1 bunch
+2034	6	count	2023-09-03 22:06:42.541963+00	2023-09-03 22:06:42.541963+00	\N
+2035	200	gram	2023-09-03 22:06:42.544267+00	2023-09-03 22:06:42.544267+00	\N
+2036	140	gram	2023-09-03 22:06:42.546591+00	2023-09-03 22:06:42.546591+00	\N
+2037	120	gram	2023-09-03 22:06:42.548835+00	2023-09-03 22:06:42.548835+00	\N
+2038	40	gram	2023-09-03 22:06:42.55116+00	2023-09-03 22:06:42.55116+00	\N
+2039	1.5	kilogram	2023-09-03 22:06:42.559315+00	2023-09-03 22:06:42.559315+00	\N
+2040	\N	arbitrary	2023-09-03 22:06:42.561233+00	2023-09-03 22:06:42.561233+00	1/2 liter
+2041	125	millilitre	2023-09-03 22:06:42.563613+00	2023-09-03 22:06:42.563613+00	\N
+2042	100	millilitre	2023-09-03 22:06:42.565398+00	2023-09-03 22:06:42.565398+00	\N
+2043	1	tablespoon	2023-09-03 22:06:42.567424+00	2023-09-03 22:06:42.567424+00	\N
+2044	1	count	2023-09-03 22:06:42.581182+00	2023-09-03 22:06:42.581182+00	\N
+2045	200	gram	2023-09-03 22:06:42.583484+00	2023-09-03 22:06:42.583484+00	\N
+2046	4	count	2023-09-03 22:06:42.58573+00	2023-09-03 22:06:42.58573+00	\N
+2047	500	millilitre	2023-09-03 22:06:42.587846+00	2023-09-03 22:06:42.587846+00	\N
+2048	0.25	tablespoon	2023-09-03 22:06:42.589884+00	2023-09-03 22:06:42.589884+00	\N
+2049	2	tablespoon	2023-09-03 22:06:42.591894+00	2023-09-03 22:06:42.591894+00	\N
+2050	1	count	2023-09-03 22:06:42.594451+00	2023-09-03 22:06:42.594451+00	\N
+2051	400	millilitre	2023-09-03 22:06:42.619337+00	2023-09-03 22:06:42.619337+00	\N
+2052	1	kilogram	2023-09-03 22:06:42.622438+00	2023-09-03 22:06:42.622438+00	\N
+2053	600	gram	2023-09-03 22:06:42.62494+00	2023-09-03 22:06:42.62494+00	\N
+2054	6	count	2023-09-03 22:06:42.627317+00	2023-09-03 22:06:42.627317+00	\N
+2055	4	cloves	2023-09-03 22:06:42.630162+00	2023-09-03 22:06:42.630162+00	\N
+2056	1	count	2023-09-03 22:06:42.632281+00	2023-09-03 22:06:42.632281+00	\N
+2057	1	teaspoon	2023-09-03 22:06:42.634457+00	2023-09-03 22:06:42.634457+00	\N
+2058	2	teaspoon	2023-09-03 22:06:42.636509+00	2023-09-03 22:06:42.636509+00	\N
+2059	2	count	2023-09-03 22:06:42.638639+00	2023-09-03 22:06:42.638639+00	\N
+2060	3	tablespoon	2023-09-03 22:06:42.640708+00	2023-09-03 22:06:42.640708+00	\N
+2061	2	teaspoon	2023-09-03 22:06:42.642807+00	2023-09-03 22:06:42.642807+00	\N
+2062	15	gram	2023-09-03 22:11:40.945056+00	2023-09-03 22:11:40.945056+00	\N
+2063	140	gram	2023-09-03 22:11:40.948072+00	2023-09-03 22:11:40.948072+00	\N
+2064	1	kilogram	2023-09-03 22:11:40.950083+00	2023-09-03 22:11:40.950083+00	\N
+2065	140	gram	2023-09-03 22:11:40.952324+00	2023-09-03 22:11:40.952324+00	\N
+2066	140	gram	2023-09-03 22:11:40.954242+00	2023-09-03 22:11:40.954242+00	\N
+2067	100	millilitre	2023-09-03 22:11:40.956306+00	2023-09-03 22:11:40.956306+00	\N
+2068	100	millilitre	2023-09-03 22:11:40.958141+00	2023-09-03 22:11:40.958141+00	\N
+2069	\N	arbitrary	2023-09-03 22:11:40.960038+00	2023-09-03 22:11:40.960038+00	pinch
+2070	250	gram	2023-09-03 22:11:40.962034+00	2023-09-03 22:11:40.962034+00	\N
+2071	0.5	count	2023-09-03 22:11:40.964023+00	2023-09-03 22:11:40.964023+00	\N
+2072	4	count	2023-09-03 22:11:40.9904+00	2023-09-03 22:11:40.9904+00	\N
+2073	5	tablespoon	2023-09-03 22:11:40.994709+00	2023-09-03 22:11:40.994709+00	\N
+2074	250	gram	2023-09-03 22:11:40.996876+00	2023-09-03 22:11:40.996876+00	\N
+2075	1	tablespoon	2023-09-03 22:11:40.998922+00	2023-09-03 22:11:40.998922+00	\N
+2076	1	count	2023-09-03 22:11:41.001194+00	2023-09-03 22:11:41.001194+00	\N
+2077	800	gram	2023-09-03 22:11:41.003484+00	2023-09-03 22:11:41.003484+00	\N
+2078	1	count	2023-09-03 22:11:41.005334+00	2023-09-03 22:11:41.005334+00	\N
+2079	1	tablespoon	2023-09-03 22:11:41.007391+00	2023-09-03 22:11:41.007391+00	\N
+2080	1	tablespoon	2023-09-03 22:11:41.00867+00	2023-09-03 22:11:41.00867+00	\N
+2081	0.5	teaspoon	2023-09-03 22:11:41.010793+00	2023-09-03 22:11:41.010793+00	\N
+2082	1	tablespoon	2023-09-03 22:11:41.012775+00	2023-09-03 22:11:41.012775+00	\N
+2083	1	litre	2023-09-03 22:11:41.018593+00	2023-09-03 22:11:41.018593+00	\N
+2084	100	gram	2023-09-03 22:11:41.020919+00	2023-09-03 22:11:41.020919+00	\N
+2085	1	count	2023-09-03 22:11:41.02276+00	2023-09-03 22:11:41.02276+00	\N
+2086	2	tablespoon	2023-09-03 22:11:41.024806+00	2023-09-03 22:11:41.024806+00	\N
+2087	1	tablespoon	2023-09-03 22:11:41.026817+00	2023-09-03 22:11:41.026817+00	\N
+2088	200	gram	2023-09-03 22:11:41.02868+00	2023-09-03 22:11:41.02868+00	\N
+2089	\N	arbitrary	2023-09-03 22:11:41.030505+00	2023-09-03 22:11:41.030505+00	1 handful
+2090	2	count	2023-09-03 22:11:41.048852+00	2023-09-03 22:11:41.048852+00	\N
+2091	1	count	2023-09-03 22:11:41.050916+00	2023-09-03 22:11:41.050916+00	\N
+2092	1	count	2023-09-03 22:11:41.052886+00	2023-09-03 22:11:41.052886+00	\N
+2093	1	count	2023-09-03 22:11:41.054875+00	2023-09-03 22:11:41.054875+00	\N
+2094	\N	arbitrary	2023-09-03 22:11:41.056663+00	2023-09-03 22:11:41.056663+00	pinch
+2095	1	tablespoon	2023-09-03 22:11:41.058794+00	2023-09-03 22:11:41.058794+00	\N
+2096	\N	arbitrary	2023-09-03 22:11:41.061369+00	2023-09-03 22:11:41.061369+00	pinch
+2097	2	count	2023-09-03 22:11:41.063385+00	2023-09-03 22:11:41.063385+00	\N
+2098	4	tablespoon	2023-09-03 22:11:41.06518+00	2023-09-03 22:11:41.06518+00	\N
+2099	1	count	2023-09-03 22:11:41.066982+00	2023-09-03 22:11:41.066982+00	\N
+2100	4	tablespoon	2023-09-03 22:11:41.068917+00	2023-09-03 22:11:41.068917+00	\N
+2101	8	count	2023-09-03 22:11:41.071009+00	2023-09-03 22:11:41.071009+00	\N
+2102	\N	arbitrary	2023-09-03 22:11:41.073192+00	2023-09-03 22:11:41.073192+00	1 bag
+2103	230	gram	2023-09-03 22:11:41.075357+00	2023-09-03 22:11:41.075357+00	\N
+2104	1	kilogram	2023-09-03 22:11:41.087486+00	2023-09-03 22:11:41.087486+00	\N
+2105	2	cloves	2023-09-03 22:11:41.090756+00	2023-09-03 22:11:41.090756+00	\N
+2106	300	millilitre	2023-09-03 22:11:41.092888+00	2023-09-03 22:11:41.092888+00	\N
+2107	200	millilitre	2023-09-03 22:11:41.094939+00	2023-09-03 22:11:41.094939+00	\N
+2108	100	gram	2023-09-03 22:11:41.096869+00	2023-09-03 22:11:41.096869+00	\N
+2109	50	gram	2023-09-03 22:11:41.098889+00	2023-09-03 22:11:41.098889+00	\N
+2110	1	teaspoon	2023-09-03 22:11:41.100849+00	2023-09-03 22:11:41.100849+00	\N
+2111	\N	arbitrary	2023-09-03 22:11:41.102653+00	2023-09-03 22:11:41.102653+00	1 pinch
+2112	\N	arbitrary	2023-09-03 22:11:41.104717+00	2023-09-03 22:11:41.104717+00	to taste
+2113	\N	arbitrary	2023-09-03 22:11:41.106713+00	2023-09-03 22:11:41.106713+00	to taste
+2114	2	cup	2023-09-03 22:11:41.124054+00	2023-09-03 22:11:41.124054+00	\N
+2115	4	count	2023-09-03 22:11:41.12582+00	2023-09-03 22:11:41.12582+00	\N
+2116	0.5	cup	2023-09-03 22:11:41.127649+00	2023-09-03 22:11:41.127649+00	\N
+2117	0.5	teaspoon	2023-09-03 22:11:41.129495+00	2023-09-03 22:11:41.129495+00	\N
+2118	0.5	cup	2023-09-03 22:11:41.131665+00	2023-09-03 22:11:41.131665+00	\N
+2119	3	tablespoon	2023-09-03 22:11:41.13394+00	2023-09-03 22:11:41.13394+00	\N
+2120	2	cup	2023-09-03 22:11:41.135904+00	2023-09-03 22:11:41.135904+00	\N
+2121	1	cup	2023-09-03 22:11:41.137928+00	2023-09-03 22:11:41.137928+00	\N
+2122	0.5	cup	2023-09-03 22:11:41.139839+00	2023-09-03 22:11:41.139839+00	\N
+2123	0.25	teaspoon	2023-09-03 22:11:41.141549+00	2023-09-03 22:11:41.141549+00	\N
+2124	0.5	teaspoon	2023-09-03 22:11:41.143287+00	2023-09-03 22:11:41.143287+00	\N
+2125	0.25	teaspoon	2023-09-03 22:11:41.145204+00	2023-09-03 22:11:41.145204+00	\N
+2126	3	tablespoon	2023-09-03 22:11:41.147235+00	2023-09-03 22:11:41.147235+00	\N
+2127	0.5	cup	2023-09-03 22:11:41.149312+00	2023-09-03 22:11:41.149312+00	\N
+2128	3	tablespoon	2023-09-03 22:11:41.164285+00	2023-09-03 22:11:41.164285+00	\N
+2129	4	count	2023-09-03 22:11:41.166268+00	2023-09-03 22:11:41.166268+00	\N
+2130	4	count	2023-09-03 22:11:41.168474+00	2023-09-03 22:11:41.168474+00	\N
+2131	2	count	2023-09-03 22:11:41.170746+00	2023-09-03 22:11:41.170746+00	\N
+2132	4	cup	2023-09-03 22:11:41.172765+00	2023-09-03 22:11:41.172765+00	\N
+2133	1	cup	2023-09-03 22:11:41.174661+00	2023-09-03 22:11:41.174661+00	\N
+2134	\N	arbitrary	2023-09-03 22:11:41.177249+00	2023-09-03 22:11:41.177249+00	1 bay leaf
+2135	0.5	cup	2023-09-03 22:11:41.18013+00	2023-09-03 22:11:41.18013+00	\N
+2136	0.5	teaspoon	2023-09-03 22:11:41.182341+00	2023-09-03 22:11:41.182341+00	\N
+2137	0.25	teaspoon	2023-09-03 22:11:41.18452+00	2023-09-03 22:11:41.18452+00	\N
+2138	2	tablespoon	2023-09-03 22:11:41.186389+00	2023-09-03 22:11:41.186389+00	\N
+2139	2	tablespoon	2023-09-03 22:11:41.188568+00	2023-09-03 22:11:41.188568+00	\N
+2140	2	cup	2023-09-03 22:11:41.209782+00	2023-09-03 22:11:41.209782+00	\N
+2141	1	tablespoon	2023-09-03 22:11:41.212015+00	2023-09-03 22:11:41.212015+00	\N
+2142	1	count	2023-09-03 22:11:41.214214+00	2023-09-03 22:11:41.214214+00	\N
+2143	2	cloves	2023-09-03 22:11:41.216193+00	2023-09-03 22:11:41.216193+00	\N
+2144	2	cup	2023-09-03 22:11:41.218147+00	2023-09-03 22:11:41.218147+00	\N
+2145	1	count	2023-09-03 22:11:41.220245+00	2023-09-03 22:11:41.220245+00	\N
+2146	4	count	2023-09-03 22:11:41.222348+00	2023-09-03 22:11:41.222348+00	\N
+2147	\N	arbitrary	2023-09-03 22:11:41.224469+00	2023-09-03 22:11:41.224469+00	1 1/2 cups
+2148	0.5	cup	2023-09-03 22:11:41.226334+00	2023-09-03 22:11:41.226334+00	\N
+2149	0.5	teaspoon	2023-09-03 22:11:41.228469+00	2023-09-03 22:11:41.228469+00	\N
+2150	0.25	teaspoon	2023-09-03 22:11:41.230721+00	2023-09-03 22:11:41.230721+00	\N
+2151	0.25	teaspoon	2023-09-03 22:11:41.233482+00	2023-09-03 22:11:41.233482+00	\N
+2152	\N	arbitrary	2023-09-03 22:11:41.236066+00	2023-09-03 22:11:41.236066+00	1 1/2 cups
+2153	0.25	cup	2023-09-03 22:11:41.238672+00	2023-09-03 22:11:41.238672+00	\N
+2154	1.5	kilogram	2023-09-03 22:11:41.260605+00	2023-09-03 22:11:41.260605+00	\N
+2155	2	tablespoon	2023-09-03 22:11:41.262539+00	2023-09-03 22:11:41.262539+00	\N
+2156	2	count	2023-09-03 22:11:41.264602+00	2023-09-03 22:11:41.264602+00	\N
+2157	2	count	2023-09-03 22:11:41.266463+00	2023-09-03 22:11:41.266463+00	\N
+2158	2	count	2023-09-03 22:11:41.268976+00	2023-09-03 22:11:41.268976+00	\N
+2159	2	tablespoon	2023-09-03 22:11:41.271242+00	2023-09-03 22:11:41.271242+00	\N
+2160	2	tablespoon	2023-09-03 22:11:41.273019+00	2023-09-03 22:11:41.273019+00	\N
+2161	500	millilitre	2023-09-03 22:11:41.275246+00	2023-09-03 22:11:41.275246+00	\N
+2162	2	tablespoon	2023-09-03 22:11:41.277182+00	2023-09-03 22:11:41.277182+00	\N
+2163	\N	arbitrary	2023-09-03 22:11:41.279181+00	2023-09-03 22:11:41.279181+00	few
+2164	\N	arbitrary	2023-09-03 22:11:41.2811+00	2023-09-03 22:11:41.2811+00	few
+2165	2	count	2023-09-03 22:11:41.283101+00	2023-09-03 22:11:41.283101+00	\N
+2166	3	count	2023-09-03 22:11:41.285009+00	2023-09-03 22:11:41.285009+00	\N
+2167	500	gram	2023-09-03 22:11:41.287458+00	2023-09-03 22:11:41.287458+00	\N
+2168	2	count	2023-09-03 22:11:41.289451+00	2023-09-03 22:11:41.289451+00	\N
+2169	150	gram	2023-09-03 22:11:41.291775+00	2023-09-03 22:11:41.291775+00	\N
+2170	2	tablespoon	2023-09-03 22:11:41.293523+00	2023-09-03 22:11:41.293523+00	\N
+2171	\N	arbitrary	2023-09-03 22:11:41.29591+00	2023-09-03 22:11:41.29591+00	salt
+2172	\N	arbitrary	2023-09-03 22:11:41.297787+00	2023-09-03 22:11:41.297787+00	black pepper
+2173	320	gram	2023-09-03 22:11:41.312404+00	2023-09-03 22:11:41.312404+00	\N
+2174	4	count	2023-09-03 22:11:41.314554+00	2023-09-03 22:11:41.314554+00	\N
+2175	4	count	2023-09-03 22:11:41.316589+00	2023-09-03 22:11:41.316589+00	\N
+2176	200	millilitre	2023-09-03 22:11:41.318691+00	2023-09-03 22:11:41.318691+00	\N
+2177	200	millilitre	2023-09-03 22:11:41.320959+00	2023-09-03 22:11:41.320959+00	\N
+2178	200	gram	2023-09-03 22:11:41.323116+00	2023-09-03 22:11:41.323116+00	\N
+2179	\N	arbitrary	2023-09-03 22:11:41.325764+00	2023-09-03 22:11:41.325764+00	1 bunch
+2180	100	gram	2023-09-03 22:11:41.327817+00	2023-09-03 22:11:41.327817+00	\N
+2181	\N	arbitrary	2023-09-03 22:11:41.329585+00	2023-09-03 22:11:41.329585+00	salt
+2182	\N	arbitrary	2023-09-03 22:11:41.331639+00	2023-09-03 22:11:41.331639+00	black pepper
+2183	\N	arbitrary	2023-09-03 22:11:41.333605+00	2023-09-03 22:11:41.333605+00	1 knob
+2184	\N	arbitrary	2023-09-03 22:11:41.33563+00	2023-09-03 22:11:41.33563+00	olive oil
+2185	1	kilogram	2023-09-03 22:11:41.348175+00	2023-09-03 22:11:41.348175+00	\N
+2186	2	count	2023-09-03 22:11:41.350844+00	2023-09-03 22:11:41.350844+00	\N
+2187	4	tablespoon	2023-09-03 22:11:41.352828+00	2023-09-03 22:11:41.352828+00	\N
+2188	1	count	2023-09-03 22:11:41.354974+00	2023-09-03 22:11:41.354974+00	\N
+2189	2	cloves	2023-09-03 22:11:41.356739+00	2023-09-03 22:11:41.356739+00	\N
+2190	2	tablespoon	2023-09-03 22:11:41.358584+00	2023-09-03 22:11:41.358584+00	\N
+2191	1	teaspoon	2023-09-03 22:11:41.360346+00	2023-09-03 22:11:41.360346+00	\N
+2192	0.5	teaspoon	2023-09-03 22:11:41.362174+00	2023-09-03 22:11:41.362174+00	\N
+2193	\N	arbitrary	2023-09-03 22:11:41.364111+00	2023-09-03 22:11:41.364111+00	vegetable oil
+2194	2	count	2023-09-03 22:11:41.372695+00	2023-09-03 22:11:41.372695+00	\N
+2195	1	count	2023-09-03 22:11:41.375315+00	2023-09-03 22:11:41.375315+00	\N
+2196	100	gram	2023-09-03 22:11:41.377326+00	2023-09-03 22:11:41.377326+00	\N
+2197	\N	arbitrary	2023-09-03 22:11:41.379299+00	2023-09-03 22:11:41.379299+00	1 bunch
+2198	\N	arbitrary	2023-09-03 22:11:41.381396+00	2023-09-03 22:11:41.381396+00	1 pack
+2199	2	tablespoon	2023-09-03 22:11:41.387986+00	2023-09-03 22:11:41.387986+00	\N
+2200	\N	arbitrary	2023-09-03 22:11:41.390016+00	2023-09-03 22:11:41.390016+00	3 small
+2201	\N	arbitrary	2023-09-03 22:11:41.392139+00	2023-09-03 22:11:41.392139+00	1 sheet
+2202	100	gram	2023-09-03 22:11:41.39431+00	2023-09-03 22:11:41.39431+00	\N
+2203	\N	arbitrary	2023-09-03 22:11:41.403279+00	2023-09-03 22:11:41.403279+00	2 handfuls
+2204	2	count	2023-09-03 22:11:41.405011+00	2023-09-03 22:11:41.405011+00	\N
+2205	2	count	2023-09-03 22:11:41.40701+00	2023-09-03 22:11:41.40701+00	\N
+2206	100	gram	2023-09-03 22:11:41.408929+00	2023-09-03 22:11:41.408929+00	\N
+2207	100	millilitre	2023-09-03 22:11:41.410968+00	2023-09-03 22:11:41.410968+00	\N
+2208	\N	arbitrary	2023-09-03 22:11:41.412997+00	2023-09-03 22:11:41.412997+00	10 leaves
+2209	\N	arbitrary	2023-09-03 22:11:41.419837+00	2023-09-03 22:11:41.419837+00	enough for at least 2 pizzas
+2210	2	tablespoon	2023-09-03 22:11:41.421764+00	2023-09-03 22:11:41.421764+00	\N
+2211	2	count	2023-09-03 22:11:41.423729+00	2023-09-03 22:11:41.423729+00	\N
+2212	\N	arbitrary	2023-09-03 22:11:41.432459+00	2023-09-03 22:11:41.432459+00	1 pack
+2213	125	gram	2023-09-03 22:11:41.449135+00	2023-09-03 22:11:41.449135+00	\N
+2214	325	millilitre	2023-09-03 22:11:41.45113+00	2023-09-03 22:11:41.45113+00	\N
+2215	400	gram	2023-09-03 22:11:41.453078+00	2023-09-03 22:11:41.453078+00	\N
+2216	1	count	2023-09-03 22:11:41.454923+00	2023-09-03 22:11:41.454923+00	\N
+2217	150	gram	2023-09-03 22:11:41.456897+00	2023-09-03 22:11:41.456897+00	\N
+2218	200	gram	2023-09-03 22:11:41.458845+00	2023-09-03 22:11:41.458845+00	\N
+2219	40	gram	2023-09-03 22:11:41.460816+00	2023-09-03 22:11:41.460816+00	\N
+2220	15	gram	2023-09-03 22:11:41.463149+00	2023-09-03 22:11:41.463149+00	\N
+2221	2	count	2023-09-03 22:11:41.466275+00	2023-09-03 22:11:41.466275+00	\N
+2222	800	gram	2023-09-03 22:11:41.480501+00	2023-09-03 22:11:41.480501+00	\N
+2223	1	count	2023-09-03 22:11:41.482562+00	2023-09-03 22:11:41.482562+00	\N
+2224	8	count	2023-09-03 22:11:41.48473+00	2023-09-03 22:11:41.48473+00	\N
+2225	8	count	2023-09-03 22:11:41.486703+00	2023-09-03 22:11:41.486703+00	\N
+2226	1	count	2023-09-03 22:11:41.488662+00	2023-09-03 22:11:41.488662+00	\N
+2227	280	gram	2023-09-03 22:11:41.490626+00	2023-09-03 22:11:41.490626+00	\N
+2228	\N	arbitrary	2023-09-03 22:11:41.492706+00	2023-09-03 22:11:41.492706+00	3-4 sprigs
+2229	\N	arbitrary	2023-09-03 22:11:41.494657+00	2023-09-03 22:11:41.494657+00	5-6 sprigs
+2230	340	gram	2023-09-03 22:11:41.49692+00	2023-09-03 22:11:41.49692+00	\N
+2231	20	gram	2023-09-03 22:11:41.49888+00	2023-09-03 22:11:41.49888+00	\N
+2232	1	count	2023-09-03 22:11:41.511912+00	2023-09-03 22:11:41.511912+00	\N
+2233	2	count	2023-09-03 22:11:41.513803+00	2023-09-03 22:11:41.513803+00	\N
+2234	2	count	2023-09-03 22:11:41.515747+00	2023-09-03 22:11:41.515747+00	\N
+2235	6	count	2023-09-03 22:11:41.517847+00	2023-09-03 22:11:41.517847+00	\N
+2236	150	gram	2023-09-03 22:11:41.520365+00	2023-09-03 22:11:41.520365+00	\N
+2237	\N	arbitrary	2023-09-03 22:11:41.522607+00	2023-09-03 22:11:41.522607+00	4 pinches
+2238	250	gram	2023-09-03 22:11:41.524616+00	2023-09-03 22:11:41.524616+00	\N
+2239	600	millilitre	2023-09-03 22:11:41.526798+00	2023-09-03 22:11:41.526798+00	\N
+2240	1	count	2023-09-03 22:11:41.528804+00	2023-09-03 22:11:41.528804+00	\N
+2241	20	gram	2023-09-03 22:11:41.530751+00	2023-09-03 22:11:41.530751+00	\N
+2242	2	count	2023-09-03 22:11:41.549806+00	2023-09-03 22:11:41.549806+00	\N
+2243	2	count	2023-09-03 22:11:41.552125+00	2023-09-03 22:11:41.552125+00	\N
+2244	15	gram	2023-09-03 22:11:41.555375+00	2023-09-03 22:11:41.555375+00	\N
+2245	400	gram	2023-09-03 22:11:41.557628+00	2023-09-03 22:11:41.557628+00	\N
+2246	400	gram	2023-09-03 22:11:41.559983+00	2023-09-03 22:11:41.559983+00	\N
+2247	1	count	2023-09-03 22:11:41.562594+00	2023-09-03 22:11:41.562594+00	\N
+2248	4	tablespoon	2023-09-03 22:11:41.564729+00	2023-09-03 22:11:41.564729+00	\N
+2249	600	millilitre	2023-09-03 22:11:41.567587+00	2023-09-03 22:11:41.567587+00	\N
+2250	1	count	2023-09-03 22:11:41.569581+00	2023-09-03 22:11:41.569581+00	\N
+2251	20	gram	2023-09-03 22:11:41.571796+00	2023-09-03 22:11:41.571796+00	\N
+2252	1	tablespoon	2023-09-03 22:11:41.573993+00	2023-09-03 22:11:41.573993+00	\N
+2253	1	tablespoon	2023-09-03 22:11:41.575964+00	2023-09-03 22:11:41.575964+00	\N
+2254	800	gram	2023-09-03 22:11:41.578238+00	2023-09-03 22:11:41.578238+00	\N
+2255	2	cloves	2023-09-03 22:11:41.580592+00	2023-09-03 22:11:41.580592+00	\N
+2256	150	gram	2023-09-03 22:11:41.58297+00	2023-09-03 22:11:41.58297+00	\N
+2257	\N	arbitrary	2023-09-03 22:11:41.595709+00	2023-09-03 22:11:41.595709+00	1 pound
+2258	0.25	cup	2023-09-03 22:11:41.598357+00	2023-09-03 22:11:41.598357+00	\N
+2259	\N	arbitrary	2023-09-03 22:11:41.600461+00	2023-09-03 22:11:41.600461+00	1 clove
+2260	\N	arbitrary	2023-09-03 22:11:41.602367+00	2023-09-03 22:11:41.602367+00	6 ounces
+2261	2	cup	2023-09-03 22:11:41.604535+00	2023-09-03 22:11:41.604535+00	\N
+2262	2	cup	2023-09-03 22:11:41.607414+00	2023-09-03 22:11:41.607414+00	\N
+2263	0.5	cup	2023-09-03 22:11:41.609504+00	2023-09-03 22:11:41.609504+00	\N
+2264	0.5	cup	2023-09-03 22:11:41.611681+00	2023-09-03 22:11:41.611681+00	\N
+2265	1	count	2023-09-03 22:11:41.623307+00	2023-09-03 22:11:41.623307+00	\N
+2266	1	count	2023-09-03 22:11:41.625207+00	2023-09-03 22:11:41.625207+00	\N
+2267	3	count	2023-09-03 22:11:41.627283+00	2023-09-03 22:11:41.627283+00	\N
+2268	0.5	cup	2023-09-03 22:11:41.629216+00	2023-09-03 22:11:41.629216+00	\N
+2269	1	count	2023-09-03 22:11:41.631438+00	2023-09-03 22:11:41.631438+00	\N
+2270	2	cup	2023-09-03 22:11:41.633554+00	2023-09-03 22:11:41.633554+00	\N
+2271	5	tablespoon	2023-09-03 22:11:41.635775+00	2023-09-03 22:11:41.635775+00	\N
+2272	0.25	teaspoon	2023-09-03 22:11:41.638277+00	2023-09-03 22:11:41.638277+00	\N
+2273	1	count	2023-09-03 22:11:41.650452+00	2023-09-03 22:11:41.650452+00	\N
+2274	250	gram	2023-09-03 22:11:41.652574+00	2023-09-03 22:11:41.652574+00	\N
+2275	1	count	2023-09-03 22:11:41.654721+00	2023-09-03 22:11:41.654721+00	\N
+2276	100	millilitre	2023-09-03 22:11:41.656826+00	2023-09-03 22:11:41.656826+00	\N
+2277	200	millilitre	2023-09-03 22:11:41.658918+00	2023-09-03 22:11:41.658918+00	\N
+2278	1	count	2023-09-03 22:11:41.660934+00	2023-09-03 22:11:41.660934+00	\N
+2279	200	gram	2023-09-03 22:11:41.662997+00	2023-09-03 22:11:41.662997+00	\N
+2280	300	gram	2023-09-03 22:11:41.664967+00	2023-09-03 22:11:41.664967+00	\N
+2281	\N	arbitrary	2023-09-03 22:11:41.667007+00	2023-09-03 22:11:41.667007+00	1/2 bunch
+2282	4	count	2023-09-03 22:11:41.678265+00	2023-09-03 22:11:41.678265+00	\N
+2283	280	gram	2023-09-03 22:11:41.680649+00	2023-09-03 22:11:41.680649+00	\N
+2284	200	gram	2023-09-03 22:11:41.682834+00	2023-09-03 22:11:41.682834+00	\N
+2285	100	gram	2023-09-03 22:11:41.684707+00	2023-09-03 22:11:41.684707+00	\N
+2286	\N	arbitrary	2023-09-03 22:11:41.686615+00	2023-09-03 22:11:41.686615+00	1 bunch
+2287	1	count	2023-09-03 22:11:41.688552+00	2023-09-03 22:11:41.688552+00	\N
+2288	50	gram	2023-09-03 22:11:41.69049+00	2023-09-03 22:11:41.69049+00	\N
+2289	1	count	2023-09-03 22:11:41.702699+00	2023-09-03 22:11:41.702699+00	\N
+2290	150	gram	2023-09-03 22:11:41.704769+00	2023-09-03 22:11:41.704769+00	\N
+2291	0.5	teaspoon	2023-09-03 22:11:41.706957+00	2023-09-03 22:11:41.706957+00	\N
+2292	1	count	2023-09-03 22:11:41.709338+00	2023-09-03 22:11:41.709338+00	\N
+2293	1	count	2023-09-03 22:11:41.711361+00	2023-09-03 22:11:41.711361+00	\N
+2294	2	count	2023-09-03 22:11:41.7134+00	2023-09-03 22:11:41.7134+00	\N
+2295	4	count	2023-09-03 22:11:41.715177+00	2023-09-03 22:11:41.715177+00	\N
+2296	1	count	2023-09-03 22:11:41.717024+00	2023-09-03 22:11:41.717024+00	\N
+2297	1	count	2023-09-03 22:11:41.719001+00	2023-09-03 22:11:41.719001+00	\N
+2298	200	gram	2023-09-03 22:11:41.729292+00	2023-09-03 22:11:41.729292+00	\N
+2299	200	gram	2023-09-03 22:11:41.731216+00	2023-09-03 22:11:41.731216+00	\N
+2300	1	count	2023-09-03 22:11:41.736661+00	2023-09-03 22:11:41.736661+00	\N
+2301	1	count	2023-09-03 22:11:41.738737+00	2023-09-03 22:11:41.738737+00	\N
+2302	2	count	2023-09-03 22:11:41.740895+00	2023-09-03 22:11:41.740895+00	\N
+2303	1	count	2023-09-03 22:11:41.742984+00	2023-09-03 22:11:41.742984+00	\N
+2304	1	count	2023-09-03 22:11:41.744978+00	2023-09-03 22:11:41.744978+00	\N
+2305	1	count	2023-09-03 22:11:41.746947+00	2023-09-03 22:11:41.746947+00	\N
+2306	2	count	2023-09-03 22:11:41.757132+00	2023-09-03 22:11:41.757132+00	\N
+2307	3	count	2023-09-03 22:11:41.759993+00	2023-09-03 22:11:41.759993+00	\N
+2308	2	count	2023-09-03 22:11:41.762513+00	2023-09-03 22:11:41.762513+00	\N
+2309	2	count	2023-09-03 22:11:41.764776+00	2023-09-03 22:11:41.764776+00	\N
+2310	4	count	2023-09-03 22:11:41.767326+00	2023-09-03 22:11:41.767326+00	\N
+2311	500	gram	2023-09-03 22:11:41.769462+00	2023-09-03 22:11:41.769462+00	\N
+2312	1	count	2023-09-03 22:11:41.78235+00	2023-09-03 22:11:41.78235+00	\N
+2313	1	count	2023-09-03 22:11:41.784149+00	2023-09-03 22:11:41.784149+00	\N
+2314	1	count	2023-09-03 22:11:41.786005+00	2023-09-03 22:11:41.786005+00	\N
+2315	2	count	2023-09-03 22:11:41.788066+00	2023-09-03 22:11:41.788066+00	\N
+2316	1	count	2023-09-03 22:11:41.789886+00	2023-09-03 22:11:41.789886+00	\N
+2317	300	gram	2023-09-03 22:11:41.795857+00	2023-09-03 22:11:41.795857+00	\N
+2318	600	millilitre	2023-09-03 22:11:41.797733+00	2023-09-03 22:11:41.797733+00	\N
+2319	2	count	2023-09-03 22:11:41.799908+00	2023-09-03 22:11:41.799908+00	\N
+2320	75	gram	2023-09-03 22:11:41.801932+00	2023-09-03 22:11:41.801932+00	\N
+2321	20	gram	2023-09-03 22:11:41.803982+00	2023-09-03 22:11:41.803982+00	\N
+2322	100	gram	2023-09-03 22:11:41.805771+00	2023-09-03 22:11:41.805771+00	\N
+2323	200	gram	2023-09-03 22:11:41.81233+00	2023-09-03 22:11:41.81233+00	\N
+2324	800	gram	2023-09-03 22:11:41.814277+00	2023-09-03 22:11:41.814277+00	\N
+2325	800	gram	2023-09-03 22:11:41.816068+00	2023-09-03 22:11:41.816068+00	\N
+2326	130	gram	2023-09-03 22:11:41.8178+00	2023-09-03 22:11:41.8178+00	\N
+2327	12	count	2023-09-03 22:11:41.825142+00	2023-09-03 22:11:41.825142+00	\N
+2328	500	gram	2023-09-03 22:11:41.827116+00	2023-09-03 22:11:41.827116+00	\N
+2329	\N	arbitrary	2023-09-03 22:11:41.828958+00	2023-09-03 22:11:41.828958+00	Bunch
+2330	200	gram	2023-09-03 22:11:41.831104+00	2023-09-03 22:11:41.831104+00	\N
+2331	1200	gram	2023-09-03 22:11:41.846352+00	2023-09-03 22:11:41.846352+00	\N
+2332	3	tablespoon	2023-09-03 22:11:41.848256+00	2023-09-03 22:11:41.848256+00	\N
+2333	\N	arbitrary	2023-09-03 22:11:41.85032+00	2023-09-03 22:11:41.85032+00	1 1/2 tbsp
+2334	\N	arbitrary	2023-09-03 22:11:41.852346+00	2023-09-03 22:11:41.852346+00	1 1/2 tbsp
+2335	\N	arbitrary	2023-09-03 22:11:41.855522+00	2023-09-03 22:11:41.855522+00	1 1/2 tbsp
+2336	\N	arbitrary	2023-09-03 22:11:41.857592+00	2023-09-03 22:11:41.857592+00	1 Clove
+2337	2	tablespoon	2023-09-03 22:11:41.859619+00	2023-09-03 22:11:41.859619+00	\N
+2338	2	count	2023-09-03 22:11:41.861546+00	2023-09-03 22:11:41.861546+00	\N
+2339	2	count	2023-09-03 22:11:41.863421+00	2023-09-03 22:11:41.863421+00	\N
+2340	1	count	2023-09-03 22:11:41.865391+00	2023-09-03 22:11:41.865391+00	\N
+2341	110	gram	2023-09-03 22:11:41.86716+00	2023-09-03 22:11:41.86716+00	\N
+2342	1	count	2023-09-03 22:11:41.868978+00	2023-09-03 22:11:41.868978+00	\N
+2343	12	count	2023-09-03 22:11:41.870842+00	2023-09-03 22:11:41.870842+00	\N
+2344	150	millilitre	2023-09-03 22:11:41.872778+00	2023-09-03 22:11:41.872778+00	\N
+2345	4	count	2023-09-03 22:11:41.882536+00	2023-09-03 22:11:41.882536+00	\N
+2346	100	gram	2023-09-03 22:11:41.884638+00	2023-09-03 22:11:41.884638+00	\N
+2347	200	gram	2023-09-03 22:11:41.886462+00	2023-09-03 22:11:41.886462+00	\N
+2348	500	gram	2023-09-03 22:11:41.888353+00	2023-09-03 22:11:41.888353+00	\N
+2349	200	gram	2023-09-03 22:11:41.890177+00	2023-09-03 22:11:41.890177+00	\N
+2350	\N	arbitrary	2023-09-03 22:11:41.892084+00	2023-09-03 22:11:41.892084+00	1 bunch
+2351	6	count	2023-09-03 22:11:41.899747+00	2023-09-03 22:11:41.899747+00	\N
+2352	200	gram	2023-09-03 22:11:41.901803+00	2023-09-03 22:11:41.901803+00	\N
+2353	140	gram	2023-09-03 22:11:41.903987+00	2023-09-03 22:11:41.903987+00	\N
+2354	120	gram	2023-09-03 22:11:41.905732+00	2023-09-03 22:11:41.905732+00	\N
+2355	40	gram	2023-09-03 22:11:41.90787+00	2023-09-03 22:11:41.90787+00	\N
+2356	1.5	kilogram	2023-09-03 22:11:41.916637+00	2023-09-03 22:11:41.916637+00	\N
+2357	\N	arbitrary	2023-09-03 22:11:41.919012+00	2023-09-03 22:11:41.919012+00	1/2 liter
+2358	125	millilitre	2023-09-03 22:11:41.921081+00	2023-09-03 22:11:41.921081+00	\N
+2359	100	millilitre	2023-09-03 22:11:41.923246+00	2023-09-03 22:11:41.923246+00	\N
+2360	1	tablespoon	2023-09-03 22:11:41.925584+00	2023-09-03 22:11:41.925584+00	\N
+2361	1	count	2023-09-03 22:11:41.936719+00	2023-09-03 22:11:41.936719+00	\N
+2362	200	gram	2023-09-03 22:11:41.938828+00	2023-09-03 22:11:41.938828+00	\N
+2363	4	count	2023-09-03 22:11:41.940927+00	2023-09-03 22:11:41.940927+00	\N
+2364	500	millilitre	2023-09-03 22:11:41.943037+00	2023-09-03 22:11:41.943037+00	\N
+2365	0.25	tablespoon	2023-09-03 22:11:41.945329+00	2023-09-03 22:11:41.945329+00	\N
+2366	2	tablespoon	2023-09-03 22:11:41.947538+00	2023-09-03 22:11:41.947538+00	\N
+2367	1	count	2023-09-03 22:11:41.949569+00	2023-09-03 22:11:41.949569+00	\N
+2368	400	millilitre	2023-09-03 22:11:41.963671+00	2023-09-03 22:11:41.963671+00	\N
+2369	1	kilogram	2023-09-03 22:11:41.966013+00	2023-09-03 22:11:41.966013+00	\N
+2370	600	gram	2023-09-03 22:11:41.968145+00	2023-09-03 22:11:41.968145+00	\N
+2371	6	count	2023-09-03 22:11:41.97015+00	2023-09-03 22:11:41.97015+00	\N
+2372	4	cloves	2023-09-03 22:11:41.972338+00	2023-09-03 22:11:41.972338+00	\N
+2373	1	count	2023-09-03 22:11:41.97435+00	2023-09-03 22:11:41.97435+00	\N
+2374	1	teaspoon	2023-09-03 22:11:41.976555+00	2023-09-03 22:11:41.976555+00	\N
+2375	2	teaspoon	2023-09-03 22:11:41.978728+00	2023-09-03 22:11:41.978728+00	\N
+2376	2	count	2023-09-03 22:11:41.981292+00	2023-09-03 22:11:41.981292+00	\N
+2377	3	tablespoon	2023-09-03 22:11:41.983459+00	2023-09-03 22:11:41.983459+00	\N
+2378	2	teaspoon	2023-09-03 22:11:41.985575+00	2023-09-03 22:11:41.985575+00	\N
+2379	750	gram	2023-09-03 22:11:42.006101+00	2023-09-03 22:11:42.006101+00	\N
+2380	\N	arbitrary	2023-09-03 22:11:42.009106+00	2023-09-03 22:11:42.009106+00	handful
+2381	300	gram	2023-09-03 22:11:42.01125+00	2023-09-03 22:11:42.01125+00	\N
+2382	2	count	2023-09-03 22:11:42.013454+00	2023-09-03 22:11:42.013454+00	\N
+2383	2	cloves	2023-09-03 22:11:42.015825+00	2023-09-03 22:11:42.015825+00	\N
+2384	1	count	2023-09-03 22:11:42.018043+00	2023-09-03 22:11:42.018043+00	\N
+2385	1	teaspoon	2023-09-03 22:11:42.020603+00	2023-09-03 22:11:42.020603+00	\N
+2386	1	teaspoon	2023-09-03 22:11:42.022903+00	2023-09-03 22:11:42.022903+00	\N
+2387	100	gram	2023-09-03 22:11:42.024998+00	2023-09-03 22:11:42.024998+00	\N
+2388	1	count	2023-09-03 22:11:42.026888+00	2023-09-03 22:11:42.026888+00	\N
+2389	15	gram	2023-09-03 22:16:08.256084+00	2023-09-03 22:16:08.256084+00	\N
+2390	140	gram	2023-09-03 22:16:08.258099+00	2023-09-03 22:16:08.258099+00	\N
+2391	1	kilogram	2023-09-03 22:16:08.259738+00	2023-09-03 22:16:08.259738+00	\N
+2392	140	gram	2023-09-03 22:16:08.261461+00	2023-09-03 22:16:08.261461+00	\N
+2393	140	gram	2023-09-03 22:16:08.263366+00	2023-09-03 22:16:08.263366+00	\N
+2394	100	millilitre	2023-09-03 22:16:08.265085+00	2023-09-03 22:16:08.265085+00	\N
+2395	100	millilitre	2023-09-03 22:16:08.266749+00	2023-09-03 22:16:08.266749+00	\N
+2396	\N	arbitrary	2023-09-03 22:16:08.268595+00	2023-09-03 22:16:08.268595+00	pinch
+2397	250	gram	2023-09-03 22:16:08.270444+00	2023-09-03 22:16:08.270444+00	\N
+2398	0.5	count	2023-09-03 22:16:08.272525+00	2023-09-03 22:16:08.272525+00	\N
+2399	4	count	2023-09-03 22:16:08.291853+00	2023-09-03 22:16:08.291853+00	\N
+2400	5	tablespoon	2023-09-03 22:16:08.293975+00	2023-09-03 22:16:08.293975+00	\N
+2401	250	gram	2023-09-03 22:16:08.295794+00	2023-09-03 22:16:08.295794+00	\N
+2402	1	tablespoon	2023-09-03 22:16:08.297712+00	2023-09-03 22:16:08.297712+00	\N
+2403	1	count	2023-09-03 22:16:08.29968+00	2023-09-03 22:16:08.29968+00	\N
+2404	800	gram	2023-09-03 22:16:08.301549+00	2023-09-03 22:16:08.301549+00	\N
+2405	1	count	2023-09-03 22:16:08.303394+00	2023-09-03 22:16:08.303394+00	\N
+2406	1	tablespoon	2023-09-03 22:16:08.3053+00	2023-09-03 22:16:08.3053+00	\N
+2407	1	tablespoon	2023-09-03 22:16:08.307301+00	2023-09-03 22:16:08.307301+00	\N
+2408	0.5	teaspoon	2023-09-03 22:16:08.309394+00	2023-09-03 22:16:08.309394+00	\N
+2409	1	tablespoon	2023-09-03 22:16:08.311191+00	2023-09-03 22:16:08.311191+00	\N
+2410	1	litre	2023-09-03 22:16:08.312921+00	2023-09-03 22:16:08.312921+00	\N
+2411	100	gram	2023-09-03 22:16:08.314666+00	2023-09-03 22:16:08.314666+00	\N
+2412	1	count	2023-09-03 22:16:08.316528+00	2023-09-03 22:16:08.316528+00	\N
+2413	2	tablespoon	2023-09-03 22:16:08.318462+00	2023-09-03 22:16:08.318462+00	\N
+2414	1	tablespoon	2023-09-03 22:16:08.320614+00	2023-09-03 22:16:08.320614+00	\N
+2415	200	gram	2023-09-03 22:16:08.322791+00	2023-09-03 22:16:08.322791+00	\N
+2416	\N	arbitrary	2023-09-03 22:16:08.325015+00	2023-09-03 22:16:08.325015+00	1 handful
+2417	2	count	2023-09-03 22:16:08.341752+00	2023-09-03 22:16:08.341752+00	\N
+2418	1	count	2023-09-03 22:16:08.343708+00	2023-09-03 22:16:08.343708+00	\N
+2419	1	count	2023-09-03 22:16:08.345641+00	2023-09-03 22:16:08.345641+00	\N
+2420	1	count	2023-09-03 22:16:08.34746+00	2023-09-03 22:16:08.34746+00	\N
+2421	\N	arbitrary	2023-09-03 22:16:08.349377+00	2023-09-03 22:16:08.349377+00	pinch
+2422	1	tablespoon	2023-09-03 22:16:08.350962+00	2023-09-03 22:16:08.350962+00	\N
+2423	\N	arbitrary	2023-09-03 22:16:08.353058+00	2023-09-03 22:16:08.353058+00	pinch
+2424	2	count	2023-09-03 22:16:08.354854+00	2023-09-03 22:16:08.354854+00	\N
+2425	4	tablespoon	2023-09-03 22:16:08.356897+00	2023-09-03 22:16:08.356897+00	\N
+2426	1	count	2023-09-03 22:16:08.358925+00	2023-09-03 22:16:08.358925+00	\N
+2427	4	tablespoon	2023-09-03 22:16:08.360854+00	2023-09-03 22:16:08.360854+00	\N
+2428	8	count	2023-09-03 22:16:08.362661+00	2023-09-03 22:16:08.362661+00	\N
+2429	\N	arbitrary	2023-09-03 22:16:08.364587+00	2023-09-03 22:16:08.364587+00	1 bag
+2430	230	gram	2023-09-03 22:16:08.366325+00	2023-09-03 22:16:08.366325+00	\N
+2431	1	kilogram	2023-09-03 22:16:08.380139+00	2023-09-03 22:16:08.380139+00	\N
+2432	2	cloves	2023-09-03 22:16:08.382267+00	2023-09-03 22:16:08.382267+00	\N
+2433	300	millilitre	2023-09-03 22:16:08.384158+00	2023-09-03 22:16:08.384158+00	\N
+2434	200	millilitre	2023-09-03 22:16:08.387388+00	2023-09-03 22:16:08.387388+00	\N
+2435	100	gram	2023-09-03 22:16:08.389325+00	2023-09-03 22:16:08.389325+00	\N
+2436	50	gram	2023-09-03 22:16:08.391123+00	2023-09-03 22:16:08.391123+00	\N
+2437	1	teaspoon	2023-09-03 22:16:08.393072+00	2023-09-03 22:16:08.393072+00	\N
+2438	\N	arbitrary	2023-09-03 22:16:08.394935+00	2023-09-03 22:16:08.394935+00	1 pinch
+2439	\N	arbitrary	2023-09-03 22:16:08.396859+00	2023-09-03 22:16:08.396859+00	to taste
+2440	\N	arbitrary	2023-09-03 22:16:08.398638+00	2023-09-03 22:16:08.398638+00	to taste
+2441	2	cup	2023-09-03 22:16:08.4163+00	2023-09-03 22:16:08.4163+00	\N
+2442	4	count	2023-09-03 22:16:08.418252+00	2023-09-03 22:16:08.418252+00	\N
+2443	0.5	cup	2023-09-03 22:16:08.42024+00	2023-09-03 22:16:08.42024+00	\N
+2444	0.5	teaspoon	2023-09-03 22:16:08.422299+00	2023-09-03 22:16:08.422299+00	\N
+2445	0.5	cup	2023-09-03 22:16:08.424412+00	2023-09-03 22:16:08.424412+00	\N
+2446	3	tablespoon	2023-09-03 22:16:08.42652+00	2023-09-03 22:16:08.42652+00	\N
+2447	2	cup	2023-09-03 22:16:08.42853+00	2023-09-03 22:16:08.42853+00	\N
+2448	1	cup	2023-09-03 22:16:08.43033+00	2023-09-03 22:16:08.43033+00	\N
+2449	0.5	cup	2023-09-03 22:16:08.432235+00	2023-09-03 22:16:08.432235+00	\N
+2450	0.25	teaspoon	2023-09-03 22:16:08.434145+00	2023-09-03 22:16:08.434145+00	\N
+2451	0.5	teaspoon	2023-09-03 22:16:08.437333+00	2023-09-03 22:16:08.437333+00	\N
+2452	0.25	teaspoon	2023-09-03 22:16:08.440018+00	2023-09-03 22:16:08.440018+00	\N
+2453	3	tablespoon	2023-09-03 22:16:08.44412+00	2023-09-03 22:16:08.44412+00	\N
+2454	0.5	cup	2023-09-03 22:16:08.446965+00	2023-09-03 22:16:08.446965+00	\N
+2455	3	tablespoon	2023-09-03 22:16:08.465356+00	2023-09-03 22:16:08.465356+00	\N
+2456	4	count	2023-09-03 22:16:08.467711+00	2023-09-03 22:16:08.467711+00	\N
+2457	4	count	2023-09-03 22:16:08.46971+00	2023-09-03 22:16:08.46971+00	\N
+2458	2	count	2023-09-03 22:16:08.471516+00	2023-09-03 22:16:08.471516+00	\N
+2459	4	cup	2023-09-03 22:16:08.473331+00	2023-09-03 22:16:08.473331+00	\N
+2460	1	cup	2023-09-03 22:16:08.475184+00	2023-09-03 22:16:08.475184+00	\N
+2461	\N	arbitrary	2023-09-03 22:16:08.477407+00	2023-09-03 22:16:08.477407+00	1 bay leaf
+2462	0.5	cup	2023-09-03 22:16:08.47941+00	2023-09-03 22:16:08.47941+00	\N
+2463	0.5	teaspoon	2023-09-03 22:16:08.481267+00	2023-09-03 22:16:08.481267+00	\N
+2464	0.25	teaspoon	2023-09-03 22:16:08.483218+00	2023-09-03 22:16:08.483218+00	\N
+2465	2	tablespoon	2023-09-03 22:16:08.485365+00	2023-09-03 22:16:08.485365+00	\N
+2466	2	tablespoon	2023-09-03 22:16:08.487203+00	2023-09-03 22:16:08.487203+00	\N
+2467	2	cup	2023-09-03 22:16:08.502941+00	2023-09-03 22:16:08.502941+00	\N
+2468	1	tablespoon	2023-09-03 22:16:08.504992+00	2023-09-03 22:16:08.504992+00	\N
+2469	1	count	2023-09-03 22:16:08.506797+00	2023-09-03 22:16:08.506797+00	\N
+2470	2	cloves	2023-09-03 22:16:08.50864+00	2023-09-03 22:16:08.50864+00	\N
+2471	2	cup	2023-09-03 22:16:08.510444+00	2023-09-03 22:16:08.510444+00	\N
+2472	1	count	2023-09-03 22:16:08.512106+00	2023-09-03 22:16:08.512106+00	\N
+2473	4	count	2023-09-03 22:16:08.513844+00	2023-09-03 22:16:08.513844+00	\N
+2474	\N	arbitrary	2023-09-03 22:16:08.515652+00	2023-09-03 22:16:08.515652+00	1 1/2 cups
+2475	0.5	cup	2023-09-03 22:16:08.518321+00	2023-09-03 22:16:08.518321+00	\N
+2476	0.5	teaspoon	2023-09-03 22:16:08.520348+00	2023-09-03 22:16:08.520348+00	\N
+2477	0.25	teaspoon	2023-09-03 22:16:08.522213+00	2023-09-03 22:16:08.522213+00	\N
+2478	0.25	teaspoon	2023-09-03 22:16:08.524098+00	2023-09-03 22:16:08.524098+00	\N
+2479	\N	arbitrary	2023-09-03 22:16:08.525922+00	2023-09-03 22:16:08.525922+00	1 1/2 cups
+2480	0.25	cup	2023-09-03 22:16:08.52814+00	2023-09-03 22:16:08.52814+00	\N
+2481	1.5	kilogram	2023-09-03 22:16:08.556565+00	2023-09-03 22:16:08.556565+00	\N
+2482	2	tablespoon	2023-09-03 22:16:08.558414+00	2023-09-03 22:16:08.558414+00	\N
+2483	2	count	2023-09-03 22:16:08.560199+00	2023-09-03 22:16:08.560199+00	\N
+2484	2	count	2023-09-03 22:16:08.562051+00	2023-09-03 22:16:08.562051+00	\N
+2485	2	count	2023-09-03 22:16:08.563807+00	2023-09-03 22:16:08.563807+00	\N
+2486	2	tablespoon	2023-09-03 22:16:08.565873+00	2023-09-03 22:16:08.565873+00	\N
+2487	2	tablespoon	2023-09-03 22:16:08.56757+00	2023-09-03 22:16:08.56757+00	\N
+2488	500	millilitre	2023-09-03 22:16:08.569273+00	2023-09-03 22:16:08.569273+00	\N
+2489	2	tablespoon	2023-09-03 22:16:08.571123+00	2023-09-03 22:16:08.571123+00	\N
+2490	\N	arbitrary	2023-09-03 22:16:08.573236+00	2023-09-03 22:16:08.573236+00	few
+2491	\N	arbitrary	2023-09-03 22:16:08.580992+00	2023-09-03 22:16:08.580992+00	few
+2492	2	count	2023-09-03 22:16:08.58276+00	2023-09-03 22:16:08.58276+00	\N
+2493	3	count	2023-09-03 22:16:08.584595+00	2023-09-03 22:16:08.584595+00	\N
+2494	500	gram	2023-09-03 22:16:08.586478+00	2023-09-03 22:16:08.586478+00	\N
+2495	2	count	2023-09-03 22:16:08.588301+00	2023-09-03 22:16:08.588301+00	\N
+2496	150	gram	2023-09-03 22:16:08.589906+00	2023-09-03 22:16:08.589906+00	\N
+2610	280	gram	2023-09-03 22:16:08.966821+00	2023-09-03 22:16:08.966821+00	\N
+2497	2	tablespoon	2023-09-03 22:16:08.59179+00	2023-09-03 22:16:08.59179+00	\N
+2498	\N	arbitrary	2023-09-03 22:16:08.594258+00	2023-09-03 22:16:08.594258+00	salt
+2499	\N	arbitrary	2023-09-03 22:16:08.596243+00	2023-09-03 22:16:08.596243+00	black pepper
+2500	320	gram	2023-09-03 22:16:08.609373+00	2023-09-03 22:16:08.609373+00	\N
+2501	4	count	2023-09-03 22:16:08.611186+00	2023-09-03 22:16:08.611186+00	\N
+2502	4	count	2023-09-03 22:16:08.61287+00	2023-09-03 22:16:08.61287+00	\N
+2503	200	millilitre	2023-09-03 22:16:08.61481+00	2023-09-03 22:16:08.61481+00	\N
+2504	200	millilitre	2023-09-03 22:16:08.616492+00	2023-09-03 22:16:08.616492+00	\N
+2505	200	gram	2023-09-03 22:16:08.618056+00	2023-09-03 22:16:08.618056+00	\N
+2506	\N	arbitrary	2023-09-03 22:16:08.619786+00	2023-09-03 22:16:08.619786+00	1 bunch
+2507	100	gram	2023-09-03 22:16:08.621682+00	2023-09-03 22:16:08.621682+00	\N
+2508	\N	arbitrary	2023-09-03 22:16:08.623406+00	2023-09-03 22:16:08.623406+00	salt
+2509	\N	arbitrary	2023-09-03 22:16:08.625271+00	2023-09-03 22:16:08.625271+00	black pepper
+2510	\N	arbitrary	2023-09-03 22:16:08.626879+00	2023-09-03 22:16:08.626879+00	1 knob
+2511	\N	arbitrary	2023-09-03 22:16:08.628694+00	2023-09-03 22:16:08.628694+00	olive oil
+2512	1	kilogram	2023-09-03 22:16:08.641839+00	2023-09-03 22:16:08.641839+00	\N
+2513	2	count	2023-09-03 22:16:08.64478+00	2023-09-03 22:16:08.64478+00	\N
+2514	4	tablespoon	2023-09-03 22:16:08.65542+00	2023-09-03 22:16:08.65542+00	\N
+2515	1	count	2023-09-03 22:16:08.658327+00	2023-09-03 22:16:08.658327+00	\N
+2516	2	cloves	2023-09-03 22:16:08.660288+00	2023-09-03 22:16:08.660288+00	\N
+2517	2	tablespoon	2023-09-03 22:16:08.662642+00	2023-09-03 22:16:08.662642+00	\N
+2518	1	teaspoon	2023-09-03 22:16:08.66519+00	2023-09-03 22:16:08.66519+00	\N
+2519	0.5	teaspoon	2023-09-03 22:16:08.667214+00	2023-09-03 22:16:08.667214+00	\N
+2520	\N	arbitrary	2023-09-03 22:16:08.669382+00	2023-09-03 22:16:08.669382+00	vegetable oil
+2521	2	count	2023-09-03 22:16:08.677348+00	2023-09-03 22:16:08.677348+00	\N
+2522	1	count	2023-09-03 22:16:08.679503+00	2023-09-03 22:16:08.679503+00	\N
+2523	100	gram	2023-09-03 22:16:08.68164+00	2023-09-03 22:16:08.68164+00	\N
+2524	\N	arbitrary	2023-09-03 22:16:08.684113+00	2023-09-03 22:16:08.684113+00	1 bunch
+2525	\N	arbitrary	2023-09-03 22:16:08.686776+00	2023-09-03 22:16:08.686776+00	1 pack
+2526	2	tablespoon	2023-09-03 22:16:08.69541+00	2023-09-03 22:16:08.69541+00	\N
+2527	\N	arbitrary	2023-09-03 22:16:08.697239+00	2023-09-03 22:16:08.697239+00	3 small
+2528	\N	arbitrary	2023-09-03 22:16:08.699059+00	2023-09-03 22:16:08.699059+00	1 sheet
+2529	100	gram	2023-09-03 22:16:08.701614+00	2023-09-03 22:16:08.701614+00	\N
+2530	\N	arbitrary	2023-09-03 22:16:08.709974+00	2023-09-03 22:16:08.709974+00	2 handfuls
+2531	2	count	2023-09-03 22:16:08.711616+00	2023-09-03 22:16:08.711616+00	\N
+2532	2	count	2023-09-03 22:16:08.71348+00	2023-09-03 22:16:08.71348+00	\N
+2533	100	gram	2023-09-03 22:16:08.715446+00	2023-09-03 22:16:08.715446+00	\N
+2534	100	millilitre	2023-09-03 22:16:08.717564+00	2023-09-03 22:16:08.717564+00	\N
+2535	\N	arbitrary	2023-09-03 22:16:08.71941+00	2023-09-03 22:16:08.71941+00	10 leaves
+2536	\N	arbitrary	2023-09-03 22:16:08.726078+00	2023-09-03 22:16:08.726078+00	enough for at least 2 pizzas
+2537	2	tablespoon	2023-09-03 22:16:08.728054+00	2023-09-03 22:16:08.728054+00	\N
+2538	2	count	2023-09-03 22:16:08.729797+00	2023-09-03 22:16:08.729797+00	\N
+2539	\N	arbitrary	2023-09-03 22:16:08.732056+00	2023-09-03 22:16:08.732056+00	1 pack
+2540	125	gram	2023-09-03 22:16:08.74378+00	2023-09-03 22:16:08.74378+00	\N
+2541	325	millilitre	2023-09-03 22:16:08.745879+00	2023-09-03 22:16:08.745879+00	\N
+2542	400	gram	2023-09-03 22:16:08.747724+00	2023-09-03 22:16:08.747724+00	\N
+2543	1	count	2023-09-03 22:16:08.749834+00	2023-09-03 22:16:08.749834+00	\N
+2544	150	gram	2023-09-03 22:16:08.751733+00	2023-09-03 22:16:08.751733+00	\N
+2545	200	gram	2023-09-03 22:16:08.754049+00	2023-09-03 22:16:08.754049+00	\N
+2546	40	gram	2023-09-03 22:16:08.756312+00	2023-09-03 22:16:08.756312+00	\N
+2547	15	gram	2023-09-03 22:16:08.758212+00	2023-09-03 22:16:08.758212+00	\N
+2548	2	count	2023-09-03 22:16:08.760356+00	2023-09-03 22:16:08.760356+00	\N
+2549	800	gram	2023-09-03 22:16:08.773175+00	2023-09-03 22:16:08.773175+00	\N
+2550	1	count	2023-09-03 22:16:08.775188+00	2023-09-03 22:16:08.775188+00	\N
+2551	8	count	2023-09-03 22:16:08.777134+00	2023-09-03 22:16:08.777134+00	\N
+2552	8	count	2023-09-03 22:16:08.779642+00	2023-09-03 22:16:08.779642+00	\N
+2553	1	count	2023-09-03 22:16:08.781988+00	2023-09-03 22:16:08.781988+00	\N
+2554	280	gram	2023-09-03 22:16:08.784078+00	2023-09-03 22:16:08.784078+00	\N
+2555	\N	arbitrary	2023-09-03 22:16:08.786193+00	2023-09-03 22:16:08.786193+00	3-4 sprigs
+2556	\N	arbitrary	2023-09-03 22:16:08.788127+00	2023-09-03 22:16:08.788127+00	5-6 sprigs
+2557	340	gram	2023-09-03 22:16:08.790347+00	2023-09-03 22:16:08.790347+00	\N
+2558	20	gram	2023-09-03 22:16:08.79247+00	2023-09-03 22:16:08.79247+00	\N
+2559	1	count	2023-09-03 22:16:08.80475+00	2023-09-03 22:16:08.80475+00	\N
+2560	2	count	2023-09-03 22:16:08.806709+00	2023-09-03 22:16:08.806709+00	\N
+2561	2	count	2023-09-03 22:16:08.808639+00	2023-09-03 22:16:08.808639+00	\N
+2562	6	count	2023-09-03 22:16:08.810482+00	2023-09-03 22:16:08.810482+00	\N
+2563	150	gram	2023-09-03 22:16:08.812649+00	2023-09-03 22:16:08.812649+00	\N
+2564	\N	arbitrary	2023-09-03 22:16:08.814443+00	2023-09-03 22:16:08.814443+00	4 pinches
+2565	250	gram	2023-09-03 22:16:08.816109+00	2023-09-03 22:16:08.816109+00	\N
+2566	600	millilitre	2023-09-03 22:16:08.817992+00	2023-09-03 22:16:08.817992+00	\N
+2567	1	count	2023-09-03 22:16:08.820446+00	2023-09-03 22:16:08.820446+00	\N
+2568	20	gram	2023-09-03 22:16:08.822483+00	2023-09-03 22:16:08.822483+00	\N
+2569	2	count	2023-09-03 22:16:08.846732+00	2023-09-03 22:16:08.846732+00	\N
+2570	2	count	2023-09-03 22:16:08.851857+00	2023-09-03 22:16:08.851857+00	\N
+2571	15	gram	2023-09-03 22:16:08.854213+00	2023-09-03 22:16:08.854213+00	\N
+2572	400	gram	2023-09-03 22:16:08.856138+00	2023-09-03 22:16:08.856138+00	\N
+2573	400	gram	2023-09-03 22:16:08.858082+00	2023-09-03 22:16:08.858082+00	\N
+2574	1	count	2023-09-03 22:16:08.860245+00	2023-09-03 22:16:08.860245+00	\N
+2575	4	tablespoon	2023-09-03 22:16:08.862469+00	2023-09-03 22:16:08.862469+00	\N
+2576	600	millilitre	2023-09-03 22:16:08.864723+00	2023-09-03 22:16:08.864723+00	\N
+2577	1	count	2023-09-03 22:16:08.867079+00	2023-09-03 22:16:08.867079+00	\N
+2578	20	gram	2023-09-03 22:16:08.869273+00	2023-09-03 22:16:08.869273+00	\N
+2579	1	tablespoon	2023-09-03 22:16:08.871041+00	2023-09-03 22:16:08.871041+00	\N
+2580	1	tablespoon	2023-09-03 22:16:08.873167+00	2023-09-03 22:16:08.873167+00	\N
+2581	800	gram	2023-09-03 22:16:08.874854+00	2023-09-03 22:16:08.874854+00	\N
+2582	2	cloves	2023-09-03 22:16:08.87669+00	2023-09-03 22:16:08.87669+00	\N
+2583	150	gram	2023-09-03 22:16:08.878621+00	2023-09-03 22:16:08.878621+00	\N
+2584	\N	arbitrary	2023-09-03 22:16:08.89024+00	2023-09-03 22:16:08.89024+00	1 pound
+2585	0.25	cup	2023-09-03 22:16:08.892179+00	2023-09-03 22:16:08.892179+00	\N
+2586	\N	arbitrary	2023-09-03 22:16:08.893963+00	2023-09-03 22:16:08.893963+00	1 clove
+2587	\N	arbitrary	2023-09-03 22:16:08.895797+00	2023-09-03 22:16:08.895797+00	6 ounces
+2588	2	cup	2023-09-03 22:16:08.897664+00	2023-09-03 22:16:08.897664+00	\N
+2589	2	cup	2023-09-03 22:16:08.899847+00	2023-09-03 22:16:08.899847+00	\N
+2590	0.5	cup	2023-09-03 22:16:08.902651+00	2023-09-03 22:16:08.902651+00	\N
+2591	0.5	cup	2023-09-03 22:16:08.904609+00	2023-09-03 22:16:08.904609+00	\N
+2592	1	count	2023-09-03 22:16:08.914855+00	2023-09-03 22:16:08.914855+00	\N
+2593	1	count	2023-09-03 22:16:08.916638+00	2023-09-03 22:16:08.916638+00	\N
+2594	3	count	2023-09-03 22:16:08.918522+00	2023-09-03 22:16:08.918522+00	\N
+2595	0.5	cup	2023-09-03 22:16:08.920285+00	2023-09-03 22:16:08.920285+00	\N
+2596	1	count	2023-09-03 22:16:08.922155+00	2023-09-03 22:16:08.922155+00	\N
+2597	2	cup	2023-09-03 22:16:08.924063+00	2023-09-03 22:16:08.924063+00	\N
+2598	5	tablespoon	2023-09-03 22:16:08.926239+00	2023-09-03 22:16:08.926239+00	\N
+2599	0.25	teaspoon	2023-09-03 22:16:08.92819+00	2023-09-03 22:16:08.92819+00	\N
+2600	1	count	2023-09-03 22:16:08.939503+00	2023-09-03 22:16:08.939503+00	\N
+2601	250	gram	2023-09-03 22:16:08.941434+00	2023-09-03 22:16:08.941434+00	\N
+2602	1	count	2023-09-03 22:16:08.943382+00	2023-09-03 22:16:08.943382+00	\N
+2603	100	millilitre	2023-09-03 22:16:08.945187+00	2023-09-03 22:16:08.945187+00	\N
+2604	200	millilitre	2023-09-03 22:16:08.94709+00	2023-09-03 22:16:08.94709+00	\N
+2605	1	count	2023-09-03 22:16:08.949252+00	2023-09-03 22:16:08.949252+00	\N
+2606	200	gram	2023-09-03 22:16:08.951026+00	2023-09-03 22:16:08.951026+00	\N
+2607	300	gram	2023-09-03 22:16:08.952994+00	2023-09-03 22:16:08.952994+00	\N
+2608	\N	arbitrary	2023-09-03 22:16:08.954721+00	2023-09-03 22:16:08.954721+00	1/2 bunch
+2609	4	count	2023-09-03 22:16:08.96483+00	2023-09-03 22:16:08.96483+00	\N
+2611	200	gram	2023-09-03 22:16:08.969016+00	2023-09-03 22:16:08.969016+00	\N
+2612	100	gram	2023-09-03 22:16:08.978787+00	2023-09-03 22:16:08.978787+00	\N
+2613	\N	arbitrary	2023-09-03 22:16:08.980744+00	2023-09-03 22:16:08.980744+00	1 bunch
+2614	1	count	2023-09-03 22:16:08.982832+00	2023-09-03 22:16:08.982832+00	\N
+2615	50	gram	2023-09-03 22:16:08.984971+00	2023-09-03 22:16:08.984971+00	\N
+2616	1	count	2023-09-03 22:16:08.996128+00	2023-09-03 22:16:08.996128+00	\N
+2617	150	gram	2023-09-03 22:16:08.998236+00	2023-09-03 22:16:08.998236+00	\N
+2618	0.5	teaspoon	2023-09-03 22:16:09.000588+00	2023-09-03 22:16:09.000588+00	\N
+2619	1	count	2023-09-03 22:16:09.002641+00	2023-09-03 22:16:09.002641+00	\N
+2620	1	count	2023-09-03 22:16:09.004655+00	2023-09-03 22:16:09.004655+00	\N
+2621	2	count	2023-09-03 22:16:09.006791+00	2023-09-03 22:16:09.006791+00	\N
+2622	4	count	2023-09-03 22:16:09.00883+00	2023-09-03 22:16:09.00883+00	\N
+2623	1	count	2023-09-03 22:16:09.010962+00	2023-09-03 22:16:09.010962+00	\N
+2624	1	count	2023-09-03 22:16:09.012854+00	2023-09-03 22:16:09.012854+00	\N
+2625	200	gram	2023-09-03 22:16:09.022919+00	2023-09-03 22:16:09.022919+00	\N
+2626	200	gram	2023-09-03 22:16:09.024787+00	2023-09-03 22:16:09.024787+00	\N
+2627	1	count	2023-09-03 22:16:09.026693+00	2023-09-03 22:16:09.026693+00	\N
+2628	1	count	2023-09-03 22:16:09.028851+00	2023-09-03 22:16:09.028851+00	\N
+2629	2	count	2023-09-03 22:16:09.030757+00	2023-09-03 22:16:09.030757+00	\N
+2630	1	count	2023-09-03 22:16:09.032518+00	2023-09-03 22:16:09.032518+00	\N
+2631	1	count	2023-09-03 22:16:09.03444+00	2023-09-03 22:16:09.03444+00	\N
+2632	1	count	2023-09-03 22:16:09.036882+00	2023-09-03 22:16:09.036882+00	\N
+2633	2	count	2023-09-03 22:16:09.048857+00	2023-09-03 22:16:09.048857+00	\N
+2634	3	count	2023-09-03 22:16:09.050996+00	2023-09-03 22:16:09.050996+00	\N
+2635	2	count	2023-09-03 22:16:09.053234+00	2023-09-03 22:16:09.053234+00	\N
+2636	2	count	2023-09-03 22:16:09.056048+00	2023-09-03 22:16:09.056048+00	\N
+2637	4	count	2023-09-03 22:16:09.058772+00	2023-09-03 22:16:09.058772+00	\N
+2638	500	gram	2023-09-03 22:16:09.061421+00	2023-09-03 22:16:09.061421+00	\N
+2639	1	count	2023-09-03 22:16:09.076766+00	2023-09-03 22:16:09.076766+00	\N
+2640	1	count	2023-09-03 22:16:09.078832+00	2023-09-03 22:16:09.078832+00	\N
+2641	1	count	2023-09-03 22:16:09.08131+00	2023-09-03 22:16:09.08131+00	\N
+2642	2	count	2023-09-03 22:16:09.085828+00	2023-09-03 22:16:09.085828+00	\N
+2643	1	count	2023-09-03 22:16:09.087645+00	2023-09-03 22:16:09.087645+00	\N
+2644	300	gram	2023-09-03 22:16:09.089621+00	2023-09-03 22:16:09.089621+00	\N
+2645	600	millilitre	2023-09-03 22:16:09.091789+00	2023-09-03 22:16:09.091789+00	\N
+2646	2	count	2023-09-03 22:16:09.09375+00	2023-09-03 22:16:09.09375+00	\N
+2647	75	gram	2023-09-03 22:16:09.095649+00	2023-09-03 22:16:09.095649+00	\N
+2648	20	gram	2023-09-03 22:16:09.097379+00	2023-09-03 22:16:09.097379+00	\N
+2649	100	gram	2023-09-03 22:16:09.099956+00	2023-09-03 22:16:09.099956+00	\N
+2650	200	gram	2023-09-03 22:16:09.106871+00	2023-09-03 22:16:09.106871+00	\N
+2651	800	gram	2023-09-03 22:16:09.108994+00	2023-09-03 22:16:09.108994+00	\N
+2652	800	gram	2023-09-03 22:16:09.111056+00	2023-09-03 22:16:09.111056+00	\N
+2653	130	gram	2023-09-03 22:16:09.113678+00	2023-09-03 22:16:09.113678+00	\N
+2654	12	count	2023-09-03 22:16:09.121512+00	2023-09-03 22:16:09.121512+00	\N
+2655	500	gram	2023-09-03 22:16:09.123848+00	2023-09-03 22:16:09.123848+00	\N
+2656	\N	arbitrary	2023-09-03 22:16:09.12602+00	2023-09-03 22:16:09.12602+00	Bunch
+2657	200	gram	2023-09-03 22:16:09.128135+00	2023-09-03 22:16:09.128135+00	\N
+2658	1200	gram	2023-09-03 22:16:09.144888+00	2023-09-03 22:16:09.144888+00	\N
+2659	3	tablespoon	2023-09-03 22:16:09.14704+00	2023-09-03 22:16:09.14704+00	\N
+2660	\N	arbitrary	2023-09-03 22:16:09.148827+00	2023-09-03 22:16:09.148827+00	1 1/2 tbsp
+2661	\N	arbitrary	2023-09-03 22:16:09.150766+00	2023-09-03 22:16:09.150766+00	1 1/2 tbsp
+2662	\N	arbitrary	2023-09-03 22:16:09.152561+00	2023-09-03 22:16:09.152561+00	1 1/2 tbsp
+2663	\N	arbitrary	2023-09-03 22:16:09.154486+00	2023-09-03 22:16:09.154486+00	1 Clove
+2664	2	tablespoon	2023-09-03 22:16:09.15637+00	2023-09-03 22:16:09.15637+00	\N
+2665	2	count	2023-09-03 22:16:09.158135+00	2023-09-03 22:16:09.158135+00	\N
+2666	2	count	2023-09-03 22:16:09.160004+00	2023-09-03 22:16:09.160004+00	\N
+2667	1	count	2023-09-03 22:16:09.162893+00	2023-09-03 22:16:09.162893+00	\N
+2668	110	gram	2023-09-03 22:16:09.165109+00	2023-09-03 22:16:09.165109+00	\N
+2669	1	count	2023-09-03 22:16:09.169355+00	2023-09-03 22:16:09.169355+00	\N
+2670	12	count	2023-09-03 22:16:09.17169+00	2023-09-03 22:16:09.17169+00	\N
+2671	150	millilitre	2023-09-03 22:16:09.17363+00	2023-09-03 22:16:09.17363+00	\N
+2672	4	count	2023-09-03 22:16:09.184145+00	2023-09-03 22:16:09.184145+00	\N
+2673	100	gram	2023-09-03 22:16:09.189506+00	2023-09-03 22:16:09.189506+00	\N
+2674	200	gram	2023-09-03 22:16:09.191703+00	2023-09-03 22:16:09.191703+00	\N
+2675	500	gram	2023-09-03 22:16:09.193756+00	2023-09-03 22:16:09.193756+00	\N
+2676	200	gram	2023-09-03 22:16:09.195695+00	2023-09-03 22:16:09.195695+00	\N
+2677	\N	arbitrary	2023-09-03 22:16:09.198034+00	2023-09-03 22:16:09.198034+00	1 bunch
+2678	6	count	2023-09-03 22:16:09.20626+00	2023-09-03 22:16:09.20626+00	\N
+2679	200	gram	2023-09-03 22:16:09.208269+00	2023-09-03 22:16:09.208269+00	\N
+2680	140	gram	2023-09-03 22:16:09.210262+00	2023-09-03 22:16:09.210262+00	\N
+2681	120	gram	2023-09-03 22:16:09.212172+00	2023-09-03 22:16:09.212172+00	\N
+2682	40	gram	2023-09-03 22:16:09.213999+00	2023-09-03 22:16:09.213999+00	\N
+2683	1.5	kilogram	2023-09-03 22:16:09.221362+00	2023-09-03 22:16:09.221362+00	\N
+2684	\N	arbitrary	2023-09-03 22:16:09.223237+00	2023-09-03 22:16:09.223237+00	1/2 liter
+2685	125	millilitre	2023-09-03 22:16:09.225009+00	2023-09-03 22:16:09.225009+00	\N
+2686	100	millilitre	2023-09-03 22:16:09.226774+00	2023-09-03 22:16:09.226774+00	\N
+2687	1	tablespoon	2023-09-03 22:16:09.228807+00	2023-09-03 22:16:09.228807+00	\N
+2688	1	count	2023-09-03 22:16:09.238114+00	2023-09-03 22:16:09.238114+00	\N
+2689	200	gram	2023-09-03 22:16:09.240147+00	2023-09-03 22:16:09.240147+00	\N
+2690	4	count	2023-09-03 22:16:09.241946+00	2023-09-03 22:16:09.241946+00	\N
+2691	500	millilitre	2023-09-03 22:16:09.243838+00	2023-09-03 22:16:09.243838+00	\N
+2692	0.25	tablespoon	2023-09-03 22:16:09.245747+00	2023-09-03 22:16:09.245747+00	\N
+2693	2	tablespoon	2023-09-03 22:16:09.247541+00	2023-09-03 22:16:09.247541+00	\N
+2694	1	count	2023-09-03 22:16:09.24923+00	2023-09-03 22:16:09.24923+00	\N
+2695	400	millilitre	2023-09-03 22:16:09.269689+00	2023-09-03 22:16:09.269689+00	\N
+2696	1	kilogram	2023-09-03 22:16:09.272199+00	2023-09-03 22:16:09.272199+00	\N
+2697	600	gram	2023-09-03 22:16:09.274033+00	2023-09-03 22:16:09.274033+00	\N
+2698	6	count	2023-09-03 22:16:09.277033+00	2023-09-03 22:16:09.277033+00	\N
+2699	4	cloves	2023-09-03 22:16:09.279036+00	2023-09-03 22:16:09.279036+00	\N
+2700	1	count	2023-09-03 22:16:09.281048+00	2023-09-03 22:16:09.281048+00	\N
+2701	1	teaspoon	2023-09-03 22:16:09.283009+00	2023-09-03 22:16:09.283009+00	\N
+2702	2	teaspoon	2023-09-03 22:16:09.284726+00	2023-09-03 22:16:09.284726+00	\N
+2703	2	count	2023-09-03 22:16:09.286483+00	2023-09-03 22:16:09.286483+00	\N
+2704	3	tablespoon	2023-09-03 22:16:09.288214+00	2023-09-03 22:16:09.288214+00	\N
+2705	2	teaspoon	2023-09-03 22:16:09.28996+00	2023-09-03 22:16:09.28996+00	\N
+2706	750	gram	2023-09-03 22:16:09.303796+00	2023-09-03 22:16:09.303796+00	\N
+2707	\N	arbitrary	2023-09-03 22:16:09.305496+00	2023-09-03 22:16:09.305496+00	handful
+2708	300	gram	2023-09-03 22:16:09.307536+00	2023-09-03 22:16:09.307536+00	\N
+2709	2	count	2023-09-03 22:16:09.309831+00	2023-09-03 22:16:09.309831+00	\N
+2710	2	cloves	2023-09-03 22:16:09.311747+00	2023-09-03 22:16:09.311747+00	\N
+2711	1	count	2023-09-03 22:16:09.31422+00	2023-09-03 22:16:09.31422+00	\N
+2712	1	teaspoon	2023-09-03 22:16:09.316098+00	2023-09-03 22:16:09.316098+00	\N
+2713	1	teaspoon	2023-09-03 22:16:09.317988+00	2023-09-03 22:16:09.317988+00	\N
+2714	100	gram	2023-09-03 22:16:09.319803+00	2023-09-03 22:16:09.319803+00	\N
+2715	1	count	2023-09-03 22:16:09.322033+00	2023-09-03 22:16:09.322033+00	\N
+2716	800	gram	2023-09-03 22:16:09.33507+00	2023-09-03 22:16:09.33507+00	\N
+2717	560	gram	2023-09-03 22:16:09.33897+00	2023-09-03 22:16:09.33897+00	\N
+2718	2	cloves	2023-09-03 22:16:09.341524+00	2023-09-03 22:16:09.341524+00	\N
+2719	200	gram	2023-09-03 22:16:09.344171+00	2023-09-03 22:16:09.344171+00	\N
+2720	4	count	2023-09-03 22:16:09.346682+00	2023-09-03 22:16:09.346682+00	\N
+2721	1	teaspoon	2023-09-03 22:16:09.349596+00	2023-09-03 22:16:09.349596+00	\N
+2722	3	tablespoon	2023-09-03 22:16:09.352974+00	2023-09-03 22:16:09.352974+00	\N
+2723	1	kilogram	2023-09-04 10:42:53.996112+00	2023-09-04 10:42:53.996112+00	\N
+2724	80	gram	2023-09-10 12:39:31.268327+00	2023-09-10 12:39:31.268327+00	\N
+2725	40	gram	2023-09-10 12:39:31.271554+00	2023-09-10 12:39:31.271554+00	\N
+2726	50	gram	2023-09-10 12:39:31.273517+00	2023-09-10 12:39:31.273517+00	\N
+2727	200	gram	2023-09-10 12:39:31.2755+00	2023-09-10 12:39:31.2755+00	\N
+2728	100	gram	2023-09-10 12:39:31.277649+00	2023-09-10 12:39:31.277649+00	\N
+2729	200	gram	2023-09-10 12:39:31.279678+00	2023-09-10 12:39:31.279678+00	\N
+2730	450	gram	2023-09-10 12:39:31.28163+00	2023-09-10 12:39:31.28163+00	\N
+2731	150	gram	2023-09-10 12:39:31.283557+00	2023-09-10 12:39:31.283557+00	\N
+2732	30	gram	2023-09-10 12:39:31.285775+00	2023-09-10 12:39:31.285775+00	\N
+2733	\N	arbitrary	2023-09-10 12:39:31.287661+00	2023-09-10 12:39:31.287661+00	3 pinches
+2734	10	count	2023-09-10 12:39:31.289552+00	2023-09-10 12:39:31.289552+00	\N
+2735	15	gram	2023-09-10 12:39:31.300995+00	2023-09-10 12:39:31.300995+00	\N
+2736	20	gram	2023-09-10 12:39:31.302926+00	2023-09-10 12:39:31.302926+00	\N
+2737	30	gram	2023-09-10 12:39:31.304662+00	2023-09-10 12:39:31.304662+00	\N
+2738	100	gram	2023-09-10 12:39:31.307188+00	2023-09-10 12:39:31.307188+00	\N
+2739	200	gram	2023-09-10 12:39:31.309061+00	2023-09-10 12:39:31.309061+00	\N
+2740	100	gram	2023-09-10 12:39:31.310764+00	2023-09-10 12:39:31.310764+00	\N
+2741	150	gram	2023-09-10 12:39:31.312472+00	2023-09-10 12:39:31.312472+00	\N
+2742	6	count	2023-09-10 12:39:31.31421+00	2023-09-10 12:39:31.31421+00	\N
+2743	80	gram	2023-09-10 12:39:31.315885+00	2023-09-10 12:39:31.315885+00	\N
+2744	50	gram	2023-09-10 12:39:31.32675+00	2023-09-10 12:39:31.32675+00	\N
+2745	0.25	teaspoon	2023-09-10 12:39:31.328398+00	2023-09-10 12:39:31.328398+00	\N
+2746	350	gram	2023-09-10 12:39:31.330311+00	2023-09-10 12:39:31.330311+00	\N
+2747	450	gram	2023-09-10 12:39:31.332046+00	2023-09-10 12:39:31.332046+00	\N
+2748	200	gram	2023-09-10 12:39:31.334037+00	2023-09-10 12:39:31.334037+00	\N
+2749	0.25	teaspoon	2023-09-10 12:39:31.336041+00	2023-09-10 12:39:31.336041+00	\N
+2750	50	gram	2023-09-10 12:39:31.337707+00	2023-09-10 12:39:31.337707+00	\N
+2751	2	count	2023-09-10 12:39:31.339499+00	2023-09-10 12:39:31.339499+00	\N
+2752	\N	arbitrary	2023-09-10 12:39:31.353269+00	2023-09-10 12:39:31.353269+00	4 sprigs
+2753	200	gram	2023-09-10 12:39:31.355123+00	2023-09-10 12:39:31.355123+00	\N
+2754	1	teaspoon	2023-09-10 12:39:31.357208+00	2023-09-10 12:39:31.357208+00	\N
+2755	\N	arbitrary	2023-09-10 12:39:31.359278+00	2023-09-10 12:39:31.359278+00	2 garlic
+2756	2	count	2023-09-10 12:39:31.361197+00	2023-09-10 12:39:31.361197+00	\N
+2757	60	gram	2023-09-10 12:39:31.362931+00	2023-09-10 12:39:31.362931+00	\N
+2758	30	gram	2023-09-10 12:39:31.364793+00	2023-09-10 12:39:31.364793+00	\N
+2759	0.5	teaspoon	2023-09-10 12:39:31.366623+00	2023-09-10 12:39:31.366623+00	\N
+2760	250	gram	2023-09-10 12:39:31.368529+00	2023-09-10 12:39:31.368529+00	\N
+2761	250	gram	2023-09-10 12:39:31.37029+00	2023-09-10 12:39:31.37029+00	\N
+2762	680	gram	2023-09-10 12:39:31.372086+00	2023-09-10 12:39:31.372086+00	\N
+2763	\N	arbitrary	2023-09-10 12:39:31.373929+00	2023-09-10 12:39:31.373929+00	1 Tbsp
+2764	\N	arbitrary	2023-09-10 12:39:31.384914+00	2023-09-10 12:39:31.384914+00	1 cube
+2765	\N	arbitrary	2023-09-10 12:39:31.386875+00	2023-09-10 12:39:31.386875+00	1 pinch
+2766	1	teaspoon	2023-09-10 12:39:31.388674+00	2023-09-10 12:39:31.388674+00	\N
+2767	100	gram	2023-09-10 12:39:31.390556+00	2023-09-10 12:39:31.390556+00	\N
+2768	80	gram	2023-09-10 12:39:31.392507+00	2023-09-10 12:39:31.392507+00	\N
+2769	300	gram	2023-09-10 12:39:31.394611+00	2023-09-10 12:39:31.394611+00	\N
+2770	600	gram	2023-09-10 12:39:31.396852+00	2023-09-10 12:39:31.396852+00	\N
+2771	350	gram	2023-09-10 12:39:31.398842+00	2023-09-10 12:39:31.398842+00	\N
+2772	1	count	2023-09-10 12:39:31.409984+00	2023-09-10 12:39:31.409984+00	\N
+2773	60	gram	2023-09-10 12:39:31.411827+00	2023-09-10 12:39:31.411827+00	\N
+2774	300	gram	2023-09-10 12:39:31.413667+00	2023-09-10 12:39:31.413667+00	\N
+2775	0.5	count	2023-09-10 12:39:31.415394+00	2023-09-10 12:39:31.415394+00	\N
+2776	130	gram	2023-09-10 12:39:31.417075+00	2023-09-10 12:39:31.417075+00	\N
+2777	\N	arbitrary	2023-09-10 12:39:31.418758+00	2023-09-10 12:39:31.418758+00	3 sprigs
+2778	\N	arbitrary	2023-09-10 12:39:31.420585+00	2023-09-10 12:39:31.420585+00	1 pinch
+2779	\N	arbitrary	2023-09-10 12:39:31.422962+00	2023-09-10 12:39:31.422962+00	2 pinches
+2780	80	gram	2023-09-10 12:39:31.424851+00	2023-09-10 12:39:31.424851+00	\N
+2781	\N	arbitrary	2023-09-10 12:39:31.426593+00	2023-09-10 12:39:31.426593+00	5 medium
+2782	1	count	2023-09-10 12:39:31.433806+00	2023-09-10 12:39:31.433806+00	\N
+2783	500	gram	2023-09-10 12:39:31.436464+00	2023-09-10 12:39:31.436464+00	\N
+2784	180	gram	2023-09-10 12:39:31.438343+00	2023-09-10 12:39:31.438343+00	\N
+2785	500	gram	2023-09-10 12:39:31.441192+00	2023-09-10 12:39:31.441192+00	\N
+2786	600	gram	2023-09-10 12:39:31.443562+00	2023-09-10 12:39:31.443562+00	\N
+2787	15	gram	2023-09-10 12:40:29.051531+00	2023-09-10 12:40:29.051531+00	\N
+2788	140	gram	2023-09-10 12:40:29.053806+00	2023-09-10 12:40:29.053806+00	\N
+2789	1	kilogram	2023-09-10 12:40:29.055604+00	2023-09-10 12:40:29.055604+00	\N
+2790	140	gram	2023-09-10 12:40:29.057428+00	2023-09-10 12:40:29.057428+00	\N
+2791	140	gram	2023-09-10 12:40:29.059122+00	2023-09-10 12:40:29.059122+00	\N
+2792	100	millilitre	2023-09-10 12:40:29.060932+00	2023-09-10 12:40:29.060932+00	\N
+2793	100	millilitre	2023-09-10 12:40:29.062897+00	2023-09-10 12:40:29.062897+00	\N
+2794	\N	arbitrary	2023-09-10 12:40:29.065239+00	2023-09-10 12:40:29.065239+00	pinch
+2795	250	gram	2023-09-10 12:40:29.067378+00	2023-09-10 12:40:29.067378+00	\N
+2796	0.5	count	2023-09-10 12:40:29.069506+00	2023-09-10 12:40:29.069506+00	\N
+2797	4	count	2023-09-10 12:40:29.091752+00	2023-09-10 12:40:29.091752+00	\N
+2798	5	tablespoon	2023-09-10 12:40:29.093985+00	2023-09-10 12:40:29.093985+00	\N
+2799	250	gram	2023-09-10 12:40:29.09607+00	2023-09-10 12:40:29.09607+00	\N
+2800	1	tablespoon	2023-09-10 12:40:29.098197+00	2023-09-10 12:40:29.098197+00	\N
+2801	1	count	2023-09-10 12:40:29.1004+00	2023-09-10 12:40:29.1004+00	\N
+2802	800	gram	2023-09-10 12:40:29.102616+00	2023-09-10 12:40:29.102616+00	\N
+2803	1	count	2023-09-10 12:40:29.104783+00	2023-09-10 12:40:29.104783+00	\N
+2804	1	tablespoon	2023-09-10 12:40:29.106542+00	2023-09-10 12:40:29.106542+00	\N
+2805	1	tablespoon	2023-09-10 12:40:29.109452+00	2023-09-10 12:40:29.109452+00	\N
+2806	0.5	teaspoon	2023-09-10 12:40:29.111371+00	2023-09-10 12:40:29.111371+00	\N
+2807	1	tablespoon	2023-09-10 12:40:29.113757+00	2023-09-10 12:40:29.113757+00	\N
+2808	1	litre	2023-09-10 12:40:29.115788+00	2023-09-10 12:40:29.115788+00	\N
+2809	100	gram	2023-09-10 12:40:29.117787+00	2023-09-10 12:40:29.117787+00	\N
+2810	1	count	2023-09-10 12:40:29.119764+00	2023-09-10 12:40:29.119764+00	\N
+2811	2	tablespoon	2023-09-10 12:40:29.12205+00	2023-09-10 12:40:29.12205+00	\N
+2812	1	tablespoon	2023-09-10 12:40:29.124412+00	2023-09-10 12:40:29.124412+00	\N
+2813	200	gram	2023-09-10 12:40:29.126222+00	2023-09-10 12:40:29.126222+00	\N
+2814	\N	arbitrary	2023-09-10 12:40:29.128145+00	2023-09-10 12:40:29.128145+00	1 handful
+2815	2	count	2023-09-10 12:40:29.144772+00	2023-09-10 12:40:29.144772+00	\N
+2816	1	count	2023-09-10 12:40:29.146644+00	2023-09-10 12:40:29.146644+00	\N
+2817	1	count	2023-09-10 12:40:29.149174+00	2023-09-10 12:40:29.149174+00	\N
+2818	1	count	2023-09-10 12:40:29.151134+00	2023-09-10 12:40:29.151134+00	\N
+2819	\N	arbitrary	2023-09-10 12:40:29.153078+00	2023-09-10 12:40:29.153078+00	pinch
+2820	1	tablespoon	2023-09-10 12:40:29.155341+00	2023-09-10 12:40:29.155341+00	\N
+2821	\N	arbitrary	2023-09-10 12:40:29.157876+00	2023-09-10 12:40:29.157876+00	pinch
+2822	2	count	2023-09-10 12:40:29.159971+00	2023-09-10 12:40:29.159971+00	\N
+2823	4	tablespoon	2023-09-10 12:40:29.162051+00	2023-09-10 12:40:29.162051+00	\N
+2824	1	count	2023-09-10 12:40:29.164352+00	2023-09-10 12:40:29.164352+00	\N
+2825	4	tablespoon	2023-09-10 12:40:29.166699+00	2023-09-10 12:40:29.166699+00	\N
+2826	8	count	2023-09-10 12:40:29.168945+00	2023-09-10 12:40:29.168945+00	\N
+2827	\N	arbitrary	2023-09-10 12:40:29.17097+00	2023-09-10 12:40:29.17097+00	1 bag
+2828	230	gram	2023-09-10 12:40:29.172933+00	2023-09-10 12:40:29.172933+00	\N
+2829	1	kilogram	2023-09-10 12:40:29.186354+00	2023-09-10 12:40:29.186354+00	\N
+2830	2	cloves	2023-09-10 12:40:29.188577+00	2023-09-10 12:40:29.188577+00	\N
+2831	300	millilitre	2023-09-10 12:40:29.190688+00	2023-09-10 12:40:29.190688+00	\N
+2832	200	millilitre	2023-09-10 12:40:29.192739+00	2023-09-10 12:40:29.192739+00	\N
+2833	100	gram	2023-09-10 12:40:29.195118+00	2023-09-10 12:40:29.195118+00	\N
+2834	50	gram	2023-09-10 12:40:29.197357+00	2023-09-10 12:40:29.197357+00	\N
+2835	1	teaspoon	2023-09-10 12:40:29.199501+00	2023-09-10 12:40:29.199501+00	\N
+2836	\N	arbitrary	2023-09-10 12:40:29.201483+00	2023-09-10 12:40:29.201483+00	1 pinch
+2837	\N	arbitrary	2023-09-10 12:40:29.203484+00	2023-09-10 12:40:29.203484+00	to taste
+2838	\N	arbitrary	2023-09-10 12:40:29.205415+00	2023-09-10 12:40:29.205415+00	to taste
+2839	2	cup	2023-09-10 12:40:29.222531+00	2023-09-10 12:40:29.222531+00	\N
+2840	4	count	2023-09-10 12:40:29.22465+00	2023-09-10 12:40:29.22465+00	\N
+2841	0.5	cup	2023-09-10 12:40:29.227582+00	2023-09-10 12:40:29.227582+00	\N
+2842	0.5	teaspoon	2023-09-10 12:40:29.230729+00	2023-09-10 12:40:29.230729+00	\N
+2843	0.5	cup	2023-09-10 12:40:29.232708+00	2023-09-10 12:40:29.232708+00	\N
+2844	3	tablespoon	2023-09-10 12:40:29.234474+00	2023-09-10 12:40:29.234474+00	\N
+2845	2	cup	2023-09-10 12:40:29.236648+00	2023-09-10 12:40:29.236648+00	\N
+2846	1	cup	2023-09-10 12:40:29.238649+00	2023-09-10 12:40:29.238649+00	\N
+2847	0.5	cup	2023-09-10 12:40:29.240908+00	2023-09-10 12:40:29.240908+00	\N
+2848	0.25	teaspoon	2023-09-10 12:40:29.242762+00	2023-09-10 12:40:29.242762+00	\N
+2849	0.5	teaspoon	2023-09-10 12:40:29.244602+00	2023-09-10 12:40:29.244602+00	\N
+2850	0.25	teaspoon	2023-09-10 12:40:29.246448+00	2023-09-10 12:40:29.246448+00	\N
+2851	3	tablespoon	2023-09-10 12:40:29.248421+00	2023-09-10 12:40:29.248421+00	\N
+2852	0.5	cup	2023-09-10 12:40:29.250304+00	2023-09-10 12:40:29.250304+00	\N
+2853	3	tablespoon	2023-09-10 12:40:29.265505+00	2023-09-10 12:40:29.265505+00	\N
+2854	4	count	2023-09-10 12:40:29.267758+00	2023-09-10 12:40:29.267758+00	\N
+2855	4	count	2023-09-10 12:40:29.269975+00	2023-09-10 12:40:29.269975+00	\N
+2856	2	count	2023-09-10 12:40:29.272347+00	2023-09-10 12:40:29.272347+00	\N
+2857	4	cup	2023-09-10 12:40:29.274614+00	2023-09-10 12:40:29.274614+00	\N
+2858	1	cup	2023-09-10 12:40:29.276995+00	2023-09-10 12:40:29.276995+00	\N
+2859	\N	arbitrary	2023-09-10 12:40:29.279198+00	2023-09-10 12:40:29.279198+00	1 bay leaf
+2860	0.5	cup	2023-09-10 12:40:29.281361+00	2023-09-10 12:40:29.281361+00	\N
+2861	0.5	teaspoon	2023-09-10 12:40:29.283488+00	2023-09-10 12:40:29.283488+00	\N
+2862	0.25	teaspoon	2023-09-10 12:40:29.294242+00	2023-09-10 12:40:29.294242+00	\N
+2863	2	tablespoon	2023-09-10 12:40:29.296544+00	2023-09-10 12:40:29.296544+00	\N
+2864	2	tablespoon	2023-09-10 12:40:29.298731+00	2023-09-10 12:40:29.298731+00	\N
+2865	2	cup	2023-09-10 12:40:29.315684+00	2023-09-10 12:40:29.315684+00	\N
+2866	1	tablespoon	2023-09-10 12:40:29.31757+00	2023-09-10 12:40:29.31757+00	\N
+2867	1	count	2023-09-10 12:40:29.319579+00	2023-09-10 12:40:29.319579+00	\N
+2868	2	cloves	2023-09-10 12:40:29.321441+00	2023-09-10 12:40:29.321441+00	\N
+2869	2	cup	2023-09-10 12:40:29.323386+00	2023-09-10 12:40:29.323386+00	\N
+2870	1	count	2023-09-10 12:40:29.325404+00	2023-09-10 12:40:29.325404+00	\N
+2871	4	count	2023-09-10 12:40:29.327536+00	2023-09-10 12:40:29.327536+00	\N
+2872	\N	arbitrary	2023-09-10 12:40:29.32964+00	2023-09-10 12:40:29.32964+00	1 1/2 cups
+2873	0.5	cup	2023-09-10 12:40:29.331591+00	2023-09-10 12:40:29.331591+00	\N
+2874	0.5	teaspoon	2023-09-10 12:40:29.333653+00	2023-09-10 12:40:29.333653+00	\N
+2875	0.25	teaspoon	2023-09-10 12:40:29.336473+00	2023-09-10 12:40:29.336473+00	\N
+2876	0.25	teaspoon	2023-09-10 12:40:29.338329+00	2023-09-10 12:40:29.338329+00	\N
+2877	\N	arbitrary	2023-09-10 12:40:29.340361+00	2023-09-10 12:40:29.340361+00	1 1/2 cups
+2878	0.25	cup	2023-09-10 12:40:29.34258+00	2023-09-10 12:40:29.34258+00	\N
+2879	1.5	kilogram	2023-09-10 12:40:29.364148+00	2023-09-10 12:40:29.364148+00	\N
+2880	2	tablespoon	2023-09-10 12:40:29.36667+00	2023-09-10 12:40:29.36667+00	\N
+2881	2	count	2023-09-10 12:40:29.368686+00	2023-09-10 12:40:29.368686+00	\N
+2882	2	count	2023-09-10 12:40:29.370721+00	2023-09-10 12:40:29.370721+00	\N
+2883	2	count	2023-09-10 12:40:29.372568+00	2023-09-10 12:40:29.372568+00	\N
+2884	2	tablespoon	2023-09-10 12:40:29.37467+00	2023-09-10 12:40:29.37467+00	\N
+2885	2	tablespoon	2023-09-10 12:40:29.376826+00	2023-09-10 12:40:29.376826+00	\N
+2886	500	millilitre	2023-09-10 12:40:29.378835+00	2023-09-10 12:40:29.378835+00	\N
+2887	2	tablespoon	2023-09-10 12:40:29.381093+00	2023-09-10 12:40:29.381093+00	\N
+2888	\N	arbitrary	2023-09-10 12:40:29.383353+00	2023-09-10 12:40:29.383353+00	few
+2889	\N	arbitrary	2023-09-10 12:40:29.385535+00	2023-09-10 12:40:29.385535+00	few
+2890	2	count	2023-09-10 12:40:29.387653+00	2023-09-10 12:40:29.387653+00	\N
+2891	3	count	2023-09-10 12:40:29.38976+00	2023-09-10 12:40:29.38976+00	\N
+2892	500	gram	2023-09-10 12:40:29.391811+00	2023-09-10 12:40:29.391811+00	\N
+2893	2	count	2023-09-10 12:40:29.394824+00	2023-09-10 12:40:29.394824+00	\N
+2894	150	gram	2023-09-10 12:40:29.397246+00	2023-09-10 12:40:29.397246+00	\N
+2895	2	tablespoon	2023-09-10 12:40:29.399311+00	2023-09-10 12:40:29.399311+00	\N
+2896	\N	arbitrary	2023-09-10 12:40:29.401483+00	2023-09-10 12:40:29.401483+00	salt
+2897	\N	arbitrary	2023-09-10 12:40:29.403582+00	2023-09-10 12:40:29.403582+00	black pepper
+2898	320	gram	2023-09-10 12:40:29.429605+00	2023-09-10 12:40:29.429605+00	\N
+2899	4	count	2023-09-10 12:40:29.431634+00	2023-09-10 12:40:29.431634+00	\N
+2900	4	count	2023-09-10 12:40:29.433988+00	2023-09-10 12:40:29.433988+00	\N
+2901	200	millilitre	2023-09-10 12:40:29.436264+00	2023-09-10 12:40:29.436264+00	\N
+2902	200	millilitre	2023-09-10 12:40:29.438355+00	2023-09-10 12:40:29.438355+00	\N
+2903	200	gram	2023-09-10 12:40:29.44061+00	2023-09-10 12:40:29.44061+00	\N
+2904	\N	arbitrary	2023-09-10 12:40:29.442647+00	2023-09-10 12:40:29.442647+00	1 bunch
+2905	100	gram	2023-09-10 12:40:29.444782+00	2023-09-10 12:40:29.444782+00	\N
+2906	\N	arbitrary	2023-09-10 12:40:29.447764+00	2023-09-10 12:40:29.447764+00	salt
+2907	\N	arbitrary	2023-09-10 12:40:29.45159+00	2023-09-10 12:40:29.45159+00	black pepper
+2908	\N	arbitrary	2023-09-10 12:40:29.454376+00	2023-09-10 12:40:29.454376+00	1 knob
+2909	\N	arbitrary	2023-09-10 12:40:29.457346+00	2023-09-10 12:40:29.457346+00	olive oil
+2910	1	kilogram	2023-09-10 12:40:29.470175+00	2023-09-10 12:40:29.470175+00	\N
+2911	2	count	2023-09-10 12:40:29.472322+00	2023-09-10 12:40:29.472322+00	\N
+2912	4	tablespoon	2023-09-10 12:40:29.474473+00	2023-09-10 12:40:29.474473+00	\N
+2913	1	count	2023-09-10 12:40:29.476692+00	2023-09-10 12:40:29.476692+00	\N
+2914	2	cloves	2023-09-10 12:40:29.47894+00	2023-09-10 12:40:29.47894+00	\N
+2915	2	tablespoon	2023-09-10 12:40:29.480941+00	2023-09-10 12:40:29.480941+00	\N
+2916	1	teaspoon	2023-09-10 12:40:29.482789+00	2023-09-10 12:40:29.482789+00	\N
+2917	0.5	teaspoon	2023-09-10 12:40:29.484527+00	2023-09-10 12:40:29.484527+00	\N
+2918	\N	arbitrary	2023-09-10 12:40:29.486887+00	2023-09-10 12:40:29.486887+00	vegetable oil
+2919	2	count	2023-09-10 12:40:29.495101+00	2023-09-10 12:40:29.495101+00	\N
+2920	1	count	2023-09-10 12:40:29.497102+00	2023-09-10 12:40:29.497102+00	\N
+2921	100	gram	2023-09-10 12:40:29.499078+00	2023-09-10 12:40:29.499078+00	\N
+2922	\N	arbitrary	2023-09-10 12:40:29.50091+00	2023-09-10 12:40:29.50091+00	1 bunch
+2923	\N	arbitrary	2023-09-10 12:40:29.502661+00	2023-09-10 12:40:29.502661+00	1 pack
+2924	2	tablespoon	2023-09-10 12:40:29.509302+00	2023-09-10 12:40:29.509302+00	\N
+2925	\N	arbitrary	2023-09-10 12:40:29.511072+00	2023-09-10 12:40:29.511072+00	3 small
+2926	\N	arbitrary	2023-09-10 12:40:29.51301+00	2023-09-10 12:40:29.51301+00	1 sheet
+2927	100	gram	2023-09-10 12:40:29.514841+00	2023-09-10 12:40:29.514841+00	\N
+2928	\N	arbitrary	2023-09-10 12:40:29.523606+00	2023-09-10 12:40:29.523606+00	2 handfuls
+2929	2	count	2023-09-10 12:40:29.525594+00	2023-09-10 12:40:29.525594+00	\N
+2930	2	count	2023-09-10 12:40:29.527732+00	2023-09-10 12:40:29.527732+00	\N
+2931	100	gram	2023-09-10 12:40:29.531406+00	2023-09-10 12:40:29.531406+00	\N
+2932	100	millilitre	2023-09-10 12:40:29.534669+00	2023-09-10 12:40:29.534669+00	\N
+2933	\N	arbitrary	2023-09-10 12:40:29.537421+00	2023-09-10 12:40:29.537421+00	10 leaves
+2934	\N	arbitrary	2023-09-10 12:40:29.545015+00	2023-09-10 12:40:29.545015+00	enough for at least 2 pizzas
+2935	2	tablespoon	2023-09-10 12:40:29.547191+00	2023-09-10 12:40:29.547191+00	\N
+2936	2	count	2023-09-10 12:40:29.549353+00	2023-09-10 12:40:29.549353+00	\N
+2937	\N	arbitrary	2023-09-10 12:40:29.551525+00	2023-09-10 12:40:29.551525+00	1 pack
+2938	125	gram	2023-09-10 12:40:29.564591+00	2023-09-10 12:40:29.564591+00	\N
+2939	325	millilitre	2023-09-10 12:40:29.566532+00	2023-09-10 12:40:29.566532+00	\N
+2940	400	gram	2023-09-10 12:40:29.56846+00	2023-09-10 12:40:29.56846+00	\N
+2941	1	count	2023-09-10 12:40:29.570135+00	2023-09-10 12:40:29.570135+00	\N
+2942	150	gram	2023-09-10 12:40:29.571902+00	2023-09-10 12:40:29.571902+00	\N
+2943	200	gram	2023-09-10 12:40:29.573859+00	2023-09-10 12:40:29.573859+00	\N
+2944	40	gram	2023-09-10 12:40:29.576325+00	2023-09-10 12:40:29.576325+00	\N
+2945	15	gram	2023-09-10 12:40:29.578417+00	2023-09-10 12:40:29.578417+00	\N
+2946	2	count	2023-09-10 12:40:29.580248+00	2023-09-10 12:40:29.580248+00	\N
+2947	800	gram	2023-09-10 12:40:29.592945+00	2023-09-10 12:40:29.592945+00	\N
+2948	1	count	2023-09-10 12:40:29.594963+00	2023-09-10 12:40:29.594963+00	\N
+2949	8	count	2023-09-10 12:40:29.596719+00	2023-09-10 12:40:29.596719+00	\N
+2950	8	count	2023-09-10 12:40:29.598589+00	2023-09-10 12:40:29.598589+00	\N
+2951	1	count	2023-09-10 12:40:29.6006+00	2023-09-10 12:40:29.6006+00	\N
+2952	280	gram	2023-09-10 12:40:29.602374+00	2023-09-10 12:40:29.602374+00	\N
+2953	\N	arbitrary	2023-09-10 12:40:29.604816+00	2023-09-10 12:40:29.604816+00	3-4 sprigs
+2954	\N	arbitrary	2023-09-10 12:40:29.60686+00	2023-09-10 12:40:29.60686+00	5-6 sprigs
+2955	340	gram	2023-09-10 12:40:29.608751+00	2023-09-10 12:40:29.608751+00	\N
+2956	20	gram	2023-09-10 12:40:29.610719+00	2023-09-10 12:40:29.610719+00	\N
+2957	1	count	2023-09-10 12:40:29.623088+00	2023-09-10 12:40:29.623088+00	\N
+2958	2	count	2023-09-10 12:40:29.625257+00	2023-09-10 12:40:29.625257+00	\N
+2959	2	count	2023-09-10 12:40:29.627148+00	2023-09-10 12:40:29.627148+00	\N
+2960	6	count	2023-09-10 12:40:29.629164+00	2023-09-10 12:40:29.629164+00	\N
+2961	150	gram	2023-09-10 12:40:29.630878+00	2023-09-10 12:40:29.630878+00	\N
+2962	\N	arbitrary	2023-09-10 12:40:29.632721+00	2023-09-10 12:40:29.632721+00	4 pinches
+2963	250	gram	2023-09-10 12:40:29.634954+00	2023-09-10 12:40:29.634954+00	\N
+2964	600	millilitre	2023-09-10 12:40:29.637112+00	2023-09-10 12:40:29.637112+00	\N
+2965	1	count	2023-09-10 12:40:29.639+00	2023-09-10 12:40:29.639+00	\N
+2966	20	gram	2023-09-10 12:40:29.640783+00	2023-09-10 12:40:29.640783+00	\N
+2967	2	count	2023-09-10 12:40:29.661795+00	2023-09-10 12:40:29.661795+00	\N
+2968	2	count	2023-09-10 12:40:29.663713+00	2023-09-10 12:40:29.663713+00	\N
+2969	15	gram	2023-09-10 12:40:29.665603+00	2023-09-10 12:40:29.665603+00	\N
+2970	400	gram	2023-09-10 12:40:29.667581+00	2023-09-10 12:40:29.667581+00	\N
+2971	400	gram	2023-09-10 12:40:29.669694+00	2023-09-10 12:40:29.669694+00	\N
+2972	1	count	2023-09-10 12:40:29.671445+00	2023-09-10 12:40:29.671445+00	\N
+2973	4	tablespoon	2023-09-10 12:40:29.673436+00	2023-09-10 12:40:29.673436+00	\N
+2974	600	millilitre	2023-09-10 12:40:29.675388+00	2023-09-10 12:40:29.675388+00	\N
+2975	1	count	2023-09-10 12:40:29.677511+00	2023-09-10 12:40:29.677511+00	\N
+2976	20	gram	2023-09-10 12:40:29.679418+00	2023-09-10 12:40:29.679418+00	\N
+2977	1	tablespoon	2023-09-10 12:40:29.681812+00	2023-09-10 12:40:29.681812+00	\N
+2978	1	tablespoon	2023-09-10 12:40:29.683819+00	2023-09-10 12:40:29.683819+00	\N
+2979	800	gram	2023-09-10 12:40:29.685769+00	2023-09-10 12:40:29.685769+00	\N
+2980	2	cloves	2023-09-10 12:40:29.687666+00	2023-09-10 12:40:29.687666+00	\N
+2981	150	gram	2023-09-10 12:40:29.690044+00	2023-09-10 12:40:29.690044+00	\N
+2982	\N	arbitrary	2023-09-10 12:40:29.701376+00	2023-09-10 12:40:29.701376+00	1 pound
+2983	0.25	cup	2023-09-10 12:40:29.703275+00	2023-09-10 12:40:29.703275+00	\N
+2984	\N	arbitrary	2023-09-10 12:40:29.705357+00	2023-09-10 12:40:29.705357+00	1 clove
+2985	\N	arbitrary	2023-09-10 12:40:29.707233+00	2023-09-10 12:40:29.707233+00	6 ounces
+2986	2	cup	2023-09-10 12:40:29.709229+00	2023-09-10 12:40:29.709229+00	\N
+2987	2	cup	2023-09-10 12:40:29.71156+00	2023-09-10 12:40:29.71156+00	\N
+2988	0.5	cup	2023-09-10 12:40:29.713707+00	2023-09-10 12:40:29.713707+00	\N
+2989	0.5	cup	2023-09-10 12:40:29.715737+00	2023-09-10 12:40:29.715737+00	\N
+2990	1	count	2023-09-10 12:40:29.726359+00	2023-09-10 12:40:29.726359+00	\N
+2991	1	count	2023-09-10 12:40:29.728339+00	2023-09-10 12:40:29.728339+00	\N
+2992	3	count	2023-09-10 12:40:29.730305+00	2023-09-10 12:40:29.730305+00	\N
+2993	0.5	cup	2023-09-10 12:40:29.732258+00	2023-09-10 12:40:29.732258+00	\N
+2994	1	count	2023-09-10 12:40:29.734243+00	2023-09-10 12:40:29.734243+00	\N
+2995	2	cup	2023-09-10 12:40:29.736469+00	2023-09-10 12:40:29.736469+00	\N
+2996	5	tablespoon	2023-09-10 12:40:29.738857+00	2023-09-10 12:40:29.738857+00	\N
+2997	0.25	teaspoon	2023-09-10 12:40:29.741078+00	2023-09-10 12:40:29.741078+00	\N
+2998	1	count	2023-09-10 12:40:29.75324+00	2023-09-10 12:40:29.75324+00	\N
+2999	250	gram	2023-09-10 12:40:29.755249+00	2023-09-10 12:40:29.755249+00	\N
+3000	1	count	2023-09-10 12:40:29.758243+00	2023-09-10 12:40:29.758243+00	\N
+3001	100	millilitre	2023-09-10 12:40:29.760325+00	2023-09-10 12:40:29.760325+00	\N
+3002	200	millilitre	2023-09-10 12:40:29.762485+00	2023-09-10 12:40:29.762485+00	\N
+3003	1	count	2023-09-10 12:40:29.764485+00	2023-09-10 12:40:29.764485+00	\N
+3004	200	gram	2023-09-10 12:40:29.766529+00	2023-09-10 12:40:29.766529+00	\N
+3005	300	gram	2023-09-10 12:40:29.768481+00	2023-09-10 12:40:29.768481+00	\N
+3006	\N	arbitrary	2023-09-10 12:40:29.770454+00	2023-09-10 12:40:29.770454+00	1/2 bunch
+3007	4	count	2023-09-10 12:40:29.780916+00	2023-09-10 12:40:29.780916+00	\N
+3008	280	gram	2023-09-10 12:40:29.782907+00	2023-09-10 12:40:29.782907+00	\N
+3009	200	gram	2023-09-10 12:40:29.784689+00	2023-09-10 12:40:29.784689+00	\N
+3010	100	gram	2023-09-10 12:40:29.78649+00	2023-09-10 12:40:29.78649+00	\N
+3011	\N	arbitrary	2023-09-10 12:40:29.788474+00	2023-09-10 12:40:29.788474+00	1 bunch
+3012	1	count	2023-09-10 12:40:29.790365+00	2023-09-10 12:40:29.790365+00	\N
+3013	50	gram	2023-09-10 12:40:29.792261+00	2023-09-10 12:40:29.792261+00	\N
+3014	1	count	2023-09-10 12:40:29.803919+00	2023-09-10 12:40:29.803919+00	\N
+3015	150	gram	2023-09-10 12:40:29.805826+00	2023-09-10 12:40:29.805826+00	\N
+3016	0.5	teaspoon	2023-09-10 12:40:29.807714+00	2023-09-10 12:40:29.807714+00	\N
+3017	1	count	2023-09-10 12:40:29.809609+00	2023-09-10 12:40:29.809609+00	\N
+3018	1	count	2023-09-10 12:40:29.811606+00	2023-09-10 12:40:29.811606+00	\N
+3019	2	count	2023-09-10 12:40:29.813831+00	2023-09-10 12:40:29.813831+00	\N
+3020	4	count	2023-09-10 12:40:29.815643+00	2023-09-10 12:40:29.815643+00	\N
+3021	1	count	2023-09-10 12:40:29.817432+00	2023-09-10 12:40:29.817432+00	\N
+3022	1	count	2023-09-10 12:40:29.819136+00	2023-09-10 12:40:29.819136+00	\N
+3023	200	gram	2023-09-10 12:40:29.829685+00	2023-09-10 12:40:29.829685+00	\N
+3024	200	gram	2023-09-10 12:40:29.831521+00	2023-09-10 12:40:29.831521+00	\N
+3025	1	count	2023-09-10 12:40:29.833522+00	2023-09-10 12:40:29.833522+00	\N
+3026	1	count	2023-09-10 12:40:29.835225+00	2023-09-10 12:40:29.835225+00	\N
+3027	2	count	2023-09-10 12:40:29.836858+00	2023-09-10 12:40:29.836858+00	\N
+3028	1	count	2023-09-10 12:40:29.838767+00	2023-09-10 12:40:29.838767+00	\N
+3029	1	count	2023-09-10 12:40:29.840943+00	2023-09-10 12:40:29.840943+00	\N
+3030	1	count	2023-09-10 12:40:29.842847+00	2023-09-10 12:40:29.842847+00	\N
+3031	2	count	2023-09-10 12:40:29.851264+00	2023-09-10 12:40:29.851264+00	\N
+3032	3	count	2023-09-10 12:40:29.853065+00	2023-09-10 12:40:29.853065+00	\N
+3033	2	count	2023-09-10 12:40:29.854922+00	2023-09-10 12:40:29.854922+00	\N
+3034	2	count	2023-09-10 12:40:29.856788+00	2023-09-10 12:40:29.856788+00	\N
+3035	4	count	2023-09-10 12:40:29.85871+00	2023-09-10 12:40:29.85871+00	\N
+3036	500	gram	2023-09-10 12:40:29.860547+00	2023-09-10 12:40:29.860547+00	\N
+3037	1	count	2023-09-10 12:40:29.872649+00	2023-09-10 12:40:29.872649+00	\N
+3038	1	count	2023-09-10 12:40:29.874614+00	2023-09-10 12:40:29.874614+00	\N
+3039	1	count	2023-09-10 12:40:29.876612+00	2023-09-10 12:40:29.876612+00	\N
+3040	2	count	2023-09-10 12:40:29.878339+00	2023-09-10 12:40:29.878339+00	\N
+3041	1	count	2023-09-10 12:40:29.880009+00	2023-09-10 12:40:29.880009+00	\N
+3042	300	gram	2023-09-10 12:40:29.881989+00	2023-09-10 12:40:29.881989+00	\N
+3043	600	millilitre	2023-09-10 12:40:29.88369+00	2023-09-10 12:40:29.88369+00	\N
+3044	2	count	2023-09-10 12:40:29.885599+00	2023-09-10 12:40:29.885599+00	\N
+3045	75	gram	2023-09-10 12:40:29.887532+00	2023-09-10 12:40:29.887532+00	\N
+3046	20	gram	2023-09-10 12:40:29.889302+00	2023-09-10 12:40:29.889302+00	\N
+3047	100	gram	2023-09-10 12:40:29.890947+00	2023-09-10 12:40:29.890947+00	\N
+3048	200	gram	2023-09-10 12:40:29.897333+00	2023-09-10 12:40:29.897333+00	\N
+3049	800	gram	2023-09-10 12:40:29.899097+00	2023-09-10 12:40:29.899097+00	\N
+3050	800	gram	2023-09-10 12:40:29.900919+00	2023-09-10 12:40:29.900919+00	\N
+3051	130	gram	2023-09-10 12:40:29.902553+00	2023-09-10 12:40:29.902553+00	\N
+3052	12	count	2023-09-10 12:40:29.909494+00	2023-09-10 12:40:29.909494+00	\N
+3053	500	gram	2023-09-10 12:40:29.911274+00	2023-09-10 12:40:29.911274+00	\N
+3054	\N	arbitrary	2023-09-10 12:40:29.913032+00	2023-09-10 12:40:29.913032+00	Bunch
+3055	200	gram	2023-09-10 12:40:29.916959+00	2023-09-10 12:40:29.916959+00	\N
+3056	1200	gram	2023-09-10 12:40:29.934809+00	2023-09-10 12:40:29.934809+00	\N
+3057	3	tablespoon	2023-09-10 12:40:29.936892+00	2023-09-10 12:40:29.936892+00	\N
+3058	\N	arbitrary	2023-09-10 12:40:29.938855+00	2023-09-10 12:40:29.938855+00	1 1/2 tbsp
+3059	\N	arbitrary	2023-09-10 12:40:29.940755+00	2023-09-10 12:40:29.940755+00	1 1/2 tbsp
+3060	\N	arbitrary	2023-09-10 12:40:29.942584+00	2023-09-10 12:40:29.942584+00	1 1/2 tbsp
+3061	\N	arbitrary	2023-09-10 12:40:29.944582+00	2023-09-10 12:40:29.944582+00	1 Clove
+3062	2	tablespoon	2023-09-10 12:40:29.946527+00	2023-09-10 12:40:29.946527+00	\N
+3063	2	count	2023-09-10 12:40:29.94833+00	2023-09-10 12:40:29.94833+00	\N
+3064	2	count	2023-09-10 12:40:29.950259+00	2023-09-10 12:40:29.950259+00	\N
+3065	1	count	2023-09-10 12:40:29.952072+00	2023-09-10 12:40:29.952072+00	\N
+3066	110	gram	2023-09-10 12:40:29.953878+00	2023-09-10 12:40:29.953878+00	\N
+3067	1	count	2023-09-10 12:40:29.955732+00	2023-09-10 12:40:29.955732+00	\N
+3068	12	count	2023-09-10 12:40:29.957522+00	2023-09-10 12:40:29.957522+00	\N
+3069	150	millilitre	2023-09-10 12:40:29.959302+00	2023-09-10 12:40:29.959302+00	\N
+3070	4	count	2023-09-10 12:40:29.968178+00	2023-09-10 12:40:29.968178+00	\N
+3071	100	gram	2023-09-10 12:40:29.970122+00	2023-09-10 12:40:29.970122+00	\N
+3072	200	gram	2023-09-10 12:40:29.972564+00	2023-09-10 12:40:29.972564+00	\N
+3073	500	gram	2023-09-10 12:40:29.974407+00	2023-09-10 12:40:29.974407+00	\N
+3074	200	gram	2023-09-10 12:40:29.976267+00	2023-09-10 12:40:29.976267+00	\N
+3075	\N	arbitrary	2023-09-10 12:40:29.978222+00	2023-09-10 12:40:29.978222+00	1 bunch
+3076	6	count	2023-09-10 12:40:29.98725+00	2023-09-10 12:40:29.98725+00	\N
+3077	200	gram	2023-09-10 12:40:29.989776+00	2023-09-10 12:40:29.989776+00	\N
+3078	140	gram	2023-09-10 12:40:29.991888+00	2023-09-10 12:40:29.991888+00	\N
+3079	120	gram	2023-09-10 12:40:29.993949+00	2023-09-10 12:40:29.993949+00	\N
+3080	40	gram	2023-09-10 12:40:29.995929+00	2023-09-10 12:40:29.995929+00	\N
+3081	1.5	kilogram	2023-09-10 12:40:30.004811+00	2023-09-10 12:40:30.004811+00	\N
+3082	\N	arbitrary	2023-09-10 12:40:30.006857+00	2023-09-10 12:40:30.006857+00	1/2 liter
+3083	125	millilitre	2023-09-10 12:40:30.008887+00	2023-09-10 12:40:30.008887+00	\N
+3084	100	millilitre	2023-09-10 12:40:30.011405+00	2023-09-10 12:40:30.011405+00	\N
+3085	1	tablespoon	2023-09-10 12:40:30.013637+00	2023-09-10 12:40:30.013637+00	\N
+3086	1	count	2023-09-10 12:40:30.023034+00	2023-09-10 12:40:30.023034+00	\N
+3087	200	gram	2023-09-10 12:40:30.024883+00	2023-09-10 12:40:30.024883+00	\N
+3088	4	count	2023-09-10 12:40:30.026878+00	2023-09-10 12:40:30.026878+00	\N
+3089	500	millilitre	2023-09-10 12:40:30.028941+00	2023-09-10 12:40:30.028941+00	\N
+3090	0.25	tablespoon	2023-09-10 12:40:30.030767+00	2023-09-10 12:40:30.030767+00	\N
+3091	2	tablespoon	2023-09-10 12:40:30.032774+00	2023-09-10 12:40:30.032774+00	\N
+3092	1	count	2023-09-10 12:40:30.034774+00	2023-09-10 12:40:30.034774+00	\N
+3093	400	millilitre	2023-09-10 12:40:30.047876+00	2023-09-10 12:40:30.047876+00	\N
+3094	1	kilogram	2023-09-10 12:40:30.049874+00	2023-09-10 12:40:30.049874+00	\N
+3095	600	gram	2023-09-10 12:40:30.051653+00	2023-09-10 12:40:30.051653+00	\N
+3096	6	count	2023-09-10 12:40:30.053678+00	2023-09-10 12:40:30.053678+00	\N
+3097	4	cloves	2023-09-10 12:40:30.055502+00	2023-09-10 12:40:30.055502+00	\N
+3098	1	count	2023-09-10 12:40:30.057496+00	2023-09-10 12:40:30.057496+00	\N
+3099	1	teaspoon	2023-09-10 12:40:30.059454+00	2023-09-10 12:40:30.059454+00	\N
+3100	2	teaspoon	2023-09-10 12:40:30.06158+00	2023-09-10 12:40:30.06158+00	\N
+3101	2	count	2023-09-10 12:40:30.063501+00	2023-09-10 12:40:30.063501+00	\N
+3102	3	tablespoon	2023-09-10 12:40:30.065413+00	2023-09-10 12:40:30.065413+00	\N
+3103	2	teaspoon	2023-09-10 12:40:30.067465+00	2023-09-10 12:40:30.067465+00	\N
+3104	750	gram	2023-09-10 12:40:30.079844+00	2023-09-10 12:40:30.079844+00	\N
+3105	\N	arbitrary	2023-09-10 12:40:30.082091+00	2023-09-10 12:40:30.082091+00	handful
+3106	300	gram	2023-09-10 12:40:30.084193+00	2023-09-10 12:40:30.084193+00	\N
+3107	2	count	2023-09-10 12:40:30.086122+00	2023-09-10 12:40:30.086122+00	\N
+3108	2	cloves	2023-09-10 12:40:30.087732+00	2023-09-10 12:40:30.087732+00	\N
+3109	1	count	2023-09-10 12:40:30.089854+00	2023-09-10 12:40:30.089854+00	\N
+3110	1	teaspoon	2023-09-10 12:40:30.091904+00	2023-09-10 12:40:30.091904+00	\N
+3111	1	teaspoon	2023-09-10 12:40:30.093937+00	2023-09-10 12:40:30.093937+00	\N
+3112	100	gram	2023-09-10 12:40:30.095843+00	2023-09-10 12:40:30.095843+00	\N
+3113	1	count	2023-09-10 12:40:30.097741+00	2023-09-10 12:40:30.097741+00	\N
+3114	800	gram	2023-09-10 12:40:30.108335+00	2023-09-10 12:40:30.108335+00	\N
+3115	560	gram	2023-09-10 12:40:30.110299+00	2023-09-10 12:40:30.110299+00	\N
+3116	2	cloves	2023-09-10 12:40:30.112618+00	2023-09-10 12:40:30.112618+00	\N
+3117	200	gram	2023-09-10 12:40:30.114656+00	2023-09-10 12:40:30.114656+00	\N
+3118	4	count	2023-09-10 12:40:30.116737+00	2023-09-10 12:40:30.116737+00	\N
+3119	1	teaspoon	2023-09-10 12:40:30.118701+00	2023-09-10 12:40:30.118701+00	\N
+3120	3	tablespoon	2023-09-10 12:40:30.120449+00	2023-09-10 12:40:30.120449+00	\N
+3121	1	count	2023-09-10 12:40:30.126855+00	2023-09-10 12:40:30.126855+00	\N
+3122	3	count	2023-09-10 12:40:30.129342+00	2023-09-10 12:40:30.129342+00	\N
+3123	450	gram	2023-09-10 12:40:30.132114+00	2023-09-10 12:40:30.132114+00	\N
+3125	1	count	2023-09-10 12:40:30.146364+00	2023-09-10 12:40:30.146364+00	\N
+3126	1	count	2023-09-10 12:40:30.1487+00	2023-09-10 12:40:30.1487+00	\N
+3127	1	count	2023-09-10 12:40:30.150683+00	2023-09-10 12:40:30.150683+00	\N
+3128	0.33333334	cup	2023-09-10 12:40:30.152681+00	2023-09-10 12:40:30.152681+00	\N
+3131	80	gram	2023-09-10 12:43:56.513249+00	2023-09-10 12:43:56.513249+00	\N
+3132	40	gram	2023-09-10 12:43:56.515609+00	2023-09-10 12:43:56.515609+00	\N
+3133	50	gram	2023-09-10 12:43:56.517515+00	2023-09-10 12:43:56.517515+00	\N
+3134	200	gram	2023-09-10 12:43:56.519525+00	2023-09-10 12:43:56.519525+00	\N
+3135	100	gram	2023-09-10 12:43:56.521402+00	2023-09-10 12:43:56.521402+00	\N
+3136	200	gram	2023-09-10 12:43:56.523306+00	2023-09-10 12:43:56.523306+00	\N
+3137	450	gram	2023-09-10 12:43:56.525302+00	2023-09-10 12:43:56.525302+00	\N
+3138	150	gram	2023-09-10 12:43:56.527261+00	2023-09-10 12:43:56.527261+00	\N
+3139	30	gram	2023-09-10 12:43:56.529022+00	2023-09-10 12:43:56.529022+00	\N
+3140	\N	arbitrary	2023-09-10 12:43:56.53111+00	2023-09-10 12:43:56.53111+00	3 pinches
+3141	10	count	2023-09-10 12:43:56.532959+00	2023-09-10 12:43:56.532959+00	\N
+3142	15	gram	2023-09-10 12:43:56.545057+00	2023-09-10 12:43:56.545057+00	\N
+3143	20	gram	2023-09-10 12:43:56.547005+00	2023-09-10 12:43:56.547005+00	\N
+3144	30	gram	2023-09-10 12:43:56.548872+00	2023-09-10 12:43:56.548872+00	\N
+3145	100	gram	2023-09-10 12:43:56.550744+00	2023-09-10 12:43:56.550744+00	\N
+3146	200	gram	2023-09-10 12:43:56.552738+00	2023-09-10 12:43:56.552738+00	\N
+3147	100	gram	2023-09-10 12:43:56.554725+00	2023-09-10 12:43:56.554725+00	\N
+3148	150	gram	2023-09-10 12:43:56.556751+00	2023-09-10 12:43:56.556751+00	\N
+3149	6	count	2023-09-10 12:43:56.55876+00	2023-09-10 12:43:56.55876+00	\N
+3150	80	gram	2023-09-10 12:43:56.561057+00	2023-09-10 12:43:56.561057+00	\N
+3151	50	gram	2023-09-10 12:43:56.572741+00	2023-09-10 12:43:56.572741+00	\N
+3152	0.25	teaspoon	2023-09-10 12:43:56.575178+00	2023-09-10 12:43:56.575178+00	\N
+3153	350	gram	2023-09-10 12:43:56.577047+00	2023-09-10 12:43:56.577047+00	\N
+3154	450	gram	2023-09-10 12:43:56.578781+00	2023-09-10 12:43:56.578781+00	\N
+3155	200	gram	2023-09-10 12:43:56.580681+00	2023-09-10 12:43:56.580681+00	\N
+3156	0.25	teaspoon	2023-09-10 12:43:56.58247+00	2023-09-10 12:43:56.58247+00	\N
+3157	50	gram	2023-09-10 12:43:56.584277+00	2023-09-10 12:43:56.584277+00	\N
+3158	2	count	2023-09-10 12:43:56.585992+00	2023-09-10 12:43:56.585992+00	\N
+3159	\N	arbitrary	2023-09-10 12:43:56.600503+00	2023-09-10 12:43:56.600503+00	4 sprigs
+3160	200	gram	2023-09-10 12:43:56.602419+00	2023-09-10 12:43:56.602419+00	\N
+3161	1	teaspoon	2023-09-10 12:43:56.604353+00	2023-09-10 12:43:56.604353+00	\N
+3162	\N	arbitrary	2023-09-10 12:43:56.606209+00	2023-09-10 12:43:56.606209+00	2 garlic
+3163	2	count	2023-09-10 12:43:56.608027+00	2023-09-10 12:43:56.608027+00	\N
+3164	60	gram	2023-09-10 12:43:56.609937+00	2023-09-10 12:43:56.609937+00	\N
+3165	30	gram	2023-09-10 12:43:56.611946+00	2023-09-10 12:43:56.611946+00	\N
+3166	0.5	teaspoon	2023-09-10 12:43:56.613981+00	2023-09-10 12:43:56.613981+00	\N
+3167	250	gram	2023-09-10 12:43:56.615931+00	2023-09-10 12:43:56.615931+00	\N
+3168	250	gram	2023-09-10 12:43:56.617935+00	2023-09-10 12:43:56.617935+00	\N
+3169	680	gram	2023-09-10 12:43:56.619995+00	2023-09-10 12:43:56.619995+00	\N
+3170	\N	arbitrary	2023-09-10 12:43:56.621897+00	2023-09-10 12:43:56.621897+00	1 Tbsp
+3171	\N	arbitrary	2023-09-10 12:43:56.632567+00	2023-09-10 12:43:56.632567+00	1 cube
+3172	\N	arbitrary	2023-09-10 12:43:56.635014+00	2023-09-10 12:43:56.635014+00	1 pinch
+3173	1	teaspoon	2023-09-10 12:43:56.636986+00	2023-09-10 12:43:56.636986+00	\N
+3174	100	gram	2023-09-10 12:43:56.639085+00	2023-09-10 12:43:56.639085+00	\N
+3175	80	gram	2023-09-10 12:43:56.641432+00	2023-09-10 12:43:56.641432+00	\N
+3176	300	gram	2023-09-10 12:43:56.648148+00	2023-09-10 12:43:56.648148+00	\N
+3177	600	gram	2023-09-10 12:43:56.651665+00	2023-09-10 12:43:56.651665+00	\N
+3178	350	gram	2023-09-10 12:43:56.653629+00	2023-09-10 12:43:56.653629+00	\N
+3179	1	count	2023-09-10 12:43:56.666115+00	2023-09-10 12:43:56.666115+00	\N
+3180	60	gram	2023-09-10 12:43:56.667851+00	2023-09-10 12:43:56.667851+00	\N
+3181	300	gram	2023-09-10 12:43:56.669752+00	2023-09-10 12:43:56.669752+00	\N
+3182	0.5	count	2023-09-10 12:43:56.671916+00	2023-09-10 12:43:56.671916+00	\N
+3183	130	gram	2023-09-10 12:43:56.67387+00	2023-09-10 12:43:56.67387+00	\N
+3184	\N	arbitrary	2023-09-10 12:43:56.677434+00	2023-09-10 12:43:56.677434+00	3 sprigs
+3185	\N	arbitrary	2023-09-10 12:43:56.679371+00	2023-09-10 12:43:56.679371+00	1 pinch
+3186	\N	arbitrary	2023-09-10 12:43:56.681594+00	2023-09-10 12:43:56.681594+00	2 pinches
+3187	80	gram	2023-09-10 12:43:56.683407+00	2023-09-10 12:43:56.683407+00	\N
+3188	\N	arbitrary	2023-09-10 12:43:56.685388+00	2023-09-10 12:43:56.685388+00	5 medium
+3189	1	count	2023-09-10 12:43:56.69283+00	2023-09-10 12:43:56.69283+00	\N
+3190	500	gram	2023-09-10 12:43:56.694646+00	2023-09-10 12:43:56.694646+00	\N
+3191	180	gram	2023-09-10 12:43:56.696564+00	2023-09-10 12:43:56.696564+00	\N
+3192	500	gram	2023-09-10 12:43:56.698497+00	2023-09-10 12:43:56.698497+00	\N
+3193	600	gram	2023-09-10 12:43:56.700293+00	2023-09-10 12:43:56.700293+00	\N
+3194	3	count	2023-09-10 12:43:56.730355+00	2023-09-10 12:43:56.730355+00	\N
+3195	30	gram	2023-09-10 12:43:56.732779+00	2023-09-10 12:43:56.732779+00	\N
+3196	800	gram	2023-09-10 12:43:56.735387+00	2023-09-10 12:43:56.735387+00	\N
+3197	160	gram	2023-09-10 12:43:56.737528+00	2023-09-10 12:43:56.737528+00	\N
+3198	80	gram	2023-09-10 12:43:56.739667+00	2023-09-10 12:43:56.739667+00	\N
+3199	80	gram	2023-09-10 12:43:56.741819+00	2023-09-10 12:43:56.741819+00	\N
+3200	80	gram	2023-09-10 12:43:56.743975+00	2023-09-10 12:43:56.743975+00	\N
+3201	10	gram	2023-09-10 12:43:56.745982+00	2023-09-10 12:43:56.745982+00	\N
+3202	\N	arbitrary	2023-09-10 12:43:56.748278+00	2023-09-10 12:43:56.748278+00	1-2 Tbsp
+3203	350	gram	2023-09-10 12:43:56.750363+00	2023-09-10 12:43:56.750363+00	\N
+3204	20	gram	2023-09-10 12:43:56.752504+00	2023-09-10 12:43:56.752504+00	\N
+3205	600	gram	2023-09-10 12:43:56.754701+00	2023-09-10 12:43:56.754701+00	\N
+3206	200	gram	2023-09-10 12:43:56.756897+00	2023-09-10 12:43:56.756897+00	\N
+3207	200	gram	2023-09-10 12:43:56.758849+00	2023-09-10 12:43:56.758849+00	\N
+3208	\N	arbitrary	2023-09-10 12:43:56.760991+00	2023-09-10 12:43:56.760991+00	garnish
+3209	1	count	2023-09-10 12:43:56.763062+00	2023-09-10 12:43:56.763062+00	\N
+3210	2	cups	2023-09-10 12:56:15.690978+00	2023-09-10 12:56:15.690978+00	\N
+3211	100	gram	2023-09-10 13:04:11.874882+00	2023-09-10 13:04:11.874882+00	\N
+3212	6	count	2023-09-10 13:04:46.847715+00	2023-09-10 13:04:46.847715+00	\N
+3213	2	count	2023-09-13 21:32:21.947731+00	2023-09-13 21:32:21.947731+00	\N
+3214	80	gram	2023-09-16 15:32:59.775644+00	2023-09-16 15:32:59.775644+00	\N
+3215	40	gram	2023-09-16 15:32:59.778333+00	2023-09-16 15:32:59.778333+00	\N
+3216	50	gram	2023-09-16 15:32:59.780601+00	2023-09-16 15:32:59.780601+00	\N
+3217	200	gram	2023-09-16 15:32:59.782624+00	2023-09-16 15:32:59.782624+00	\N
+3218	100	gram	2023-09-16 15:32:59.784386+00	2023-09-16 15:32:59.784386+00	\N
+3219	200	gram	2023-09-16 15:32:59.786491+00	2023-09-16 15:32:59.786491+00	\N
+3220	450	gram	2023-09-16 15:32:59.788549+00	2023-09-16 15:32:59.788549+00	\N
+3221	150	gram	2023-09-16 15:32:59.790683+00	2023-09-16 15:32:59.790683+00	\N
+3222	30	gram	2023-09-16 15:32:59.793339+00	2023-09-16 15:32:59.793339+00	\N
+3223	\N	arbitrary	2023-09-16 15:32:59.795859+00	2023-09-16 15:32:59.795859+00	3 pinches
+3224	10	count	2023-09-16 15:32:59.797943+00	2023-09-16 15:32:59.797943+00	\N
+3225	15	gram	2023-09-16 15:32:59.813779+00	2023-09-16 15:32:59.813779+00	\N
+3226	20	gram	2023-09-16 15:32:59.816179+00	2023-09-16 15:32:59.816179+00	\N
+3227	30	gram	2023-09-16 15:32:59.818256+00	2023-09-16 15:32:59.818256+00	\N
+3228	100	gram	2023-09-16 15:32:59.820397+00	2023-09-16 15:32:59.820397+00	\N
+3229	200	gram	2023-09-16 15:32:59.822325+00	2023-09-16 15:32:59.822325+00	\N
+3230	100	gram	2023-09-16 15:32:59.824228+00	2023-09-16 15:32:59.824228+00	\N
+3231	150	gram	2023-09-16 15:32:59.826203+00	2023-09-16 15:32:59.826203+00	\N
+3232	6	count	2023-09-16 15:32:59.829109+00	2023-09-16 15:32:59.829109+00	\N
+3233	80	gram	2023-09-16 15:32:59.831132+00	2023-09-16 15:32:59.831132+00	\N
+3234	50	gram	2023-09-16 15:32:59.843451+00	2023-09-16 15:32:59.843451+00	\N
+3235	0.25	teaspoon	2023-09-16 15:32:59.845738+00	2023-09-16 15:32:59.845738+00	\N
+3236	350	gram	2023-09-16 15:32:59.848031+00	2023-09-16 15:32:59.848031+00	\N
+3237	450	gram	2023-09-16 15:32:59.850037+00	2023-09-16 15:32:59.850037+00	\N
+3238	200	gram	2023-09-16 15:32:59.852011+00	2023-09-16 15:32:59.852011+00	\N
+3239	0.25	teaspoon	2023-09-16 15:32:59.85467+00	2023-09-16 15:32:59.85467+00	\N
+3240	50	gram	2023-09-16 15:32:59.85646+00	2023-09-16 15:32:59.85646+00	\N
+3241	2	count	2023-09-16 15:32:59.858145+00	2023-09-16 15:32:59.858145+00	\N
+3242	\N	arbitrary	2023-09-16 15:32:59.872643+00	2023-09-16 15:32:59.872643+00	4 sprigs
+3243	200	gram	2023-09-16 15:32:59.874332+00	2023-09-16 15:32:59.874332+00	\N
+3244	1	teaspoon	2023-09-16 15:32:59.8763+00	2023-09-16 15:32:59.8763+00	\N
+3245	\N	arbitrary	2023-09-16 15:32:59.878067+00	2023-09-16 15:32:59.878067+00	2 garlic
+3246	2	count	2023-09-16 15:32:59.879926+00	2023-09-16 15:32:59.879926+00	\N
+3247	60	gram	2023-09-16 15:32:59.881705+00	2023-09-16 15:32:59.881705+00	\N
+3248	30	gram	2023-09-16 15:32:59.883578+00	2023-09-16 15:32:59.883578+00	\N
+3249	0.5	teaspoon	2023-09-16 15:32:59.885657+00	2023-09-16 15:32:59.885657+00	\N
+3250	250	gram	2023-09-16 15:32:59.887668+00	2023-09-16 15:32:59.887668+00	\N
+3251	250	gram	2023-09-16 15:32:59.889349+00	2023-09-16 15:32:59.889349+00	\N
+3252	680	gram	2023-09-16 15:32:59.891345+00	2023-09-16 15:32:59.891345+00	\N
+3253	\N	arbitrary	2023-09-16 15:32:59.893539+00	2023-09-16 15:32:59.893539+00	1 Tbsp
+3254	\N	arbitrary	2023-09-16 15:32:59.905353+00	2023-09-16 15:32:59.905353+00	1 cube
+3255	\N	arbitrary	2023-09-16 15:32:59.907482+00	2023-09-16 15:32:59.907482+00	1 pinch
+3256	1	teaspoon	2023-09-16 15:32:59.909331+00	2023-09-16 15:32:59.909331+00	\N
+3257	100	gram	2023-09-16 15:32:59.911181+00	2023-09-16 15:32:59.911181+00	\N
+3258	80	gram	2023-09-16 15:32:59.912983+00	2023-09-16 15:32:59.912983+00	\N
+3259	300	gram	2023-09-16 15:32:59.915157+00	2023-09-16 15:32:59.915157+00	\N
+3260	600	gram	2023-09-16 15:32:59.917149+00	2023-09-16 15:32:59.917149+00	\N
+3261	350	gram	2023-09-16 15:32:59.91882+00	2023-09-16 15:32:59.91882+00	\N
+3262	1	count	2023-09-16 15:32:59.931039+00	2023-09-16 15:32:59.931039+00	\N
+3263	60	gram	2023-09-16 15:32:59.933408+00	2023-09-16 15:32:59.933408+00	\N
+3264	300	gram	2023-09-16 15:32:59.936108+00	2023-09-16 15:32:59.936108+00	\N
+3265	0.5	count	2023-09-16 15:32:59.937798+00	2023-09-16 15:32:59.937798+00	\N
+3266	130	gram	2023-09-16 15:32:59.939438+00	2023-09-16 15:32:59.939438+00	\N
+3267	\N	arbitrary	2023-09-16 15:32:59.94127+00	2023-09-16 15:32:59.94127+00	3 sprigs
+3268	\N	arbitrary	2023-09-16 15:32:59.943059+00	2023-09-16 15:32:59.943059+00	1 pinch
+3269	\N	arbitrary	2023-09-16 15:32:59.945108+00	2023-09-16 15:32:59.945108+00	2 pinches
+3270	80	gram	2023-09-16 15:32:59.948448+00	2023-09-16 15:32:59.948448+00	\N
+3271	\N	arbitrary	2023-09-16 15:32:59.950751+00	2023-09-16 15:32:59.950751+00	5 medium
+3272	1	count	2023-09-16 15:32:59.957933+00	2023-09-16 15:32:59.957933+00	\N
+3273	500	gram	2023-09-16 15:32:59.959949+00	2023-09-16 15:32:59.959949+00	\N
+3274	180	gram	2023-09-16 15:32:59.96189+00	2023-09-16 15:32:59.96189+00	\N
+3275	500	gram	2023-09-16 15:32:59.963658+00	2023-09-16 15:32:59.963658+00	\N
+3276	600	gram	2023-09-16 15:32:59.965503+00	2023-09-16 15:32:59.965503+00	\N
+3277	3	count	2023-09-16 15:32:59.983361+00	2023-09-16 15:32:59.983361+00	\N
+3278	30	gram	2023-09-16 15:32:59.985243+00	2023-09-16 15:32:59.985243+00	\N
+3279	800	gram	2023-09-16 15:32:59.986981+00	2023-09-16 15:32:59.986981+00	\N
+3280	160	gram	2023-09-16 15:32:59.988939+00	2023-09-16 15:32:59.988939+00	\N
+3281	80	gram	2023-09-16 15:32:59.991627+00	2023-09-16 15:32:59.991627+00	\N
+3282	80	gram	2023-09-16 15:32:59.996912+00	2023-09-16 15:32:59.996912+00	\N
+3283	80	gram	2023-09-16 15:32:59.998952+00	2023-09-16 15:32:59.998952+00	\N
+3284	10	gram	2023-09-16 15:33:00.001904+00	2023-09-16 15:33:00.001904+00	\N
+3285	\N	arbitrary	2023-09-16 15:33:00.004743+00	2023-09-16 15:33:00.004743+00	1-2 Tbsp
+3286	350	gram	2023-09-16 15:33:00.006776+00	2023-09-16 15:33:00.006776+00	\N
+3287	20	gram	2023-09-16 15:33:00.008783+00	2023-09-16 15:33:00.008783+00	\N
+3288	600	gram	2023-09-16 15:33:00.010707+00	2023-09-16 15:33:00.010707+00	\N
+3289	200	gram	2023-09-16 15:33:00.012488+00	2023-09-16 15:33:00.012488+00	\N
+3290	200	gram	2023-09-16 15:33:00.014272+00	2023-09-16 15:33:00.014272+00	\N
+3291	\N	arbitrary	2023-09-16 15:33:00.016069+00	2023-09-16 15:33:00.016069+00	garnish
+3292	1	count	2023-09-16 15:33:00.018004+00	2023-09-16 15:33:00.018004+00	\N
+3293	225	gram	2023-09-16 15:33:00.030829+00	2023-09-16 15:33:00.030829+00	\N
+3294	1	count	2023-09-16 15:33:00.033443+00	2023-09-16 15:33:00.033443+00	\N
+3295	250	gram	2023-09-16 15:33:00.035544+00	2023-09-16 15:33:00.035544+00	\N
+3296	30	gram	2023-09-16 15:33:00.038021+00	2023-09-16 15:33:00.038021+00	\N
+3297	40	gram	2023-09-16 15:33:00.040267+00	2023-09-16 15:33:00.040267+00	\N
+3298	340	gram	2023-09-16 15:33:00.050039+00	2023-09-16 15:33:00.050039+00	\N
+3299	100	gram	2023-09-16 15:33:00.052415+00	2023-09-16 15:33:00.052415+00	\N
+3300	1	count	2023-09-16 15:33:00.055729+00	2023-09-16 15:33:00.055729+00	\N
+3301	1	count	2023-09-16 15:33:00.057818+00	2023-09-16 15:33:00.057818+00	\N
+3302	1	count	2023-09-16 15:33:00.079424+00	2023-09-16 15:33:00.079424+00	\N
+3303	80	gram	2023-09-16 15:33:00.084826+00	2023-09-16 15:33:00.084826+00	\N
+3304	\N	arbitrary	2023-09-16 15:33:00.08687+00	2023-09-16 15:33:00.08687+00	3 black
+3305	1	count	2023-09-16 15:33:00.088889+00	2023-09-16 15:33:00.088889+00	\N
+3306	\N	arbitrary	2023-09-16 15:33:00.091333+00	2023-09-16 15:33:00.091333+00	2 sprigs
+3307	1	count	2023-09-16 15:33:00.093561+00	2023-09-16 15:33:00.093561+00	\N
+3308	600	gram	2023-09-16 15:33:00.095793+00	2023-09-16 15:33:00.095793+00	\N
+3309	200	gram	2023-09-16 15:33:00.098091+00	2023-09-16 15:33:00.098091+00	\N
+3310	200	gram	2023-09-16 15:33:00.100384+00	2023-09-16 15:33:00.100384+00	\N
+3311	30	gram	2023-09-16 15:33:00.103107+00	2023-09-16 15:33:00.103107+00	\N
+3312	30	gram	2023-09-16 15:33:00.105229+00	2023-09-16 15:33:00.105229+00	\N
+3313	250	gram	2023-09-16 15:33:00.107521+00	2023-09-16 15:33:00.107521+00	\N
+3314	1	teaspoon	2023-09-16 15:33:00.109788+00	2023-09-16 15:33:00.109788+00	\N
+3315	50	gram	2023-09-16 15:33:00.111942+00	2023-09-16 15:33:00.111942+00	\N
+3316	375	gram	2023-09-16 15:33:00.114229+00	2023-09-16 15:33:00.114229+00	\N
+3317	1	count	2023-09-16 15:33:00.116339+00	2023-09-16 15:33:00.116339+00	\N
+3318	80	gram	2023-09-16 15:33:00.127564+00	2023-09-16 15:33:00.127564+00	\N
+3319	2	count	2023-09-16 15:33:00.129864+00	2023-09-16 15:33:00.129864+00	\N
+3320	800	gram	2023-09-16 15:33:00.13217+00	2023-09-16 15:33:00.13217+00	\N
+3321	300	gram	2023-09-16 15:33:00.134283+00	2023-09-16 15:33:00.134283+00	\N
+3322	400	gram	2023-09-16 15:33:00.136687+00	2023-09-16 15:33:00.136687+00	\N
+3323	2	teaspoon	2023-09-16 15:33:00.138692+00	2023-09-16 15:33:00.138692+00	\N
+3324	250	gram	2023-09-16 15:33:00.140885+00	2023-09-16 15:33:00.140885+00	\N
+3325	250	gram	2023-09-16 15:37:25.402504+00	2023-09-16 15:37:25.402504+00	\N
+3326	60	gram	2023-09-16 15:39:34.126231+00	2023-09-16 15:39:34.126231+00	\N
+3327	10	count	2023-09-16 15:39:49.840453+00	2023-09-16 15:39:49.840453+00	\N
+3328	200	gram	2023-09-16 15:40:01.672986+00	2023-09-16 15:40:01.672986+00	\N
+3329	1	count	2023-09-16 15:41:51.733543+00	2023-09-16 15:41:51.733543+00	\N
+3330	1	count	2023-09-16 15:45:10.218976+00	2023-09-16 15:45:10.218976+00	\N
+3331	500	gram	2023-09-16 15:47:33.472198+00	2023-09-16 15:47:33.472198+00	\N
+3332	200	gram	2023-09-16 15:49:08.131876+00	2023-09-16 15:49:08.131876+00	\N
+3333	1	count	2023-09-16 15:49:24.606597+00	2023-09-16 15:49:24.606597+00	\N
+3334	4	count	2023-09-16 15:51:02.065676+00	2023-09-16 15:51:02.065676+00	\N
+3335	1	litre	2023-09-16 15:51:43.349785+00	2023-09-16 15:51:43.349785+00	\N
+3336	1	count	2023-09-16 15:58:18.373237+00	2023-09-16 15:58:18.373237+00	\N
+3337	150	gram	2023-09-16 15:58:51.268129+00	2023-09-16 15:58:51.268129+00	\N
+3338	250	gram	2023-09-16 15:59:12.331476+00	2023-09-16 15:59:12.331476+00	\N
+3339	80	gram	2023-09-23 14:38:13.042306+00	2023-09-23 14:38:13.042306+00	\N
+3340	40	gram	2023-09-23 14:38:13.045724+00	2023-09-23 14:38:13.045724+00	\N
+3341	50	gram	2023-09-23 14:38:13.051732+00	2023-09-23 14:38:13.051732+00	\N
+3342	200	gram	2023-09-23 14:38:13.053573+00	2023-09-23 14:38:13.053573+00	\N
+3343	100	gram	2023-09-23 14:38:13.055227+00	2023-09-23 14:38:13.055227+00	\N
+3344	200	gram	2023-09-23 14:38:13.057054+00	2023-09-23 14:38:13.057054+00	\N
+3345	450	gram	2023-09-23 14:38:13.058813+00	2023-09-23 14:38:13.058813+00	\N
+3346	150	gram	2023-09-23 14:38:13.061022+00	2023-09-23 14:38:13.061022+00	\N
+3347	30	gram	2023-09-23 14:38:13.062771+00	2023-09-23 14:38:13.062771+00	\N
+3348	\N	arbitrary	2023-09-23 14:38:13.064631+00	2023-09-23 14:38:13.064631+00	3 pinches
+3349	10	count	2023-09-23 14:38:13.066223+00	2023-09-23 14:38:13.066223+00	\N
+3350	15	gram	2023-09-23 14:38:13.078226+00	2023-09-23 14:38:13.078226+00	\N
+3351	20	gram	2023-09-23 14:38:13.080165+00	2023-09-23 14:38:13.080165+00	\N
+3352	30	gram	2023-09-23 14:38:13.081992+00	2023-09-23 14:38:13.081992+00	\N
+3353	100	gram	2023-09-23 14:38:13.083719+00	2023-09-23 14:38:13.083719+00	\N
+3354	200	gram	2023-09-23 14:38:13.085419+00	2023-09-23 14:38:13.085419+00	\N
+3355	100	gram	2023-09-23 14:38:13.087081+00	2023-09-23 14:38:13.087081+00	\N
+3356	150	gram	2023-09-23 14:38:13.089546+00	2023-09-23 14:38:13.089546+00	\N
+3357	6	count	2023-09-23 14:38:13.091419+00	2023-09-23 14:38:13.091419+00	\N
+3358	80	gram	2023-09-23 14:38:13.093329+00	2023-09-23 14:38:13.093329+00	\N
+3359	50	gram	2023-09-23 14:38:13.105299+00	2023-09-23 14:38:13.105299+00	\N
+3360	0.25	teaspoon	2023-09-23 14:38:13.107236+00	2023-09-23 14:38:13.107236+00	\N
+3361	350	gram	2023-09-23 14:38:13.111065+00	2023-09-23 14:38:13.111065+00	\N
+3362	450	gram	2023-09-23 14:38:13.113308+00	2023-09-23 14:38:13.113308+00	\N
+3363	200	gram	2023-09-23 14:38:13.115565+00	2023-09-23 14:38:13.115565+00	\N
+3364	0.25	teaspoon	2023-09-23 14:38:13.117696+00	2023-09-23 14:38:13.117696+00	\N
+3365	50	gram	2023-09-23 14:38:13.119596+00	2023-09-23 14:38:13.119596+00	\N
+3366	2	count	2023-09-23 14:38:13.121978+00	2023-09-23 14:38:13.121978+00	\N
+3367	\N	arbitrary	2023-09-23 14:38:13.135411+00	2023-09-23 14:38:13.135411+00	4 sprigs
+3368	200	gram	2023-09-23 14:38:13.13748+00	2023-09-23 14:38:13.13748+00	\N
+3369	1	teaspoon	2023-09-23 14:38:13.139606+00	2023-09-23 14:38:13.139606+00	\N
+3370	\N	arbitrary	2023-09-23 14:38:13.141725+00	2023-09-23 14:38:13.141725+00	2 garlic
+3371	2	count	2023-09-23 14:38:13.143893+00	2023-09-23 14:38:13.143893+00	\N
+3372	60	gram	2023-09-23 14:38:13.14617+00	2023-09-23 14:38:13.14617+00	\N
+3373	30	gram	2023-09-23 14:38:13.14874+00	2023-09-23 14:38:13.14874+00	\N
+3374	0.5	teaspoon	2023-09-23 14:38:13.150897+00	2023-09-23 14:38:13.150897+00	\N
+3375	250	gram	2023-09-23 14:38:13.153284+00	2023-09-23 14:38:13.153284+00	\N
+3376	250	gram	2023-09-23 14:38:13.155539+00	2023-09-23 14:38:13.155539+00	\N
+3377	680	gram	2023-09-23 14:38:13.157769+00	2023-09-23 14:38:13.157769+00	\N
+3378	\N	arbitrary	2023-09-23 14:38:13.15957+00	2023-09-23 14:38:13.15957+00	1 Tbsp
+3379	\N	arbitrary	2023-09-23 14:38:13.170181+00	2023-09-23 14:38:13.170181+00	1 cube
+3380	\N	arbitrary	2023-09-23 14:38:13.172493+00	2023-09-23 14:38:13.172493+00	1 pinch
+3381	1	teaspoon	2023-09-23 14:38:13.174444+00	2023-09-23 14:38:13.174444+00	\N
+3382	100	gram	2023-09-23 14:38:13.176447+00	2023-09-23 14:38:13.176447+00	\N
+3383	80	gram	2023-09-23 14:38:13.178428+00	2023-09-23 14:38:13.178428+00	\N
+3384	300	gram	2023-09-23 14:38:13.180447+00	2023-09-23 14:38:13.180447+00	\N
+3385	600	gram	2023-09-23 14:38:13.182546+00	2023-09-23 14:38:13.182546+00	\N
+3386	350	gram	2023-09-23 14:38:13.184621+00	2023-09-23 14:38:13.184621+00	\N
+3387	1	count	2023-09-23 14:38:13.19766+00	2023-09-23 14:38:13.19766+00	\N
+3388	60	gram	2023-09-23 14:38:13.199895+00	2023-09-23 14:38:13.199895+00	\N
+3389	300	gram	2023-09-23 14:38:13.201807+00	2023-09-23 14:38:13.201807+00	\N
+3390	0.5	count	2023-09-23 14:38:13.203787+00	2023-09-23 14:38:13.203787+00	\N
+3391	130	gram	2023-09-23 14:38:13.205636+00	2023-09-23 14:38:13.205636+00	\N
+3392	\N	arbitrary	2023-09-23 14:38:13.208038+00	2023-09-23 14:38:13.208038+00	3 sprigs
+3393	\N	arbitrary	2023-09-23 14:38:13.210129+00	2023-09-23 14:38:13.210129+00	1 pinch
+3394	\N	arbitrary	2023-09-23 14:38:13.212078+00	2023-09-23 14:38:13.212078+00	2 pinches
+3395	80	gram	2023-09-23 14:38:13.214111+00	2023-09-23 14:38:13.214111+00	\N
+3396	\N	arbitrary	2023-09-23 14:38:13.21621+00	2023-09-23 14:38:13.21621+00	5 medium
+3397	1	count	2023-09-23 14:38:13.223608+00	2023-09-23 14:38:13.223608+00	\N
+3398	500	gram	2023-09-23 14:38:13.226192+00	2023-09-23 14:38:13.226192+00	\N
+3399	180	gram	2023-09-23 14:38:13.228291+00	2023-09-23 14:38:13.228291+00	\N
+3400	500	gram	2023-09-23 14:38:13.23007+00	2023-09-23 14:38:13.23007+00	\N
+3401	600	gram	2023-09-23 14:38:13.231959+00	2023-09-23 14:38:13.231959+00	\N
+3402	3	count	2023-09-23 14:38:13.250915+00	2023-09-23 14:38:13.250915+00	\N
+3403	30	gram	2023-09-23 14:38:13.258192+00	2023-09-23 14:38:13.258192+00	\N
+3404	800	gram	2023-09-23 14:38:13.260281+00	2023-09-23 14:38:13.260281+00	\N
+3405	160	gram	2023-09-23 14:38:13.262113+00	2023-09-23 14:38:13.262113+00	\N
+3406	80	gram	2023-09-23 14:38:13.263995+00	2023-09-23 14:38:13.263995+00	\N
+3407	80	gram	2023-09-23 14:38:13.265914+00	2023-09-23 14:38:13.265914+00	\N
+3408	80	gram	2023-09-23 14:38:13.268284+00	2023-09-23 14:38:13.268284+00	\N
+3409	10	gram	2023-09-23 14:38:13.270347+00	2023-09-23 14:38:13.270347+00	\N
+3410	\N	arbitrary	2023-09-23 14:38:13.272527+00	2023-09-23 14:38:13.272527+00	1-2 Tbsp
+3411	350	gram	2023-09-23 14:38:13.274432+00	2023-09-23 14:38:13.274432+00	\N
+3412	20	gram	2023-09-23 14:38:13.276355+00	2023-09-23 14:38:13.276355+00	\N
+3413	600	gram	2023-09-23 14:38:13.278186+00	2023-09-23 14:38:13.278186+00	\N
+3414	200	gram	2023-09-23 14:38:13.280235+00	2023-09-23 14:38:13.280235+00	\N
+3415	200	gram	2023-09-23 14:38:13.282046+00	2023-09-23 14:38:13.282046+00	\N
+3416	\N	arbitrary	2023-09-23 14:38:13.284317+00	2023-09-23 14:38:13.284317+00	garnish
+3417	1	count	2023-09-23 14:38:13.286439+00	2023-09-23 14:38:13.286439+00	\N
+3418	225	gram	2023-09-23 14:38:13.299807+00	2023-09-23 14:38:13.299807+00	\N
+3419	1	count	2023-09-23 14:38:13.301744+00	2023-09-23 14:38:13.301744+00	\N
+3420	250	gram	2023-09-23 14:38:13.303817+00	2023-09-23 14:38:13.303817+00	\N
+3421	30	gram	2023-09-23 14:38:13.305891+00	2023-09-23 14:38:13.305891+00	\N
+3422	40	gram	2023-09-23 14:38:13.307924+00	2023-09-23 14:38:13.307924+00	\N
+3423	340	gram	2023-09-23 14:38:13.310344+00	2023-09-23 14:38:13.310344+00	\N
+3424	100	gram	2023-09-23 14:38:13.312356+00	2023-09-23 14:38:13.312356+00	\N
+3425	1	count	2023-09-23 14:38:13.314504+00	2023-09-23 14:38:13.314504+00	\N
+3426	1	count	2023-09-23 14:38:13.317471+00	2023-09-23 14:38:13.317471+00	\N
+3427	1	count	2023-09-23 14:38:13.338093+00	2023-09-23 14:38:13.338093+00	\N
+3428	80	gram	2023-09-23 14:38:13.340131+00	2023-09-23 14:38:13.340131+00	\N
+3429	\N	arbitrary	2023-09-23 14:38:13.342228+00	2023-09-23 14:38:13.342228+00	3 black
+3430	1	count	2023-09-23 14:38:13.344075+00	2023-09-23 14:38:13.344075+00	\N
+3431	\N	arbitrary	2023-09-23 14:38:13.345866+00	2023-09-23 14:38:13.345866+00	2 sprigs
+3432	1	count	2023-09-23 14:38:13.347517+00	2023-09-23 14:38:13.347517+00	\N
+3433	600	gram	2023-09-23 14:38:13.350146+00	2023-09-23 14:38:13.350146+00	\N
+3434	200	gram	2023-09-23 14:38:13.35232+00	2023-09-23 14:38:13.35232+00	\N
+3435	200	gram	2023-09-23 14:38:13.357888+00	2023-09-23 14:38:13.357888+00	\N
+3436	30	gram	2023-09-23 14:38:13.360226+00	2023-09-23 14:38:13.360226+00	\N
+3437	30	gram	2023-09-23 14:38:13.3622+00	2023-09-23 14:38:13.3622+00	\N
+3438	250	gram	2023-09-23 14:38:13.36435+00	2023-09-23 14:38:13.36435+00	\N
+3439	1	teaspoon	2023-09-23 14:38:13.366463+00	2023-09-23 14:38:13.366463+00	\N
+3440	50	gram	2023-09-23 14:38:13.369106+00	2023-09-23 14:38:13.369106+00	\N
+3441	375	gram	2023-09-23 14:38:13.371115+00	2023-09-23 14:38:13.371115+00	\N
+3442	1	count	2023-09-23 14:38:13.372977+00	2023-09-23 14:38:13.372977+00	\N
+3443	80	gram	2023-09-23 14:38:13.382857+00	2023-09-23 14:38:13.382857+00	\N
+3444	2	count	2023-09-23 14:38:13.384905+00	2023-09-23 14:38:13.384905+00	\N
+3445	800	gram	2023-09-23 14:38:13.386803+00	2023-09-23 14:38:13.386803+00	\N
+3446	300	gram	2023-09-23 14:38:13.389143+00	2023-09-23 14:38:13.389143+00	\N
+3447	400	gram	2023-09-23 14:38:13.390887+00	2023-09-23 14:38:13.390887+00	\N
+3448	2	teaspoon	2023-09-23 14:38:13.393032+00	2023-09-23 14:38:13.393032+00	\N
+3449	250	gram	2023-09-23 14:38:13.395128+00	2023-09-23 14:38:13.395128+00	\N
+3450	100	gram	2023-09-23 14:38:13.413758+00	2023-09-23 14:38:13.413758+00	\N
+3451	100	gram	2023-09-23 14:38:13.416459+00	2023-09-23 14:38:13.416459+00	\N
+3452	100	gram	2023-09-23 14:38:13.418773+00	2023-09-23 14:38:13.418773+00	\N
+3453	1	teaspoon	2023-09-23 14:38:13.421162+00	2023-09-23 14:38:13.421162+00	\N
+3454	1	teaspoon	2023-09-23 14:38:13.423761+00	2023-09-23 14:38:13.423761+00	\N
+3455	2	count	2023-09-23 14:38:13.426412+00	2023-09-23 14:38:13.426412+00	\N
+3456	100	gram	2023-09-23 14:38:13.42923+00	2023-09-23 14:38:13.42923+00	\N
+3457	300	gram	2023-09-23 14:38:13.431489+00	2023-09-23 14:38:13.431489+00	\N
+3458	120	gram	2023-09-23 14:38:13.446053+00	2023-09-23 14:38:13.446053+00	\N
+3459	250	gram	2023-09-23 14:38:13.449011+00	2023-09-23 14:38:13.449011+00	\N
+3460	200	gram	2023-09-23 14:38:13.451116+00	2023-09-23 14:38:13.451116+00	\N
+3461	400	gram	2023-09-23 14:38:13.453285+00	2023-09-23 14:38:13.453285+00	\N
+3462	2	teaspoon	2023-09-23 14:38:13.455615+00	2023-09-23 14:38:13.455615+00	\N
+3463	1	teaspoon	2023-09-23 14:38:13.457689+00	2023-09-23 14:38:13.457689+00	\N
+3464	10	gram	2023-09-23 14:38:13.460218+00	2023-09-23 14:38:13.460218+00	\N
+3465	1	count	2023-09-23 14:38:13.462699+00	2023-09-23 14:38:13.462699+00	\N
+3466	1	count	2023-09-23 14:38:13.478864+00	2023-09-23 14:38:13.478864+00	\N
+3467	180	gram	2023-09-23 14:38:13.481042+00	2023-09-23 14:38:13.481042+00	\N
+3468	120	gram	2023-09-23 14:38:13.489419+00	2023-09-23 14:38:13.489419+00	\N
+3469	100	gram	2023-09-23 14:38:13.49214+00	2023-09-23 14:38:13.49214+00	\N
+3470	500	gram	2023-09-23 14:38:13.49424+00	2023-09-23 14:38:13.49424+00	\N
+3471	30	gram	2023-09-23 14:38:13.496189+00	2023-09-23 14:38:13.496189+00	\N
+3472	\N	arbitrary	2023-09-23 14:38:13.498758+00	2023-09-23 14:38:13.498758+00	1 Tbsp
+3473	\N	arbitrary	2023-09-23 14:38:13.501264+00	2023-09-23 14:38:13.501264+00	1 dried
+3474	\N	arbitrary	2023-09-23 14:38:13.503499+00	2023-09-23 14:38:13.503499+00	3 sprigs
+3475	800	gram	2023-09-23 14:38:13.505525+00	2023-09-23 14:38:13.505525+00	\N
+3476	250	gram	2023-09-23 14:38:13.50756+00	2023-09-23 14:38:13.50756+00	\N
+3477	25	gram	2023-09-23 14:38:13.509618+00	2023-09-23 14:38:13.509618+00	\N
+3478	25	gram	2023-09-23 14:38:13.5116+00	2023-09-23 14:38:13.5116+00	\N
+3479	450	gram	2023-09-23 14:38:13.526606+00	2023-09-23 14:38:13.526606+00	\N
+3480	150	gram	2023-09-23 14:38:13.528633+00	2023-09-23 14:38:13.528633+00	\N
+3481	2	count	2023-09-23 14:38:13.5309+00	2023-09-23 14:38:13.5309+00	\N
+3482	2	teaspoon	2023-09-23 14:38:13.5329+00	2023-09-23 14:38:13.5329+00	\N
+3483	3	teaspoon	2023-09-23 14:38:13.535005+00	2023-09-23 14:38:13.535005+00	\N
+3484	600	gram	2023-09-23 14:38:13.537199+00	2023-09-23 14:38:13.537199+00	\N
+3485	60	gram	2023-09-23 14:38:13.539588+00	2023-09-23 14:38:13.539588+00	\N
+3486	200	gram	2023-09-23 14:38:13.541718+00	2023-09-23 14:38:13.541718+00	\N
+3487	2	count	2023-09-23 14:42:15.968762+00	2023-09-23 14:42:15.968762+00	\N
+3488	80	gram	2023-10-01 08:35:42.211094+00	2023-10-01 08:35:42.211094+00	\N
+3489	40	gram	2023-10-01 08:35:42.213433+00	2023-10-01 08:35:42.213433+00	\N
+3490	50	gram	2023-10-01 08:35:42.215381+00	2023-10-01 08:35:42.215381+00	\N
+3491	200	gram	2023-10-01 08:35:42.217475+00	2023-10-01 08:35:42.217475+00	\N
+3492	100	gram	2023-10-01 08:35:42.219535+00	2023-10-01 08:35:42.219535+00	\N
+3493	200	gram	2023-10-01 08:35:42.22202+00	2023-10-01 08:35:42.22202+00	\N
+3494	450	gram	2023-10-01 08:35:42.224328+00	2023-10-01 08:35:42.224328+00	\N
+3495	150	gram	2023-10-01 08:35:42.226244+00	2023-10-01 08:35:42.226244+00	\N
+3496	30	gram	2023-10-01 08:35:42.228463+00	2023-10-01 08:35:42.228463+00	\N
+3497	\N	arbitrary	2023-10-01 08:35:42.230616+00	2023-10-01 08:35:42.230616+00	3 pinches
+3498	10	count	2023-10-01 08:35:42.23241+00	2023-10-01 08:35:42.23241+00	\N
+3499	15	gram	2023-10-01 08:35:42.244467+00	2023-10-01 08:35:42.244467+00	\N
+3500	20	gram	2023-10-01 08:35:42.24626+00	2023-10-01 08:35:42.24626+00	\N
+3501	30	gram	2023-10-01 08:35:42.248208+00	2023-10-01 08:35:42.248208+00	\N
+3502	100	gram	2023-10-01 08:35:42.250091+00	2023-10-01 08:35:42.250091+00	\N
+3503	200	gram	2023-10-01 08:35:42.251996+00	2023-10-01 08:35:42.251996+00	\N
+3504	100	gram	2023-10-01 08:35:42.254163+00	2023-10-01 08:35:42.254163+00	\N
+3505	150	gram	2023-10-01 08:35:42.256276+00	2023-10-01 08:35:42.256276+00	\N
+3506	6	count	2023-10-01 08:35:42.258071+00	2023-10-01 08:35:42.258071+00	\N
+3507	80	gram	2023-10-01 08:35:42.259797+00	2023-10-01 08:35:42.259797+00	\N
+3508	50	gram	2023-10-01 08:35:42.270694+00	2023-10-01 08:35:42.270694+00	\N
+3509	0.25	teaspoon	2023-10-01 08:35:42.272814+00	2023-10-01 08:35:42.272814+00	\N
+3510	350	gram	2023-10-01 08:35:42.27505+00	2023-10-01 08:35:42.27505+00	\N
+3511	450	gram	2023-10-01 08:35:42.277065+00	2023-10-01 08:35:42.277065+00	\N
+3512	200	gram	2023-10-01 08:35:42.278942+00	2023-10-01 08:35:42.278942+00	\N
+3513	0.25	teaspoon	2023-10-01 08:35:42.281362+00	2023-10-01 08:35:42.281362+00	\N
+3514	50	gram	2023-10-01 08:35:42.283758+00	2023-10-01 08:35:42.283758+00	\N
+3515	2	count	2023-10-01 08:35:42.285582+00	2023-10-01 08:35:42.285582+00	\N
+3516	\N	arbitrary	2023-10-01 08:35:42.299112+00	2023-10-01 08:35:42.299112+00	4 sprigs
+3517	200	gram	2023-10-01 08:35:42.300924+00	2023-10-01 08:35:42.300924+00	\N
+3518	1	teaspoon	2023-10-01 08:35:42.302659+00	2023-10-01 08:35:42.302659+00	\N
+3519	\N	arbitrary	2023-10-01 08:35:42.304501+00	2023-10-01 08:35:42.304501+00	2 garlic
+3520	2	count	2023-10-01 08:35:42.306399+00	2023-10-01 08:35:42.306399+00	\N
+3521	60	gram	2023-10-01 08:35:42.307985+00	2023-10-01 08:35:42.307985+00	\N
+3522	30	gram	2023-10-01 08:35:42.310063+00	2023-10-01 08:35:42.310063+00	\N
+3523	0.5	teaspoon	2023-10-01 08:35:42.311708+00	2023-10-01 08:35:42.311708+00	\N
+3524	250	gram	2023-10-01 08:35:42.320853+00	2023-10-01 08:35:42.320853+00	\N
+3525	250	gram	2023-10-01 08:35:42.32282+00	2023-10-01 08:35:42.32282+00	\N
+3526	680	gram	2023-10-01 08:35:42.324762+00	2023-10-01 08:35:42.324762+00	\N
+3527	\N	arbitrary	2023-10-01 08:35:42.326656+00	2023-10-01 08:35:42.326656+00	1 Tbsp
+3528	\N	arbitrary	2023-10-01 08:35:42.336619+00	2023-10-01 08:35:42.336619+00	1 cube
+3529	\N	arbitrary	2023-10-01 08:35:42.338629+00	2023-10-01 08:35:42.338629+00	1 pinch
+3530	1	teaspoon	2023-10-01 08:35:42.340308+00	2023-10-01 08:35:42.340308+00	\N
+3531	100	gram	2023-10-01 08:35:42.342114+00	2023-10-01 08:35:42.342114+00	\N
+3532	80	gram	2023-10-01 08:35:42.344684+00	2023-10-01 08:35:42.344684+00	\N
+3533	300	gram	2023-10-01 08:35:42.347101+00	2023-10-01 08:35:42.347101+00	\N
+3534	600	gram	2023-10-01 08:35:42.349227+00	2023-10-01 08:35:42.349227+00	\N
+3535	350	gram	2023-10-01 08:35:42.351523+00	2023-10-01 08:35:42.351523+00	\N
+3536	1	count	2023-10-01 08:35:42.364559+00	2023-10-01 08:35:42.364559+00	\N
+3537	60	gram	2023-10-01 08:35:42.366331+00	2023-10-01 08:35:42.366331+00	\N
+3538	300	gram	2023-10-01 08:35:42.368399+00	2023-10-01 08:35:42.368399+00	\N
+3539	0.5	count	2023-10-01 08:35:42.370424+00	2023-10-01 08:35:42.370424+00	\N
+3540	130	gram	2023-10-01 08:35:42.372725+00	2023-10-01 08:35:42.372725+00	\N
+3541	\N	arbitrary	2023-10-01 08:35:42.374796+00	2023-10-01 08:35:42.374796+00	3 sprigs
+3542	\N	arbitrary	2023-10-01 08:35:42.376793+00	2023-10-01 08:35:42.376793+00	1 pinch
+3543	\N	arbitrary	2023-10-01 08:35:42.378934+00	2023-10-01 08:35:42.378934+00	2 pinches
+3544	80	gram	2023-10-01 08:35:42.381667+00	2023-10-01 08:35:42.381667+00	\N
+3545	\N	arbitrary	2023-10-01 08:35:42.383643+00	2023-10-01 08:35:42.383643+00	5 medium
+3546	1	count	2023-10-01 08:35:42.39127+00	2023-10-01 08:35:42.39127+00	\N
+3547	500	gram	2023-10-01 08:35:42.393291+00	2023-10-01 08:35:42.393291+00	\N
+3548	180	gram	2023-10-01 08:35:42.39506+00	2023-10-01 08:35:42.39506+00	\N
+3549	500	gram	2023-10-01 08:35:42.397459+00	2023-10-01 08:35:42.397459+00	\N
+3550	600	gram	2023-10-01 08:35:42.399523+00	2023-10-01 08:35:42.399523+00	\N
+3551	3	count	2023-10-01 08:35:42.417658+00	2023-10-01 08:35:42.417658+00	\N
+3552	30	gram	2023-10-01 08:35:42.41936+00	2023-10-01 08:35:42.41936+00	\N
+3553	800	gram	2023-10-01 08:35:42.421118+00	2023-10-01 08:35:42.421118+00	\N
+3554	160	gram	2023-10-01 08:35:42.423066+00	2023-10-01 08:35:42.423066+00	\N
+3555	80	gram	2023-10-01 08:35:42.424868+00	2023-10-01 08:35:42.424868+00	\N
+3556	80	gram	2023-10-01 08:35:42.426675+00	2023-10-01 08:35:42.426675+00	\N
+3557	80	gram	2023-10-01 08:35:42.428639+00	2023-10-01 08:35:42.428639+00	\N
+3558	10	gram	2023-10-01 08:35:42.43051+00	2023-10-01 08:35:42.43051+00	\N
+3559	\N	arbitrary	2023-10-01 08:35:42.43238+00	2023-10-01 08:35:42.43238+00	1-2 Tbsp
+3560	350	gram	2023-10-01 08:35:42.434174+00	2023-10-01 08:35:42.434174+00	\N
+3561	20	gram	2023-10-01 08:35:42.435925+00	2023-10-01 08:35:42.435925+00	\N
+3562	600	gram	2023-10-01 08:35:42.437505+00	2023-10-01 08:35:42.437505+00	\N
+3563	200	gram	2023-10-01 08:35:42.439192+00	2023-10-01 08:35:42.439192+00	\N
+3564	200	gram	2023-10-01 08:35:42.44113+00	2023-10-01 08:35:42.44113+00	\N
+3565	\N	arbitrary	2023-10-01 08:35:42.4435+00	2023-10-01 08:35:42.4435+00	garnish
+3566	1	count	2023-10-01 08:35:42.445573+00	2023-10-01 08:35:42.445573+00	\N
+3567	225	gram	2023-10-01 08:35:42.458277+00	2023-10-01 08:35:42.458277+00	\N
+3568	1	count	2023-10-01 08:35:42.460244+00	2023-10-01 08:35:42.460244+00	\N
+3569	250	gram	2023-10-01 08:35:42.462226+00	2023-10-01 08:35:42.462226+00	\N
+3570	30	gram	2023-10-01 08:35:42.463979+00	2023-10-01 08:35:42.463979+00	\N
+3571	40	gram	2023-10-01 08:35:42.465785+00	2023-10-01 08:35:42.465785+00	\N
+3572	340	gram	2023-10-01 08:35:42.467634+00	2023-10-01 08:35:42.467634+00	\N
+3573	100	gram	2023-10-01 08:35:42.469453+00	2023-10-01 08:35:42.469453+00	\N
+3574	1	count	2023-10-01 08:35:42.471137+00	2023-10-01 08:35:42.471137+00	\N
+3575	1	count	2023-10-01 08:35:42.472895+00	2023-10-01 08:35:42.472895+00	\N
+3576	1	count	2023-10-01 08:35:42.491459+00	2023-10-01 08:35:42.491459+00	\N
+3577	80	gram	2023-10-01 08:35:42.493927+00	2023-10-01 08:35:42.493927+00	\N
+3578	\N	arbitrary	2023-10-01 08:35:42.496232+00	2023-10-01 08:35:42.496232+00	3 black
+3579	1	count	2023-10-01 08:35:42.498429+00	2023-10-01 08:35:42.498429+00	\N
+3580	\N	arbitrary	2023-10-01 08:35:42.501008+00	2023-10-01 08:35:42.501008+00	2 sprigs
+3581	1	count	2023-10-01 08:35:42.503078+00	2023-10-01 08:35:42.503078+00	\N
+3582	600	gram	2023-10-01 08:35:42.505141+00	2023-10-01 08:35:42.505141+00	\N
+3583	200	gram	2023-10-01 08:35:42.506987+00	2023-10-01 08:35:42.506987+00	\N
+3584	200	gram	2023-10-01 08:35:42.508961+00	2023-10-01 08:35:42.508961+00	\N
+3585	30	gram	2023-10-01 08:35:42.510733+00	2023-10-01 08:35:42.510733+00	\N
+3586	30	gram	2023-10-01 08:35:42.51291+00	2023-10-01 08:35:42.51291+00	\N
+3587	250	gram	2023-10-01 08:35:42.514749+00	2023-10-01 08:35:42.514749+00	\N
+3588	1	teaspoon	2023-10-01 08:35:42.516586+00	2023-10-01 08:35:42.516586+00	\N
+3589	50	gram	2023-10-01 08:35:42.518355+00	2023-10-01 08:35:42.518355+00	\N
+3590	375	gram	2023-10-01 08:35:42.520083+00	2023-10-01 08:35:42.520083+00	\N
+3591	1	count	2023-10-01 08:35:42.521887+00	2023-10-01 08:35:42.521887+00	\N
+3592	80	gram	2023-10-01 08:35:42.531943+00	2023-10-01 08:35:42.531943+00	\N
+3593	2	count	2023-10-01 08:35:42.533919+00	2023-10-01 08:35:42.533919+00	\N
+3594	800	gram	2023-10-01 08:35:42.535602+00	2023-10-01 08:35:42.535602+00	\N
+3595	300	gram	2023-10-01 08:35:42.537594+00	2023-10-01 08:35:42.537594+00	\N
+3596	400	gram	2023-10-01 08:35:42.539398+00	2023-10-01 08:35:42.539398+00	\N
+3597	2	teaspoon	2023-10-01 08:35:42.54118+00	2023-10-01 08:35:42.54118+00	\N
+3598	250	gram	2023-10-01 08:35:42.542963+00	2023-10-01 08:35:42.542963+00	\N
+3599	100	gram	2023-10-01 08:35:42.552958+00	2023-10-01 08:35:42.552958+00	\N
+3600	100	gram	2023-10-01 08:35:42.554818+00	2023-10-01 08:35:42.554818+00	\N
+3601	100	gram	2023-10-01 08:35:42.55677+00	2023-10-01 08:35:42.55677+00	\N
+3602	1	teaspoon	2023-10-01 08:35:42.558549+00	2023-10-01 08:35:42.558549+00	\N
+3603	1	teaspoon	2023-10-01 08:35:42.560258+00	2023-10-01 08:35:42.560258+00	\N
+3604	2	count	2023-10-01 08:35:42.562649+00	2023-10-01 08:35:42.562649+00	\N
+3605	100	gram	2023-10-01 08:35:42.564663+00	2023-10-01 08:35:42.564663+00	\N
+3606	300	gram	2023-10-01 08:35:42.566467+00	2023-10-01 08:35:42.566467+00	\N
+3607	120	gram	2023-10-01 08:35:42.578423+00	2023-10-01 08:35:42.578423+00	\N
+3608	250	gram	2023-10-01 08:35:42.580528+00	2023-10-01 08:35:42.580528+00	\N
+3609	200	gram	2023-10-01 08:35:42.582549+00	2023-10-01 08:35:42.582549+00	\N
+3610	400	gram	2023-10-01 08:35:42.5846+00	2023-10-01 08:35:42.5846+00	\N
+3611	2	teaspoon	2023-10-01 08:35:42.58662+00	2023-10-01 08:35:42.58662+00	\N
+3612	1	teaspoon	2023-10-01 08:35:42.588652+00	2023-10-01 08:35:42.588652+00	\N
+3613	10	gram	2023-10-01 08:35:42.590553+00	2023-10-01 08:35:42.590553+00	\N
+3614	1	count	2023-10-01 08:35:42.592643+00	2023-10-01 08:35:42.592643+00	\N
+3615	1	count	2023-10-01 08:35:42.609942+00	2023-10-01 08:35:42.609942+00	\N
+3616	180	gram	2023-10-01 08:35:42.611923+00	2023-10-01 08:35:42.611923+00	\N
+3617	120	gram	2023-10-01 08:35:42.613894+00	2023-10-01 08:35:42.613894+00	\N
+3618	100	gram	2023-10-01 08:35:42.61573+00	2023-10-01 08:35:42.61573+00	\N
+3619	500	gram	2023-10-01 08:35:42.61782+00	2023-10-01 08:35:42.61782+00	\N
+3620	30	gram	2023-10-01 08:35:42.619807+00	2023-10-01 08:35:42.619807+00	\N
+3621	\N	arbitrary	2023-10-01 08:35:42.622046+00	2023-10-01 08:35:42.622046+00	1 Tbsp
+3622	\N	arbitrary	2023-10-01 08:35:42.624217+00	2023-10-01 08:35:42.624217+00	1 dried
+3623	\N	arbitrary	2023-10-01 08:35:42.625829+00	2023-10-01 08:35:42.625829+00	3 sprigs
+3624	800	gram	2023-10-01 08:35:42.627616+00	2023-10-01 08:35:42.627616+00	\N
+3625	250	gram	2023-10-01 08:35:42.629625+00	2023-10-01 08:35:42.629625+00	\N
+3626	25	gram	2023-10-01 08:35:42.631479+00	2023-10-01 08:35:42.631479+00	\N
+3627	25	gram	2023-10-01 08:35:42.633239+00	2023-10-01 08:35:42.633239+00	\N
+3628	450	gram	2023-10-01 08:35:42.644616+00	2023-10-01 08:35:42.644616+00	\N
+3629	150	gram	2023-10-01 08:35:42.646496+00	2023-10-01 08:35:42.646496+00	\N
+3630	2	count	2023-10-01 08:35:42.648642+00	2023-10-01 08:35:42.648642+00	\N
+3631	2	teaspoon	2023-10-01 08:35:42.65063+00	2023-10-01 08:35:42.65063+00	\N
+3632	3	teaspoon	2023-10-01 08:35:42.652611+00	2023-10-01 08:35:42.652611+00	\N
+3633	600	gram	2023-10-01 08:35:42.654318+00	2023-10-01 08:35:42.654318+00	\N
+3634	60	gram	2023-10-01 08:35:42.65625+00	2023-10-01 08:35:42.65625+00	\N
+3635	200	gram	2023-10-01 08:35:42.658049+00	2023-10-01 08:35:42.658049+00	\N
+3636	50	gram	2023-10-01 08:35:42.66877+00	2023-10-01 08:35:42.66877+00	\N
+3637	120	gram	2023-10-01 08:35:42.670298+00	2023-10-01 08:35:42.670298+00	\N
+3638	150	gram	2023-10-01 08:35:42.67317+00	2023-10-01 08:35:42.67317+00	\N
+3639	500	gram	2023-10-01 08:35:42.67585+00	2023-10-01 08:35:42.67585+00	\N
+3640	100	gram	2023-10-01 08:35:42.677921+00	2023-10-01 08:35:42.677921+00	\N
+3641	1	count	2023-10-01 08:36:53.025806+00	2023-10-01 08:36:53.025806+00	\N
+3642	1	count	2023-10-01 08:36:55.970061+00	2023-10-01 08:36:55.970061+00	\N
+3643	\N	arbitrary	2023-10-01 08:37:52.239125+00	2023-10-01 08:37:52.239125+00	double-cream!
+3644	80	gram	2023-10-01 08:41:11.291807+00	2023-10-01 08:41:11.291807+00	\N
+3645	40	gram	2023-10-01 08:41:11.294284+00	2023-10-01 08:41:11.294284+00	\N
+3646	50	gram	2023-10-01 08:41:11.301565+00	2023-10-01 08:41:11.301565+00	\N
+3647	200	gram	2023-10-01 08:41:11.303745+00	2023-10-01 08:41:11.303745+00	\N
+3648	100	gram	2023-10-01 08:41:11.306728+00	2023-10-01 08:41:11.306728+00	\N
+3649	200	gram	2023-10-01 08:41:11.308716+00	2023-10-01 08:41:11.308716+00	\N
+3650	450	gram	2023-10-01 08:41:11.310714+00	2023-10-01 08:41:11.310714+00	\N
+3651	150	gram	2023-10-01 08:41:11.312768+00	2023-10-01 08:41:11.312768+00	\N
+3652	30	gram	2023-10-01 08:41:11.314816+00	2023-10-01 08:41:11.314816+00	\N
+3653	\N	arbitrary	2023-10-01 08:41:11.316847+00	2023-10-01 08:41:11.316847+00	3 pinches
+3654	10	count	2023-10-01 08:41:11.318784+00	2023-10-01 08:41:11.318784+00	\N
+3655	15	gram	2023-10-01 08:41:11.332865+00	2023-10-01 08:41:11.332865+00	\N
+3656	20	gram	2023-10-01 08:41:11.335018+00	2023-10-01 08:41:11.335018+00	\N
+3657	30	gram	2023-10-01 08:41:11.337103+00	2023-10-01 08:41:11.337103+00	\N
+3658	100	gram	2023-10-01 08:41:11.33911+00	2023-10-01 08:41:11.33911+00	\N
+3659	200	gram	2023-10-01 08:41:11.341344+00	2023-10-01 08:41:11.341344+00	\N
+3660	100	gram	2023-10-01 08:41:11.343317+00	2023-10-01 08:41:11.343317+00	\N
+3661	150	gram	2023-10-01 08:41:11.345576+00	2023-10-01 08:41:11.345576+00	\N
+3662	6	count	2023-10-01 08:41:11.347485+00	2023-10-01 08:41:11.347485+00	\N
+3663	80	gram	2023-10-01 08:41:11.349748+00	2023-10-01 08:41:11.349748+00	\N
+3664	50	gram	2023-10-01 08:41:11.360395+00	2023-10-01 08:41:11.360395+00	\N
+3665	0.25	teaspoon	2023-10-01 08:41:11.362348+00	2023-10-01 08:41:11.362348+00	\N
+3666	350	gram	2023-10-01 08:41:11.364374+00	2023-10-01 08:41:11.364374+00	\N
+3667	450	gram	2023-10-01 08:41:11.366302+00	2023-10-01 08:41:11.366302+00	\N
+3668	200	gram	2023-10-01 08:41:11.36873+00	2023-10-01 08:41:11.36873+00	\N
+3669	0.25	teaspoon	2023-10-01 08:41:11.370704+00	2023-10-01 08:41:11.370704+00	\N
+3670	50	gram	2023-10-01 08:41:11.372801+00	2023-10-01 08:41:11.372801+00	\N
+3671	2	count	2023-10-01 08:41:11.375489+00	2023-10-01 08:41:11.375489+00	\N
+3672	\N	arbitrary	2023-10-01 08:41:11.389819+00	2023-10-01 08:41:11.389819+00	4 sprigs
+3673	200	gram	2023-10-01 08:41:11.391696+00	2023-10-01 08:41:11.391696+00	\N
+3674	1	teaspoon	2023-10-01 08:41:11.393773+00	2023-10-01 08:41:11.393773+00	\N
+3675	\N	arbitrary	2023-10-01 08:41:11.395816+00	2023-10-01 08:41:11.395816+00	2 garlic
+3676	2	count	2023-10-01 08:41:11.397719+00	2023-10-01 08:41:11.397719+00	\N
+3677	60	gram	2023-10-01 08:41:11.399566+00	2023-10-01 08:41:11.399566+00	\N
+3678	30	gram	2023-10-01 08:41:11.401595+00	2023-10-01 08:41:11.401595+00	\N
+3679	0.5	teaspoon	2023-10-01 08:41:11.403443+00	2023-10-01 08:41:11.403443+00	\N
+3680	250	gram	2023-10-01 08:41:11.405317+00	2023-10-01 08:41:11.405317+00	\N
+3681	250	gram	2023-10-01 08:41:11.407127+00	2023-10-01 08:41:11.407127+00	\N
+3682	680	gram	2023-10-01 08:41:11.409119+00	2023-10-01 08:41:11.409119+00	\N
+3683	\N	arbitrary	2023-10-01 08:41:11.410861+00	2023-10-01 08:41:11.410861+00	1 Tbsp
+3684	\N	arbitrary	2023-10-01 08:41:11.420183+00	2023-10-01 08:41:11.420183+00	1 cube
+3685	\N	arbitrary	2023-10-01 08:41:11.421967+00	2023-10-01 08:41:11.421967+00	1 pinch
+3686	1	teaspoon	2023-10-01 08:41:11.423749+00	2023-10-01 08:41:11.423749+00	\N
+3687	100	gram	2023-10-01 08:41:11.42586+00	2023-10-01 08:41:11.42586+00	\N
+3688	80	gram	2023-10-01 08:41:11.427826+00	2023-10-01 08:41:11.427826+00	\N
+3689	300	gram	2023-10-01 08:41:11.429491+00	2023-10-01 08:41:11.429491+00	\N
+3690	600	gram	2023-10-01 08:41:11.431207+00	2023-10-01 08:41:11.431207+00	\N
+3691	350	gram	2023-10-01 08:41:11.433047+00	2023-10-01 08:41:11.433047+00	\N
+3692	1	count	2023-10-01 08:41:11.446768+00	2023-10-01 08:41:11.446768+00	\N
+3693	60	gram	2023-10-01 08:41:11.449076+00	2023-10-01 08:41:11.449076+00	\N
+3694	300	gram	2023-10-01 08:41:11.45148+00	2023-10-01 08:41:11.45148+00	\N
+3695	0.5	count	2023-10-01 08:41:11.454101+00	2023-10-01 08:41:11.454101+00	\N
+3696	130	gram	2023-10-01 08:41:11.456202+00	2023-10-01 08:41:11.456202+00	\N
+3697	\N	arbitrary	2023-10-01 08:41:11.458085+00	2023-10-01 08:41:11.458085+00	3 sprigs
+3698	\N	arbitrary	2023-10-01 08:41:11.459886+00	2023-10-01 08:41:11.459886+00	1 pinch
+3699	\N	arbitrary	2023-10-01 08:41:11.461935+00	2023-10-01 08:41:11.461935+00	2 pinches
+3700	80	gram	2023-10-01 08:41:11.463731+00	2023-10-01 08:41:11.463731+00	\N
+3701	\N	arbitrary	2023-10-01 08:41:11.465709+00	2023-10-01 08:41:11.465709+00	5 medium
+3702	1	count	2023-10-01 08:41:11.474531+00	2023-10-01 08:41:11.474531+00	\N
+3703	500	gram	2023-10-01 08:41:11.476524+00	2023-10-01 08:41:11.476524+00	\N
+3704	180	gram	2023-10-01 08:41:11.478765+00	2023-10-01 08:41:11.478765+00	\N
+3705	500	gram	2023-10-01 08:41:11.480743+00	2023-10-01 08:41:11.480743+00	\N
+3706	600	gram	2023-10-01 08:41:11.482898+00	2023-10-01 08:41:11.482898+00	\N
+3707	3	count	2023-10-01 08:41:11.500511+00	2023-10-01 08:41:11.500511+00	\N
+3708	30	gram	2023-10-01 08:41:11.502474+00	2023-10-01 08:41:11.502474+00	\N
+3709	800	gram	2023-10-01 08:41:11.504213+00	2023-10-01 08:41:11.504213+00	\N
+3710	160	gram	2023-10-01 08:41:11.506055+00	2023-10-01 08:41:11.506055+00	\N
+3711	80	gram	2023-10-01 08:41:11.508029+00	2023-10-01 08:41:11.508029+00	\N
+3712	80	gram	2023-10-01 08:41:11.510037+00	2023-10-01 08:41:11.510037+00	\N
+3713	80	gram	2023-10-01 08:41:11.511893+00	2023-10-01 08:41:11.511893+00	\N
+3714	10	gram	2023-10-01 08:41:11.513774+00	2023-10-01 08:41:11.513774+00	\N
+3715	\N	arbitrary	2023-10-01 08:41:11.515476+00	2023-10-01 08:41:11.515476+00	1-2 Tbsp
+3716	350	gram	2023-10-01 08:41:11.517181+00	2023-10-01 08:41:11.517181+00	\N
+3717	20	gram	2023-10-01 08:41:11.518917+00	2023-10-01 08:41:11.518917+00	\N
+3718	600	gram	2023-10-01 08:41:11.520893+00	2023-10-01 08:41:11.520893+00	\N
+3719	200	gram	2023-10-01 08:41:11.522602+00	2023-10-01 08:41:11.522602+00	\N
+3720	200	gram	2023-10-01 08:41:11.524352+00	2023-10-01 08:41:11.524352+00	\N
+3721	\N	arbitrary	2023-10-01 08:41:11.526078+00	2023-10-01 08:41:11.526078+00	garnish
+3722	1	count	2023-10-01 08:41:11.527851+00	2023-10-01 08:41:11.527851+00	\N
+3723	225	gram	2023-10-01 08:41:11.538994+00	2023-10-01 08:41:11.538994+00	\N
+3724	1	count	2023-10-01 08:41:11.540845+00	2023-10-01 08:41:11.540845+00	\N
+3725	250	gram	2023-10-01 08:41:11.542782+00	2023-10-01 08:41:11.542782+00	\N
+3726	30	gram	2023-10-01 08:41:11.545145+00	2023-10-01 08:41:11.545145+00	\N
+3727	40	gram	2023-10-01 08:41:11.547031+00	2023-10-01 08:41:11.547031+00	\N
+3728	340	gram	2023-10-01 08:41:11.548878+00	2023-10-01 08:41:11.548878+00	\N
+3729	100	gram	2023-10-01 08:41:11.550674+00	2023-10-01 08:41:11.550674+00	\N
+3730	1	count	2023-10-01 08:41:11.552663+00	2023-10-01 08:41:11.552663+00	\N
+3731	1	count	2023-10-01 08:41:11.554562+00	2023-10-01 08:41:11.554562+00	\N
+3732	1	count	2023-10-01 08:41:11.572631+00	2023-10-01 08:41:11.572631+00	\N
+3733	80	gram	2023-10-01 08:41:11.574335+00	2023-10-01 08:41:11.574335+00	\N
+3734	\N	arbitrary	2023-10-01 08:41:11.576322+00	2023-10-01 08:41:11.576322+00	3 black
+3735	1	count	2023-10-01 08:41:11.578011+00	2023-10-01 08:41:11.578011+00	\N
+3736	\N	arbitrary	2023-10-01 08:41:11.579803+00	2023-10-01 08:41:11.579803+00	2 sprigs
+3737	1	count	2023-10-01 08:41:11.581663+00	2023-10-01 08:41:11.581663+00	\N
+3738	600	gram	2023-10-01 08:41:11.585486+00	2023-10-01 08:41:11.585486+00	\N
+3739	200	gram	2023-10-01 08:41:11.587738+00	2023-10-01 08:41:11.587738+00	\N
+3740	200	gram	2023-10-01 08:41:11.590379+00	2023-10-01 08:41:11.590379+00	\N
+3741	30	gram	2023-10-01 08:41:11.592766+00	2023-10-01 08:41:11.592766+00	\N
+3742	30	gram	2023-10-01 08:41:11.594742+00	2023-10-01 08:41:11.594742+00	\N
+3743	250	gram	2023-10-01 08:41:11.596571+00	2023-10-01 08:41:11.596571+00	\N
+3744	1	teaspoon	2023-10-01 08:41:11.598939+00	2023-10-01 08:41:11.598939+00	\N
+3745	50	gram	2023-10-01 08:41:11.601025+00	2023-10-01 08:41:11.601025+00	\N
+3746	375	gram	2023-10-01 08:41:11.603149+00	2023-10-01 08:41:11.603149+00	\N
+3747	1	count	2023-10-01 08:41:11.605244+00	2023-10-01 08:41:11.605244+00	\N
+3748	80	gram	2023-10-01 08:41:11.615834+00	2023-10-01 08:41:11.615834+00	\N
+3749	2	count	2023-10-01 08:41:11.617877+00	2023-10-01 08:41:11.617877+00	\N
+3750	800	gram	2023-10-01 08:41:11.620103+00	2023-10-01 08:41:11.620103+00	\N
+3751	300	gram	2023-10-01 08:41:11.622583+00	2023-10-01 08:41:11.622583+00	\N
+3752	400	gram	2023-10-01 08:41:11.62461+00	2023-10-01 08:41:11.62461+00	\N
+3753	2	teaspoon	2023-10-01 08:41:11.62683+00	2023-10-01 08:41:11.62683+00	\N
+3754	250	gram	2023-10-01 08:41:11.629124+00	2023-10-01 08:41:11.629124+00	\N
+3755	100	gram	2023-10-01 08:41:11.639353+00	2023-10-01 08:41:11.639353+00	\N
+3756	100	gram	2023-10-01 08:41:11.641087+00	2023-10-01 08:41:11.641087+00	\N
+3757	100	gram	2023-10-01 08:41:11.642936+00	2023-10-01 08:41:11.642936+00	\N
+3758	1	teaspoon	2023-10-01 08:41:11.644724+00	2023-10-01 08:41:11.644724+00	\N
+3759	1	teaspoon	2023-10-01 08:41:11.646918+00	2023-10-01 08:41:11.646918+00	\N
+3760	2	count	2023-10-01 08:41:11.648876+00	2023-10-01 08:41:11.648876+00	\N
+3761	100	gram	2023-10-01 08:41:11.650792+00	2023-10-01 08:41:11.650792+00	\N
+3762	300	gram	2023-10-01 08:41:11.652635+00	2023-10-01 08:41:11.652635+00	\N
+3763	120	gram	2023-10-01 08:41:11.662908+00	2023-10-01 08:41:11.662908+00	\N
+3764	250	gram	2023-10-01 08:41:11.664954+00	2023-10-01 08:41:11.664954+00	\N
+3765	200	gram	2023-10-01 08:41:11.666913+00	2023-10-01 08:41:11.666913+00	\N
+3766	400	gram	2023-10-01 08:41:11.673721+00	2023-10-01 08:41:11.673721+00	\N
+3767	2	teaspoon	2023-10-01 08:41:11.675882+00	2023-10-01 08:41:11.675882+00	\N
+3768	1	teaspoon	2023-10-01 08:41:11.685666+00	2023-10-01 08:41:11.685666+00	\N
+3769	10	gram	2023-10-01 08:41:11.687862+00	2023-10-01 08:41:11.687862+00	\N
+3770	1	count	2023-10-01 08:41:11.689861+00	2023-10-01 08:41:11.689861+00	\N
+3771	1	count	2023-10-01 08:41:11.709365+00	2023-10-01 08:41:11.709365+00	\N
+3772	180	gram	2023-10-01 08:41:11.711578+00	2023-10-01 08:41:11.711578+00	\N
+3773	120	gram	2023-10-01 08:41:11.713875+00	2023-10-01 08:41:11.713875+00	\N
+3774	100	gram	2023-10-01 08:41:11.71576+00	2023-10-01 08:41:11.71576+00	\N
+3775	500	gram	2023-10-01 08:41:11.717845+00	2023-10-01 08:41:11.717845+00	\N
+3776	30	gram	2023-10-01 08:41:11.719728+00	2023-10-01 08:41:11.719728+00	\N
+3777	\N	arbitrary	2023-10-01 08:41:11.721949+00	2023-10-01 08:41:11.721949+00	1 Tbsp
+3778	\N	arbitrary	2023-10-01 08:41:11.724621+00	2023-10-01 08:41:11.724621+00	1 dried
+3779	\N	arbitrary	2023-10-01 08:41:11.726614+00	2023-10-01 08:41:11.726614+00	3 sprigs
+3780	800	gram	2023-10-01 08:41:11.728668+00	2023-10-01 08:41:11.728668+00	\N
+3781	250	gram	2023-10-01 08:41:11.730872+00	2023-10-01 08:41:11.730872+00	\N
+3782	25	gram	2023-10-01 08:41:11.732964+00	2023-10-01 08:41:11.732964+00	\N
+3783	25	gram	2023-10-01 08:41:11.734959+00	2023-10-01 08:41:11.734959+00	\N
+3784	450	gram	2023-10-01 08:41:11.747348+00	2023-10-01 08:41:11.747348+00	\N
+3785	150	gram	2023-10-01 08:41:11.749933+00	2023-10-01 08:41:11.749933+00	\N
+3786	2	count	2023-10-01 08:41:11.751972+00	2023-10-01 08:41:11.751972+00	\N
+3787	2	teaspoon	2023-10-01 08:41:11.754332+00	2023-10-01 08:41:11.754332+00	\N
+3788	3	teaspoon	2023-10-01 08:41:11.756932+00	2023-10-01 08:41:11.756932+00	\N
+3789	600	gram	2023-10-01 08:41:11.759022+00	2023-10-01 08:41:11.759022+00	\N
+3790	60	gram	2023-10-01 08:41:11.761223+00	2023-10-01 08:41:11.761223+00	\N
+3791	200	gram	2023-10-01 08:41:11.763345+00	2023-10-01 08:41:11.763345+00	\N
+3792	50	gram	2023-10-01 08:41:11.771772+00	2023-10-01 08:41:11.771772+00	\N
+3793	120	gram	2023-10-01 08:41:11.77379+00	2023-10-01 08:41:11.77379+00	\N
+3794	150	gram	2023-10-01 08:41:11.775846+00	2023-10-01 08:41:11.775846+00	\N
+3795	500	gram	2023-10-01 08:41:11.777877+00	2023-10-01 08:41:11.777877+00	\N
+3796	100	gram	2023-10-01 08:41:11.779784+00	2023-10-01 08:41:11.779784+00	\N
+3797	180	gram	2023-10-01 08:41:11.797292+00	2023-10-01 08:41:11.797292+00	\N
+3798	15	gram	2023-10-01 08:41:11.803768+00	2023-10-01 08:41:11.803768+00	\N
+3799	110	gram	2023-10-01 08:41:11.806158+00	2023-10-01 08:41:11.806158+00	\N
+3800	55	gram	2023-10-01 08:41:11.808629+00	2023-10-01 08:41:11.808629+00	\N
+3801	150	gram	2023-10-01 08:41:11.811716+00	2023-10-01 08:41:11.811716+00	\N
+3802	400	gram	2023-10-01 08:41:11.814227+00	2023-10-01 08:41:11.814227+00	\N
+3803	1	count	2023-10-01 08:41:11.816642+00	2023-10-01 08:41:11.816642+00	\N
+3804	400	gram	2023-10-01 08:41:11.819152+00	2023-10-01 08:41:11.819152+00	\N
+3808	450	gram	2023-10-01 08:46:06.827172+00	2023-10-01 08:46:06.827172+00	\N
+3805	3	count	2023-10-01 08:41:45.823634+00	2023-10-01 08:41:45.823634+00	\N
+3806	1	count	2023-10-01 08:42:09.590904+00	2023-10-01 08:42:09.590904+00	\N
+3807	1	kilogram	2023-10-01 08:45:28.816454+00	2023-10-01 08:45:28.816454+00	\N
+3809	50	gram	2023-10-01 08:47:07.828752+00	2023-10-01 08:47:07.828752+00	\N
+3810	2	count	2023-10-01 08:47:27.548292+00	2023-10-01 08:47:27.548292+00	\N
+3811	750	gram	2023-10-01 08:50:48.022344+00	2023-10-01 08:50:48.022344+00	\N
+3812	1.5	kilogram	2023-10-01 08:51:07.950984+00	2023-10-01 08:51:07.950984+00	\N
+3813	15	gram	2023-10-01 08:52:42.5288+00	2023-10-01 08:52:42.5288+00	\N
+3814	140	gram	2023-10-01 08:52:42.530923+00	2023-10-01 08:52:42.530923+00	\N
+3815	1	kilogram	2023-10-01 08:52:42.532842+00	2023-10-01 08:52:42.532842+00	\N
+3816	140	gram	2023-10-01 08:52:42.534766+00	2023-10-01 08:52:42.534766+00	\N
+3817	140	gram	2023-10-01 08:52:42.536784+00	2023-10-01 08:52:42.536784+00	\N
+3818	100	millilitre	2023-10-01 08:52:42.538736+00	2023-10-01 08:52:42.538736+00	\N
+3819	100	millilitre	2023-10-01 08:52:42.540683+00	2023-10-01 08:52:42.540683+00	\N
+3820	\N	arbitrary	2023-10-01 08:52:42.543169+00	2023-10-01 08:52:42.543169+00	pinch
+3821	250	gram	2023-10-01 08:52:42.545114+00	2023-10-01 08:52:42.545114+00	\N
+3822	0.5	count	2023-10-01 08:52:42.546871+00	2023-10-01 08:52:42.546871+00	\N
+3823	4	count	2023-10-01 08:52:42.564926+00	2023-10-01 08:52:42.564926+00	\N
+3824	5	tablespoon	2023-10-01 08:52:42.566817+00	2023-10-01 08:52:42.566817+00	\N
+3825	250	gram	2023-10-01 08:52:42.568603+00	2023-10-01 08:52:42.568603+00	\N
+3826	1	tablespoon	2023-10-01 08:52:42.5704+00	2023-10-01 08:52:42.5704+00	\N
+3827	1	count	2023-10-01 08:52:42.572143+00	2023-10-01 08:52:42.572143+00	\N
+3828	800	gram	2023-10-01 08:52:42.574128+00	2023-10-01 08:52:42.574128+00	\N
+3829	1	count	2023-10-01 08:52:42.575963+00	2023-10-01 08:52:42.575963+00	\N
+3830	1	tablespoon	2023-10-01 08:52:42.578074+00	2023-10-01 08:52:42.578074+00	\N
+3831	1	tablespoon	2023-10-01 08:52:42.580793+00	2023-10-01 08:52:42.580793+00	\N
+3832	0.5	teaspoon	2023-10-01 08:52:42.582894+00	2023-10-01 08:52:42.582894+00	\N
+3833	1	tablespoon	2023-10-01 08:52:42.58498+00	2023-10-01 08:52:42.58498+00	\N
+3834	1	litre	2023-10-01 08:52:42.587143+00	2023-10-01 08:52:42.587143+00	\N
+3835	100	gram	2023-10-01 08:52:42.589797+00	2023-10-01 08:52:42.589797+00	\N
+3836	1	count	2023-10-01 08:52:42.591973+00	2023-10-01 08:52:42.591973+00	\N
+3837	2	tablespoon	2023-10-01 08:52:42.594006+00	2023-10-01 08:52:42.594006+00	\N
+3838	1	tablespoon	2023-10-01 08:52:42.596138+00	2023-10-01 08:52:42.596138+00	\N
+3839	200	gram	2023-10-01 08:52:42.59882+00	2023-10-01 08:52:42.59882+00	\N
+3840	\N	arbitrary	2023-10-01 08:52:42.600886+00	2023-10-01 08:52:42.600886+00	1 handful
+3841	2	count	2023-10-01 08:52:42.61851+00	2023-10-01 08:52:42.61851+00	\N
+3842	1	count	2023-10-01 08:52:42.62218+00	2023-10-01 08:52:42.62218+00	\N
+3843	1	count	2023-10-01 08:52:42.624643+00	2023-10-01 08:52:42.624643+00	\N
+3844	1	count	2023-10-01 08:52:42.626701+00	2023-10-01 08:52:42.626701+00	\N
+3845	\N	arbitrary	2023-10-01 08:52:42.628625+00	2023-10-01 08:52:42.628625+00	pinch
+3846	1	tablespoon	2023-10-01 08:52:42.63057+00	2023-10-01 08:52:42.63057+00	\N
+3847	\N	arbitrary	2023-10-01 08:52:42.632823+00	2023-10-01 08:52:42.632823+00	pinch
+3848	2	count	2023-10-01 08:52:42.634545+00	2023-10-01 08:52:42.634545+00	\N
+3849	4	tablespoon	2023-10-01 08:52:42.636365+00	2023-10-01 08:52:42.636365+00	\N
+3850	1	count	2023-10-01 08:52:42.638265+00	2023-10-01 08:52:42.638265+00	\N
+3851	4	tablespoon	2023-10-01 08:52:42.640027+00	2023-10-01 08:52:42.640027+00	\N
+3852	8	count	2023-10-01 08:52:42.64202+00	2023-10-01 08:52:42.64202+00	\N
+3853	\N	arbitrary	2023-10-01 08:52:42.643819+00	2023-10-01 08:52:42.643819+00	1 bag
+3854	230	gram	2023-10-01 08:52:42.645679+00	2023-10-01 08:52:42.645679+00	\N
+3855	1	kilogram	2023-10-01 08:52:42.658714+00	2023-10-01 08:52:42.658714+00	\N
+3856	2	cloves	2023-10-01 08:52:42.660797+00	2023-10-01 08:52:42.660797+00	\N
+3857	300	millilitre	2023-10-01 08:52:42.662541+00	2023-10-01 08:52:42.662541+00	\N
+3858	200	millilitre	2023-10-01 08:52:42.66431+00	2023-10-01 08:52:42.66431+00	\N
+3859	100	gram	2023-10-01 08:52:42.665977+00	2023-10-01 08:52:42.665977+00	\N
+3860	50	gram	2023-10-01 08:52:42.667927+00	2023-10-01 08:52:42.667927+00	\N
+3861	1	teaspoon	2023-10-01 08:52:42.670021+00	2023-10-01 08:52:42.670021+00	\N
+3862	\N	arbitrary	2023-10-01 08:52:42.672245+00	2023-10-01 08:52:42.672245+00	1 pinch
+3863	\N	arbitrary	2023-10-01 08:52:42.672997+00	2023-10-01 08:52:42.672997+00	to taste
+3864	\N	arbitrary	2023-10-01 08:52:42.674911+00	2023-10-01 08:52:42.674911+00	to taste
+3865	2	cup	2023-10-01 08:52:42.69026+00	2023-10-01 08:52:42.69026+00	\N
+3866	4	count	2023-10-01 08:52:42.692173+00	2023-10-01 08:52:42.692173+00	\N
+3867	0.5	cup	2023-10-01 08:52:42.694159+00	2023-10-01 08:52:42.694159+00	\N
+3868	0.5	teaspoon	2023-10-01 08:52:42.696487+00	2023-10-01 08:52:42.696487+00	\N
+3869	0.5	cup	2023-10-01 08:52:42.698242+00	2023-10-01 08:52:42.698242+00	\N
+3870	3	tablespoon	2023-10-01 08:52:42.70017+00	2023-10-01 08:52:42.70017+00	\N
+3871	2	cup	2023-10-01 08:52:42.701836+00	2023-10-01 08:52:42.701836+00	\N
+3872	1	cup	2023-10-01 08:52:42.703912+00	2023-10-01 08:52:42.703912+00	\N
+3873	0.5	cup	2023-10-01 08:52:42.705569+00	2023-10-01 08:52:42.705569+00	\N
+3874	0.25	teaspoon	2023-10-01 08:52:42.707604+00	2023-10-01 08:52:42.707604+00	\N
+3875	0.5	teaspoon	2023-10-01 08:52:42.709511+00	2023-10-01 08:52:42.709511+00	\N
+3876	0.25	teaspoon	2023-10-01 08:52:42.711303+00	2023-10-01 08:52:42.711303+00	\N
+3877	3	tablespoon	2023-10-01 08:52:42.713092+00	2023-10-01 08:52:42.713092+00	\N
+3878	0.5	cup	2023-10-01 08:52:42.715238+00	2023-10-01 08:52:42.715238+00	\N
+3879	3	tablespoon	2023-10-01 08:52:42.73016+00	2023-10-01 08:52:42.73016+00	\N
+3880	4	count	2023-10-01 08:52:42.732496+00	2023-10-01 08:52:42.732496+00	\N
+3881	4	count	2023-10-01 08:52:42.73474+00	2023-10-01 08:52:42.73474+00	\N
+3882	2	count	2023-10-01 08:52:42.737298+00	2023-10-01 08:52:42.737298+00	\N
+3883	4	cup	2023-10-01 08:52:42.73951+00	2023-10-01 08:52:42.73951+00	\N
+3884	1	cup	2023-10-01 08:52:42.741318+00	2023-10-01 08:52:42.741318+00	\N
+3885	\N	arbitrary	2023-10-01 08:52:42.74318+00	2023-10-01 08:52:42.74318+00	1 bay leaf
+3886	0.5	cup	2023-10-01 08:52:42.745114+00	2023-10-01 08:52:42.745114+00	\N
+3887	0.5	teaspoon	2023-10-01 08:52:42.746744+00	2023-10-01 08:52:42.746744+00	\N
+3888	0.25	teaspoon	2023-10-01 08:52:42.748668+00	2023-10-01 08:52:42.748668+00	\N
+3889	2	tablespoon	2023-10-01 08:52:42.750663+00	2023-10-01 08:52:42.750663+00	\N
+3890	2	tablespoon	2023-10-01 08:52:42.752508+00	2023-10-01 08:52:42.752508+00	\N
+3891	2	cup	2023-10-01 08:52:42.768155+00	2023-10-01 08:52:42.768155+00	\N
+3892	1	tablespoon	2023-10-01 08:52:42.770438+00	2023-10-01 08:52:42.770438+00	\N
+3893	1	count	2023-10-01 08:52:42.772524+00	2023-10-01 08:52:42.772524+00	\N
+3894	2	cloves	2023-10-01 08:52:42.774381+00	2023-10-01 08:52:42.774381+00	\N
+3895	2	cup	2023-10-01 08:52:42.776444+00	2023-10-01 08:52:42.776444+00	\N
+3896	1	count	2023-10-01 08:52:42.778565+00	2023-10-01 08:52:42.778565+00	\N
+3897	4	count	2023-10-01 08:52:42.780484+00	2023-10-01 08:52:42.780484+00	\N
+3898	\N	arbitrary	2023-10-01 08:52:42.782406+00	2023-10-01 08:52:42.782406+00	1 1/2 cups
+3899	0.5	cup	2023-10-01 08:52:42.784186+00	2023-10-01 08:52:42.784186+00	\N
+3900	0.5	teaspoon	2023-10-01 08:52:42.785961+00	2023-10-01 08:52:42.785961+00	\N
+3901	0.25	teaspoon	2023-10-01 08:52:42.787931+00	2023-10-01 08:52:42.787931+00	\N
+3902	0.25	teaspoon	2023-10-01 08:52:42.789745+00	2023-10-01 08:52:42.789745+00	\N
+3903	\N	arbitrary	2023-10-01 08:52:42.791733+00	2023-10-01 08:52:42.791733+00	1 1/2 cups
+3904	0.25	cup	2023-10-01 08:52:42.793707+00	2023-10-01 08:52:42.793707+00	\N
+3905	1.5	kilogram	2023-10-01 08:52:42.815895+00	2023-10-01 08:52:42.815895+00	\N
+3906	2	tablespoon	2023-10-01 08:52:42.817689+00	2023-10-01 08:52:42.817689+00	\N
+3907	2	count	2023-10-01 08:52:42.81966+00	2023-10-01 08:52:42.81966+00	\N
+3908	2	count	2023-10-01 08:52:42.821862+00	2023-10-01 08:52:42.821862+00	\N
+3909	2	count	2023-10-01 08:52:42.823807+00	2023-10-01 08:52:42.823807+00	\N
+3910	2	tablespoon	2023-10-01 08:52:42.825611+00	2023-10-01 08:52:42.825611+00	\N
+3911	2	tablespoon	2023-10-01 08:52:42.827908+00	2023-10-01 08:52:42.827908+00	\N
+3912	500	millilitre	2023-10-01 08:52:42.830184+00	2023-10-01 08:52:42.830184+00	\N
+3913	2	tablespoon	2023-10-01 08:52:42.832714+00	2023-10-01 08:52:42.832714+00	\N
+3914	\N	arbitrary	2023-10-01 08:52:42.835905+00	2023-10-01 08:52:42.835905+00	few
+3915	\N	arbitrary	2023-10-01 08:52:42.83779+00	2023-10-01 08:52:42.83779+00	few
+3916	2	count	2023-10-01 08:52:42.839806+00	2023-10-01 08:52:42.839806+00	\N
+3917	3	count	2023-10-01 08:52:42.841732+00	2023-10-01 08:52:42.841732+00	\N
+3918	500	gram	2023-10-01 08:52:42.843564+00	2023-10-01 08:52:42.843564+00	\N
+3919	2	count	2023-10-01 08:52:42.845847+00	2023-10-01 08:52:42.845847+00	\N
+3920	150	gram	2023-10-01 08:52:42.848321+00	2023-10-01 08:52:42.848321+00	\N
+3921	2	tablespoon	2023-10-01 08:52:42.850093+00	2023-10-01 08:52:42.850093+00	\N
+3922	\N	arbitrary	2023-10-01 08:52:42.852402+00	2023-10-01 08:52:42.852402+00	salt
+3923	\N	arbitrary	2023-10-01 08:52:42.854483+00	2023-10-01 08:52:42.854483+00	black pepper
+3924	320	gram	2023-10-01 08:52:42.868327+00	2023-10-01 08:52:42.868327+00	\N
+3925	4	count	2023-10-01 08:52:42.870226+00	2023-10-01 08:52:42.870226+00	\N
+3926	4	count	2023-10-01 08:52:42.87223+00	2023-10-01 08:52:42.87223+00	\N
+3927	200	millilitre	2023-10-01 08:52:42.874408+00	2023-10-01 08:52:42.874408+00	\N
+3928	200	millilitre	2023-10-01 08:52:42.876143+00	2023-10-01 08:52:42.876143+00	\N
+3929	200	gram	2023-10-01 08:52:42.877817+00	2023-10-01 08:52:42.877817+00	\N
+3930	\N	arbitrary	2023-10-01 08:52:42.879421+00	2023-10-01 08:52:42.879421+00	1 bunch
+3931	100	gram	2023-10-01 08:52:42.881151+00	2023-10-01 08:52:42.881151+00	\N
+3932	\N	arbitrary	2023-10-01 08:52:42.882904+00	2023-10-01 08:52:42.882904+00	salt
+3933	\N	arbitrary	2023-10-01 08:52:42.885264+00	2023-10-01 08:52:42.885264+00	black pepper
+3934	\N	arbitrary	2023-10-01 08:52:42.887233+00	2023-10-01 08:52:42.887233+00	1 knob
+3935	\N	arbitrary	2023-10-01 08:52:42.888954+00	2023-10-01 08:52:42.888954+00	olive oil
+3936	1	kilogram	2023-10-01 08:52:42.899556+00	2023-10-01 08:52:42.899556+00	\N
+3937	2	count	2023-10-01 08:52:42.901405+00	2023-10-01 08:52:42.901405+00	\N
+3938	4	tablespoon	2023-10-01 08:52:42.903351+00	2023-10-01 08:52:42.903351+00	\N
+3939	1	count	2023-10-01 08:52:42.905138+00	2023-10-01 08:52:42.905138+00	\N
+3940	2	cloves	2023-10-01 08:52:42.906973+00	2023-10-01 08:52:42.906973+00	\N
+3941	2	tablespoon	2023-10-01 08:52:42.908998+00	2023-10-01 08:52:42.908998+00	\N
+3942	1	teaspoon	2023-10-01 08:52:42.910655+00	2023-10-01 08:52:42.910655+00	\N
+3943	0.5	teaspoon	2023-10-01 08:52:42.912525+00	2023-10-01 08:52:42.912525+00	\N
+3944	\N	arbitrary	2023-10-01 08:52:42.914351+00	2023-10-01 08:52:42.914351+00	vegetable oil
+3945	2	count	2023-10-01 08:52:42.921748+00	2023-10-01 08:52:42.921748+00	\N
+3946	1	count	2023-10-01 08:52:42.923929+00	2023-10-01 08:52:42.923929+00	\N
+3947	100	gram	2023-10-01 08:52:42.925729+00	2023-10-01 08:52:42.925729+00	\N
+3948	\N	arbitrary	2023-10-01 08:52:42.927586+00	2023-10-01 08:52:42.927586+00	1 bunch
+3949	\N	arbitrary	2023-10-01 08:52:42.929507+00	2023-10-01 08:52:42.929507+00	1 pack
+3950	2	tablespoon	2023-10-01 08:52:42.936823+00	2023-10-01 08:52:42.936823+00	\N
+3951	\N	arbitrary	2023-10-01 08:52:42.938745+00	2023-10-01 08:52:42.938745+00	3 small
+3952	\N	arbitrary	2023-10-01 08:52:42.940658+00	2023-10-01 08:52:42.940658+00	1 sheet
+3953	100	gram	2023-10-01 08:52:42.942348+00	2023-10-01 08:52:42.942348+00	\N
+3954	\N	arbitrary	2023-10-01 08:52:42.951199+00	2023-10-01 08:52:42.951199+00	2 handfuls
+3955	2	count	2023-10-01 08:52:42.953086+00	2023-10-01 08:52:42.953086+00	\N
+3956	2	count	2023-10-01 08:52:42.954729+00	2023-10-01 08:52:42.954729+00	\N
+3957	100	gram	2023-10-01 08:52:42.956792+00	2023-10-01 08:52:42.956792+00	\N
+3958	100	millilitre	2023-10-01 08:52:42.959015+00	2023-10-01 08:52:42.959015+00	\N
+3959	\N	arbitrary	2023-10-01 08:52:42.961143+00	2023-10-01 08:52:42.961143+00	10 leaves
+3960	\N	arbitrary	2023-10-01 08:52:42.967772+00	2023-10-01 08:52:42.967772+00	enough for at least 2 pizzas
+3961	2	tablespoon	2023-10-01 08:52:42.969661+00	2023-10-01 08:52:42.969661+00	\N
+3962	2	count	2023-10-01 08:52:42.971664+00	2023-10-01 08:52:42.971664+00	\N
+3963	\N	arbitrary	2023-10-01 08:52:42.973533+00	2023-10-01 08:52:42.973533+00	1 pack
+3964	125	gram	2023-10-01 08:52:42.985786+00	2023-10-01 08:52:42.985786+00	\N
+3965	325	millilitre	2023-10-01 08:52:42.987774+00	2023-10-01 08:52:42.987774+00	\N
+3966	400	gram	2023-10-01 08:52:42.989637+00	2023-10-01 08:52:42.989637+00	\N
+3967	1	count	2023-10-01 08:52:42.991414+00	2023-10-01 08:52:42.991414+00	\N
+3968	150	gram	2023-10-01 08:52:42.993341+00	2023-10-01 08:52:42.993341+00	\N
+3969	200	gram	2023-10-01 08:52:42.995737+00	2023-10-01 08:52:42.995737+00	\N
+3970	40	gram	2023-10-01 08:52:42.997592+00	2023-10-01 08:52:42.997592+00	\N
+3971	15	gram	2023-10-01 08:52:42.999547+00	2023-10-01 08:52:42.999547+00	\N
+3972	2	count	2023-10-01 08:52:43.002099+00	2023-10-01 08:52:43.002099+00	\N
+3973	800	gram	2023-10-01 08:52:43.014497+00	2023-10-01 08:52:43.014497+00	\N
+3974	1	count	2023-10-01 08:52:43.016407+00	2023-10-01 08:52:43.016407+00	\N
+3975	8	count	2023-10-01 08:52:43.018531+00	2023-10-01 08:52:43.018531+00	\N
+3976	8	count	2023-10-01 08:52:43.020376+00	2023-10-01 08:52:43.020376+00	\N
+3977	1	count	2023-10-01 08:52:43.022187+00	2023-10-01 08:52:43.022187+00	\N
+3978	280	gram	2023-10-01 08:52:43.02412+00	2023-10-01 08:52:43.02412+00	\N
+3979	\N	arbitrary	2023-10-01 08:52:43.026429+00	2023-10-01 08:52:43.026429+00	3-4 sprigs
+3980	\N	arbitrary	2023-10-01 08:52:43.028158+00	2023-10-01 08:52:43.028158+00	5-6 sprigs
+3981	340	gram	2023-10-01 08:52:43.03002+00	2023-10-01 08:52:43.03002+00	\N
+3982	20	gram	2023-10-01 08:52:43.03232+00	2023-10-01 08:52:43.03232+00	\N
+3983	1	count	2023-10-01 08:52:43.044912+00	2023-10-01 08:52:43.044912+00	\N
+3984	2	count	2023-10-01 08:52:43.046746+00	2023-10-01 08:52:43.046746+00	\N
+3985	2	count	2023-10-01 08:52:43.048562+00	2023-10-01 08:52:43.048562+00	\N
+3986	6	count	2023-10-01 08:52:43.050394+00	2023-10-01 08:52:43.050394+00	\N
+3987	150	gram	2023-10-01 08:52:43.052217+00	2023-10-01 08:52:43.052217+00	\N
+3988	\N	arbitrary	2023-10-01 08:52:43.054057+00	2023-10-01 08:52:43.054057+00	4 pinches
+3989	250	gram	2023-10-01 08:52:43.055867+00	2023-10-01 08:52:43.055867+00	\N
+3990	600	millilitre	2023-10-01 08:52:43.057722+00	2023-10-01 08:52:43.057722+00	\N
+3991	1	count	2023-10-01 08:52:43.060282+00	2023-10-01 08:52:43.060282+00	\N
+3992	20	gram	2023-10-01 08:52:43.068506+00	2023-10-01 08:52:43.068506+00	\N
+3993	2	count	2023-10-01 08:52:43.086077+00	2023-10-01 08:52:43.086077+00	\N
+3994	2	count	2023-10-01 08:52:43.088652+00	2023-10-01 08:52:43.088652+00	\N
+3995	15	gram	2023-10-01 08:52:43.090803+00	2023-10-01 08:52:43.090803+00	\N
+3996	400	gram	2023-10-01 08:52:43.092653+00	2023-10-01 08:52:43.092653+00	\N
+3997	400	gram	2023-10-01 08:52:43.0945+00	2023-10-01 08:52:43.0945+00	\N
+3998	1	count	2023-10-01 08:52:43.096565+00	2023-10-01 08:52:43.096565+00	\N
+3999	4	tablespoon	2023-10-01 08:52:43.098601+00	2023-10-01 08:52:43.098601+00	\N
+4000	600	millilitre	2023-10-01 08:52:43.100496+00	2023-10-01 08:52:43.100496+00	\N
+4001	1	count	2023-10-01 08:52:43.102751+00	2023-10-01 08:52:43.102751+00	\N
+4002	20	gram	2023-10-01 08:52:43.104802+00	2023-10-01 08:52:43.104802+00	\N
+4003	1	tablespoon	2023-10-01 08:52:43.107236+00	2023-10-01 08:52:43.107236+00	\N
+4004	1	tablespoon	2023-10-01 08:52:43.109424+00	2023-10-01 08:52:43.109424+00	\N
+4005	800	gram	2023-10-01 08:52:43.111413+00	2023-10-01 08:52:43.111413+00	\N
+4006	2	cloves	2023-10-01 08:52:43.113381+00	2023-10-01 08:52:43.113381+00	\N
+4007	150	gram	2023-10-01 08:52:43.115338+00	2023-10-01 08:52:43.115338+00	\N
+4008	\N	arbitrary	2023-10-01 08:52:43.132158+00	2023-10-01 08:52:43.132158+00	1 pound
+4009	0.25	cup	2023-10-01 08:52:43.134628+00	2023-10-01 08:52:43.134628+00	\N
+4010	\N	arbitrary	2023-10-01 08:52:43.136687+00	2023-10-01 08:52:43.136687+00	1 clove
+4011	\N	arbitrary	2023-10-01 08:52:43.145413+00	2023-10-01 08:52:43.145413+00	6 ounces
+4012	2	cup	2023-10-01 08:52:43.147423+00	2023-10-01 08:52:43.147423+00	\N
+4013	2	cup	2023-10-01 08:52:43.149425+00	2023-10-01 08:52:43.149425+00	\N
+4014	0.5	cup	2023-10-01 08:52:43.151235+00	2023-10-01 08:52:43.151235+00	\N
+4015	0.5	cup	2023-10-01 08:52:43.153721+00	2023-10-01 08:52:43.153721+00	\N
+4016	1	count	2023-10-01 08:52:43.164695+00	2023-10-01 08:52:43.164695+00	\N
+4017	1	count	2023-10-01 08:52:43.166542+00	2023-10-01 08:52:43.166542+00	\N
+4018	3	count	2023-10-01 08:52:43.168325+00	2023-10-01 08:52:43.168325+00	\N
+4019	0.5	cup	2023-10-01 08:52:43.170162+00	2023-10-01 08:52:43.170162+00	\N
+4020	1	count	2023-10-01 08:52:43.172576+00	2023-10-01 08:52:43.172576+00	\N
+4021	2	cup	2023-10-01 08:52:43.174412+00	2023-10-01 08:52:43.174412+00	\N
+4022	5	tablespoon	2023-10-01 08:52:43.176317+00	2023-10-01 08:52:43.176317+00	\N
+4023	0.25	teaspoon	2023-10-01 08:52:43.177988+00	2023-10-01 08:52:43.177988+00	\N
+4024	1	count	2023-10-01 08:52:43.188588+00	2023-10-01 08:52:43.188588+00	\N
+4025	250	gram	2023-10-01 08:52:43.190428+00	2023-10-01 08:52:43.190428+00	\N
+4026	1	count	2023-10-01 08:52:43.192124+00	2023-10-01 08:52:43.192124+00	\N
+4027	100	millilitre	2023-10-01 08:52:43.19409+00	2023-10-01 08:52:43.19409+00	\N
+4028	200	millilitre	2023-10-01 08:52:43.196051+00	2023-10-01 08:52:43.196051+00	\N
+4029	1	count	2023-10-01 08:52:43.197802+00	2023-10-01 08:52:43.197802+00	\N
+4030	200	gram	2023-10-01 08:52:43.19962+00	2023-10-01 08:52:43.19962+00	\N
+4031	300	gram	2023-10-01 08:52:43.201659+00	2023-10-01 08:52:43.201659+00	\N
+4032	\N	arbitrary	2023-10-01 08:52:43.203788+00	2023-10-01 08:52:43.203788+00	1/2 bunch
+4033	4	count	2023-10-01 08:52:43.214774+00	2023-10-01 08:52:43.214774+00	\N
+4034	280	gram	2023-10-01 08:52:43.217134+00	2023-10-01 08:52:43.217134+00	\N
+4035	200	gram	2023-10-01 08:52:43.219317+00	2023-10-01 08:52:43.219317+00	\N
+4036	100	gram	2023-10-01 08:52:43.221398+00	2023-10-01 08:52:43.221398+00	\N
+4037	\N	arbitrary	2023-10-01 08:52:43.223492+00	2023-10-01 08:52:43.223492+00	1 bunch
+4038	1	count	2023-10-01 08:52:43.225444+00	2023-10-01 08:52:43.225444+00	\N
+4039	50	gram	2023-10-01 08:52:43.227437+00	2023-10-01 08:52:43.227437+00	\N
+4040	1	count	2023-10-01 08:52:43.23862+00	2023-10-01 08:52:43.23862+00	\N
+4041	150	gram	2023-10-01 08:52:43.240364+00	2023-10-01 08:52:43.240364+00	\N
+4042	0.5	teaspoon	2023-10-01 08:52:43.24206+00	2023-10-01 08:52:43.24206+00	\N
+4043	1	count	2023-10-01 08:52:43.243847+00	2023-10-01 08:52:43.243847+00	\N
+4044	1	count	2023-10-01 08:52:43.245614+00	2023-10-01 08:52:43.245614+00	\N
+4045	2	count	2023-10-01 08:52:43.247545+00	2023-10-01 08:52:43.247545+00	\N
+4046	4	count	2023-10-01 08:52:43.249573+00	2023-10-01 08:52:43.249573+00	\N
+4047	1	count	2023-10-01 08:52:43.251487+00	2023-10-01 08:52:43.251487+00	\N
+4048	1	count	2023-10-01 08:52:43.253294+00	2023-10-01 08:52:43.253294+00	\N
+4049	200	gram	2023-10-01 08:52:43.262755+00	2023-10-01 08:52:43.262755+00	\N
+4050	200	gram	2023-10-01 08:52:43.264621+00	2023-10-01 08:52:43.264621+00	\N
+4051	1	count	2023-10-01 08:52:43.266207+00	2023-10-01 08:52:43.266207+00	\N
+4052	1	count	2023-10-01 08:52:43.268022+00	2023-10-01 08:52:43.268022+00	\N
+4053	2	count	2023-10-01 08:52:43.269865+00	2023-10-01 08:52:43.269865+00	\N
+4054	1	count	2023-10-01 08:52:43.271795+00	2023-10-01 08:52:43.271795+00	\N
+4055	1	count	2023-10-01 08:52:43.27374+00	2023-10-01 08:52:43.27374+00	\N
+4056	1	count	2023-10-01 08:52:43.276106+00	2023-10-01 08:52:43.276106+00	\N
+4057	2	count	2023-10-01 08:52:43.284573+00	2023-10-01 08:52:43.284573+00	\N
+4058	3	count	2023-10-01 08:52:43.28636+00	2023-10-01 08:52:43.28636+00	\N
+4059	2	count	2023-10-01 08:52:43.288355+00	2023-10-01 08:52:43.288355+00	\N
+4060	2	count	2023-10-01 08:52:43.29034+00	2023-10-01 08:52:43.29034+00	\N
+4061	4	count	2023-10-01 08:52:43.292276+00	2023-10-01 08:52:43.292276+00	\N
+4062	500	gram	2023-10-01 08:52:43.293911+00	2023-10-01 08:52:43.293911+00	\N
+4063	1	count	2023-10-01 08:52:43.306711+00	2023-10-01 08:52:43.306711+00	\N
+4064	1	count	2023-10-01 08:52:43.308705+00	2023-10-01 08:52:43.308705+00	\N
+4065	1	count	2023-10-01 08:52:43.310652+00	2023-10-01 08:52:43.310652+00	\N
+4066	2	count	2023-10-01 08:52:43.312746+00	2023-10-01 08:52:43.312746+00	\N
+4067	1	count	2023-10-01 08:52:43.31471+00	2023-10-01 08:52:43.31471+00	\N
+4068	300	gram	2023-10-01 08:52:43.316577+00	2023-10-01 08:52:43.316577+00	\N
+4069	600	millilitre	2023-10-01 08:52:43.318536+00	2023-10-01 08:52:43.318536+00	\N
+4070	2	count	2023-10-01 08:52:43.320519+00	2023-10-01 08:52:43.320519+00	\N
+4071	75	gram	2023-10-01 08:52:43.322518+00	2023-10-01 08:52:43.322518+00	\N
+4072	20	gram	2023-10-01 08:52:43.324758+00	2023-10-01 08:52:43.324758+00	\N
+4073	100	gram	2023-10-01 08:52:43.326734+00	2023-10-01 08:52:43.326734+00	\N
+4074	200	gram	2023-10-01 08:52:43.334613+00	2023-10-01 08:52:43.334613+00	\N
+4075	800	gram	2023-10-01 08:52:43.336585+00	2023-10-01 08:52:43.336585+00	\N
+4076	800	gram	2023-10-01 08:52:43.338916+00	2023-10-01 08:52:43.338916+00	\N
+4077	130	gram	2023-10-01 08:52:43.34106+00	2023-10-01 08:52:43.34106+00	\N
+4078	12	count	2023-10-01 08:52:43.348259+00	2023-10-01 08:52:43.348259+00	\N
+4079	500	gram	2023-10-01 08:52:43.350377+00	2023-10-01 08:52:43.350377+00	\N
+4080	\N	arbitrary	2023-10-01 08:52:43.352226+00	2023-10-01 08:52:43.352226+00	Bunch
+4081	200	gram	2023-10-01 08:52:43.354021+00	2023-10-01 08:52:43.354021+00	\N
+4082	1200	gram	2023-10-01 08:52:43.369485+00	2023-10-01 08:52:43.369485+00	\N
+4083	3	tablespoon	2023-10-01 08:52:43.371576+00	2023-10-01 08:52:43.371576+00	\N
+4084	\N	arbitrary	2023-10-01 08:52:43.373598+00	2023-10-01 08:52:43.373598+00	1 1/2 tbsp
+4085	\N	arbitrary	2023-10-01 08:52:43.375671+00	2023-10-01 08:52:43.375671+00	1 1/2 tbsp
+4086	\N	arbitrary	2023-10-01 08:52:43.377578+00	2023-10-01 08:52:43.377578+00	1 1/2 tbsp
+4087	\N	arbitrary	2023-10-01 08:52:43.379959+00	2023-10-01 08:52:43.379959+00	1 Clove
+4088	2	tablespoon	2023-10-01 08:52:43.382031+00	2023-10-01 08:52:43.382031+00	\N
+4089	2	count	2023-10-01 08:52:43.384041+00	2023-10-01 08:52:43.384041+00	\N
+4090	2	count	2023-10-01 08:52:43.386154+00	2023-10-01 08:52:43.386154+00	\N
+4091	1	count	2023-10-01 08:52:43.388145+00	2023-10-01 08:52:43.388145+00	\N
+4092	110	gram	2023-10-01 08:52:43.390069+00	2023-10-01 08:52:43.390069+00	\N
+4093	1	count	2023-10-01 08:52:43.392091+00	2023-10-01 08:52:43.392091+00	\N
+4094	12	count	2023-10-01 08:52:43.394024+00	2023-10-01 08:52:43.394024+00	\N
+4095	150	millilitre	2023-10-01 08:52:43.396082+00	2023-10-01 08:52:43.396082+00	\N
+4096	4	count	2023-10-01 08:52:43.405485+00	2023-10-01 08:52:43.405485+00	\N
+4097	100	gram	2023-10-01 08:52:43.407369+00	2023-10-01 08:52:43.407369+00	\N
+4098	200	gram	2023-10-01 08:52:43.40915+00	2023-10-01 08:52:43.40915+00	\N
+4099	500	gram	2023-10-01 08:52:43.410974+00	2023-10-01 08:52:43.410974+00	\N
+4100	200	gram	2023-10-01 08:52:43.413063+00	2023-10-01 08:52:43.413063+00	\N
+4101	\N	arbitrary	2023-10-01 08:52:43.414946+00	2023-10-01 08:52:43.414946+00	1 bunch
+4102	6	count	2023-10-01 08:52:43.423124+00	2023-10-01 08:52:43.423124+00	\N
+4103	200	gram	2023-10-01 08:52:43.425137+00	2023-10-01 08:52:43.425137+00	\N
+4104	140	gram	2023-10-01 08:52:43.426898+00	2023-10-01 08:52:43.426898+00	\N
+4105	120	gram	2023-10-01 08:52:43.428673+00	2023-10-01 08:52:43.428673+00	\N
+4106	40	gram	2023-10-01 08:52:43.43052+00	2023-10-01 08:52:43.43052+00	\N
+4107	1.5	kilogram	2023-10-01 08:52:43.437969+00	2023-10-01 08:52:43.437969+00	\N
+4108	\N	arbitrary	2023-10-01 08:52:43.439943+00	2023-10-01 08:52:43.439943+00	1/2 liter
+4109	125	millilitre	2023-10-01 08:52:43.441991+00	2023-10-01 08:52:43.441991+00	\N
+4110	100	millilitre	2023-10-01 08:52:43.443936+00	2023-10-01 08:52:43.443936+00	\N
+4111	1	tablespoon	2023-10-01 08:52:43.44605+00	2023-10-01 08:52:43.44605+00	\N
+4112	1	count	2023-10-01 08:52:43.456414+00	2023-10-01 08:52:43.456414+00	\N
+4113	200	gram	2023-10-01 08:52:43.458391+00	2023-10-01 08:52:43.458391+00	\N
+4114	4	count	2023-10-01 08:52:43.460501+00	2023-10-01 08:52:43.460501+00	\N
+4115	500	millilitre	2023-10-01 08:52:43.462488+00	2023-10-01 08:52:43.462488+00	\N
+4116	0.25	tablespoon	2023-10-01 08:52:43.464282+00	2023-10-01 08:52:43.464282+00	\N
+4117	2	tablespoon	2023-10-01 08:52:43.466059+00	2023-10-01 08:52:43.466059+00	\N
+4118	1	count	2023-10-01 08:52:43.468172+00	2023-10-01 08:52:43.468172+00	\N
+4119	400	millilitre	2023-10-01 08:52:43.481195+00	2023-10-01 08:52:43.481195+00	\N
+4120	1	kilogram	2023-10-01 08:52:43.483309+00	2023-10-01 08:52:43.483309+00	\N
+4121	600	gram	2023-10-01 08:52:43.485285+00	2023-10-01 08:52:43.485285+00	\N
+4122	6	count	2023-10-01 08:52:43.487067+00	2023-10-01 08:52:43.487067+00	\N
+4123	4	cloves	2023-10-01 08:52:43.489034+00	2023-10-01 08:52:43.489034+00	\N
+4124	1	count	2023-10-01 08:52:43.4909+00	2023-10-01 08:52:43.4909+00	\N
+4125	1	teaspoon	2023-10-01 08:52:43.493511+00	2023-10-01 08:52:43.493511+00	\N
+4126	2	teaspoon	2023-10-01 08:52:43.495444+00	2023-10-01 08:52:43.495444+00	\N
+4127	2	count	2023-10-01 08:52:43.49875+00	2023-10-01 08:52:43.49875+00	\N
+4128	3	tablespoon	2023-10-01 08:52:43.501226+00	2023-10-01 08:52:43.501226+00	\N
+4129	2	teaspoon	2023-10-01 08:52:43.50386+00	2023-10-01 08:52:43.50386+00	\N
+4130	750	gram	2023-10-01 08:52:43.516584+00	2023-10-01 08:52:43.516584+00	\N
+4131	\N	arbitrary	2023-10-01 08:52:43.518691+00	2023-10-01 08:52:43.518691+00	handful
+4132	300	gram	2023-10-01 08:52:43.520486+00	2023-10-01 08:52:43.520486+00	\N
+4133	2	count	2023-10-01 08:52:43.522109+00	2023-10-01 08:52:43.522109+00	\N
+4134	2	cloves	2023-10-01 08:52:43.523819+00	2023-10-01 08:52:43.523819+00	\N
+4135	1	count	2023-10-01 08:52:43.525611+00	2023-10-01 08:52:43.525611+00	\N
+4136	1	teaspoon	2023-10-01 08:52:43.527458+00	2023-10-01 08:52:43.527458+00	\N
+4137	1	teaspoon	2023-10-01 08:52:43.529391+00	2023-10-01 08:52:43.529391+00	\N
+4138	100	gram	2023-10-01 08:52:43.531252+00	2023-10-01 08:52:43.531252+00	\N
+4139	1	count	2023-10-01 08:52:43.533063+00	2023-10-01 08:52:43.533063+00	\N
+4140	800	gram	2023-10-01 08:52:43.542605+00	2023-10-01 08:52:43.542605+00	\N
+4141	560	gram	2023-10-01 08:52:43.544354+00	2023-10-01 08:52:43.544354+00	\N
+4142	2	cloves	2023-10-01 08:52:43.546237+00	2023-10-01 08:52:43.546237+00	\N
+4143	200	gram	2023-10-01 08:52:43.548332+00	2023-10-01 08:52:43.548332+00	\N
+4144	4	count	2023-10-01 08:52:43.55006+00	2023-10-01 08:52:43.55006+00	\N
+4145	1	teaspoon	2023-10-01 08:52:43.552275+00	2023-10-01 08:52:43.552275+00	\N
+4146	3	tablespoon	2023-10-01 08:52:43.553933+00	2023-10-01 08:52:43.553933+00	\N
+4147	1	count	2023-10-01 08:52:43.559289+00	2023-10-01 08:52:43.559289+00	\N
+4148	3	count	2023-10-01 08:52:43.561125+00	2023-10-01 08:52:43.561125+00	\N
+4149	450	gram	2023-10-01 08:52:43.562916+00	2023-10-01 08:52:43.562916+00	\N
+4150	300	count	2023-10-01 08:52:43.573335+00	2023-10-01 08:52:43.573335+00	\N
+4151	1	count	2023-10-01 08:52:43.57593+00	2023-10-01 08:52:43.57593+00	\N
+4152	1	count	2023-10-01 08:52:43.577801+00	2023-10-01 08:52:43.577801+00	\N
+4153	1	count	2023-10-01 08:52:43.579786+00	2023-10-01 08:52:43.579786+00	\N
+4154	0.33333334	cup	2023-10-01 08:52:43.581803+00	2023-10-01 08:52:43.581803+00	\N
+4155	\N	arbitrary	2023-10-01 08:52:43.584003+00	2023-10-01 08:52:43.584003+00	feta
+4156	\N	arbitrary	2023-10-01 08:52:43.586197+00	2023-10-01 08:52:43.586197+00	meatballs
+4157	1	count	2023-10-01 08:52:43.603285+00	2023-10-01 08:52:43.603285+00	\N
+4158	1	count	2023-10-01 08:52:43.606309+00	2023-10-01 08:52:43.606309+00	\N
+4159	\N	arbitrary	2023-10-01 08:52:43.608769+00	2023-10-01 08:52:43.608769+00	4 table spoons
+4160	1	count	2023-10-01 08:52:43.612254+00	2023-10-01 08:52:43.612254+00	\N
+4161	30	gram	2023-10-01 08:52:43.614853+00	2023-10-01 08:52:43.614853+00	\N
+4162	1	count	2023-10-01 08:52:43.617499+00	2023-10-01 08:52:43.617499+00	\N
+4163	1	count	2023-10-01 08:52:43.619757+00	2023-10-01 08:52:43.619757+00	\N
+4164	\N	arbitrary	2023-10-01 08:52:43.621955+00	2023-10-01 08:52:43.621955+00	Giant cous-cous
+4165	1	count	2023-10-01 08:54:40.230208+00	2023-10-01 08:54:40.230208+00	\N
+4166	300	gram	2023-10-01 08:55:20.01973+00	2023-10-01 08:55:20.01973+00	\N
+4167	140	gram	2023-10-01 08:59:18.189189+00	2023-10-01 08:59:18.189189+00	\N
+4168	80	gram	2023-10-07 10:13:04.735455+00	2023-10-07 10:13:04.735455+00	\N
+4169	40	gram	2023-10-07 10:13:04.738234+00	2023-10-07 10:13:04.738234+00	\N
+4170	50	gram	2023-10-07 10:13:04.740183+00	2023-10-07 10:13:04.740183+00	\N
+4171	200	gram	2023-10-07 10:13:04.742144+00	2023-10-07 10:13:04.742144+00	\N
+4172	100	gram	2023-10-07 10:13:04.744513+00	2023-10-07 10:13:04.744513+00	\N
+4173	200	gram	2023-10-07 10:13:04.74649+00	2023-10-07 10:13:04.74649+00	\N
+4174	450	gram	2023-10-07 10:13:04.748607+00	2023-10-07 10:13:04.748607+00	\N
+4175	150	gram	2023-10-07 10:13:04.75122+00	2023-10-07 10:13:04.75122+00	\N
+4176	30	gram	2023-10-07 10:13:04.753297+00	2023-10-07 10:13:04.753297+00	\N
+4177	\N	arbitrary	2023-10-07 10:13:04.755158+00	2023-10-07 10:13:04.755158+00	3 pinches
+4178	10	count	2023-10-07 10:13:04.757035+00	2023-10-07 10:13:04.757035+00	\N
+4179	15	gram	2023-10-07 10:13:04.777383+00	2023-10-07 10:13:04.777383+00	\N
+4180	20	gram	2023-10-07 10:13:04.77933+00	2023-10-07 10:13:04.77933+00	\N
+4181	30	gram	2023-10-07 10:13:04.781537+00	2023-10-07 10:13:04.781537+00	\N
+4182	100	gram	2023-10-07 10:13:04.783712+00	2023-10-07 10:13:04.783712+00	\N
+4183	200	gram	2023-10-07 10:13:04.785994+00	2023-10-07 10:13:04.785994+00	\N
+4184	100	gram	2023-10-07 10:13:04.788182+00	2023-10-07 10:13:04.788182+00	\N
+4185	150	gram	2023-10-07 10:13:04.790506+00	2023-10-07 10:13:04.790506+00	\N
+4186	6	count	2023-10-07 10:13:04.792824+00	2023-10-07 10:13:04.792824+00	\N
+4187	80	gram	2023-10-07 10:13:04.797334+00	2023-10-07 10:13:04.797334+00	\N
+4188	50	gram	2023-10-07 10:13:04.809623+00	2023-10-07 10:13:04.809623+00	\N
+4189	0.25	teaspoon	2023-10-07 10:13:04.812236+00	2023-10-07 10:13:04.812236+00	\N
+4190	350	gram	2023-10-07 10:13:04.814294+00	2023-10-07 10:13:04.814294+00	\N
+4191	450	gram	2023-10-07 10:13:04.816149+00	2023-10-07 10:13:04.816149+00	\N
+4192	200	gram	2023-10-07 10:13:04.818305+00	2023-10-07 10:13:04.818305+00	\N
+4193	0.25	teaspoon	2023-10-07 10:13:04.820301+00	2023-10-07 10:13:04.820301+00	\N
+4194	50	gram	2023-10-07 10:13:04.822331+00	2023-10-07 10:13:04.822331+00	\N
+4195	2	count	2023-10-07 10:13:04.824834+00	2023-10-07 10:13:04.824834+00	\N
+4196	\N	arbitrary	2023-10-07 10:13:04.841735+00	2023-10-07 10:13:04.841735+00	4 sprigs
+4197	200	gram	2023-10-07 10:13:04.843759+00	2023-10-07 10:13:04.843759+00	\N
+4198	1	teaspoon	2023-10-07 10:13:04.845859+00	2023-10-07 10:13:04.845859+00	\N
+4199	\N	arbitrary	2023-10-07 10:13:04.848138+00	2023-10-07 10:13:04.848138+00	2 garlic
+4200	2	count	2023-10-07 10:13:04.849876+00	2023-10-07 10:13:04.849876+00	\N
+4201	60	gram	2023-10-07 10:13:04.851765+00	2023-10-07 10:13:04.851765+00	\N
+4202	30	gram	2023-10-07 10:13:04.853895+00	2023-10-07 10:13:04.853895+00	\N
+4203	0.5	teaspoon	2023-10-07 10:13:04.85595+00	2023-10-07 10:13:04.85595+00	\N
+4204	250	gram	2023-10-07 10:13:04.858127+00	2023-10-07 10:13:04.858127+00	\N
+4205	250	gram	2023-10-07 10:13:04.859884+00	2023-10-07 10:13:04.859884+00	\N
+4206	680	gram	2023-10-07 10:13:04.86186+00	2023-10-07 10:13:04.86186+00	\N
+4207	\N	arbitrary	2023-10-07 10:13:04.863747+00	2023-10-07 10:13:04.863747+00	1 Tbsp
+4208	\N	arbitrary	2023-10-07 10:13:04.879097+00	2023-10-07 10:13:04.879097+00	1 cube
+4209	\N	arbitrary	2023-10-07 10:13:04.8815+00	2023-10-07 10:13:04.8815+00	1 pinch
+4210	1	teaspoon	2023-10-07 10:13:04.884565+00	2023-10-07 10:13:04.884565+00	\N
+4211	100	gram	2023-10-07 10:13:04.886935+00	2023-10-07 10:13:04.886935+00	\N
+4212	80	gram	2023-10-07 10:13:04.889497+00	2023-10-07 10:13:04.889497+00	\N
+4213	300	gram	2023-10-07 10:13:04.891388+00	2023-10-07 10:13:04.891388+00	\N
+4214	600	gram	2023-10-07 10:13:04.893149+00	2023-10-07 10:13:04.893149+00	\N
+4215	350	gram	2023-10-07 10:13:04.894749+00	2023-10-07 10:13:04.894749+00	\N
+4216	1	count	2023-10-07 10:13:04.907423+00	2023-10-07 10:13:04.907423+00	\N
+4217	60	gram	2023-10-07 10:13:04.90934+00	2023-10-07 10:13:04.90934+00	\N
+4218	300	gram	2023-10-07 10:13:04.911267+00	2023-10-07 10:13:04.911267+00	\N
+4219	0.5	count	2023-10-07 10:13:04.913587+00	2023-10-07 10:13:04.913587+00	\N
+4220	130	gram	2023-10-07 10:13:04.916169+00	2023-10-07 10:13:04.916169+00	\N
+4221	\N	arbitrary	2023-10-07 10:13:04.918142+00	2023-10-07 10:13:04.918142+00	3 sprigs
+4222	\N	arbitrary	2023-10-07 10:13:04.919823+00	2023-10-07 10:13:04.919823+00	1 pinch
+4223	\N	arbitrary	2023-10-07 10:13:04.92145+00	2023-10-07 10:13:04.92145+00	2 pinches
+4224	80	gram	2023-10-07 10:13:04.923242+00	2023-10-07 10:13:04.923242+00	\N
+4225	\N	arbitrary	2023-10-07 10:13:04.925296+00	2023-10-07 10:13:04.925296+00	5 medium
+4226	1	count	2023-10-07 10:13:04.932777+00	2023-10-07 10:13:04.932777+00	\N
+4227	500	gram	2023-10-07 10:13:04.934718+00	2023-10-07 10:13:04.934718+00	\N
+4228	180	gram	2023-10-07 10:13:04.936737+00	2023-10-07 10:13:04.936737+00	\N
+4229	500	gram	2023-10-07 10:13:04.938594+00	2023-10-07 10:13:04.938594+00	\N
+4230	600	gram	2023-10-07 10:13:04.940631+00	2023-10-07 10:13:04.940631+00	\N
+4231	3	count	2023-10-07 10:13:04.958417+00	2023-10-07 10:13:04.958417+00	\N
+4232	30	gram	2023-10-07 10:13:04.960497+00	2023-10-07 10:13:04.960497+00	\N
+4233	800	gram	2023-10-07 10:13:04.962335+00	2023-10-07 10:13:04.962335+00	\N
+4234	160	gram	2023-10-07 10:13:04.964427+00	2023-10-07 10:13:04.964427+00	\N
+4235	80	gram	2023-10-07 10:13:04.967703+00	2023-10-07 10:13:04.967703+00	\N
+4236	80	gram	2023-10-07 10:13:04.970258+00	2023-10-07 10:13:04.970258+00	\N
+4237	80	gram	2023-10-07 10:13:04.974198+00	2023-10-07 10:13:04.974198+00	\N
+4238	10	gram	2023-10-07 10:13:04.976617+00	2023-10-07 10:13:04.976617+00	\N
+4239	\N	arbitrary	2023-10-07 10:13:04.97864+00	2023-10-07 10:13:04.97864+00	1-2 Tbsp
+4240	350	gram	2023-10-07 10:13:04.980603+00	2023-10-07 10:13:04.980603+00	\N
+4241	20	gram	2023-10-07 10:13:04.982583+00	2023-10-07 10:13:04.982583+00	\N
+4242	600	gram	2023-10-07 10:13:04.984409+00	2023-10-07 10:13:04.984409+00	\N
+4243	200	gram	2023-10-07 10:13:04.986165+00	2023-10-07 10:13:04.986165+00	\N
+4244	200	gram	2023-10-07 10:13:04.98808+00	2023-10-07 10:13:04.98808+00	\N
+4245	\N	arbitrary	2023-10-07 10:13:04.989874+00	2023-10-07 10:13:04.989874+00	garnish
+4246	1	count	2023-10-07 10:13:04.992506+00	2023-10-07 10:13:04.992506+00	\N
+4247	225	gram	2023-10-07 10:13:05.003449+00	2023-10-07 10:13:05.003449+00	\N
+4248	1	count	2023-10-07 10:13:05.00548+00	2023-10-07 10:13:05.00548+00	\N
+4249	250	gram	2023-10-07 10:13:05.007294+00	2023-10-07 10:13:05.007294+00	\N
+4250	30	gram	2023-10-07 10:13:05.009237+00	2023-10-07 10:13:05.009237+00	\N
+4251	40	gram	2023-10-07 10:13:05.011163+00	2023-10-07 10:13:05.011163+00	\N
+4252	340	gram	2023-10-07 10:13:05.01326+00	2023-10-07 10:13:05.01326+00	\N
+4253	100	gram	2023-10-07 10:13:05.01497+00	2023-10-07 10:13:05.01497+00	\N
+4254	1	count	2023-10-07 10:13:05.016728+00	2023-10-07 10:13:05.016728+00	\N
+4255	1	count	2023-10-07 10:13:05.019169+00	2023-10-07 10:13:05.019169+00	\N
+4256	1	count	2023-10-07 10:13:05.037646+00	2023-10-07 10:13:05.037646+00	\N
+4257	80	gram	2023-10-07 10:13:05.039705+00	2023-10-07 10:13:05.039705+00	\N
+4258	\N	arbitrary	2023-10-07 10:13:05.041556+00	2023-10-07 10:13:05.041556+00	3 black
+4259	1	count	2023-10-07 10:13:05.043322+00	2023-10-07 10:13:05.043322+00	\N
+4260	\N	arbitrary	2023-10-07 10:13:05.045561+00	2023-10-07 10:13:05.045561+00	2 sprigs
+4261	1	count	2023-10-07 10:13:05.048039+00	2023-10-07 10:13:05.048039+00	\N
+4262	600	gram	2023-10-07 10:13:05.050345+00	2023-10-07 10:13:05.050345+00	\N
+4263	200	gram	2023-10-07 10:13:05.052416+00	2023-10-07 10:13:05.052416+00	\N
+4264	200	gram	2023-10-07 10:13:05.055149+00	2023-10-07 10:13:05.055149+00	\N
+4265	30	gram	2023-10-07 10:13:05.057218+00	2023-10-07 10:13:05.057218+00	\N
+4266	30	gram	2023-10-07 10:13:05.059336+00	2023-10-07 10:13:05.059336+00	\N
+4267	250	gram	2023-10-07 10:13:05.061781+00	2023-10-07 10:13:05.061781+00	\N
+4268	1	teaspoon	2023-10-07 10:13:05.063852+00	2023-10-07 10:13:05.063852+00	\N
+4269	50	gram	2023-10-07 10:13:05.06597+00	2023-10-07 10:13:05.06597+00	\N
+4270	375	gram	2023-10-07 10:13:05.068015+00	2023-10-07 10:13:05.068015+00	\N
+4271	1	count	2023-10-07 10:13:05.070298+00	2023-10-07 10:13:05.070298+00	\N
+4272	80	gram	2023-10-07 10:13:05.08059+00	2023-10-07 10:13:05.08059+00	\N
+4273	2	count	2023-10-07 10:13:05.082447+00	2023-10-07 10:13:05.082447+00	\N
+4274	800	gram	2023-10-07 10:13:05.084526+00	2023-10-07 10:13:05.084526+00	\N
+4275	300	gram	2023-10-07 10:13:05.087144+00	2023-10-07 10:13:05.087144+00	\N
+4276	400	gram	2023-10-07 10:13:05.08981+00	2023-10-07 10:13:05.08981+00	\N
+4277	2	teaspoon	2023-10-07 10:13:05.092162+00	2023-10-07 10:13:05.092162+00	\N
+4278	250	gram	2023-10-07 10:13:05.094333+00	2023-10-07 10:13:05.094333+00	\N
+4279	100	gram	2023-10-07 10:13:05.106657+00	2023-10-07 10:13:05.106657+00	\N
+4280	100	gram	2023-10-07 10:13:05.108979+00	2023-10-07 10:13:05.108979+00	\N
+4281	100	gram	2023-10-07 10:13:05.111294+00	2023-10-07 10:13:05.111294+00	\N
+4282	1	teaspoon	2023-10-07 10:13:05.113249+00	2023-10-07 10:13:05.113249+00	\N
+4283	1	teaspoon	2023-10-07 10:13:05.115207+00	2023-10-07 10:13:05.115207+00	\N
+4284	2	count	2023-10-07 10:13:05.117394+00	2023-10-07 10:13:05.117394+00	\N
+4285	100	gram	2023-10-07 10:13:05.119841+00	2023-10-07 10:13:05.119841+00	\N
+4286	300	gram	2023-10-07 10:13:05.122003+00	2023-10-07 10:13:05.122003+00	\N
+4287	120	gram	2023-10-07 10:13:05.13285+00	2023-10-07 10:13:05.13285+00	\N
+4288	250	gram	2023-10-07 10:13:05.134759+00	2023-10-07 10:13:05.134759+00	\N
+4289	200	gram	2023-10-07 10:13:05.136724+00	2023-10-07 10:13:05.136724+00	\N
+4290	400	gram	2023-10-07 10:13:05.13857+00	2023-10-07 10:13:05.13857+00	\N
+4291	2	teaspoon	2023-10-07 10:13:05.14045+00	2023-10-07 10:13:05.14045+00	\N
+4292	1	teaspoon	2023-10-07 10:13:05.142315+00	2023-10-07 10:13:05.142315+00	\N
+4293	10	gram	2023-10-07 10:13:05.144427+00	2023-10-07 10:13:05.144427+00	\N
+4294	1	count	2023-10-07 10:13:05.14618+00	2023-10-07 10:13:05.14618+00	\N
+4295	1	count	2023-10-07 10:13:05.164399+00	2023-10-07 10:13:05.164399+00	\N
+4296	180	gram	2023-10-07 10:13:05.16664+00	2023-10-07 10:13:05.16664+00	\N
+4297	120	gram	2023-10-07 10:13:05.168747+00	2023-10-07 10:13:05.168747+00	\N
+4298	100	gram	2023-10-07 10:13:05.170481+00	2023-10-07 10:13:05.170481+00	\N
+4299	500	gram	2023-10-07 10:13:05.173203+00	2023-10-07 10:13:05.173203+00	\N
+4300	30	gram	2023-10-07 10:13:05.17527+00	2023-10-07 10:13:05.17527+00	\N
+4301	\N	arbitrary	2023-10-07 10:13:05.177718+00	2023-10-07 10:13:05.177718+00	1 Tbsp
+4302	\N	arbitrary	2023-10-07 10:13:05.179711+00	2023-10-07 10:13:05.179711+00	1 dried
+4303	\N	arbitrary	2023-10-07 10:13:05.1818+00	2023-10-07 10:13:05.1818+00	3 sprigs
+4304	800	gram	2023-10-07 10:13:05.183661+00	2023-10-07 10:13:05.183661+00	\N
+4305	250	gram	2023-10-07 10:13:05.185616+00	2023-10-07 10:13:05.185616+00	\N
+4306	25	gram	2023-10-07 10:13:05.187325+00	2023-10-07 10:13:05.187325+00	\N
+4307	25	gram	2023-10-07 10:13:05.189597+00	2023-10-07 10:13:05.189597+00	\N
+4308	450	gram	2023-10-07 10:13:05.200251+00	2023-10-07 10:13:05.200251+00	\N
+4309	150	gram	2023-10-07 10:13:05.20238+00	2023-10-07 10:13:05.20238+00	\N
+4310	2	count	2023-10-07 10:13:05.205206+00	2023-10-07 10:13:05.205206+00	\N
+4311	2	teaspoon	2023-10-07 10:13:05.207128+00	2023-10-07 10:13:05.207128+00	\N
+4312	3	teaspoon	2023-10-07 10:13:05.209668+00	2023-10-07 10:13:05.209668+00	\N
+4313	600	gram	2023-10-07 10:13:05.211953+00	2023-10-07 10:13:05.211953+00	\N
+4314	60	gram	2023-10-07 10:13:05.213708+00	2023-10-07 10:13:05.213708+00	\N
+4315	200	gram	2023-10-07 10:13:05.215599+00	2023-10-07 10:13:05.215599+00	\N
+4316	50	gram	2023-10-07 10:13:05.223723+00	2023-10-07 10:13:05.223723+00	\N
+4317	120	gram	2023-10-07 10:13:05.225605+00	2023-10-07 10:13:05.225605+00	\N
+4318	150	gram	2023-10-07 10:13:05.227379+00	2023-10-07 10:13:05.227379+00	\N
+4319	500	gram	2023-10-07 10:13:05.22943+00	2023-10-07 10:13:05.22943+00	\N
+4320	100	gram	2023-10-07 10:13:05.231334+00	2023-10-07 10:13:05.231334+00	\N
+4321	180	gram	2023-10-07 10:13:05.242553+00	2023-10-07 10:13:05.242553+00	\N
+4322	15	gram	2023-10-07 10:13:05.244695+00	2023-10-07 10:13:05.244695+00	\N
+4323	110	gram	2023-10-07 10:13:05.246772+00	2023-10-07 10:13:05.246772+00	\N
+4324	55	gram	2023-10-07 10:13:05.248767+00	2023-10-07 10:13:05.248767+00	\N
+4325	150	gram	2023-10-07 10:13:05.25092+00	2023-10-07 10:13:05.25092+00	\N
+4326	400	gram	2023-10-07 10:13:05.253118+00	2023-10-07 10:13:05.253118+00	\N
+4327	1	count	2023-10-07 10:13:05.254918+00	2023-10-07 10:13:05.254918+00	\N
+4328	400	gram	2023-10-07 10:13:05.256718+00	2023-10-07 10:13:05.256718+00	\N
+4329	\N	arbitrary	2023-10-07 10:13:05.27689+00	2023-10-07 10:13:05.27689+00	200-250g
+4330	100	gram	2023-10-07 10:13:05.279721+00	2023-10-07 10:13:05.279721+00	\N
+4331	100	gram	2023-10-07 10:13:05.282038+00	2023-10-07 10:13:05.282038+00	\N
+4332	200	gram	2023-10-07 10:13:05.284311+00	2023-10-07 10:13:05.284311+00	\N
+4333	100	gram	2023-10-07 10:13:05.286612+00	2023-10-07 10:13:05.286612+00	\N
+4334	1	count	2023-10-07 10:13:05.288946+00	2023-10-07 10:13:05.288946+00	\N
+4335	10	gram	2023-10-07 10:13:05.291123+00	2023-10-07 10:13:05.291123+00	\N
+4336	100	gram	2023-10-07 10:13:05.293357+00	2023-10-07 10:13:05.293357+00	\N
+4337	1000	gram	2023-10-07 10:13:05.314344+00	2023-10-07 10:13:05.314344+00	\N
+4338	100	gram	2023-10-07 10:13:05.316375+00	2023-10-07 10:13:05.316375+00	\N
+4339	\N	arbitrary	2023-10-07 10:13:05.318363+00	2023-10-07 10:13:05.318363+00	1 Tbsp
+4340	2	teaspoon	2023-10-07 10:13:05.320298+00	2023-10-07 10:13:05.320298+00	\N
+4341	1	teaspoon	2023-10-07 10:13:05.322373+00	2023-10-07 10:13:05.322373+00	\N
+4342	1	teaspoon	2023-10-07 10:13:05.324509+00	2023-10-07 10:13:05.324509+00	\N
+4343	\N	arbitrary	2023-10-07 10:13:05.326784+00	2023-10-07 10:13:05.326784+00	¼ tsp
+4344	25	gram	2023-10-07 10:13:05.32917+00	2023-10-07 10:13:05.32917+00	\N
+4345	50	gram	2023-10-07 10:13:05.331404+00	2023-10-07 10:13:05.331404+00	\N
+4346	300	gram	2023-10-07 10:13:05.33332+00	2023-10-07 10:13:05.33332+00	\N
+4347	50	gram	2023-10-07 10:13:05.335699+00	2023-10-07 10:13:05.335699+00	\N
+4348	1	count	2023-10-07 10:13:05.338026+00	2023-10-07 10:13:05.338026+00	\N
+4349	100	gram	2023-10-07 10:13:05.352898+00	2023-10-07 10:13:05.352898+00	\N
+4350	100	gram	2023-10-07 10:13:05.355306+00	2023-10-07 10:13:05.355306+00	\N
+4351	80	gram	2023-10-07 10:13:05.357317+00	2023-10-07 10:13:05.357317+00	\N
+4352	200	gram	2023-10-07 10:13:05.3611+00	2023-10-07 10:13:05.3611+00	\N
+4353	100	gram	2023-10-07 10:13:05.363352+00	2023-10-07 10:13:05.363352+00	\N
+4354	250	gram	2023-10-07 10:13:05.365421+00	2023-10-07 10:13:05.365421+00	\N
+4355	20	gram	2023-10-07 10:13:05.367393+00	2023-10-07 10:13:05.367393+00	\N
+4356	120	gram	2023-10-07 10:13:05.369375+00	2023-10-07 10:13:05.369375+00	\N
+4357	1	count	2023-10-07 10:13:05.371522+00	2023-10-07 10:13:05.371522+00	\N
+4358	30	gram	2023-10-07 10:13:05.373935+00	2023-10-07 10:13:05.373935+00	\N
+4359	70	gram	2023-10-07 10:13:05.386692+00	2023-10-07 10:13:05.386692+00	\N
+4360	150	gram	2023-10-07 10:13:05.389062+00	2023-10-07 10:13:05.389062+00	\N
+4361	400	gram	2023-10-07 10:13:05.391377+00	2023-10-07 10:13:05.391377+00	\N
+4362	300	gram	2023-10-07 10:13:05.394906+00	2023-10-07 10:13:05.394906+00	\N
+4363	70	gram	2023-10-07 10:13:05.397228+00	2023-10-07 10:13:05.397228+00	\N
+4364	700	gram	2023-10-07 10:13:05.399537+00	2023-10-07 10:13:05.399537+00	\N
+4365	1	teaspoon	2023-10-07 10:13:05.402422+00	2023-10-07 10:13:05.402422+00	\N
+4366	\N	arbitrary	2023-10-07 10:13:05.423826+00	2023-10-07 10:13:05.423826+00	1 garlic
+4367	\N	arbitrary	2023-10-07 10:13:05.425667+00	2023-10-07 10:13:05.425667+00	6 sprigs
+4368	100	gram	2023-10-07 10:13:05.427696+00	2023-10-07 10:13:05.427696+00	\N
+4369	75	gram	2023-10-07 10:13:05.429535+00	2023-10-07 10:13:05.429535+00	\N
+4370	75	gram	2023-10-07 10:13:05.4314+00	2023-10-07 10:13:05.4314+00	\N
+4371	100	gram	2023-10-07 10:13:05.433451+00	2023-10-07 10:13:05.433451+00	\N
+4372	200	gram	2023-10-07 10:13:05.435342+00	2023-10-07 10:13:05.435342+00	\N
+4373	100	gram	2023-10-07 10:13:05.437351+00	2023-10-07 10:13:05.437351+00	\N
+4374	400	gram	2023-10-07 10:13:05.439374+00	2023-10-07 10:13:05.439374+00	\N
+4375	1	count	2023-10-07 10:13:05.441437+00	2023-10-07 10:13:05.441437+00	\N
+4376	300	gram	2023-10-07 10:13:05.443379+00	2023-10-07 10:13:05.443379+00	\N
+4377	200	gram	2023-10-07 10:13:05.4452+00	2023-10-07 10:13:05.4452+00	\N
+4378	50	gram	2023-10-07 10:13:05.447136+00	2023-10-07 10:13:05.447136+00	\N
+4379	2	teaspoon	2023-10-07 10:13:05.458183+00	2023-10-07 10:13:05.458183+00	\N
+4380	400	gram	2023-10-07 10:13:05.460355+00	2023-10-07 10:13:05.460355+00	\N
+4381	2	count	2023-10-07 10:13:05.462593+00	2023-10-07 10:13:05.462593+00	\N
+4382	150	gram	2023-10-07 10:13:05.464632+00	2023-10-07 10:13:05.464632+00	\N
+4383	250	gram	2023-10-07 10:13:05.466452+00	2023-10-07 10:13:05.466452+00	\N
+4384	10	gram	2023-10-07 10:13:05.47466+00	2023-10-07 10:13:05.47466+00	\N
+4385	400	gram	2023-10-07 10:13:05.476949+00	2023-10-07 10:13:05.476949+00	\N
+4386	100	gram	2023-10-07 10:13:05.478931+00	2023-10-07 10:13:05.478931+00	\N
+4387	50	gram	2023-10-07 10:13:05.481099+00	2023-10-07 10:13:05.481099+00	\N
+4388	200	gram	2023-10-07 10:20:15.818456+00	2023-10-07 10:20:15.818456+00	\N
+4389	1	count	2023-10-07 10:21:48.521553+00	2023-10-07 10:21:48.521553+00	\N
+4390	170	gram	2023-10-07 10:22:33.157017+00	2023-10-07 10:22:33.157017+00	\N
+4391	4	count	2023-10-07 10:23:46.670882+00	2023-10-07 10:23:46.670882+00	\N
+4392	14	count	2023-10-07 10:24:21.297317+00	2023-10-07 10:24:21.297317+00	\N
+4393	66	gram	2023-10-07 10:25:03.754588+00	2023-10-07 10:25:03.754588+00	\N
+4394	500	gram	2023-10-07 10:26:31.432667+00	2023-10-07 10:26:31.432667+00	\N
+4395	25	gram	2023-10-07 10:27:03.338198+00	2023-10-07 10:27:03.338198+00	\N
+4396	25	gram	2023-10-07 10:27:14.865456+00	2023-10-07 10:27:14.865456+00	\N
+4397	25	gram	2023-10-07 10:27:28.875808+00	2023-10-07 10:27:28.875808+00	\N
+4398	3	count	2023-10-07 10:28:01.737754+00	2023-10-07 10:28:01.737754+00	\N
+4399	8	count	2023-10-07 10:39:01.72989+00	2023-10-07 10:39:01.72989+00	\N
+4400	80	gram	2023-10-14 13:20:26.977084+00	2023-10-14 13:20:26.977084+00	\N
+4401	40	gram	2023-10-14 13:20:26.979766+00	2023-10-14 13:20:26.979766+00	\N
+4402	50	gram	2023-10-14 13:20:26.981859+00	2023-10-14 13:20:26.981859+00	\N
+4403	200	gram	2023-10-14 13:20:26.983839+00	2023-10-14 13:20:26.983839+00	\N
+4404	100	gram	2023-10-14 13:20:26.986029+00	2023-10-14 13:20:26.986029+00	\N
+4405	200	gram	2023-10-14 13:20:26.987987+00	2023-10-14 13:20:26.987987+00	\N
+4406	450	gram	2023-10-14 13:20:26.990599+00	2023-10-14 13:20:26.990599+00	\N
+4407	150	gram	2023-10-14 13:20:26.993221+00	2023-10-14 13:20:26.993221+00	\N
+4408	30	gram	2023-10-14 13:20:26.995479+00	2023-10-14 13:20:26.995479+00	\N
+4409	\N	arbitrary	2023-10-14 13:20:26.998061+00	2023-10-14 13:20:26.998061+00	3 pinches
+4410	10	count	2023-10-14 13:20:27.001064+00	2023-10-14 13:20:27.001064+00	\N
+4411	15	gram	2023-10-14 13:20:27.014586+00	2023-10-14 13:20:27.014586+00	\N
+4412	20	gram	2023-10-14 13:20:27.016941+00	2023-10-14 13:20:27.016941+00	\N
+4413	30	gram	2023-10-14 13:20:27.018864+00	2023-10-14 13:20:27.018864+00	\N
+4414	100	gram	2023-10-14 13:20:27.020731+00	2023-10-14 13:20:27.020731+00	\N
+4415	200	gram	2023-10-14 13:20:27.022733+00	2023-10-14 13:20:27.022733+00	\N
+4416	100	gram	2023-10-14 13:20:27.025006+00	2023-10-14 13:20:27.025006+00	\N
+4417	150	gram	2023-10-14 13:20:27.027532+00	2023-10-14 13:20:27.027532+00	\N
+4418	6	count	2023-10-14 13:20:27.030222+00	2023-10-14 13:20:27.030222+00	\N
+4419	80	gram	2023-10-14 13:20:27.03301+00	2023-10-14 13:20:27.03301+00	\N
+4420	50	gram	2023-10-14 13:20:27.046497+00	2023-10-14 13:20:27.046497+00	\N
+4421	0.25	teaspoon	2023-10-14 13:20:27.048801+00	2023-10-14 13:20:27.048801+00	\N
+4422	350	gram	2023-10-14 13:20:27.0511+00	2023-10-14 13:20:27.0511+00	\N
+4423	450	gram	2023-10-14 13:20:27.053442+00	2023-10-14 13:20:27.053442+00	\N
+4424	200	gram	2023-10-14 13:20:27.055902+00	2023-10-14 13:20:27.055902+00	\N
+4425	0.25	teaspoon	2023-10-14 13:20:27.058357+00	2023-10-14 13:20:27.058357+00	\N
+4426	50	gram	2023-10-14 13:20:27.060712+00	2023-10-14 13:20:27.060712+00	\N
+4427	2	count	2023-10-14 13:20:27.062855+00	2023-10-14 13:20:27.062855+00	\N
+4428	\N	arbitrary	2023-10-14 13:20:27.08012+00	2023-10-14 13:20:27.08012+00	4 sprigs
+4429	200	gram	2023-10-14 13:20:27.082641+00	2023-10-14 13:20:27.082641+00	\N
+4430	1	teaspoon	2023-10-14 13:20:27.084808+00	2023-10-14 13:20:27.084808+00	\N
+4431	\N	arbitrary	2023-10-14 13:20:27.086636+00	2023-10-14 13:20:27.086636+00	2 garlic
+4432	2	count	2023-10-14 13:20:27.088448+00	2023-10-14 13:20:27.088448+00	\N
+4433	60	gram	2023-10-14 13:20:27.094457+00	2023-10-14 13:20:27.094457+00	\N
+4434	30	gram	2023-10-14 13:20:27.096604+00	2023-10-14 13:20:27.096604+00	\N
+4435	0.5	teaspoon	2023-10-14 13:20:27.0985+00	2023-10-14 13:20:27.0985+00	\N
+4436	250	gram	2023-10-14 13:20:27.100467+00	2023-10-14 13:20:27.100467+00	\N
+4437	250	gram	2023-10-14 13:20:27.102417+00	2023-10-14 13:20:27.102417+00	\N
+4438	680	gram	2023-10-14 13:20:27.107707+00	2023-10-14 13:20:27.107707+00	\N
+4439	\N	arbitrary	2023-10-14 13:20:27.109912+00	2023-10-14 13:20:27.109912+00	1 Tbsp
+4440	\N	arbitrary	2023-10-14 13:20:27.1338+00	2023-10-14 13:20:27.1338+00	1 cube
+4441	\N	arbitrary	2023-10-14 13:20:27.13603+00	2023-10-14 13:20:27.13603+00	1 pinch
+4442	1	teaspoon	2023-10-14 13:20:27.137969+00	2023-10-14 13:20:27.137969+00	\N
+4443	100	gram	2023-10-14 13:20:27.139806+00	2023-10-14 13:20:27.139806+00	\N
+4444	80	gram	2023-10-14 13:20:27.141684+00	2023-10-14 13:20:27.141684+00	\N
+4445	300	gram	2023-10-14 13:20:27.143783+00	2023-10-14 13:20:27.143783+00	\N
+4446	600	gram	2023-10-14 13:20:27.145559+00	2023-10-14 13:20:27.145559+00	\N
+4447	350	gram	2023-10-14 13:20:27.147762+00	2023-10-14 13:20:27.147762+00	\N
+4448	1	count	2023-10-14 13:20:27.159792+00	2023-10-14 13:20:27.159792+00	\N
+4449	60	gram	2023-10-14 13:20:27.161769+00	2023-10-14 13:20:27.161769+00	\N
+4450	300	gram	2023-10-14 13:20:27.163773+00	2023-10-14 13:20:27.163773+00	\N
+4451	0.5	count	2023-10-14 13:20:27.16575+00	2023-10-14 13:20:27.16575+00	\N
+4452	130	gram	2023-10-14 13:20:27.168269+00	2023-10-14 13:20:27.168269+00	\N
+4453	\N	arbitrary	2023-10-14 13:20:27.170416+00	2023-10-14 13:20:27.170416+00	3 sprigs
+4454	\N	arbitrary	2023-10-14 13:20:27.17239+00	2023-10-14 13:20:27.17239+00	1 pinch
+4455	\N	arbitrary	2023-10-14 13:20:27.174652+00	2023-10-14 13:20:27.174652+00	2 pinches
+4456	80	gram	2023-10-14 13:20:27.176746+00	2023-10-14 13:20:27.176746+00	\N
+4457	\N	arbitrary	2023-10-14 13:20:27.178694+00	2023-10-14 13:20:27.178694+00	5 medium
+4458	1	count	2023-10-14 13:20:27.186728+00	2023-10-14 13:20:27.186728+00	\N
+4459	500	gram	2023-10-14 13:20:27.188742+00	2023-10-14 13:20:27.188742+00	\N
+4460	180	gram	2023-10-14 13:20:27.190634+00	2023-10-14 13:20:27.190634+00	\N
+4461	500	gram	2023-10-14 13:20:27.192685+00	2023-10-14 13:20:27.192685+00	\N
+4462	600	gram	2023-10-14 13:20:27.195145+00	2023-10-14 13:20:27.195145+00	\N
+4463	3	count	2023-10-14 13:20:27.215774+00	2023-10-14 13:20:27.215774+00	\N
+4464	30	gram	2023-10-14 13:20:27.217884+00	2023-10-14 13:20:27.217884+00	\N
+4465	800	gram	2023-10-14 13:20:27.219933+00	2023-10-14 13:20:27.219933+00	\N
+4466	160	gram	2023-10-14 13:20:27.221828+00	2023-10-14 13:20:27.221828+00	\N
+4467	80	gram	2023-10-14 13:20:27.224163+00	2023-10-14 13:20:27.224163+00	\N
+4468	80	gram	2023-10-14 13:20:27.227639+00	2023-10-14 13:20:27.227639+00	\N
+4469	80	gram	2023-10-14 13:20:27.230922+00	2023-10-14 13:20:27.230922+00	\N
+4470	10	gram	2023-10-14 13:20:27.233485+00	2023-10-14 13:20:27.233485+00	\N
+4471	\N	arbitrary	2023-10-14 13:20:27.236078+00	2023-10-14 13:20:27.236078+00	1-2 Tbsp
+4472	350	gram	2023-10-14 13:20:27.240564+00	2023-10-14 13:20:27.240564+00	\N
+4473	20	gram	2023-10-14 13:20:27.24285+00	2023-10-14 13:20:27.24285+00	\N
+4474	600	gram	2023-10-14 13:20:27.245119+00	2023-10-14 13:20:27.245119+00	\N
+4475	200	gram	2023-10-14 13:20:27.247288+00	2023-10-14 13:20:27.247288+00	\N
+4476	200	gram	2023-10-14 13:20:27.249757+00	2023-10-14 13:20:27.249757+00	\N
+4477	\N	arbitrary	2023-10-14 13:20:27.252328+00	2023-10-14 13:20:27.252328+00	garnish
+4478	1	count	2023-10-14 13:20:27.255805+00	2023-10-14 13:20:27.255805+00	\N
+4479	225	gram	2023-10-14 13:20:27.268224+00	2023-10-14 13:20:27.268224+00	\N
+4480	1	count	2023-10-14 13:20:27.270244+00	2023-10-14 13:20:27.270244+00	\N
+4481	250	gram	2023-10-14 13:20:27.272155+00	2023-10-14 13:20:27.272155+00	\N
+4482	30	gram	2023-10-14 13:20:27.274241+00	2023-10-14 13:20:27.274241+00	\N
+4483	40	gram	2023-10-14 13:20:27.277115+00	2023-10-14 13:20:27.277115+00	\N
+4484	340	gram	2023-10-14 13:20:27.279088+00	2023-10-14 13:20:27.279088+00	\N
+4485	100	gram	2023-10-14 13:20:27.281237+00	2023-10-14 13:20:27.281237+00	\N
+4486	1	count	2023-10-14 13:20:27.283495+00	2023-10-14 13:20:27.283495+00	\N
+4487	1	count	2023-10-14 13:20:27.285625+00	2023-10-14 13:20:27.285625+00	\N
+4488	1	count	2023-10-14 13:20:27.305532+00	2023-10-14 13:20:27.305532+00	\N
+4489	80	gram	2023-10-14 13:20:27.307805+00	2023-10-14 13:20:27.307805+00	\N
+4490	\N	arbitrary	2023-10-14 13:20:27.309783+00	2023-10-14 13:20:27.309783+00	3 black
+4491	1	count	2023-10-14 13:20:27.312036+00	2023-10-14 13:20:27.312036+00	\N
+4492	\N	arbitrary	2023-10-14 13:20:27.314795+00	2023-10-14 13:20:27.314795+00	2 sprigs
+4493	1	count	2023-10-14 13:20:27.316931+00	2023-10-14 13:20:27.316931+00	\N
+4494	600	gram	2023-10-14 13:20:27.318776+00	2023-10-14 13:20:27.318776+00	\N
+4495	200	gram	2023-10-14 13:20:27.320697+00	2023-10-14 13:20:27.320697+00	\N
+4496	200	gram	2023-10-14 13:20:27.323015+00	2023-10-14 13:20:27.323015+00	\N
+4497	30	gram	2023-10-14 13:20:27.325298+00	2023-10-14 13:20:27.325298+00	\N
+4498	30	gram	2023-10-14 13:20:27.327199+00	2023-10-14 13:20:27.327199+00	\N
+4499	250	gram	2023-10-14 13:20:27.329646+00	2023-10-14 13:20:27.329646+00	\N
+4500	1	teaspoon	2023-10-14 13:20:27.331875+00	2023-10-14 13:20:27.331875+00	\N
+4501	50	gram	2023-10-14 13:20:27.334596+00	2023-10-14 13:20:27.334596+00	\N
+4502	375	gram	2023-10-14 13:20:27.337506+00	2023-10-14 13:20:27.337506+00	\N
+4503	1	count	2023-10-14 13:20:27.339864+00	2023-10-14 13:20:27.339864+00	\N
+4504	80	gram	2023-10-14 13:20:27.351253+00	2023-10-14 13:20:27.351253+00	\N
+4505	2	count	2023-10-14 13:20:27.353825+00	2023-10-14 13:20:27.353825+00	\N
+4506	800	gram	2023-10-14 13:20:27.356382+00	2023-10-14 13:20:27.356382+00	\N
+4507	300	gram	2023-10-14 13:20:27.358871+00	2023-10-14 13:20:27.358871+00	\N
+4508	400	gram	2023-10-14 13:20:27.36099+00	2023-10-14 13:20:27.36099+00	\N
+4509	2	teaspoon	2023-10-14 13:20:27.363073+00	2023-10-14 13:20:27.363073+00	\N
+4510	250	gram	2023-10-14 13:20:27.366133+00	2023-10-14 13:20:27.366133+00	\N
+4511	100	gram	2023-10-14 13:20:27.37728+00	2023-10-14 13:20:27.37728+00	\N
+4512	100	gram	2023-10-14 13:20:27.379407+00	2023-10-14 13:20:27.379407+00	\N
+4513	100	gram	2023-10-14 13:20:27.381543+00	2023-10-14 13:20:27.381543+00	\N
+4514	1	teaspoon	2023-10-14 13:20:27.383291+00	2023-10-14 13:20:27.383291+00	\N
+4515	1	teaspoon	2023-10-14 13:20:27.385328+00	2023-10-14 13:20:27.385328+00	\N
+4516	2	count	2023-10-14 13:20:27.387238+00	2023-10-14 13:20:27.387238+00	\N
+4517	100	gram	2023-10-14 13:20:27.389428+00	2023-10-14 13:20:27.389428+00	\N
+4518	300	gram	2023-10-14 13:20:27.391277+00	2023-10-14 13:20:27.391277+00	\N
+4519	120	gram	2023-10-14 13:20:27.402574+00	2023-10-14 13:20:27.402574+00	\N
+4520	250	gram	2023-10-14 13:20:27.404984+00	2023-10-14 13:20:27.404984+00	\N
+4521	200	gram	2023-10-14 13:20:27.407167+00	2023-10-14 13:20:27.407167+00	\N
+4522	400	gram	2023-10-14 13:20:27.409522+00	2023-10-14 13:20:27.409522+00	\N
+4523	2	teaspoon	2023-10-14 13:20:27.411734+00	2023-10-14 13:20:27.411734+00	\N
+4524	1	teaspoon	2023-10-14 13:20:27.413887+00	2023-10-14 13:20:27.413887+00	\N
+4525	10	gram	2023-10-14 13:20:27.415974+00	2023-10-14 13:20:27.415974+00	\N
+4526	1	count	2023-10-14 13:20:27.418361+00	2023-10-14 13:20:27.418361+00	\N
+4527	1	count	2023-10-14 13:20:27.43538+00	2023-10-14 13:20:27.43538+00	\N
+4528	180	gram	2023-10-14 13:20:27.43766+00	2023-10-14 13:20:27.43766+00	\N
+4529	120	gram	2023-10-14 13:20:27.439572+00	2023-10-14 13:20:27.439572+00	\N
+4530	100	gram	2023-10-14 13:20:27.441508+00	2023-10-14 13:20:27.441508+00	\N
+4531	500	gram	2023-10-14 13:20:27.443703+00	2023-10-14 13:20:27.443703+00	\N
+4532	30	gram	2023-10-14 13:20:27.445699+00	2023-10-14 13:20:27.445699+00	\N
+4533	\N	arbitrary	2023-10-14 13:20:27.447742+00	2023-10-14 13:20:27.447742+00	1 Tbsp
+4534	\N	arbitrary	2023-10-14 13:20:27.449952+00	2023-10-14 13:20:27.449952+00	1 dried
+4535	\N	arbitrary	2023-10-14 13:20:27.451936+00	2023-10-14 13:20:27.451936+00	3 sprigs
+4536	800	gram	2023-10-14 13:20:27.453863+00	2023-10-14 13:20:27.453863+00	\N
+4537	250	gram	2023-10-14 13:20:27.455886+00	2023-10-14 13:20:27.455886+00	\N
+4538	25	gram	2023-10-14 13:20:27.457977+00	2023-10-14 13:20:27.457977+00	\N
+4539	25	gram	2023-10-14 13:20:27.46042+00	2023-10-14 13:20:27.46042+00	\N
+4540	450	gram	2023-10-14 13:20:27.472157+00	2023-10-14 13:20:27.472157+00	\N
+4541	150	gram	2023-10-14 13:20:27.474482+00	2023-10-14 13:20:27.474482+00	\N
+4542	2	count	2023-10-14 13:20:27.476778+00	2023-10-14 13:20:27.476778+00	\N
+4543	2	teaspoon	2023-10-14 13:20:27.47891+00	2023-10-14 13:20:27.47891+00	\N
+4544	3	teaspoon	2023-10-14 13:20:27.481141+00	2023-10-14 13:20:27.481141+00	\N
+4545	600	gram	2023-10-14 13:20:27.48294+00	2023-10-14 13:20:27.48294+00	\N
+4546	60	gram	2023-10-14 13:20:27.48476+00	2023-10-14 13:20:27.48476+00	\N
+4547	200	gram	2023-10-14 13:20:27.486699+00	2023-10-14 13:20:27.486699+00	\N
+4548	50	gram	2023-10-14 13:20:27.495835+00	2023-10-14 13:20:27.495835+00	\N
+4549	120	gram	2023-10-14 13:20:27.497742+00	2023-10-14 13:20:27.497742+00	\N
+4550	150	gram	2023-10-14 13:20:27.499783+00	2023-10-14 13:20:27.499783+00	\N
+4551	500	gram	2023-10-14 13:20:27.50161+00	2023-10-14 13:20:27.50161+00	\N
+4552	100	gram	2023-10-14 13:20:27.504205+00	2023-10-14 13:20:27.504205+00	\N
+4553	180	gram	2023-10-14 13:20:27.516907+00	2023-10-14 13:20:27.516907+00	\N
+4554	15	gram	2023-10-14 13:20:27.519047+00	2023-10-14 13:20:27.519047+00	\N
+4555	110	gram	2023-10-14 13:20:27.521297+00	2023-10-14 13:20:27.521297+00	\N
+4556	55	gram	2023-10-14 13:20:27.52386+00	2023-10-14 13:20:27.52386+00	\N
+4557	150	gram	2023-10-14 13:20:27.526038+00	2023-10-14 13:20:27.526038+00	\N
+4558	400	gram	2023-10-14 13:20:27.528351+00	2023-10-14 13:20:27.528351+00	\N
+4559	1	count	2023-10-14 13:20:27.530441+00	2023-10-14 13:20:27.530441+00	\N
+4560	400	gram	2023-10-14 13:20:27.532698+00	2023-10-14 13:20:27.532698+00	\N
+4561	\N	arbitrary	2023-10-14 13:20:27.544135+00	2023-10-14 13:20:27.544135+00	200-250g
+4562	100	gram	2023-10-14 13:20:27.546136+00	2023-10-14 13:20:27.546136+00	\N
+4563	100	gram	2023-10-14 13:20:27.548151+00	2023-10-14 13:20:27.548151+00	\N
+4564	200	gram	2023-10-14 13:20:27.550638+00	2023-10-14 13:20:27.550638+00	\N
+4565	100	gram	2023-10-14 13:20:27.552999+00	2023-10-14 13:20:27.552999+00	\N
+4566	1	count	2023-10-14 13:20:27.555261+00	2023-10-14 13:20:27.555261+00	\N
+4567	10	gram	2023-10-14 13:20:27.557585+00	2023-10-14 13:20:27.557585+00	\N
+4568	100	gram	2023-10-14 13:20:27.560036+00	2023-10-14 13:20:27.560036+00	\N
+4569	1000	gram	2023-10-14 13:20:27.57772+00	2023-10-14 13:20:27.57772+00	\N
+4570	100	gram	2023-10-14 13:20:27.579997+00	2023-10-14 13:20:27.579997+00	\N
+4571	\N	arbitrary	2023-10-14 13:20:27.582323+00	2023-10-14 13:20:27.582323+00	1 Tbsp
+4572	2	teaspoon	2023-10-14 13:20:27.584382+00	2023-10-14 13:20:27.584382+00	\N
+4573	1	teaspoon	2023-10-14 13:20:27.586376+00	2023-10-14 13:20:27.586376+00	\N
+4574	1	teaspoon	2023-10-14 13:20:27.588486+00	2023-10-14 13:20:27.588486+00	\N
+4575	\N	arbitrary	2023-10-14 13:20:27.590545+00	2023-10-14 13:20:27.590545+00	¼ tsp
+4576	25	gram	2023-10-14 13:20:27.592939+00	2023-10-14 13:20:27.592939+00	\N
+4577	50	gram	2023-10-14 13:20:27.595188+00	2023-10-14 13:20:27.595188+00	\N
+4578	300	gram	2023-10-14 13:20:27.597395+00	2023-10-14 13:20:27.597395+00	\N
+4579	50	gram	2023-10-14 13:20:27.599634+00	2023-10-14 13:20:27.599634+00	\N
+4580	1	count	2023-10-14 13:20:27.602402+00	2023-10-14 13:20:27.602402+00	\N
+4581	100	gram	2023-10-14 13:20:27.615929+00	2023-10-14 13:20:27.615929+00	\N
+4582	100	gram	2023-10-14 13:20:27.617977+00	2023-10-14 13:20:27.617977+00	\N
+4583	80	gram	2023-10-14 13:20:27.62006+00	2023-10-14 13:20:27.62006+00	\N
+4584	200	gram	2023-10-14 13:20:27.622231+00	2023-10-14 13:20:27.622231+00	\N
+4585	100	gram	2023-10-14 13:20:27.624289+00	2023-10-14 13:20:27.624289+00	\N
+4586	250	gram	2023-10-14 13:20:27.626294+00	2023-10-14 13:20:27.626294+00	\N
+4587	20	gram	2023-10-14 13:20:27.62837+00	2023-10-14 13:20:27.62837+00	\N
+4588	120	gram	2023-10-14 13:20:27.630885+00	2023-10-14 13:20:27.630885+00	\N
+4589	1	count	2023-10-14 13:20:27.633435+00	2023-10-14 13:20:27.633435+00	\N
+4590	30	gram	2023-10-14 13:20:27.636108+00	2023-10-14 13:20:27.636108+00	\N
+4591	70	gram	2023-10-14 13:20:27.647881+00	2023-10-14 13:20:27.647881+00	\N
+4592	150	gram	2023-10-14 13:20:27.650185+00	2023-10-14 13:20:27.650185+00	\N
+4593	400	gram	2023-10-14 13:20:27.652307+00	2023-10-14 13:20:27.652307+00	\N
+4594	300	gram	2023-10-14 13:20:27.654572+00	2023-10-14 13:20:27.654572+00	\N
+4595	70	gram	2023-10-14 13:20:27.656884+00	2023-10-14 13:20:27.656884+00	\N
+4596	700	gram	2023-10-14 13:20:27.65977+00	2023-10-14 13:20:27.65977+00	\N
+4597	1	teaspoon	2023-10-14 13:20:27.662026+00	2023-10-14 13:20:27.662026+00	\N
+4598	\N	arbitrary	2023-10-14 13:20:27.67962+00	2023-10-14 13:20:27.67962+00	1 garlic
+4599	\N	arbitrary	2023-10-14 13:20:27.681808+00	2023-10-14 13:20:27.681808+00	6 sprigs
+4600	100	gram	2023-10-14 13:20:27.683892+00	2023-10-14 13:20:27.683892+00	\N
+4601	75	gram	2023-10-14 13:20:27.685863+00	2023-10-14 13:20:27.685863+00	\N
+4602	75	gram	2023-10-14 13:20:27.694644+00	2023-10-14 13:20:27.694644+00	\N
+4603	100	gram	2023-10-14 13:20:27.698652+00	2023-10-14 13:20:27.698652+00	\N
+4604	200	gram	2023-10-14 13:20:27.701167+00	2023-10-14 13:20:27.701167+00	\N
+4605	100	gram	2023-10-14 13:20:27.703785+00	2023-10-14 13:20:27.703785+00	\N
+4606	400	gram	2023-10-14 13:20:27.708927+00	2023-10-14 13:20:27.708927+00	\N
+4607	1	count	2023-10-14 13:20:27.711443+00	2023-10-14 13:20:27.711443+00	\N
+4608	300	gram	2023-10-14 13:20:27.713768+00	2023-10-14 13:20:27.713768+00	\N
+4609	200	gram	2023-10-14 13:20:27.716137+00	2023-10-14 13:20:27.716137+00	\N
+4610	50	gram	2023-10-14 13:20:27.718467+00	2023-10-14 13:20:27.718467+00	\N
+4611	2	teaspoon	2023-10-14 13:20:27.728792+00	2023-10-14 13:20:27.728792+00	\N
+4612	400	gram	2023-10-14 13:20:27.731531+00	2023-10-14 13:20:27.731531+00	\N
+4613	2	count	2023-10-14 13:20:27.733682+00	2023-10-14 13:20:27.733682+00	\N
+4614	150	gram	2023-10-14 13:20:27.736194+00	2023-10-14 13:20:27.736194+00	\N
+4615	250	gram	2023-10-14 13:20:27.738962+00	2023-10-14 13:20:27.738962+00	\N
+4616	10	gram	2023-10-14 13:20:27.746365+00	2023-10-14 13:20:27.746365+00	\N
+4617	400	gram	2023-10-14 13:20:27.748283+00	2023-10-14 13:20:27.748283+00	\N
+4618	100	gram	2023-10-14 13:20:27.75065+00	2023-10-14 13:20:27.75065+00	\N
+4619	50	gram	2023-10-14 13:20:27.753106+00	2023-10-14 13:20:27.753106+00	\N
+4620	100	gram	2023-10-14 13:20:27.769047+00	2023-10-14 13:20:27.769047+00	\N
+4621	1	count	2023-10-14 13:20:27.771925+00	2023-10-14 13:20:27.771925+00	\N
+4622	\N	arbitrary	2023-10-14 13:20:27.775356+00	2023-10-14 13:20:27.775356+00	3 sprigs
+4623	300	gram	2023-10-14 13:20:27.778792+00	2023-10-14 13:20:27.778792+00	\N
+4624	100	gram	2023-10-14 13:20:27.782651+00	2023-10-14 13:20:27.782651+00	\N
+4625	200	gram	2023-10-14 13:20:27.785529+00	2023-10-14 13:20:27.785529+00	\N
+4626	2	count	2023-10-14 13:20:27.788348+00	2023-10-14 13:20:27.788348+00	\N
+4627	100	gram	2023-10-14 13:20:27.790785+00	2023-10-14 13:20:27.790785+00	\N
+4628	100	gram	2023-10-14 13:20:27.792902+00	2023-10-14 13:20:27.792902+00	\N
+4629	6	teaspoon	2023-10-14 13:20:27.795581+00	2023-10-14 13:20:27.795581+00	\N
+4630	500	count	2023-10-14 13:31:27.761804+00	2023-10-14 13:31:27.761804+00	\N
+4631	500	gram	2023-10-14 13:31:34.753527+00	2023-10-14 13:31:34.753527+00	\N
+4632	2	count	2023-10-21 10:12:13.318845+00	2023-10-21 10:12:13.318845+00	\N
+4633	6	count	2023-10-21 10:12:42.415509+00	2023-10-21 10:12:42.415509+00	\N
+4634	100	gram	2023-10-21 10:13:27.407807+00	2023-10-21 10:13:27.407807+00	\N
+4635	250	gram	2023-10-21 10:14:11.417845+00	2023-10-21 10:14:11.417845+00	\N
+4636	4	count	2023-10-21 10:15:54.699307+00	2023-10-21 10:15:54.699307+00	\N
+4637	100	millilitre	2023-10-21 10:17:16.89739+00	2023-10-21 10:17:16.89739+00	\N
+4638	2	count	2023-10-21 10:19:07.721959+00	2023-10-21 10:19:07.721959+00	\N
+4639	100	count	2023-10-21 10:22:47.621044+00	2023-10-21 10:22:47.621044+00	\N
+4640	100	gram	2023-10-21 10:22:51.422308+00	2023-10-21 10:22:51.422308+00	\N
+4641	2	count	2023-10-21 10:26:59.473148+00	2023-10-21 10:26:59.473148+00	\N
+4642	1	count	2024-01-13 17:14:07.796358+00	2024-01-13 17:14:07.796358+00	\N
+\.
+
+
+--
+-- Data for Name: recipes; Type: TABLE DATA; Schema: public; Owner: foody
+--
+
+COPY public.recipes (id, name, created_at, updated_at, source, book_title, book_page, website_url) FROM stdin;
+14	Potato leak soup	2023-06-30 20:29:21.396693+00	2023-06-30 20:29:21.396693+00	website	\N	\N	https://www.p.com/recipes/potato-leek-soup.html
+15	Roasted Broccoli with peas feta butter beans & quinoa	2023-06-30 20:29:21.943794+00	2023-06-30 20:29:21.943794+00	book	Good for weekly dinner with leftovers for lunch boxes	210	\N
+93	Asparagus & meatball orzo	2023-10-01 08:52:43.346951+00	2023-10-01 08:52:43.346951+00	website	\N	\N	https://www.bbcgoodfood.com/recipes/asparagus-meatball-orzo
+94	Black bean tacos	2023-10-01 08:52:43.368186+00	2023-10-01 08:52:43.368186+00	website	\N	\N	https://www.bbcgoodfood.com/recipes/spicy-black-bean-tacos
+209	Malaysian Roast Chicken With Coconut	2023-10-01 08:52:43.480041+00	2023-10-01 08:52:43.480041+00	book	The Roasting Tin Around The World	158	\N
+244	Giant Couscous, Squash, Pomegranete & Feta	2023-10-01 08:52:43.515264+00	2023-10-01 08:52:43.515264+00	book	The Green Roasting Tin	204	\N
+4	Roasted butternut squash spinach quiche	2023-10-01 08:52:42.766925+00	2023-10-01 08:52:42.766925+00	website	\N	\N	https://www.kingarthurbaking.com/recipes/roasted-butternut-squash-spinach-quiche-recipe
+5	Slow cooker beef pot roast	2023-10-01 08:52:42.814652+00	2023-10-01 08:52:42.814652+00	website	\N	\N	https://www.bbcgoodfood.com/recipes/slow-cooker-pot-roast
+9	Quiche leekraine	2023-10-01 08:52:42.86722+00	2023-10-01 08:52:42.86722+00	website	\N	\N	https://www.jamieoliver.com/recipes/eggs-recipes/quiche-leekraine/
+6	KARTOFFELLAIBCHEN	2023-10-01 08:52:42.898487+00	2023-10-01 08:52:42.898487+00	website	\N	\N	https://www.gutekueche.at/kartoffellaibchen-rezept-5577
+1	Leek and parmesan tart	2023-10-01 08:52:42.935477+00	2023-10-01 08:52:42.935477+00	book	Simplissime easy tart	120	\N
+10	Courgette fritters in a salad	2023-10-01 08:52:42.949955+00	2023-10-01 08:52:42.949955+00	book	Simplissime easy for warm days	136	\N
+11	Courgette & ham pizzas with pesto	2023-10-01 08:52:42.966586+00	2023-10-01 08:52:42.966586+00	book	Easy pizzas	116	\N
+33	Russian Meatballs with sour cream, rice & tomatoes & dill	2023-10-01 08:52:43.084811+00	2023-10-01 08:52:43.084811+00	book	Can take a bit more time, inspired by oven-cooked risottos	186	\N
+7	Moroccan chickpea, squash & cavolo nero stew	2023-10-01 08:52:42.56377+00	2023-10-01 08:52:42.56377+00	website	\N	\N	https://www.bbcgoodfood.com/recipes/moroccan-chickpea-squash-kale-stew
+3	Easy chicken fajitas	2023-10-01 08:52:42.617309+00	2023-10-01 08:52:42.617309+00	website	\N	\N	https://thomassixt.de/en/recipe/potato-gratin/
+12	Potato gratin	2023-10-01 08:52:42.657285+00	2023-10-01 08:52:42.657285+00	website	\N	\N	https://www.daringgourmet.com/kasespatzle-swabian-german-macaroni-and-cheese/
+8	Käsespätzle	2023-10-01 08:52:42.689027+00	2023-10-01 08:52:42.689027+00	website	\N	\N	https://www.daringgourmet.com/kasespatzle-swabian-german-macaroni-and-cheese/
+34	Fusilli Salad with Artichokes and Tomatoes	2023-10-01 08:52:43.130857+00	2023-10-01 08:52:43.130857+00	book	The ultimate meal prep cookbook	255	\N
+38	Roasted vegetables and chicken wraps	2023-10-01 08:52:43.237226+00	2023-10-01 08:52:43.237226+00	book	Easy meal prep	227	\N
+39	Pea & burrata salad with preserved lemon salsa	2023-10-01 08:52:43.261728+00	2023-10-01 08:52:43.261728+00	website	\N	\N	https://www.bbcgoodfood.com/recipes/pea-burrata-salad-preserved-lemon-salsa
+95	Sweet potato cakes with poached eggs	2023-10-01 08:52:43.404359+00	2023-10-01 08:52:43.404359+00	website	\N	\N	https://www.bbcgoodfood.com/recipes/sweet-potato-harissa-cakes-poached-eggs
+126	Mediterranean courgettes roasted with olives, feta & tomatoes	2023-10-01 08:52:43.421907+00	2023-10-01 08:52:43.421907+00	book	The Green Roasting Tin	174	\N
+280	Crunchy Roast potato, Artichoke & Spring Green	2023-10-01 08:52:43.541566+00	2023-10-01 08:52:43.541566+00	book	The Green Roasting Tin	218	\N
+287	Salmon and Leek Parcel with New Potatoes	2023-10-14 13:20:27.185623+00	2023-10-14 13:20:27.185623+00	website	\N	\N	https://cookidoo.co.uk/recipes/recipe/en-GB/r365787
+342	Baked Macaroni Cheese with Chorizo and Peppers	2023-10-14 13:20:27.266997+00	2023-10-14 13:20:27.266997+00	website	\N	\N	https://cookidoo.co.uk/recipes/recipe/en-GB/r310420
+343	Chicken and Leek Pie	2023-10-14 13:20:27.304007+00	2023-10-14 13:20:27.304007+00	website	\N	\N	https://cookidoo.co.uk/recipes/recipe/en-GB/r94691
+344	Slow-cooked Chickpea Stew	2023-10-14 13:20:27.349971+00	2023-10-14 13:20:27.349971+00	website	\N	\N	https://cookidoo.co.uk/recipes/recipe/en-GB/r463570
+356	Chicken Noodle Soup	2023-10-14 13:20:27.375957+00	2023-10-14 13:20:27.375957+00	website	\N	\N	https://cookidoo.co.uk/recipes/recipe/en-GB/r154891
+357	Creamy Asparagus, Potato and Leek Soup	2023-10-14 13:20:27.400889+00	2023-10-14 13:20:27.400889+00	website	\N	\N	https://cookidoo.co.uk/recipes/recipe/en-GB/r85110
+13	Chicken with cashew nuts	2023-10-01 08:52:42.920353+00	2023-10-01 08:52:42.920353+00	book	Simplissime for a good chicken stirfry sauce	230	\N
+21	Potato leek soup	2023-10-01 08:52:42.728806+00	2023-10-01 08:52:42.728806+00	website	\N	\N	https://www.onceuponachef.com/recipes/potato-leek-soup.html
+30	Roasted Broccoli with peas: feta, butter beans & quinoa	2023-10-01 08:52:42.984246+00	2023-10-01 08:52:42.984246+00	book	Good for weekly dinner with leftovers for lunch boxes	210	\N
+31	Herbed Chicken with Olives, Artichokes & Roast Potatoes	2023-10-01 08:52:43.01343+00	2023-10-01 08:52:43.01343+00	book	Easy weekend traybake	192	\N
+35	Fennel, olive & goats cheese tarts	2023-10-01 08:52:43.16299+00	2023-10-01 08:52:43.16299+00	book	The ultimate meal prep cookbook	227	\N
+36	Creamy mushroom pasta	2023-10-01 08:52:43.187461+00	2023-10-01 08:52:43.187461+00	website	\N	\N	https://www.bbcgoodfood.com/recipes/creamy-mushroom-pasta
+64	Pork chops a la plancha	2023-10-01 08:52:43.283515+00	2023-10-01 08:52:43.283515+00	book	Juicy pork chops with white beans & peppers	71	\N
+65	Lentils & goat's cheese	2023-10-01 08:52:43.305565+00	2023-10-01 08:52:43.305565+00	book	Sort of like a stew high in iron	194	\N
+92	Butter bean & Chorizo stew	2023-10-01 08:52:43.333343+00	2023-10-01 08:52:43.333343+00	website	\N	\N	https://www.bbcgoodfood.com/recipes/butter-bean-chorizo-stew
+127	Kartoffelsalat	2023-10-01 08:52:43.436883+00	2023-10-01 08:52:43.436883+00	book	Echt schwäbisch!	26	\N
+324	Garlicky strip steaks with cauliflower	2023-10-01 08:52:43.558215+00	2023-10-01 08:52:43.558215+00	book	The ultimate meal prep	73	\N
+325	Meatballs and Lemon Orzo with Mint & Dill	2023-10-01 08:52:43.572356+00	2023-10-01 08:52:43.572356+00	book	The ultimate meal prep	146	\N
+175	Bacon and Sweetcorn Quiche	2023-10-14 13:20:27.158791+00	2023-10-14 13:20:27.158791+00	website	\N	\N	https://cookidoo.co.uk/recipes/recipe/en-GB/r398194
+37	Herby Roasted Pepper Stuffed with Artichockes	2023-10-01 08:52:43.213026+00	2023-10-01 08:52:43.213026+00	website	\N	\N	https://www.bbcgoodfood.com/recipes/creamy-mushroom-pasta
+32	All-In-One Paella with chicken, peppers & chorizo	2023-10-01 08:52:43.043617+00	2023-10-01 08:52:43.043617+00	book	Can take a bit more time, inspired by oven-cooked risottos	186	\N
+333	Thai Peanut Chicken with Coconut Rice	2023-10-14 13:20:27.214041+00	2023-10-14 13:20:27.214041+00	website	\N	\N	https://cookidoo.co.uk/recipes/recipe/en-GB/r300140
+169	Pasta in tomato sauce with chorizo	2023-10-14 13:20:27.13249+00	2023-10-14 13:20:27.13249+00	website	\N	\N	https://cookidoo.co.uk/recipes/recipe/en-GB/r66810
+358	Shepherd's Pie	2023-10-14 13:20:27.434124+00	2023-10-14 13:20:27.434124+00	website	\N	\N	https://cookidoo.co.uk/recipes/recipe/en-GB/r93516
+359	Sweet Potato and Spinach Curry with Cauliflower Rice	2023-10-14 13:20:27.470639+00	2023-10-14 13:20:27.470639+00	website	\N	\N	https://cookidoo.co.uk/recipes/recipe/en-GB/r443136
+162	Sweet Potato and Courgette Frittata	2023-10-14 13:20:27.012957+00	2023-10-14 13:20:27.012957+00	website	\N	\N	https://cookidoo.co.uk/recipes/recipe/en-GB/r85257
+2	Tartiflette	2023-10-01 08:52:42.52714+00	2023-10-01 08:52:42.52714+00	website	\N	\N	https://www.bbcgoodfood.com/recipes/next-level-tartiflette
+164	Salmon and Asparagus Rice Salad	2023-10-14 13:20:27.078526+00	2023-10-14 13:20:27.078526+00	website	\N	\N	https://cookidoo.co.uk/recipes/recipe/en-GB/r344721
+163	Saffron Chicken Penne	2023-10-14 13:20:27.044971+00	2023-10-14 13:20:27.044971+00	website	\N	\N	https://cookidoo.co.uk/recipes/recipe/en-GB/r86293
+160	Leek and bacon quiche	2023-10-01 08:52:43.454774+00	2023-10-01 08:52:43.454774+00	website	\N	\N	https://www.delicious.com.au/recipes/bacon-leek-quiche/627aa0ea-568e-413d-8057-b3401bddeb4e?current_section=recipes&r=recipes/group/whnkk6ua
+431	Cauliflower steaks with Harrisa & Goats Cheese	2023-10-01 08:52:43.602101+00	2023-10-01 08:52:43.602101+00	book	Green roasting tin	162	\N
+161	Petits Pois and Pancetta Risotto	2023-10-14 13:20:26.974877+00	2023-10-14 13:20:26.974877+00	website	\N	\N	https://cookidoo.co.uk/recipes/recipe/en-GB/r84817
+375	Gnocchi Carbonara with Peas	2023-10-14 13:20:27.494005+00	2023-10-14 13:20:27.494005+00	website	\N	\N	https://cookidoo.co.uk/recipes/recipe/en-GB/r444780
+392	Carrot, Apple and Ginger Soup	2023-10-14 13:20:27.515113+00	2023-10-14 13:20:27.515113+00	website	\N	\N	https://cookidoo.co.uk/recipes/recipe/en-GB/r122219
+449	Spring Vegetable Penne	2023-10-14 13:20:27.543067+00	2023-10-14 13:20:27.543067+00	website	\N	\N	https://cookidoo.co.uk/recipes/recipe/en-GB/r101781
+450	Devilled Chicken with Coleslaw	2023-10-14 13:20:27.576391+00	2023-10-14 13:20:27.576391+00	website	\N	\N	https://cookidoo.co.uk/recipes/recipe/en-GB/r95605
+451	Lentil and Pancetta Stew	2023-10-14 13:20:27.614629+00	2023-10-14 13:20:27.614629+00	website	\N	\N	https://cookidoo.co.uk/recipes/recipe/en-GB/r86154
+452	Broccoli and Ham Pasta Bake	2023-10-14 13:20:27.646553+00	2023-10-14 13:20:27.646553+00	website	\N	\N	https://cookidoo.co.uk/recipes/recipe/en-GB/r588546
+453	Red Lentil, Kale and Rosemary Pasta	2023-10-14 13:20:27.67831+00	2023-10-14 13:20:27.67831+00	website	\N	\N	https://cookidoo.co.uk/recipes/recipe/en-GB/r576828
+454	Pizza Diavola	2023-10-14 13:20:27.727162+00	2023-10-14 13:20:27.727162+00	website	\N	\N	https://cookidoo.co.uk/recipes/recipe/en-GB/r247281
+455	Pumpkin soup	2023-10-14 13:20:27.745033+00	2023-10-14 13:20:27.745033+00	website	\N	\N	https://cookidoo.co.uk/recipes/recipe/en-GB/r63281
+480	Creamy Pea Soup with Serrano Chips	2023-10-14 13:20:27.76741+00	2023-10-14 13:20:27.76741+00	website	\N	\N	https://cookidoo.co.uk/recipes/recipe/en-GB/r432800
+\.
+
+
+--
+-- Data for Name: shoppinglists; Type: TABLE DATA; Schema: public; Owner: foody
+--
+
+COPY public.shoppinglists (id, name, created_at, updated_at) FROM stdin;
+8	13 August 2023	2023-08-13 08:40:55.59387+00	2023-08-13 11:58:48.11159+00
+19	21 October 2023	2023-10-21 10:05:05.512916+00	2024-01-13 16:41:13.122773+00
+12	10 September 2023	2023-09-10 12:44:23.866295+00	2023-09-13 07:04:24.440993+00
+6	29 July 2023	2023-07-29 08:50:01.206228+00	2023-07-29 10:25:05.155527+00
+7	5 August 2023	2023-08-05 10:23:25.300803+00	2023-08-05 13:01:25.566203+00
+4	16 July 2023	2023-07-16 09:39:22.025406+00	2023-07-21 21:00:02.422652+00
+13	16 September 2023	2023-09-16 15:30:29.762915+00	2023-09-16 17:20:41.068858+00
+10	Ramagate Day 1	2023-08-30 08:24:14.72516+00	2023-08-30 08:27:33.294866+00
+11	4 September 2023	2023-09-03 20:50:00.205383+00	2023-09-04 11:01:03.419745+00
+20	13 Jan 2024	2024-01-13 16:41:29.221406+00	2024-01-13 18:44:49.088741+00
+18	14 October 2023	2023-10-14 13:12:45.658004+00	2023-10-14 14:36:47.927555+00
+5	Saturday 22 July	2023-07-22 09:56:51.744213+00	2023-07-29 02:57:13.149256+00
+16	7 October 2023	2023-10-07 09:32:10.809799+00	2023-10-07 17:05:52.171185+00
+2	1 July 2023	2023-07-01 11:19:35.108872+00	2023-07-04 19:03:39.464073+00
+15	1 October 2023	2023-10-01 08:04:02.235603+00	2023-10-01 10:31:29.583436+00
+3	8 July 2023	2023-07-08 12:27:50.609306+00	2023-07-17 20:41:08.776349+00
+14	23 September 2023	2023-09-23 08:26:41.007989+00	2023-09-23 15:50:28.616406+00
+\.
+
+
+--
+-- Data for Name: tags; Type: TABLE DATA; Schema: public; Owner: foody
+--
+
+COPY public.tags (id, name, created_at, updated_at, isle_order) FROM stdin;
+1	vegetables	2023-06-30 20:29:04.078342+00	2023-06-30 20:29:04.078342+00	1
+9	salad	2023-06-30 20:29:04.234939+00	2023-06-30 20:29:04.234939+00	2
+8	fruit	2023-06-30 20:29:04.219392+00	2023-06-30 20:29:04.219392+00	3
+4	herbs	2023-06-30 20:29:04.13823+00	2023-06-30 20:29:04.13823+00	4
+7	meat	2023-06-30 20:29:04.200308+00	2023-06-30 20:29:04.200308+00	5
+11	condiments	2023-06-30 20:29:04.268009+00	2023-06-30 20:29:04.268009+00	6
+6	dairy	2023-06-30 20:29:04.179984+00	2023-06-30 20:29:04.179984+00	7
+2	cans	2023-06-30 20:29:04.094472+00	2023-06-30 20:29:04.094472+00	8
+10	beans	2023-06-30 20:29:04.250989+00	2023-06-30 20:29:04.250989+00	9
+3	baking	2023-06-30 20:29:04.111394+00	2023-06-30 20:29:04.111394+00	10
+5	cleaning	2023-06-30 20:29:04.16148+00	2023-06-30 20:29:04.16148+00	12
+12	frozen	2023-07-29 09:07:24.421226+00	2023-07-29 09:07:24.421226+00	11
+13	pasta	2023-09-16 16:04:25.621074+00	2023-09-16 16:04:25.621074+00	13
+\.
+
+
+--
+-- Name: goose_db_version_id_seq; Type: SEQUENCE SET; Schema: public; Owner: foody
+--
+
+SELECT pg_catalog.setval('public.goose_db_version_id_seq', 22, true);
+
+
+--
+-- Name: ingredients_id_seq; Type: SEQUENCE SET; Schema: public; Owner: foody
+--
+
+SELECT pg_catalog.setval('public.ingredients_id_seq', 614, true);
+
+
+--
+-- Name: ingredients_in_recipe_id_seq; Type: SEQUENCE SET; Schema: public; Owner: foody
+--
+
+SELECT pg_catalog.setval('public.ingredients_in_recipe_id_seq', 4545, true);
+
+
+--
+-- Name: ingredients_in_shoppinglist_id_seq; Type: SEQUENCE SET; Schema: public; Owner: foody
+--
+
+SELECT pg_catalog.setval('public.ingredients_in_shoppinglist_id_seq', 1017, true);
+
+
+--
+-- Name: quantities_id_seq; Type: SEQUENCE SET; Schema: public; Owner: foody
+--
+
+SELECT pg_catalog.setval('public.quantities_id_seq', 4642, true);
+
+
+--
+-- Name: recipes_id_seq; Type: SEQUENCE SET; Schema: public; Owner: foody
+--
+
+SELECT pg_catalog.setval('public.recipes_id_seq', 480, true);
+
+
+--
+-- Name: shoppinglists_id_seq; Type: SEQUENCE SET; Schema: public; Owner: foody
+--
+
+SELECT pg_catalog.setval('public.shoppinglists_id_seq', 20, true);
+
+
+--
+-- Name: tags_id_seq; Type: SEQUENCE SET; Schema: public; Owner: foody
+--
+
+SELECT pg_catalog.setval('public.tags_id_seq', 13, true);
+
+
+--
+-- Name: goose_db_version goose_db_version_pkey; Type: CONSTRAINT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.goose_db_version
+    ADD CONSTRAINT goose_db_version_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ingredients ingredient_pkey; Type: CONSTRAINT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.ingredients
+    ADD CONSTRAINT ingredient_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ingredients_in_recipe ingredients_in_recipe_pkey; Type: CONSTRAINT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.ingredients_in_recipe
+    ADD CONSTRAINT ingredients_in_recipe_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ingredients_in_shoppinglist ingredients_in_shoppinglist_pkey; Type: CONSTRAINT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.ingredients_in_shoppinglist
+    ADD CONSTRAINT ingredients_in_shoppinglist_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ingredients ingredients_name_unique; Type: CONSTRAINT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.ingredients
+    ADD CONSTRAINT ingredients_name_unique UNIQUE (name);
+
+
+--
+-- Name: ingredients_tags ingredients_tags_pkey; Type: CONSTRAINT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.ingredients_tags
+    ADD CONSTRAINT ingredients_tags_pkey PRIMARY KEY (ingredient_id, tag_id);
+
+
+--
+-- Name: quantities quantities_pkey; Type: CONSTRAINT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.quantities
+    ADD CONSTRAINT quantities_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: recipes recipes_name_key; Type: CONSTRAINT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.recipes
+    ADD CONSTRAINT recipes_name_key UNIQUE (name);
+
+
+--
+-- Name: recipes recipes_name_unique; Type: CONSTRAINT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.recipes
+    ADD CONSTRAINT recipes_name_unique UNIQUE (name);
+
+
+--
+-- Name: recipes recipes_pkey; Type: CONSTRAINT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.recipes
+    ADD CONSTRAINT recipes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: shoppinglists shoppinglists_name_key; Type: CONSTRAINT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.shoppinglists
+    ADD CONSTRAINT shoppinglists_name_key UNIQUE (name);
+
+
+--
+-- Name: shoppinglists shoppinglists_pkey; Type: CONSTRAINT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.shoppinglists
+    ADD CONSTRAINT shoppinglists_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tags tags_isle_order_key; Type: CONSTRAINT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.tags
+    ADD CONSTRAINT tags_isle_order_key UNIQUE (isle_order);
+
+
+--
+-- Name: tags tags_name_key; Type: CONSTRAINT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.tags
+    ADD CONSTRAINT tags_name_key UNIQUE (name);
+
+
+--
+-- Name: tags tags_pkey; Type: CONSTRAINT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.tags
+    ADD CONSTRAINT tags_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ingredients_in_recipe unique_ingredient_in_recipe; Type: CONSTRAINT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.ingredients_in_recipe
+    ADD CONSTRAINT unique_ingredient_in_recipe UNIQUE (recipe_id, ingredient_id);
+
+
+--
+-- Name: ingredients unique_ingredient_names; Type: CONSTRAINT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.ingredients
+    ADD CONSTRAINT unique_ingredient_names UNIQUE (name);
+
+
+--
+-- Name: ingredients_in_recipe ingredients_in_recipe_ingredient_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.ingredients_in_recipe
+    ADD CONSTRAINT ingredients_in_recipe_ingredient_id_fkey FOREIGN KEY (ingredient_id) REFERENCES public.ingredients(id);
+
+
+--
+-- Name: ingredients_in_recipe ingredients_in_recipe_quantity_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.ingredients_in_recipe
+    ADD CONSTRAINT ingredients_in_recipe_quantity_id_fkey FOREIGN KEY (quantity_id) REFERENCES public.quantities(id);
+
+
+--
+-- Name: ingredients_in_recipe ingredients_in_recipe_recipe_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.ingredients_in_recipe
+    ADD CONSTRAINT ingredients_in_recipe_recipe_id_fkey FOREIGN KEY (recipe_id) REFERENCES public.recipes(id);
+
+
+--
+-- Name: ingredients_in_shoppinglist ingredients_in_shoppinglist_ingredient_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.ingredients_in_shoppinglist
+    ADD CONSTRAINT ingredients_in_shoppinglist_ingredient_id_fkey FOREIGN KEY (ingredient_id) REFERENCES public.ingredients(id);
+
+
+--
+-- Name: ingredients_in_shoppinglist ingredients_in_shoppinglist_quantity_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.ingredients_in_shoppinglist
+    ADD CONSTRAINT ingredients_in_shoppinglist_quantity_id_fkey FOREIGN KEY (quantity_id) REFERENCES public.quantities(id);
+
+
+--
+-- Name: ingredients_in_shoppinglist ingredients_in_shoppinglist_shoppinglist_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.ingredients_in_shoppinglist
+    ADD CONSTRAINT ingredients_in_shoppinglist_shoppinglist_id_fkey FOREIGN KEY (shoppinglist_id) REFERENCES public.shoppinglists(id);
+
+
+--
+-- Name: ingredients_tags ingredients_tags_ingredient_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.ingredients_tags
+    ADD CONSTRAINT ingredients_tags_ingredient_id_fkey FOREIGN KEY (ingredient_id) REFERENCES public.ingredients(id);
+
+
+--
+-- Name: ingredients_tags ingredients_tags_tag_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: foody
+--
+
+ALTER TABLE ONLY public.ingredients_tags
+    ADD CONSTRAINT ingredients_tags_tag_id_fkey FOREIGN KEY (tag_id) REFERENCES public.tags(id);
+
+
+--
+-- PostgreSQL database dump complete
+--
+
