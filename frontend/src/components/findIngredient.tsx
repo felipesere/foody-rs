@@ -67,7 +67,7 @@ export function FindIngredient(props: {
               ingredient: selectedIngredient.name,
               quantity: [quantity.quantity],
             });
-            ref.current?.focus()
+            ref.current?.focus();
           }
         }}
       >
