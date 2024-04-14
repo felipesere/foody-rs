@@ -1,0 +1,11 @@
+target
+dockerfile
+.dockerignore
+.git
+.gitignore
+frontend/node_modules
+frontend/dist
+frontend/playwright-report
+target
+**/.idea
+
