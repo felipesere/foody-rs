@@ -1,0 +1,28 @@
+# fly.toml app configuration file generated for foody-v2 on 2024-04-14T19:32:36+01:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'foody-v2'
+primary_region = 'lhr'
+[build]
+
+[env]
+  LOCO_ENV = "production"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
+
+[experimental]
+  entrypoint = ["/usr/app/foody-cli", "--environment", "production", "start"]
+

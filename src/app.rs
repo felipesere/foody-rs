@@ -8,7 +8,7 @@ use loco_rs::{
     db::{self, truncate_table},
     environment::Environment,
     task::Tasks,
-    worker::{AppWorker, Processor},
+    worker::Processor,
     Result,
 };
 use migration::Migrator;
@@ -24,7 +24,6 @@ use crate::{
         shoppinglists, users,
     },
     tasks,
-    workers::downloader::DownloadWorker,
 };
 
 pub struct App;
@@ -58,9 +57,7 @@ impl Hooks for App {
             .add_route(controllers::user::routes())
     }
 
-    fn connect_workers<'a>(p: &'a mut Processor, ctx: &'a AppContext) {
-        p.register(DownloadWorker::build(ctx));
-    }
+    fn connect_workers<'a>(_p: &'a mut Processor, _ctx: &'a AppContext) {}
 
     fn register_tasks(tasks: &mut Tasks) {
         tasks.register(tasks::seed::SeedData);
