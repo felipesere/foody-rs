@@ -5,7 +5,7 @@ logger:
   # Enable or disable logging.
   enable: true
   # Enable pretty backtrace (sets RUST_BACKTRACE=1)
-  pretty_backtrace: true
+  pretty_backtrace: false
   # Log level, options: trace, debug, info, warn or error.
   level: info
   # Define the logging format. options: compact, pretty or Json
@@ -90,7 +90,7 @@ mailer:
 # Database Configuration
 database:
   # Database connection URI
-  uri: {{ get_env(name="DATABASE_URL", default="postgres://loco:loco@localhost:5432/foody_development") }}
+  uri: {{ get_env(name="DATABASE_URL") }}
   # When enabled, the sql query will be logged.
   enable_logging: true
   # Set the timeout duration when acquiring a connection.

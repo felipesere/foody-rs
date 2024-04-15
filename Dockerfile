@@ -21,8 +21,6 @@ COPY --from=node-builder /app/dist /usr/app/frontend/dist
 COPY --from=rust-builder /usr/src/config /usr/app/config
 COPY --from=rust-builder /usr/src/target/release/foody-cli /usr/app/foody-cli
 
-EXPOSE 3000
-
 WORKDIR /usr/app
 
 ENTRYPOINT ["/usr/app/foody-cli", "start"]
