@@ -36,7 +36,7 @@ impl From<Ingredient> for IngredientResponse {
 pub async fn all_ingredients(
     auth: middleware::auth::JWT,
     State(ctx): State<AppContext>,
-) -> Result<Json<Vec<IngredientResponse>>> {
+) -> Result<Response> {
     // check auth
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 

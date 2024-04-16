@@ -22,10 +22,7 @@ pub struct ResetParams {
 }
 
 /// Creates a user login and returns a token
-async fn login(
-    State(ctx): State<AppContext>,
-    Json(params): Json<LoginParams>,
-) -> Result<Json<LoginResponse>> {
+async fn login(State(ctx): State<AppContext>, Json(params): Json<LoginParams>) -> Result<Response> {
     let user = users::Model::find_by_email(&ctx.db, &params.email).await?;
 
     let valid = user.verify_password(&params.password);

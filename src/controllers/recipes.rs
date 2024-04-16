@@ -1,3 +1,4 @@
+use axum::response::Response;
 use loco_rs::controller::middleware;
 use loco_rs::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -32,7 +33,7 @@ pub struct IngredientResponse {
 pub async fn all_recipes(
     auth: middleware::auth::JWT,
     State(ctx): State<AppContext>,
-) -> Result<Json<RecipesResponse>> {
+) -> Result<Response> {
     // check auth
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
@@ -69,7 +70,7 @@ pub async fn recipe(
     auth: middleware::auth::JWT,
     Path(id): Path<i32>,
     State(ctx): State<AppContext>,
-) -> Result<Json<RecipeResponse>> {
+) -> Result<Response> {
     // check auth
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
