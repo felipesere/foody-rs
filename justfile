@@ -48,6 +48,15 @@ pg-seed environment:
 pg-reset environment:
   cargo loco db reset --environment {{environment}}
 
+# Launch the proxy to the fly.io Postgres DB
+fly-proxy:
+  fly proxy 5555:5432 -a foody-v2-db
+
+# Read the 1Password secrets to connect to the PostgresDB on fly.io
+fly-proxy-db-url:
+  #!/usr/bin/env bash
+  echo "export DATABASE_URL=postgres://$(op read op://Personal/foody\ db\ v2/username):$(op read op://Personal/foody\ db\ v2/password)@localhost:5555/foody_v2";
+
 frontend-dev: frontend-install
   cd frontend; npm run dev
 
