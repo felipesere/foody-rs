@@ -1,10 +1,11 @@
-import { useForm } from "@tanstack/react-form";
 import type { FieldApi } from "@tanstack/react-form";
+import { useForm } from "@tanstack/react-form";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import {
   useAllShoppinglists,
   useCreateShoppinglist,
 } from "../apis/shoppinglists.ts";
+import { KebabMenu } from "../components/kebabMenu.tsx";
 
 export const Route = createFileRoute("/_auth/")({
   component: ShoppingPage,
@@ -92,7 +93,7 @@ function FieldInfo({ field }: { field: FieldApi<any, any, any, any> }) {
 
 function Shoppinglist({ list }: { list: { name: string; id: number } }) {
   return (
-    <li className="shadow border-black border-solid border-2 p-2 col-span-2">
+    <li className="flex flex-row justify-between shadow border-black border-solid border-2 p-2 col-span-2">
       <Link
         to={"/shoppinglist/$shoppinglistId"}
         params={{ shoppinglistId: list.id.toString() }}
@@ -100,6 +101,11 @@ function Shoppinglist({ list }: { list: { name: string; id: number } }) {
       >
         {list.name}
       </Link>
+      <KebabMenu>
+        <button type="submit" className="px-2 text-white bg-gray-700 shadow">
+          Delete
+        </button>
+      </KebabMenu>
     </li>
   );
 }
