@@ -10,9 +10,13 @@ import {
   useInteractions,
   useRole,
 } from "@floating-ui/react";
+import classnames from "classnames";
 import { type PropsWithChildren, useState } from "react";
 
-export function KebabMenu(props: PropsWithChildren) {
+interface KebabMenuProps {
+  className?: string;
+}
+export function KebabMenu(props: PropsWithChildren<KebabMenuProps>) {
   const [isOpen, setIsOpen] = useState(false);
 
   const { refs, floatingStyles, context } = useFloating({
@@ -38,7 +42,7 @@ export function KebabMenu(props: PropsWithChildren) {
       <button
         ref={refs.setReference}
         {...getReferenceProps()}
-        className={"hover:bg-gray-200 border-0"}
+        className={`hover:bg-gray-200 border-0 ${props.className}`}
         type={"submit"}
       >
         <svg
@@ -79,8 +83,10 @@ export function KebabMenu(props: PropsWithChildren) {
           <div
             ref={refs.setFloating}
             style={floatingStyles}
-            {...getFloatingProps()}
-            className={"bg-white p-2 border-solid border-black border-2"}
+            {...getFloatingProps({
+              className:
+                "shadow flex flex-col gap-2 bg-white p-2 border-solid border-black border-2",
+            })}
           >
             {props.children}
           </div>
@@ -89,3 +95,26 @@ export function KebabMenu(props: PropsWithChildren) {
     </>
   );
 }
+
+type style = "plain" | "dark";
+
+interface ButtonProps {
+  value: string;
+  onClick: () => void;
+  style?: style;
+  className?: string;
+}
+export function Button({ onClick, value, className, style }: ButtonProps) {
+  return (
+    <button
+      onClick={onClick}
+      type="submit"
+      className={classnames("px-2", className, {
+        "text-white bg-gray-700": style === "dark",
+      })}
+    >
+      {value}
+    </button>
+  );
+}
+KebabMenu.Button = Button;

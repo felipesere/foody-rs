@@ -8,6 +8,7 @@ import {
 } from "../apis/shoppinglists.ts";
 import { useShoppinglist } from "../apis/shoppinglists.ts";
 import { FindIngredient } from "../components/findIngredient.tsx";
+import { KebabMenu } from "../components/kebabMenu.tsx";
 import { Toggle } from "../components/toggle.tsx";
 import { combineQuantities } from "../quantities.ts";
 
@@ -104,6 +105,23 @@ function CompactIngredientView({
           {ingredient.name}
         </p>
         <p>{combineQuantities(ingredient.quantities)}</p>
+        <KebabMenu className={"ml-2"}>
+          <KebabMenu.Button
+            style={"dark"}
+            value={"Delete"}
+            onClick={() => console.log("hi there!")}
+          />
+          <KebabMenu.Button
+            style={"plain"}
+            value={"Edit"}
+            onClick={() => console.log("hi there!")}
+          />
+          <KebabMenu.Button
+            style={"plain"}
+            value={"Other thing"}
+            onClick={() => console.log("hi there!")}
+          />
+        </KebabMenu>
       </div>
     </li>
   );

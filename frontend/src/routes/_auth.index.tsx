@@ -102,9 +102,11 @@ function Shoppinglist({ list }: { list: { name: string; id: number } }) {
         {list.name}
       </Link>
       <KebabMenu>
-        <button type="submit" className="px-2 text-white bg-gray-700 shadow">
-          Delete
-        </button>
+        <KebabMenu.Button
+          value={"Delete"}
+          style={"dark"}
+          onClick={() => console.log("hi there!")}
+        />
       </KebabMenu>
     </li>
   );
