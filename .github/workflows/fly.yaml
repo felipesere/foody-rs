@@ -1,0 +1,21 @@
+name: Fly Deploy
+on:
+  push:
+    branches:
+      - main
+  workflow_run:
+      workflows: [ "CI", "Code quality", "Playwright Tests" ]
+      types:
+        - completed
+env:
+  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+jobs:
+  deploy:
+      name: Deploy app
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v3
+        - uses: superfly/flyctl-actions/setup-flyctl@master
+          with:
+            version: 0.1.84
+        - run: flyctl deploy --remote-only --build-arg=GIT_SHA=$GITHUB_SHA
