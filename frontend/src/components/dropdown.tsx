@@ -136,7 +136,6 @@ export const Dropdown = forwardRef<HTMLInputElement, DropdownProps>(
                 {items.map((item, idx) => (
                   <Item
                     {...getItemProps({
-                      key: item.id,
                       ref(node) {
                         listRef.current[idx] = node;
                       },
@@ -146,6 +145,7 @@ export const Dropdown = forwardRef<HTMLInputElement, DropdownProps>(
                         refs.domReference.current?.focus();
                       },
                     })}
+                    key={item.id}
                     active={activeIndex === idx}
                   >
                     {item.name}
