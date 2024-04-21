@@ -8,9 +8,9 @@ import {
 } from "../apis/shoppinglists.ts";
 import { useShoppinglist } from "../apis/shoppinglists.ts";
 import { FindIngredient } from "../components/findIngredient.tsx";
-import { KebabMenu } from "../components/kebabMenu.tsx";
-import { Toggle } from "../components/toggle.tsx";
-import { combineQuantities } from "../quantities.ts";
+import { Toggle, ToggleButton } from "../components/toggle.tsx";
+import { combineQuantities, humanize } from "../quantities.ts";
+import { DottedLine } from "../components/dottedLine.tsx";
 
 export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId")({
   component: ShoppingPage,
@@ -69,6 +69,7 @@ export function ShoppingPage() {
 function CompactIngredientView({
   ingredient,
   onToggle,
+  allRecipes,
 }: {
   ingredient: Ingredient;
   // Would be used once we expand the `quantities` per recipe
@@ -77,7 +78,7 @@ function CompactIngredientView({
 }) {
   const inBasket = ingredient.quantities.some((q) => q.in_basket);
   const [checked, setChecked] = useState(inBasket);
-
+  const [open, setOpen] = useState(false);
   return (
     <li
       className={classnames("border-black border-solid border-2 p-2", {
@@ -97,7 +98,13 @@ function CompactIngredientView({
             setChecked((checked) => !checked);
           }}
         />
+        {/* biome-ignore lint/a11y/useKeyWithClickEvents: Very unlikely this will be navigated via keyboard as its
+         the shoppinglist view for when we are in the store...*/}
         <p
+          onClick={() => {
+            onToggle(ingredient.id, !checked);
+            setChecked((checked) => !checked);
+          }}
           className={classnames(
             "flex-grow inline capitalize ml-2 font-black tracking-wider",
           )}
@@ -105,24 +112,33 @@ function CompactIngredientView({
           {ingredient.name}
         </p>
         <p>{combineQuantities(ingredient.quantities)}</p>
-        <KebabMenu className={"ml-2"}>
-          <KebabMenu.Button
-            style={"dark"}
-            value={"Delete"}
-            onClick={() => console.log("hi there!")}
-          />
-          <KebabMenu.Button
-            style={"plain"}
-            value={"Edit"}
-            onClick={() => console.log("hi there!")}
-          />
-          <KebabMenu.Button
-            style={"plain"}
-            value={"Other thing"}
-            onClick={() => console.log("hi there!")}
-          />
-        </KebabMenu>
+        <ToggleButton onToggle={() => setOpen((v) => !v)} open={open} />
       </div>
+      {open && (
+        <div>
+          <hr className="h-0.5 my-2 bg-black border-0" />
+          {ingredient.quantities.map((quantity) => (
+            <div className={"flex flex-row"}>
+              <span className={"w-5"} />
+              <p className={"ml-2"}>
+                {quantity.recipe_id ? allRecipes[quantity.recipe_id] || "Manual" : "Manual"}
+              </p>
+              <DottedLine />
+              <p>{humanize(quantity)}</p>
+              <span className={"w-7"} />
+            </div>
+          ))}
+          <hr className="h-0.5 my-2 bg-black border-0" />
+          <div className={"flex flex-row gap-2 justify-end"}>
+            <button type={"button"} className={"px-2"}>
+              Edit
+            </button>
+            <button type={"button"} className={"px-2 bg-black text-white"}>
+              Delete
+            </button>
+          </div>
+        </div>
+      )}
     </li>
   );
 }
