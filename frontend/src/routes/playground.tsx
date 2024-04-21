@@ -121,33 +121,6 @@ function WorkingView({
         </p>
         <p>{combineQuantities(ingredient.quantities)}</p>
         <ToggleButton onToggle={() => setOpen(b => !b)} open={open} />
-        {/*<KebabMenu className={"ml-2"}>*/}
-        {/*  <KebabMenu.Button*/}
-        {/*    style={"dark"}*/}
-        {/*    value={"Delete"}*/}
-        {/*    onClick={() => console.log("hi there!")}*/}
-        {/*  />*/}
-        {/*  <KebabMenu.Button*/}
-        {/*    style={"plain"}*/}
-        {/*    value={"Edit"}*/}
-        {/*    onClick={() => console.log("hi there!")}*/}
-        {/*  />*/}
-        {/*  <KebabMenu.Button*/}
-        {/*    style={"plain"}*/}
-        {/*    value={"Other thing"}*/}
-        {/*    onClick={() => console.log("hi there!")}*/}
-        {/*  />*/}
-        {/*</KebabMenu>*/}
-        {/*<ToggleArrow*/}
-        {/*  direction={open}*/}
-        {/*  onClick={() => {*/}
-        {/*    if (open === "up") {*/}
-        {/*      setOpen("down");*/}
-        {/*    } else {*/}
-        {/*      setOpen("up");*/}
-        {/*    }*/}
-        {/*  }}*/}
-        {/*/>*/}
       </div>
       {open && (
         <div>
@@ -160,14 +133,18 @@ function WorkingView({
               </p>
               <DottedLine />
               <p>{humanize(q)}</p>
-              <span className={"w-8"} />
+              <span className={"w-7"} />
             </div>
           ))}
           <hr className="h-0.5 my-2 bg-black border-0" />
-          <div className={"flex flex-row justify-end"}>
+          <div className={"flex flex-row gap-2 justify-end"}>
+            <button type={"button"} className={"px-2"}>
+              Edit
+            </button>
             <button type={"button"} className={"px-2 bg-black text-white"}>
               Delete
             </button>
+            {/*<span className={"w-7"}/>*/}
           </div>
         </div>
       )}

@@ -1,6 +1,7 @@
 import classNames from "classnames";
 import { useState } from "react";
 import type { PropsWithChildren } from "react";
+import classnames from "classnames";
 
 const CLOSED_MENU = "▶";
 const OPEN_MENU = "▼";
@@ -33,12 +34,19 @@ export function Toggle(props: ToggleProps) {
 }
 
 type ToggleButtonProps = {
-    onToggle: () => void,
-    open: boolean,
-}
+  onToggle: () => void;
+  open: boolean;
+};
 
 export function ToggleButton(props: ToggleButtonProps) {
-    return (
-        <span onClick={props.onToggle} className={"mx-2"}>{props.open ? OPEN_MENU : CLOSED_MENU}</span>
-    )
+  return (
+    <div
+      onClick={props.onToggle}
+      className={classnames("mx-2 transition-transform ease-linear", {
+        "rotate-90": props.open,
+      })}
+    >
+      {CLOSED_MENU}
+    </div>
+  );
 }
