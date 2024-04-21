@@ -31,3 +31,14 @@ export function Toggle(props: ToggleProps) {
     </div>
   );
 }
+
+type ToggleButtonProps = {
+    onToggle: () => void,
+    open: boolean,
+}
+
+export function ToggleButton(props: ToggleButtonProps) {
+    return (
+        <span onClick={props.onToggle} className={"mx-2"}>{props.open ? OPEN_MENU : CLOSED_MENU}</span>
+    )
+}
