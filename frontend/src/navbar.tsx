@@ -24,9 +24,6 @@ export function Navbar() {
               <NavLink name={"Login"} to={"/login"}/>
           )}
         </li>
-        <li>
-          <NavLink name={"Playground"} to={"/playground"}/>
-        </li>
       </ul>
     </nav>
   );

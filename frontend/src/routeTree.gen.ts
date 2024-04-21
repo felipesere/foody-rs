@@ -11,7 +11,6 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as PlaygroundImport } from './routes/playground'
 import { Route as LoginImport } from './routes/login'
 import { Route as AuthImport } from './routes/_auth'
 import { Route as AuthIndexImport } from './routes/_auth.index'
@@ -20,11 +19,6 @@ import { Route as AuthIngredientsImport } from './routes/_auth.ingredients'
 import { Route as AuthShoppinglistShoppinglistIdImport } from './routes/_auth.shoppinglist.$shoppinglistId'
 
 // Create/Update Routes
-
-const PlaygroundRoute = PlaygroundImport.update({
-  path: '/playground',
-  getParentRoute: () => rootRoute,
-} as any)
 
 const LoginRoute = LoginImport.update({
   path: '/login',
@@ -69,10 +63,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginImport
       parentRoute: typeof rootRoute
     }
-    '/playground': {
-      preLoaderRoute: typeof PlaygroundImport
-      parentRoute: typeof rootRoute
-    }
     '/_auth/ingredients': {
       preLoaderRoute: typeof AuthIngredientsImport
       parentRoute: typeof AuthImport
@@ -102,7 +92,6 @@ export const routeTree = rootRoute.addChildren([
     AuthShoppinglistShoppinglistIdRoute,
   ]),
   LoginRoute,
-  PlaygroundRoute,
 ])
 
 /* prettier-ignore-end */
