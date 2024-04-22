@@ -53,6 +53,7 @@ server:
       # Set the value of the [`Access-Control-Allow-Methods`][mdn] header
       allow_methods:
         - POST
+        - DELETE
       # Set the value of the [`Access-Control-Max-Age`][mdn] header in seconds
       # max_age: 3600
     static:
