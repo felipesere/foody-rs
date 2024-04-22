@@ -34,8 +34,6 @@ const ItemQuantitySchema = StoredQuantitySchema.extend({
   in_basket: z.boolean(),
   recipe_id: z.nullable(z.number()),
 });
-export type ItemQuantity = z.infer<typeof ItemQuantitySchema>;
-
 const IngredientSchema = z.object({
   id: z.number(),
   name: z.string(),
@@ -188,4 +186,43 @@ function updateItemInShoppingList(
       return ingredient.id !== ingredientId ? ingredient : f(ingredient);
     }),
   };
+}
+
+type DeleteIngredientParams = {
+  ingredient: string;
+};
+export function useRemoveIngredientFromShoppinglist(
+  token: string,
+  shoppinglistId: Shoppinglist["id"],
+) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: DeleteIngredientParams) => {
+      await http
+        .delete(`api/shoppinglists/${shoppinglistId}/ingredient`, {
+          json: {
+            ingredient: params.ingredient,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .json();
+    },
+    onSettled: () => {
+      return client.invalidateQueries({
+        queryKey: ["shoppinglist", shoppinglistId],
+      });
+    },
+    onError: (err, params) => {
+      console.log(
+        `Failed to remove ingredient from shoppinglsit: ${JSON.stringify(
+          err,
+          null,
+          2,
+        )}`,
+      );
+      toast.error(`Failed to remove ${params.ingredient} from shoppinglist`);
+    },
+  });
 }

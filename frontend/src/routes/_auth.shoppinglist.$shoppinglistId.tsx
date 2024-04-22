@@ -4,13 +4,15 @@ import { useState } from "react";
 import { useAllRecipes } from "../apis/recipes.ts";
 import {
   type Ingredient,
+  type Shoppinglist,
+  useRemoveIngredientFromShoppinglist,
   useToggleIngredientInShoppinglist,
 } from "../apis/shoppinglists.ts";
 import { useShoppinglist } from "../apis/shoppinglists.ts";
+import { DottedLine } from "../components/dottedLine.tsx";
 import { FindIngredient } from "../components/findIngredient.tsx";
 import { Toggle, ToggleButton } from "../components/toggle.tsx";
 import { combineQuantities, humanize } from "../quantities.ts";
-import { DottedLine } from "../components/dottedLine.tsx";
 
 export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId")({
   component: ShoppingPage,
@@ -54,6 +56,8 @@ export function ShoppingPage() {
         {shoppinglist.data?.ingredients.map((ingredient) => (
           <CompactIngredientView
             key={ingredient.name}
+            token={token}
+            shoppinglistId={shoppinglistId}
             ingredient={ingredient}
             allRecipes={allRecipes}
             onToggle={(ingredientId, inBasket) =>
@@ -67,18 +71,26 @@ export function ShoppingPage() {
 }
 
 function CompactIngredientView({
+  token,
   ingredient,
+  shoppinglistId,
   onToggle,
   allRecipes,
 }: {
+  token: string;
   ingredient: Ingredient;
-  // Would be used once we expand the `quantities` per recipe
+  shoppinglistId: Shoppinglist["id"];
   allRecipes: Record<number, string>;
   onToggle: (ingredient: Ingredient["id"], inBasket: boolean) => void;
 }) {
   const inBasket = ingredient.quantities.some((q) => q.in_basket);
   const [checked, setChecked] = useState(inBasket);
   const [open, setOpen] = useState(false);
+
+  const deleteIngredient = useRemoveIngredientFromShoppinglist(
+    token,
+    shoppinglistId,
+  );
   return (
     <li
       className={classnames("border-black border-solid border-2 p-2", {
@@ -118,10 +130,12 @@ function CompactIngredientView({
         <div>
           <hr className="h-0.5 my-2 bg-black border-0" />
           {ingredient.quantities.map((quantity) => (
-            <div className={"flex flex-row"}>
+            <div key={quantity.id} className={"flex flex-row"}>
               <span className={"w-5"} />
               <p className={"ml-2"}>
-                {quantity.recipe_id ? allRecipes[quantity.recipe_id] || "Manual" : "Manual"}
+                {quantity.recipe_id
+                  ? allRecipes[quantity.recipe_id] || "Manual"
+                  : "Manual"}
               </p>
               <DottedLine />
               <p>{humanize(quantity)}</p>
@@ -133,7 +147,13 @@ function CompactIngredientView({
             <button type={"button"} className={"px-2"}>
               Edit
             </button>
-            <button type={"button"} className={"px-2 bg-black text-white"}>
+            <button
+              type={"button"}
+              className={"px-2 bg-black text-white"}
+              onClick={() =>
+                deleteIngredient.mutate({ ingredient: ingredient.name })
+              }
+            >
               Delete
             </button>
           </div>

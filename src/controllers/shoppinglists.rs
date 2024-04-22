@@ -222,6 +222,7 @@ pub async fn remove_ingredient(
     Path(id): Path<i32>,
     extract::Json(params): extract::Json<RemoveIngredient>,
 ) -> Result<()> {
+    tracing::info!("About to delete an ingredient...");
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
     let _current = shoppinglists::Entity::find_by_id(id)
         .one(&ctx.db)

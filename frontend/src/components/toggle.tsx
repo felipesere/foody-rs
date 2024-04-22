@@ -1,10 +1,9 @@
 import classNames from "classnames";
+import classnames from "classnames";
 import { useState } from "react";
 import type { PropsWithChildren } from "react";
-import classnames from "classnames";
 
-const CLOSED_MENU = "▶";
-const OPEN_MENU = "▼";
+const TOGGLE_MENU = "▶";
 
 type Props = {
   buttonLabel: string;
@@ -15,13 +14,13 @@ export function Toggle(props: ToggleProps) {
   return (
     <div className={"p-2 border-black border-solid border-2"}>
       <div
-        className={classNames({
+        className={classNames("flex flex-row", {
           "pb-2": open,
         })}
       >
-        <span className={"mr-2"}>{open ? OPEN_MENU : CLOSED_MENU}</span>
+        <ToggleButton onToggle={() => setOpen((v) => !v)} open={open} />
         <button
-          className={"px-2"}
+          className={"px-2 border-0"}
           type={"button"}
           onClick={() => setOpen((v) => !v)}
         >
@@ -40,13 +39,14 @@ type ToggleButtonProps = {
 
 export function ToggleButton(props: ToggleButtonProps) {
   return (
+    // biome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
     <div
       onClick={props.onToggle}
       className={classnames("mx-2 transition-transform ease-linear", {
         "rotate-90": props.open,
       })}
     >
-      {CLOSED_MENU}
+      {TOGGLE_MENU}
     </div>
   );
 }
