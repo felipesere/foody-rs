@@ -38,6 +38,6 @@ impl Task for ChangePassword {
         user.reset_password(&app_context.db, &password)
             .await
             .map(|_| ())
-            .map_err(|e| Error::Model(e))
+            .map_err(Error::Model)
     }
 }
