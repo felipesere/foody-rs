@@ -67,6 +67,7 @@ export function useShoppinglist(
 
       return ShoppinglistSchema.parse(body);
     },
+    refetchInterval: 2000, // ms
   });
 }
 
