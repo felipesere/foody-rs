@@ -56,6 +56,8 @@ export function useShoppinglist(
 ) {
   return useQuery({
     queryKey: ["shoppinglist", shoppinglistId],
+    refetchInterval: 2000, // ms
+    refetchIntervalInBackground: true,
     queryFn: async () => {
       const body = await http
         .get(`api/shoppinglists/${shoppinglistId}`, {
@@ -67,7 +69,6 @@ export function useShoppinglist(
 
       return ShoppinglistSchema.parse(body);
     },
-    refetchInterval: 2000, // ms
   });
 }
 

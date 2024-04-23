@@ -83,8 +83,8 @@ function CompactIngredientView({
   allRecipes: Record<number, string>;
   onToggle: (ingredient: Ingredient["id"], inBasket: boolean) => void;
 }) {
-  const inBasket = ingredient.quantities.some((q) => q.in_basket);
-  const [checked, setChecked] = useState(inBasket);
+  const checked = ingredient.quantities.some((q) => q.in_basket);
+  // const [checked, setChecked] = useState(checked);
   const [open, setOpen] = useState(false);
 
   const deleteIngredient = useRemoveIngredientFromShoppinglist(
@@ -107,7 +107,7 @@ function CompactIngredientView({
           checked={checked}
           onChange={() => {
             onToggle(ingredient.id, !checked);
-            setChecked((checked) => !checked);
+            // setChecked((checked) => !checked);
           }}
         />
         {/* biome-ignore lint/a11y/useKeyWithClickEvents: Very unlikely this will be navigated via keyboard as its
@@ -115,7 +115,7 @@ function CompactIngredientView({
         <p
           onClick={() => {
             onToggle(ingredient.id, !checked);
-            setChecked((checked) => !checked);
+            // setChecked((checked) => !checked);
           }}
           className={classnames(
             "flex-grow inline capitalize ml-2 font-black tracking-wider",
