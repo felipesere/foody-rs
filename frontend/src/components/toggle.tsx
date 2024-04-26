@@ -39,7 +39,6 @@ type ToggleButtonProps = {
 
 export function ToggleButton(props: ToggleButtonProps) {
   return (
-    // biome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
     <div
       onClick={props.onToggle}
       className={classnames("mx-2 transition-transform ease-linear", {

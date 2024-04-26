@@ -29,7 +29,7 @@ export function FindIngredient(props: {
 
   const addIngredient = addIngredientToShoppinglist(props.token);
 
-  const ref = useRef<HTMLInputElement | null>(null);
+  const ingredientRef = useRef<HTMLInputElement | null>(null);
 
   if (!ingredients.data) {
     return null;
@@ -41,13 +41,14 @@ export function FindIngredient(props: {
         items={ingredients.data}
         dropdownClassnames={"border-gray-500 border-solid border-2"}
         onSelectedItem={setSelectedIngredient}
-        ref={ref}
+        ref={ingredientRef}
       />
       <input
         className={"ml-2 w-1/3 border-gray-500 border-solid border-2"}
         type={"text"}
         name={"quantity"}
-        placeholder={quantity.raw}
+        placeholder={"e.g. 200g"}
+        value={quantity.raw}
         onChange={(e) => {
           const value = e.target.value;
           setQuantity({
@@ -67,7 +68,11 @@ export function FindIngredient(props: {
               ingredient: selectedIngredient.name,
               quantity: [quantity.quantity],
             });
-            ref.current?.focus();
+            setQuantity({
+              raw: "",
+              quantity: undefined,
+            });
+            ingredientRef.current?.focus();
           }
         }}
       >

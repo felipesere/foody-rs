@@ -16,6 +16,9 @@
       "recommended": true,
       "correctness": {
         "noChildrenProp": "off"
+      },
+      "a11y": {
+        "useKeyWithClickEvents": "off"
       }
     }
   }

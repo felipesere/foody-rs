@@ -1,18 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 import classnames from "classnames";
-import { useState } from "react";
-import { useAllRecipes } from "../apis/recipes.ts";
+import { useRef, useState } from "react";
+import { useEditable } from "use-editable";
+import { type StoredQuantity, useAllRecipes } from "../apis/recipes.ts";
 import {
   type Ingredient,
   type Shoppinglist,
   useRemoveIngredientFromShoppinglist,
+  useRemoveQuantityFromShoppinglist,
   useToggleIngredientInShoppinglist,
+  useUpdateQuantityOnShoppinglist,
 } from "../apis/shoppinglists.ts";
 import { useShoppinglist } from "../apis/shoppinglists.ts";
 import { DottedLine } from "../components/dottedLine.tsx";
 import { FindIngredient } from "../components/findIngredient.tsx";
 import { Toggle, ToggleButton } from "../components/toggle.tsx";
-import { combineQuantities, humanize } from "../quantities.ts";
+import { combineQuantities, humanize, parse } from "../quantities.ts";
 
 export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId")({
   component: ShoppingPage,
@@ -84,13 +87,7 @@ function CompactIngredientView({
   onToggle: (ingredient: Ingredient["id"], inBasket: boolean) => void;
 }) {
   const checked = ingredient.quantities.some((q) => q.in_basket);
-  // const [checked, setChecked] = useState(checked);
   const [open, setOpen] = useState(false);
-
-  const deleteIngredient = useRemoveIngredientFromShoppinglist(
-    token,
-    shoppinglistId,
-  );
   return (
     <li
       className={classnames("border-black border-solid border-2 p-2", {
@@ -107,11 +104,8 @@ function CompactIngredientView({
           checked={checked}
           onChange={() => {
             onToggle(ingredient.id, !checked);
-            // setChecked((checked) => !checked);
           }}
         />
-        {/* biome-ignore lint/a11y/useKeyWithClickEvents: Very unlikely this will be navigated via keyboard as its
-         the shoppinglist view for when we are in the store...*/}
         <p
           onClick={() => {
             onToggle(ingredient.id, !checked);
@@ -127,38 +121,190 @@ function CompactIngredientView({
         <ToggleButton onToggle={() => setOpen((v) => !v)} open={open} />
       </div>
       {open && (
-        <div>
-          <hr className="h-0.5 my-2 bg-black border-0" />
-          {ingredient.quantities.map((quantity) => (
-            <div key={quantity.id} className={"flex flex-row"}>
-              <span className={"w-5"} />
-              <p className={"ml-2"}>
-                {quantity.recipe_id
-                  ? allRecipes[quantity.recipe_id] || "Manual"
-                  : "Manual"}
-              </p>
-              <DottedLine />
-              <p>{humanize(quantity)}</p>
-              <span className={"w-7"} />
-            </div>
-          ))}
-          <hr className="h-0.5 my-2 bg-black border-0" />
-          <div className={"flex flex-row gap-2 justify-end"}>
-            <button type={"button"} className={"px-2"}>
-              Edit
-            </button>
-            <button
-              type={"button"}
-              className={"px-2 bg-black text-white"}
-              onClick={() =>
-                deleteIngredient.mutate({ ingredient: ingredient.name })
-              }
-            >
-              Delete
-            </button>
-          </div>
-        </div>
+        <EditIngredient
+          ingredient={ingredient}
+          shoppinglistId={shoppinglistId}
+          allRecipes={allRecipes}
+          token={token}
+        />
       )}
     </li>
+  );
+}
+
+type EditIngredientProps = {
+  ingredient: Ingredient;
+  shoppinglistId: Shoppinglist["id"];
+  allRecipes: Record<number, string>;
+  token: string;
+};
+
+type Changes = {
+  removals: Array<StoredQuantity["id"]>;
+  modifications: Array<{ value: string; quantity: StoredQuantity["id"] }>;
+};
+
+function EditIngredient({
+  ingredient,
+  token,
+  shoppinglistId,
+  allRecipes,
+}: EditIngredientProps) {
+  const [isEditing, setIsEditing] = useState(false);
+
+  const [changes, setChanges] = useState<Changes>({
+    removals: [],
+    modifications: [],
+  });
+  const [modifiedIngredient, setModifiedIngredient] = useState(
+    structuredClone(ingredient),
+  );
+  const deleteIngredient = useRemoveIngredientFromShoppinglist(
+    token,
+    shoppinglistId,
+  );
+
+  const removeQuantity = useRemoveQuantityFromShoppinglist(
+    token,
+    shoppinglistId,
+  );
+  const updateQuantity = useUpdateQuantityOnShoppinglist(token, shoppinglistId);
+
+  function applyModifications(changesToIngredient: Changes) {
+    for (const m of changesToIngredient.modifications) {
+      updateQuantity.mutate({ id: m.quantity, rawQuantity: m.value });
+    }
+
+    for (const id of changesToIngredient.removals) {
+      removeQuantity.mutate({ id });
+    }
+  }
+
+  return (
+    <div>
+      <hr className="h-0.5 my-2 bg-black border-0" />
+      {modifiedIngredient.quantities.map((quantity) => (
+        <div key={quantity.id} className={"flex flex-row"}>
+          <div className={"w-5"}>
+            {isEditing ? (
+              <span
+                className={"text-red-700"}
+                onClick={() => {
+                  setChanges((previous) => ({
+                    ...previous,
+                    removals: [...previous.removals, quantity.id],
+                  }));
+                  setModifiedIngredient((previous) => ({
+                    ...previous,
+                    quantities: previous.quantities.filter(
+                      (q) => q.id !== quantity.id,
+                    ),
+                  }));
+                }}
+              >
+                ⓧ
+              </span>
+            ) : null}
+          </div>
+          <p className={"ml-2"}>
+            {quantity.recipe_id
+              ? allRecipes[quantity.recipe_id] || "Manual"
+              : "Manual"}
+          </p>
+          <DottedLine />
+          <Editable
+            isEditing={isEditing}
+            value={humanize(quantity)}
+            onBlur={(v) => {
+              console.log(`Edited value: ${v}: ${JSON.stringify(parse(v))}`);
+              setChanges((previous) => ({
+                ...previous,
+                modifications: [
+                  ...previous.modifications,
+                  { value: v, quantity: quantity.id },
+                ],
+              }));
+              setModifiedIngredient((previous) => ({
+                ...previous,
+                quantities: previous.quantities.map((q) => {
+                  if (q.id === quantity.id) {
+                    return { ...q, ...parse(v) };
+                  }
+                  return q;
+                }),
+              }));
+            }}
+          />
+          <span className={"w-7"} />
+        </div>
+      ))}
+      <hr className="h-0.5 my-2 bg-black border-0" />
+      <div className={"flex flex-row gap-2 justify-end"}>
+        <button
+          type={"button"}
+          className={"px-2"}
+          disabled={!isEditing}
+          onClick={() => {
+            setModifiedIngredient(structuredClone(ingredient));
+            setChanges({ removals: [], modifications: [] });
+            setIsEditing(false);
+          }}
+        >
+          Cancel
+        </button>
+        <button
+          type={"button"}
+          className={"px-2"}
+          onClick={() => {
+            if (isEditing) {
+              applyModifications(changes);
+            }
+            setIsEditing((b) => !b);
+          }}
+        >
+          {isEditing ? "Save" : "Edit"}
+        </button>
+        <button
+          type={"button"}
+          className={"px-2 bg-black text-white"}
+          onClick={() =>
+            deleteIngredient.mutate({ ingredient: ingredient.name })
+          }
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function Editable(props: {
+  isEditing: boolean;
+  value: string;
+  onBlur: (value: string) => void;
+}) {
+  const [currentValue, setCurrentValue] = useState(props.value);
+  const currentValueRef = useRef<HTMLParagraphElement | null>(null);
+
+  useEditable(currentValueRef, setCurrentValue, { disabled: !props.isEditing });
+
+  return (
+    <p
+      className={classnames("mx-2 min-w-4", {
+        "outline-dashed outline-2 outline-yellow-400": props.isEditing,
+      })}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          e.stopPropagation();
+          // props.onBlur(currentValue)
+          currentValueRef.current?.blur();
+        }
+      }}
+      onBlur={() => props.onBlur(currentValue.trim())}
+      ref={currentValueRef}
+    >
+      {currentValue}
+    </p>
   );
 }

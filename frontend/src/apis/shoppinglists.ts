@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { z } from "zod";
 import { http } from "./http.ts";
-import { StoredQuantitySchema } from "./recipes.ts";
+import { type StoredQuantity, StoredQuantitySchema } from "./recipes.ts";
 
 const MinimalShoppinglistSchema = z.object({
   id: z.number(),
@@ -132,9 +132,14 @@ export function useToggleIngredientInShoppinglist(
         .json();
     },
     onMutate: async (params) => {
-      await client.cancelQueries({ queryKey: ["shoppinglists"] });
-      const previousShoppinglist: Shoppinglist | undefined =
-        client.getQueryData(["shoppinglist", shoppinglistId]);
+      await client.cancelQueries({
+        queryKey: ["shoppinglist", shoppinglistId],
+      });
+
+      const previousShoppinglist = client.getQueryData<Shoppinglist>([
+        "shoppinglist",
+        shoppinglistId,
+      ]);
 
       if (previousShoppinglist) {
         const updatedList = updateItemInShoppingList(
@@ -148,6 +153,9 @@ export function useToggleIngredientInShoppinglist(
               }),
             };
           },
+        );
+        console.log(
+          `Setting query data for ${shoppinglistId} and ${params.ingredientId} to be in_basket:${params.inBasket}`,
         );
         client.setQueryData(["shoppinglist", shoppinglistId], updatedList);
       }
@@ -225,6 +233,115 @@ export function useRemoveIngredientFromShoppinglist(
         )}`,
       );
       toast.error(`Failed to remove ${params.ingredient} from shoppinglist`);
+    },
+  });
+}
+
+type RemoveQuantityParams = { id: StoredQuantity["id"] };
+export function useRemoveQuantityFromShoppinglist(
+  token: string,
+  shoppinglistId: Shoppinglist["id"],
+) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: RemoveQuantityParams) => {
+      await http
+        .delete(`api/shoppinglists/${shoppinglistId}/quantity/${params.id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .json();
+    },
+    onSettled: () => {
+      return client.invalidateQueries({
+        queryKey: ["shoppinglist", shoppinglistId],
+      });
+    },
+    onError: (err, _) => {
+      console.log(
+        `Failed to remove quantity from shoppinglist ${shoppinglistId}: ${JSON.stringify(
+          err,
+          null,
+          2,
+        )}`,
+      );
+      toast.error("Failed to remove quantity from shoppinglist");
+    },
+  });
+}
+type AddQuantityParams = { rawQuantity: string };
+export function useAddQuantityToIngredientInShoppinglist(
+  token: string,
+  shoppinglistId: Shoppinglist["id"],
+  ingredientId: Ingredient["id"],
+) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: AddQuantityParams) => {
+      await http
+        .post(
+          `api/shoppinglists/${shoppinglistId}/ingredient/${ingredientId}/quantity`,
+          {
+            json: {
+              quantity: params.rawQuantity,
+            },
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        )
+        .json();
+    },
+    onSettled: () => {
+      return client.invalidateQueries({
+        queryKey: ["shoppinglist", shoppinglistId],
+      });
+    },
+    onError: (err, _) => {
+      console.log(
+        `Failed to add quantity to shoppinglist ${shoppinglistId} and ingredient ${ingredientId}: ${JSON.stringify(
+          err,
+          null,
+          2,
+        )}`,
+      );
+      toast.error("Failed to add quantity to shoppinglist");
+    },
+  });
+}
+
+type UpdateQuantityParams = { id: StoredQuantity["id"]; rawQuantity: string };
+export function useUpdateQuantityOnShoppinglist(
+  token: string,
+  shoppinglistId: Shoppinglist["id"],
+) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: UpdateQuantityParams) => {
+      await http
+        .post(`api/shoppinglists/${shoppinglistId}/quantity/${params.id}`, {
+          json: {
+            quantity: params.rawQuantity,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .json();
+    },
+    onSettled: () => {
+      return client.invalidateQueries({
+        queryKey: ["shoppinglist", shoppinglistId],
+      });
+    },
+    onError: (err, params) => {
+      console.log(
+        `Failed to update quantity ${
+          params.id
+        } on shoppinglist ${shoppinglistId}: ${JSON.stringify(err, null, 2)}`,
+      );
+      toast.error("Failed to update quantity on shoppinglist");
     },
   });
 }
