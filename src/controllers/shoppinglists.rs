@@ -7,14 +7,12 @@ use sea_orm::ActiveValue::{self, Set};
 use sea_orm::{Condition, QueryFilter, TransactionTrait};
 use serde::{Deserialize, Serialize};
 
+use crate::models::_entities::ingredients_in_shoppinglists;
 use crate::models::ingredients::ingredients::Column;
 use crate::models::ingredients::{self, Model as Ingredient};
 use crate::models::quantities::{self, Model as Quantity};
+use crate::models::shoppinglists::{self, Shoppinglist};
 use crate::models::users;
-use crate::models::{
-    ingredients_in_shoppinglists,
-    shoppinglists::{self, Shoppinglist},
-};
 
 #[derive(Serialize)]
 pub struct ShoppinglistsResponse {
@@ -359,7 +357,7 @@ pub async fn add_recipe_to_shoppinglist(
 }
 
 #[derive(Deserialize, Debug)]
-pub struct AddQuantity {
+pub struct RawQuantity {
     quantity: String,
 }
 
@@ -367,7 +365,7 @@ pub async fn add_quantity_to_ingredient(
     auth: middleware::auth::JWT,
     State(ctx): State<AppContext>,
     Path((id, ingredient_id)): Path<(i32, i32)>,
-    extract::Json(params): extract::Json<AddQuantity>,
+    extract::Json(params): extract::Json<RawQuantity>,
 ) -> Result<()> {
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
     let _ = shoppinglists::Entity::find_by_id(id).one(&ctx.db).await?;
@@ -418,6 +416,56 @@ pub async fn remove_quantity_from_shoppinglist(
     Ok(())
 }
 
+pub async fn update_quantity_on_shoppinglist(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+    Path((id, quantity_id)): Path<(i32, i32)>,
+
+    extract::Json(params): extract::Json<RawQuantity>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+    let _ = shoppinglists::Entity::find_by_id(id).one(&ctx.db).await?;
+
+    let parsed = quantities::Quantity::parse(&params.quantity);
+
+    let item = ingredients_in_shoppinglists::Entity::find()
+        .filter(
+            Condition::all()
+                .add(ingredients_in_shoppinglists::Column::ShoppinglistsId.eq(id))
+                .add(ingredients_in_shoppinglists::Column::QuantitiesId.eq(quantity_id)),
+        )
+        .one(&ctx.db)
+        .await?
+        .ok_or(Error::NotFound)?;
+
+    let mut actual_quantity = quantities::Entity::find_by_id(item.quantities_id)
+        .one(&ctx.db)
+        .await?
+        .ok_or(Error::NotFound)?
+        .into_active_model();
+
+    match parsed {
+        quantities::Quantity::Count(n) => {
+            actual_quantity.unit = ActiveValue::set("count".to_string());
+            actual_quantity.value = ActiveValue::set(Some(n));
+            actual_quantity.text = ActiveValue::not_set();
+        }
+        quantities::Quantity::WithUnit { value, unit } => {
+            actual_quantity.unit = ActiveValue::set(unit);
+            actual_quantity.value = ActiveValue::set(Some(value));
+            actual_quantity.text = ActiveValue::not_set();
+        }
+        quantities::Quantity::Arbitrary(text) => {
+            actual_quantity.unit = ActiveValue::not_set();
+            actual_quantity.value = ActiveValue::not_set();
+            actual_quantity.text = ActiveValue::set(Some(text));
+        }
+    }
+    actual_quantity.update(&ctx.db).await?;
+
+    Ok(())
+}
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("shoppinglists")
@@ -438,5 +486,9 @@ pub fn routes() -> Routes {
         .add(
             "/:id/quantity/:quantity_id",
             delete(remove_quantity_from_shoppinglist),
+        )
+        .add(
+            "/:id/quantity/:quantity_id",
+            post(update_quantity_on_shoppinglist),
         )
 }

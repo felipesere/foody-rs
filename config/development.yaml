@@ -52,6 +52,7 @@ server:
       # - Content-Type
       # Set the value of the [`Access-Control-Allow-Methods`][mdn] header
       allow_methods:
+        - GET
         - POST
         - DELETE
       # Set the value of the [`Access-Control-Max-Age`][mdn] header in seconds
