@@ -10,7 +10,8 @@
     "vite": "vite",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "fmt": "biome format . --write"
+    "fmt": "biome format . --write",
+    "test": "vitest"
   },
   "dependencies": {
     "@floating-ui/react": "^0.26.10",
@@ -21,10 +22,8 @@
     "@tanstack/react-query-persist-client": "^5.24.8",
     "@tanstack/react-router": "^1.20.1",
     "@tanstack/router-devtools": "^1.20.5",
-    "@tanstack/router-vite-plugin": "^1.18.1",
     "@tanstack/zod-form-adapter": "^0.16.0",
     "classnames": "^2.5.1",
-    "downshift": "^9.0.1",
     "fuse.js": "^7.0.0",
     "ky": "^1.2.3",
     "react": "^18.2.0",
@@ -36,11 +35,13 @@
   "devDependencies": {
     "@biomejs/biome": "^1.6.1",
     "@playwright/test": "^1.42.1",
+    "@tanstack/router-vite-plugin": "^1.18.1",
     "@types/node": "^20.11.27",
     "@types/react": "^18.2.67",
     "@types/react-dom": "^18.2.17",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.18",
+    "jsdom": "^24.0.0",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
     "typescript": "5.4.3",
