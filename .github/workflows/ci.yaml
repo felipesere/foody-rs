@@ -2,7 +2,6 @@ name: CI
 on:
   push:
     branches:
-      - master
       - main
   pull_request:
 
@@ -10,7 +9,7 @@ env:
   RUST_TOOLCHAIN: stable
 
 jobs:
-  fmt:
+  rust_fmt:
     name: Check Style
     runs-on: ubuntu-latest
 
@@ -26,7 +25,7 @@ jobs:
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
 
-  lint:
+  rust_lint:
     name: Run Clippy
     runs-on: ubuntu-latest
 
@@ -44,7 +43,7 @@ jobs:
       - name: Run clippy
         run: cargo clippy --all-features -- -D warnings -W clippy::nursery -W rust-2018-idioms
 
-  test:
+  rust_test:
     name: Run Tests
     runs-on: ubuntu-latest
 
@@ -97,3 +96,16 @@ jobs:
         env:
           REDIS_URL: redis://localhost:${{job.services.redis.ports[6379]}}
           DATABASE_URL: postgres://postgress:postgress@localhost:5432/postgress_test
+  ts_lint:
+    name: Run Biome check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Biome
+        uses: biomejs/setup-biome@v2
+        with:
+          version: latest
+      - name: Run Biome
+        run: biome ci .
+        working-directory: ./frontend
