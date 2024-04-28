@@ -59,7 +59,7 @@ pub async fn add_ingredient(
     auth: middleware::auth::JWT,
     State(ctx): State<AppContext>,
     extract::Json(params): extract::Json<NewIngredient>,
-) -> Result<()> {
+) -> Result<Response> {
     // check auth
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
@@ -70,21 +70,28 @@ pub async fn add_ingredient(
     }
 
     let ingredient_outcome = ingredients::ActiveModel {
-        name: sea_orm::ActiveValue::Set(params.name),
+        name: sea_orm::ActiveValue::Set(params.name.clone()),
         ..Default::default()
     }
     .insert(&tx)
     .await;
 
     match ingredient_outcome {
-        Ok(_) => {
+        Ok(ingredient) => {
             tx.commit().await?;
-            Ok(())
+            format::json(IngredientResponse::from(ingredient))
         }
         Err(other_err) => {
             if let Some(SqlErr::UniqueConstraintViolation(_)) = other_err.sql_err() {
                 tx.commit().await?;
-                return Ok(());
+
+                let ingredient = ingredients::Entity::find()
+                    .filter(ingredients::ingredients::Column::Name.eq(params.name))
+                    .one(&ctx.db)
+                    .await?
+                    .ok_or(Error::NotFound)?;
+
+                return format::json(IngredientResponse::from(ingredient));
             }
             tx.rollback().await?;
             Err(loco_rs::Error::DB(other_err))

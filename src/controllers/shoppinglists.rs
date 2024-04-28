@@ -164,7 +164,7 @@ pub async fn add_ingredient(
         return Err(Error::NotFound);
     };
 
-    // TODO: Super goody to use the name here and allow "creation"?
+    // TODO: Super goofy to use the name here and allow "creation"?
     let ingredient = if let Some(i) = ingredients::Entity::find()
         .filter(Column::Name.eq(&params.ingredient))
         .one(&ctx.db)

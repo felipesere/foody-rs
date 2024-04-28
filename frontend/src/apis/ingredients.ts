@@ -60,3 +60,33 @@ export function useAllIngredients(token: string) {
     },
   });
 }
+
+type NewIngredient = {
+  name: string;
+  tags: Array<string>;
+};
+export function useCreateNewIngredient(token: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ name, tags }: NewIngredient) => {
+      const response = await http
+        .post("api/ingredients", {
+          json: {
+            name,
+            tags,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .json();
+
+      return IngredientSchema.parse(response);
+    },
+    onSettled: (_data, _err, _) => {
+      return client.invalidateQueries({
+        queryKey: ["ingredients"],
+      });
+    },
+  });
+}
