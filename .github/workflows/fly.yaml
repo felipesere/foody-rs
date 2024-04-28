@@ -3,16 +3,17 @@ on:
   push:
     branches:
       - main
-  workflow_run:
-      workflows: [ "CI", "Code quality", "Playwright Tests" ]
-      types:
-        - completed
 env:
   FLY_API_TOKEN: ${{ secrets.FLY_IO_DEPLOY }}
 jobs:
   deploy:
       name: Deploy app
       runs-on: ubuntu-latest
+      concurrency: deploy-group
+      needs:
+        - fmt
+        - lint
+        - test
       steps:
         - uses: actions/checkout@v3
         - uses: superfly/flyctl-actions/setup-flyctl@master

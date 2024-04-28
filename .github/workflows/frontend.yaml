@@ -5,7 +5,8 @@ on:
   pull_request:
 
 jobs:
-  quality:
+  lint:
+    name: Run Biome check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
