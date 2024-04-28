@@ -77,7 +77,6 @@ button,
 input[type="button"] {
     color: black;
     border: 2px solid black;
-    background-color: #ced4da;
     cursor: pointer;
 }
 
@@ -112,4 +111,14 @@ input[type="button"]:disabled {
     background-image: radial-gradient(black 1px, transparent 0);
     background-size: calc(var(--density) * 1px) calc(var(--density) * 1px);
     background-position: calc(var(--density) * -0.5px) calc(var(--density) * -0.5px);
+}
+
+.striped-bg {
+    background: repeating-linear-gradient(
+            135deg,
+            currentColor,
+            currentColor 3px,
+            transparent 3px,
+            transparent 10px
+    );
 }

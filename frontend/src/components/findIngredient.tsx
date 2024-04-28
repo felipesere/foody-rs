@@ -3,6 +3,7 @@ import {
   type Ingredient,
   addIngredientToShoppinglist,
   useAllIngredients,
+  useCreateNewIngredient,
 } from "../apis/ingredients.ts";
 import type { Quantity } from "../apis/recipes.ts";
 import { parse } from "../quantities.ts";
@@ -19,6 +20,10 @@ export function FindIngredient(props: {
     Ingredient | undefined
   >(undefined);
 
+  const [newIngredientName, setNewIngredientName] = useState<
+    string | undefined
+  >(undefined);
+
   const [quantity, setQuantity] = useState<{
     raw: string;
     quantity: Quantity | undefined;
@@ -28,6 +33,7 @@ export function FindIngredient(props: {
   });
 
   const addIngredient = addIngredientToShoppinglist(props.token);
+  const newIngredient = useCreateNewIngredient(props.token);
 
   const ingredientRef = useRef<HTMLInputElement | null>(null);
 
@@ -40,7 +46,14 @@ export function FindIngredient(props: {
       <Dropdown
         items={ingredients.data}
         dropdownClassnames={"border-gray-500 border-solid border-2"}
-        onSelectedItem={setSelectedIngredient}
+        onSelectedItem={(v) => {
+          setSelectedIngredient(v);
+          setNewIngredientName(undefined);
+        }}
+        onNewItem={(v) => {
+          setSelectedIngredient(undefined);
+          setNewIngredientName(v);
+        }}
         ref={ingredientRef}
       />
       <input
@@ -60,7 +73,9 @@ export function FindIngredient(props: {
       <button
         className={"ml-2 px-2"}
         type={"button"}
-        disabled={!(selectedIngredient && quantity.quantity)}
+        disabled={
+          !((selectedIngredient || newIngredientName) && quantity.quantity)
+        }
         onClick={() => {
           if (selectedIngredient && quantity.quantity) {
             addIngredient.mutate({
@@ -68,12 +83,30 @@ export function FindIngredient(props: {
               ingredient: selectedIngredient.name,
               quantity: [quantity.quantity],
             });
-            setQuantity({
-              raw: "",
-              quantity: undefined,
-            });
-            ingredientRef.current?.focus();
           }
+
+          if (newIngredientName && quantity.quantity) {
+            // strange... if I don't assign it then quantity can be `undefined`?
+            const quant = quantity.quantity;
+            newIngredient
+              .mutateAsync({
+                name: newIngredientName,
+                tags: [],
+              })
+              .then((ingredient) => {
+                return addIngredient.mutateAsync({
+                  shoppinglistId: props.shoppinglistId,
+                  ingredient: ingredient.name,
+                  quantity: [quant],
+                });
+              });
+          }
+
+          setQuantity({
+            raw: "",
+            quantity: undefined,
+          });
+          ingredientRef.current?.focus();
         }}
       >
         Add

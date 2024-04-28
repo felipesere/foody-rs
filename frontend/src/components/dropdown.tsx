@@ -30,6 +30,7 @@ interface DropdownProps {
   items: Array<Ingredient>;
   dropdownClassnames?: string;
   onSelectedItem: (item: Ingredient) => void;
+  onNewItem: (name: string) => void;
 }
 
 export const Dropdown = forwardRef<HTMLInputElement, DropdownProps>(
@@ -57,6 +58,8 @@ export const Dropdown = forwardRef<HTMLInputElement, DropdownProps>(
       setActiveIndex(idx);
       if (idx != null && items[idx]) {
         props.onSelectedItem(items[idx]);
+      } else {
+        props.onNewItem(query);
       }
     };
 
@@ -151,6 +154,19 @@ export const Dropdown = forwardRef<HTMLInputElement, DropdownProps>(
                     {item.name}
                   </Item>
                 ))}
+                <NewItem
+                  ref={(node) => {
+                    listRef.current[items.length] = node;
+                  }}
+                  active={activeIndex === items.length}
+                  onClick={() => {
+                    setQuery(query);
+                    setIsOpen(false);
+                    refs.domReference.current?.focus();
+                  }}
+                >
+                  {query}
+                </NewItem>
               </ul>
             </FloatingFocusManager>
           )}
@@ -163,24 +179,54 @@ export const Dropdown = forwardRef<HTMLInputElement, DropdownProps>(
 interface ItemProps {
   children: ReactNode;
   active: boolean;
+  className?: string;
 }
 
-const Item = forwardRef<HTMLLIElement, ItemProps & HTMLProps<HTMLLIElement>>(
-  ({ children, active, ...rest }, ref) => {
+const NewItem = forwardRef<HTMLLIElement, ItemProps & HTMLProps<HTMLLIElement>>(
+  ({ children, active, className, ...rest }, ref) => {
     const id = useId();
     return (
       <li
         ref={ref}
-        // role="option"
         id={id}
         aria-selected={active}
         {...rest}
         style={{
           ...rest.style,
         }}
-        className={classNames("p-2 hover:bg-gray-300 cursor-default", {
-          "bg-gray-300": active,
-        })}
+        className={"p-1 striped-bg text-yellow-500 cursor-default"}
+      >
+        <div
+          className={classNames("p-1 text-black hover:bg-gray-300", {
+            "bg-white": !active,
+            "bg-gray-300": active,
+          })}
+        >
+          {children}
+        </div>
+      </li>
+    );
+  },
+);
+const Item = forwardRef<HTMLLIElement, ItemProps & HTMLProps<HTMLLIElement>>(
+  ({ children, active, className, ...rest }, ref) => {
+    const id = useId();
+    return (
+      <li
+        ref={ref}
+        id={id}
+        aria-selected={active}
+        {...rest}
+        style={{
+          ...rest.style,
+        }}
+        className={classNames(
+          className,
+          "p-2 hover:bg-gray-300 cursor-default",
+          {
+            "bg-gray-300": active,
+          },
+        )}
       >
         {children}
       </li>
