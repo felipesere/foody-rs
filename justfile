@@ -55,7 +55,7 @@ fly-proxy:
 # Read the 1Password secrets to connect to the PostgresDB on fly.io
 fly-proxy-db-url:
   #!/usr/bin/env bash
-  echo "export DATABASE_URL=postgres://$(op read op://Personal/foody\ db\ v2/username):$(op read op://Personal/foody\ db\ v2/password)@localhost:5555/foody_v2";
+  echo "export DATABASE_URL=postgres://$(op read op://Personal/foody\ db\ v2/username):$(op read op://Personal/foody\ db\ v2/operator)@localhost:5555/foody_v2";
 
 frontend-dev: frontend-install
   cd frontend; npm run dev
