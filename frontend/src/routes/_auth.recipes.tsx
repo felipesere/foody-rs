@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
+import { Outlet, createFileRoute, useNavigate } from "@tanstack/react-router";
 import classnames from "classnames";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -31,7 +31,7 @@ export function RecipesPage() {
     return <p>Loading</p>;
   }
 
-  console.log(data)
+  console.log(data);
 
   return (
     <>

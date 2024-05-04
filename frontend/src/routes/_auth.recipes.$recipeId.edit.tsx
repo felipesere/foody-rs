@@ -1,5 +1,3 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useRecipe } from "../apis/recipes.ts";
 import {
   FloatingFocusManager,
   FloatingOverlay,
@@ -9,12 +7,14 @@ import {
   useInteractions,
   useRole,
 } from "@floating-ui/react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useRecipe } from "../apis/recipes.ts";
 
-import { Editable } from "../components/editable.tsx";
 import { useState } from "react";
-import { humanize } from "../quantities.ts";
 import { DottedLine } from "../components/dottedLine.tsx";
-import {FindIngredient} from "../components/findIngredient.tsx";
+import { Editable } from "../components/editable.tsx";
+import { FindIngredient } from "../components/findIngredient.tsx";
+import { humanize } from "../quantities.ts";
 
 export const Route = createFileRoute("/_auth/recipes/$recipeId/edit")({
   component: EditRecipePage,
@@ -110,18 +110,18 @@ function EditRecipePage() {
     >
       <FloatingFocusManager context={context}>
         <div
-            ref={refs.setFloating}
-            {...getFloatingProps({
-              className:
-                  "m-2 p-4 bg-white w-full max-w-2xl relative border-solid border-black border-2 space-y-4",
-            })}
+          ref={refs.setFloating}
+          {...getFloatingProps({
+            className:
+              "m-2 p-4 bg-white w-full max-w-2xl relative border-solid border-black border-2 space-y-4",
+          })}
         >
           <div className={"flex flex-row gap-4"}>
             <p>Name:</p>
             <Editable
-                isEditing={true}
-                value={recipe.name}
-                onBlur={(name) => console.log(`new name: ${name}`)}
+              isEditing={true}
+              value={recipe.name}
+              onBlur={(name) => console.log(`new name: ${name}`)}
             />
           </div>
 
@@ -129,12 +129,12 @@ function EditRecipePage() {
             <p>Kind of source:</p>
             <div>
               <input
-                  type="radio"
-                  id="book"
-                  name="source"
-                  value="book"
-                  checked={sourceKind === "book"}
-                  onChange={() => setSourceKind("book")}
+                type="radio"
+                id="book"
+                name="source"
+                value="book"
+                checked={sourceKind === "book"}
+                onChange={() => setSourceKind("book")}
               />
               <label className="ml-2" htmlFor="huey">
                 Book
@@ -143,12 +143,12 @@ function EditRecipePage() {
 
             <div>
               <input
-                  type="radio"
-                  id="website"
-                  name="source"
-                  value="website"
-                  checked={sourceKind === "website"}
-                  onChange={() => setSourceKind("website")}
+                type="radio"
+                id="website"
+                name="source"
+                value="website"
+                checked={sourceKind === "website"}
+                onChange={() => setSourceKind("website")}
               />
               <label className={"ml-2"} htmlFor="website">
                 Website
@@ -157,53 +157,58 @@ function EditRecipePage() {
           </div>
 
           {sourceKind === "book" ? (
-              <EditBook book={maybeBook}/>
+            <EditBook book={maybeBook} />
           ) : (
-              <EditWebsite website={maybeWebsite}/>
+            <EditWebsite website={maybeWebsite} />
           )}
 
           <ol>
             {recipe.ingredients.map((ingredient) => {
               return (
-                  <li
-                      key={ingredient.id}
-                      className={"flex flex-row justify-between"}
-                  >
-                    <p>{ingredient.name}</p>
-                    <DottedLine className={"flex-shrink"}/>
-                    <Editable
-                        isEditing={true}
-                        value={humanize(ingredient.quantity[0])}
-                        onBlur={(v) => console.log(v)}
-                    />
-                  </li>
+                <li
+                  key={ingredient.id}
+                  className={"flex flex-row justify-between"}
+                >
+                  <p>{ingredient.name}</p>
+                  <DottedLine className={"flex-shrink"} />
+                  <Editable
+                    isEditing={true}
+                    value={humanize(ingredient.quantity[0])}
+                    onBlur={(v) => console.log(v)}
+                  />
+                </li>
               );
             })}
           </ol>
-          <hr className="h-0.5 my-2 bg-black border-0"/>
-          <FindIngredient token={token} shoppinglistId={-1}/>
-          <hr className="h-0.5 my-2 bg-black border-0"/>
+          <hr className="h-0.5 my-2 bg-black border-0" />
+          <FindIngredient
+            token={token}
+            onIngredient={(_ingredient, _quantity) => {
+              // here is where we can add an ingredient and quantity to a recipe!
+            }}
+          />
+          <hr className="h-0.5 my-2 bg-black border-0" />
           <div className={"flex flex-row gap-4"}>
             <button
-                type="button"
-                className={"px-2"}
-                onClick={() => navigate({to: "/recipes"})}
+              type="button"
+              className={"px-2"}
+              onClick={() => navigate({ to: "/recipes" })}
             >
               Close
             </button>
 
             <button
-                type="button"
-                className={"px-2"}
-                onClick={() => navigate({to: "/recipes"})}
+              type="button"
+              className={"px-2"}
+              onClick={() => navigate({ to: "/recipes" })}
             >
               Save
             </button>
 
             <button
-                type="button"
-                className={"px-2"}
-                onClick={() => navigate({to: "/recipes"})}
+              type="button"
+              className={"px-2"}
+              onClick={() => navigate({ to: "/recipes" })}
             >
               Cancel
             </button>

@@ -1,7 +1,8 @@
-import {createFileRoute} from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import classnames from "classnames";
-import {useState} from "react";
-import {type StoredQuantity, useAllRecipes} from "../apis/recipes.ts";
+import { useState } from "react";
+import { addIngredientToShoppinglist } from "../apis/ingredients.ts";
+import { type StoredQuantity, useAllRecipes } from "../apis/recipes.ts";
 import {
   type Ingredient,
   type Shoppinglist,
@@ -35,6 +36,8 @@ export function ShoppingPage() {
     shoppinglistId,
   );
 
+  const addIngredient = addIngredientToShoppinglist(token);
+
   if (shoppinglist.isLoading || recipes.isLoading) {
     return <p>Loading</p>;
   }
@@ -55,7 +58,16 @@ export function ShoppingPage() {
   return (
     <div className="content-grid space-y-4 max-w-md">
       <Toggle buttonLabel={"Add Ingredient"}>
-        <FindIngredient token={token} shoppinglistId={shoppinglistId} />
+        <FindIngredient
+          token={token}
+          onIngredient={(ingredient, quantity) => {
+            addIngredient.mutate({
+              shoppinglistId: shoppinglistId,
+              ingredient: ingredient.name,
+              quantity: [quantity],
+            });
+          }}
+        />
       </Toggle>
       <ul className="grid max-w-md gap-4">
         {shoppinglist.data?.ingredients.map((ingredient) => (

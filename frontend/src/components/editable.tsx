@@ -1,6 +1,6 @@
+import classnames from "classnames";
 import { useRef, useState } from "react";
 import { useEditable } from "use-editable";
-import classnames from "classnames";
 
 export function Editable(props: {
   isEditing: boolean;

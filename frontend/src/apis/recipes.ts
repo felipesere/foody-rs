@@ -103,12 +103,12 @@ export function useRecipe(token: string, id: Recipe["id"]) {
     queryKey: ["recipe", id],
     queryFn: async () => {
       const body = await http
-          .get(`api/recipes/${id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          })
-          .json();
+        .get(`api/recipes/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .json();
 
       return RecipeSchema.parse(body);
     },
