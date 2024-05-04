@@ -26,7 +26,6 @@ export function Editable(props: {
         if (e.key === "Enter") {
           e.preventDefault();
           e.stopPropagation();
-          // props.onBlur(currentValue)
           currentValueRef.current?.blur();
         }
       }}

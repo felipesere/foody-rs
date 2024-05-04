@@ -60,12 +60,12 @@ function EditRecipePage() {
   function EditWebsite(props: { website: Website | null }) {
     return (
       <div className={"flex flex-row gap-2"}>
-        <label htmlFor={"editWebsite"}>Website</label>
-        <input
-          type="text"
-          id={"editWebsite"}
+        <p>Website</p>
+        <Editable
+          isEditing={true}
           className={"w-full"}
           value={props.website?.url || ""}
+          onBlur={(url) => console.log(url)}
         />
       </div>
     );
@@ -89,11 +89,11 @@ function EditRecipePage() {
         </div>
 
         <div className={"flex flex-row gap-2"}>
-          <label htmlFor={"editBookPage"}>Book page</label>
-          <input
-            type="text"
-            id={"editBookPage"}
-            value={props.book?.page || ""}
+          <p>Book page</p>
+          <Editable
+            isEditing={true}
+            value={props.book?.page.toString() || ""}
+            onBlur={(page) => console.log(page)}
           />
         </div>
       </>
@@ -101,19 +101,19 @@ function EditRecipePage() {
   }
 
   return (
-    // <FloatingOverlay lockScroll className={"bg-black/30 fixed top-0 left-0 right-0 bottom-0"}>
     <FloatingOverlay
       lockScroll
       className={
-        "bg-black/25 overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full flex"
+        "the-overlay-backdrop bg-black/25 overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full flex"
       }
+      style={{ margin: 0 }}
     >
       <FloatingFocusManager context={context}>
         <div
           ref={refs.setFloating}
           {...getFloatingProps({
             className:
-              "m-2 p-4 bg-white w-full max-w-2xl relative border-solid border-black border-2 space-y-4",
+              "m-2 p-4 bg-white w-full h-full max-w-2xl relative border-solid border-black border-2 space-y-4",
           })}
         >
           <div className={"flex flex-row gap-4"}>
@@ -180,7 +180,7 @@ function EditRecipePage() {
               );
             })}
           </ol>
-          <hr className="h-0.5 my-2 bg-black border-0" />
+
           <FindIngredient
             token={token}
             onIngredient={(_ingredient, _quantity) => {
