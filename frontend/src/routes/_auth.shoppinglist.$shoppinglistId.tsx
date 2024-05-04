@@ -1,8 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import {createFileRoute} from "@tanstack/react-router";
 import classnames from "classnames";
-import { useRef, useState } from "react";
-import { useEditable } from "use-editable";
-import { type StoredQuantity, useAllRecipes } from "../apis/recipes.ts";
+import {useState} from "react";
+import {type StoredQuantity, useAllRecipes} from "../apis/recipes.ts";
 import {
   type Ingredient,
   type Shoppinglist,
@@ -18,6 +17,7 @@ import { DottedLine } from "../components/dottedLine.tsx";
 import { FindIngredient } from "../components/findIngredient.tsx";
 import { Toggle, ToggleButton } from "../components/toggle.tsx";
 import { combineQuantities, humanize, parse } from "../quantities.ts";
+import {Editable} from "../components/editable.tsx";
 
 export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId")({
   component: ShoppingPage,
@@ -280,33 +280,3 @@ function EditIngredient({
   );
 }
 
-function Editable(props: {
-  isEditing: boolean;
-  value: string;
-  onBlur: (value: string) => void;
-}) {
-  const [currentValue, setCurrentValue] = useState(props.value);
-  const currentValueRef = useRef<HTMLParagraphElement | null>(null);
-
-  useEditable(currentValueRef, setCurrentValue, { disabled: !props.isEditing });
-
-  return (
-    <p
-      className={classnames("mx-2 min-w-4", {
-        "outline-dashed outline-2 outline-yellow-400": props.isEditing,
-      })}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          e.stopPropagation();
-          // props.onBlur(currentValue)
-          currentValueRef.current?.blur();
-        }
-      }}
-      onBlur={() => props.onBlur(currentValue.trim())}
-      ref={currentValueRef}
-    >
-      {currentValue}
-    </p>
-  );
-}

@@ -97,3 +97,20 @@ export function useAllRecipes(token: string) {
     },
   });
 }
+
+export function useRecipe(token: string, id: Recipe["id"]) {
+  return useQuery({
+    queryKey: ["recipe", id],
+    queryFn: async () => {
+      const body = await http
+          .get(`api/recipes/${id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+          .json();
+
+      return RecipeSchema.parse(body);
+    },
+  });
+}
