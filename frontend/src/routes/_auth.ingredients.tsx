@@ -46,7 +46,7 @@ function IngredientView(props: IngredientViewProps) {
 
   const addIngredient = addIngredientToShoppinglist(props.token);
   return (
-    <li className="border-black border-solid border-2">
+    <li className="p-2 border-black border-solid border-2">
       <div className={"flex flex-row justify-between p-2"}>
         <p className="font-black uppercase tracking-wider">
           {props.ingredient.name}
@@ -54,27 +54,29 @@ function IngredientView(props: IngredientViewProps) {
         <ToggleButton onToggle={() => setOpen((b) => !b)} open={open} />
       </div>
       {open && (
-        <div className={"flex flex-row justify-between p-2"}>
+        <>
           <Divider />
-          <AddToShoppinglist
-            token={props.token}
-            onSelect={(shoppinglist) => {
-              addIngredient.mutate({
-                shoppinglistId: shoppinglist.id,
-                ingredient: props.ingredient.name,
-                quantity: [
-                  {
-                    unit: "count",
-                    value: 1,
-                  },
-                ],
-              });
-              toast(
-                `Added "${props.ingredient.name}" to shoppinglist "${shoppinglist.name}"`,
-              );
-            }}
-          />
-        </div>
+          <div className={"flex flex-row justify-between"}>
+            <AddToShoppinglist
+              token={props.token}
+              onSelect={(shoppinglist) => {
+                addIngredient.mutate({
+                  shoppinglistId: shoppinglist.id,
+                  ingredient: props.ingredient.name,
+                  quantity: [
+                    {
+                      unit: "count",
+                      value: 1,
+                    },
+                  ],
+                });
+                toast(
+                  `Added "${props.ingredient.name}" to shoppinglist "${shoppinglist.name}"`,
+                );
+              }}
+            />
+          </div>
+        </>
       )}
     </li>
   );
