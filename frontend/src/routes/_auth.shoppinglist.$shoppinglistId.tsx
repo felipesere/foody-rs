@@ -12,6 +12,7 @@ import {
   useUpdateQuantityOnShoppinglist,
 } from "../apis/shoppinglists.ts";
 import { useShoppinglist } from "../apis/shoppinglists.ts";
+import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
 import { FindIngredient } from "../components/findIngredient.tsx";
 import { Toggle, ToggleButton } from "../components/toggle.tsx";
@@ -182,7 +183,7 @@ function EditIngredient({
 
   return (
     <div>
-      <hr className="h-0.5 my-2 bg-black border-0" />
+      <Divider />
       {modifiedIngredient.quantities.map((quantity) => (
         <div key={quantity.id} className={"flex flex-row"}>
           <div className={"w-5"}>
@@ -238,7 +239,7 @@ function EditIngredient({
           <span className={"w-7"} />
         </div>
       ))}
-      <hr className="h-0.5 my-2 bg-black border-0" />
+      <Divider />
       <div className={"flex flex-row gap-2 justify-end"}>
         <button
           type={"button"}

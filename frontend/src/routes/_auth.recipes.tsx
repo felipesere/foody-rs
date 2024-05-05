@@ -11,6 +11,7 @@ import {
   useAllRecipes,
 } from "../apis/recipes.ts";
 import { AddToShoppinglist } from "../components/addToShoppinglist.tsx";
+import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
 
 export const Route = createFileRoute("/_auth/recipes")({
@@ -59,7 +60,7 @@ function RecipeView(props: RecipeProps) {
       </div>
       {open ? (
         <div>
-          <hr className={"w-full border-t border-solid border-black"} />
+          <Divider />
           <p className="uppercase">Ingredients:</p>
           <ul>
             {props.recipe.ingredients.map((ingredient) => (
@@ -68,6 +69,7 @@ function RecipeView(props: RecipeProps) {
           </ul>
         </div>
       ) : null}
+      <Divider />
       <div className="space-x-4">
         <button
           className={classnames("px-2", {
