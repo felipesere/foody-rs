@@ -10,6 +10,7 @@ import {
   addRecipeToShoppinglist,
   useAllRecipes,
 } from "../apis/recipes.ts";
+import { ButtonGroup } from "../components/ButtonGroup.tsx";
 import { AddToShoppinglist } from "../components/addToShoppinglist.tsx";
 import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
@@ -70,7 +71,7 @@ function RecipeView(props: RecipeProps) {
         </div>
       ) : null}
       <Divider />
-      <div className="space-x-4">
+      <ButtonGroup>
         <button
           className={classnames("px-2", {
             "double-border": open,
@@ -95,7 +96,7 @@ function RecipeView(props: RecipeProps) {
         <button type="submit" className="px-2 text-white bg-gray-700 shadow">
           Delete
         </button>
-      </div>
+      </ButtonGroup>
     </li>
   );
 }

@@ -12,6 +12,7 @@ import {
   useUpdateQuantityOnShoppinglist,
 } from "../apis/shoppinglists.ts";
 import { useShoppinglist } from "../apis/shoppinglists.ts";
+import { ButtonGroup } from "../components/ButtonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
 import { FindIngredient } from "../components/findIngredient.tsx";
@@ -240,7 +241,7 @@ function EditIngredient({
         </div>
       ))}
       <Divider />
-      <div className={"flex flex-row gap-2 justify-end"}>
+      <ButtonGroup>
         <button
           type={"button"}
           className={"px-2"}
@@ -267,14 +268,14 @@ function EditIngredient({
         </button>
         <button
           type={"button"}
-          className={"px-2 bg-black text-white"}
+          className={"px-2 bg-gray-700 text-white"}
           onClick={() =>
             deleteIngredient.mutate({ ingredient: ingredient.name })
           }
         >
           Delete
         </button>
-      </div>
+      </ButtonGroup>
     </div>
   );
 }

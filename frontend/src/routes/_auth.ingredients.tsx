@@ -6,6 +6,7 @@ import {
   addIngredientToShoppinglist,
   useAllIngredients,
 } from "../apis/ingredients.ts";
+import { ButtonGroup } from "../components/ButtonGroup.tsx";
 import { AddToShoppinglist } from "../components/addToShoppinglist.tsx";
 import { Divider } from "../components/divider.tsx";
 import { ToggleButton } from "../components/toggle.tsx";
@@ -47,16 +48,17 @@ function IngredientView(props: IngredientViewProps) {
   const addIngredient = addIngredientToShoppinglist(props.token);
   return (
     <li className="p-2 border-black border-solid border-2">
-      <div className={"flex flex-row justify-between p-2"}>
-        <p className="font-black uppercase tracking-wider">
+      <div className={"flex flex-row justify-between font-black align-middle"}>
+        <p className="flex-grow uppercase tracking-wider">
           {props.ingredient.name}
         </p>
+        <p className={"text-xs text-gray-700 font-light"}>Vegetables</p>
         <ToggleButton onToggle={() => setOpen((b) => !b)} open={open} />
       </div>
       {open && (
         <>
           <Divider />
-          <div className={"flex flex-row justify-between"}>
+          <ButtonGroup>
             <AddToShoppinglist
               token={props.token}
               onSelect={(shoppinglist) => {
@@ -75,7 +77,10 @@ function IngredientView(props: IngredientViewProps) {
                 );
               }}
             />
-          </div>
+            <button type={"button"} className={"px-2 text-black shadow"}>
+              Edit
+            </button>
+          </ButtonGroup>
         </>
       )}
     </li>
