@@ -15,10 +15,10 @@ import { useShoppinglist } from "../apis/shoppinglists.ts";
 import { ButtonGroup } from "../components/ButtonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
+import { Editable } from "../components/editable.tsx";
 import { FindIngredient } from "../components/findIngredient.tsx";
 import { Toggle, ToggleButton } from "../components/toggle.tsx";
 import { combineQuantities, humanize, parse } from "../quantities.ts";
-import {Editable} from "../components/editable.tsx";
 
 export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId")({
   component: ShoppingPage,
@@ -291,4 +291,3 @@ function EditIngredient({
     </div>
   );
 }
-

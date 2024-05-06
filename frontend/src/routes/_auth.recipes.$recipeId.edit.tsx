@@ -11,6 +11,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useRecipe } from "../apis/recipes.ts";
 
 import { useState } from "react";
+import { ButtonGroup } from "../components/ButtonGroup.tsx";
+import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
 import { Editable } from "../components/editable.tsx";
 import { FindIngredient } from "../components/findIngredient.tsx";
@@ -59,15 +61,20 @@ function EditRecipePage() {
   };
   function EditWebsite(props: { website: Website | null }) {
     return (
-      <div className={"flex flex-row gap-2"}>
-        <p>Website</p>
-        <Editable
-          isEditing={true}
-          className={"w-full"}
-          value={props.website?.url || ""}
-          onBlur={(url) => console.log(url)}
-        />
-      </div>
+      <form>
+        <fieldset className={"border-black border-2 p-2"}>
+          <legend className={"px-2"}>Website</legend>
+          <div className={"flex flex-row gap-2"}>
+            <label>URL</label>
+            <Editable
+              isEditing={true}
+              className={"w-full"}
+              value={props.website?.url || ""}
+              onBlur={(url) => console.log(url)}
+            />
+          </div>
+        </fieldset>
+      </form>
     );
   }
 
@@ -78,25 +85,29 @@ function EditRecipePage() {
 
   function EditBook(props: { book: Book | null }) {
     return (
-      <>
-        <div className={"flex flex-row gap-2"}>
-          <p>Book title</p>
-          <Editable
-            isEditing={true}
-            value={props.book?.title || ""}
-            onBlur={(title) => console.log(title)}
-          />
-        </div>
+      <form>
+        <fieldset className={"border-black border-2 p-2"}>
+          <legend className={"px-2"}>Book</legend>
 
-        <div className={"flex flex-row gap-2"}>
-          <p>Book page</p>
-          <Editable
-            isEditing={true}
-            value={props.book?.page.toString() || ""}
-            onBlur={(page) => console.log(page)}
-          />
-        </div>
-      </>
+          <div className={"flex flex-row gap-2"}>
+            <label>Title</label>
+            <Editable
+              isEditing={true}
+              value={props.book?.title || ""}
+              onBlur={(title) => console.log(title)}
+            />
+          </div>
+
+          <div className={"flex flex-row gap-2"}>
+            <label>Page</label>
+            <Editable
+              isEditing={true}
+              value={props.book?.page.toString() || ""}
+              onBlur={(page) => console.log(page)}
+            />
+          </div>
+        </fieldset>
+      </form>
     );
   }
 
@@ -116,45 +127,50 @@ function EditRecipePage() {
               "m-2 p-4 bg-white w-full h-full max-w-2xl relative border-solid border-black border-2 space-y-4",
           })}
         >
-          <div className={"flex flex-row gap-4"}>
-            <p>Name:</p>
-            <Editable
-              isEditing={true}
-              value={recipe.name}
-              onBlur={(name) => console.log(`new name: ${name}`)}
-            />
-          </div>
-
-          <div className={"flex flex-row gap-4"}>
-            <p>Kind of source:</p>
-            <div>
-              <input
-                type="radio"
-                id="book"
-                name="source"
-                value="book"
-                checked={sourceKind === "book"}
-                onChange={() => setSourceKind("book")}
+          <form>
+            <fieldset
+              className={"border-black border-2 p-2 flex flex-row gap-4"}
+            >
+              <legend className={"px-2"}>Name</legend>
+              <Editable
+                isEditing={true}
+                value={recipe.name}
+                onBlur={(name) => console.log(`new name: ${name}`)}
               />
-              <label className="ml-2" htmlFor="huey">
-                Book
-              </label>
-            </div>
+            </fieldset>
+          </form>
 
-            <div>
-              <input
-                type="radio"
-                id="website"
-                name="source"
-                value="website"
-                checked={sourceKind === "website"}
-                onChange={() => setSourceKind("website")}
-              />
-              <label className={"ml-2"} htmlFor="website">
-                Website
-              </label>
-            </div>
-          </div>
+          {/* Figure out how to make it all a form that is possibly editable?! */}
+          <form>
+            <fieldset
+              className={"border-black border-2 p-2 flex flex-row gap-4"}
+            >
+              <legend className={"px-2"}>Kind of source</legend>
+              <div className="flex flex-row gap-1">
+                <input
+                  type="radio"
+                  id="book"
+                  name="source"
+                  value="book"
+                  checked={sourceKind === "book"}
+                  onChange={() => setSourceKind("book")}
+                />
+                <label htmlFor="book">Book</label>
+              </div>
+
+              <div className="flex flex-row gap-1">
+                <input
+                  type="radio"
+                  id="website"
+                  name="source"
+                  value="website"
+                  checked={sourceKind === "website"}
+                  onChange={() => setSourceKind("website")}
+                />
+                <label htmlFor="website">Website</label>
+              </div>
+            </fieldset>
+          </form>
 
           {sourceKind === "book" ? (
             <EditBook book={maybeBook} />
@@ -162,33 +178,36 @@ function EditRecipePage() {
             <EditWebsite website={maybeWebsite} />
           )}
 
-          <ol>
-            {recipe.ingredients.map((ingredient) => {
-              return (
-                <li
-                  key={ingredient.id}
-                  className={"flex flex-row justify-between"}
-                >
-                  <p>{ingredient.name}</p>
-                  <DottedLine className={"flex-shrink"} />
-                  <Editable
-                    isEditing={true}
-                    value={humanize(ingredient.quantity[0])}
-                    onBlur={(v) => console.log(v)}
-                  />
-                </li>
-              );
-            })}
-          </ol>
+          <div>
+            <label>Ingredients</label>
+            <ol>
+              {recipe.ingredients.map((ingredient) => {
+                return (
+                  <li
+                    key={ingredient.id}
+                    className={"flex flex-row justify-between"}
+                  >
+                    <p>{ingredient.name}</p>
+                    <DottedLine className={"flex-shrink"} />
+                    <Editable
+                      isEditing={true}
+                      value={humanize(ingredient.quantity[0])}
+                      onBlur={(v) => console.log(v)}
+                    />
+                  </li>
+                );
+              })}
+            </ol>
 
-          <FindIngredient
-            token={token}
-            onIngredient={(_ingredient, _quantity) => {
-              // here is where we can add an ingredient and quantity to a recipe!
-            }}
-          />
-          <hr className="h-0.5 my-2 bg-black border-0" />
-          <div className={"flex flex-row gap-4"}>
+            <FindIngredient
+              token={token}
+              onIngredient={(_ingredient, _quantity) => {
+                // here is where we can add an ingredient and quantity to a recipe!
+              }}
+            />
+          </div>
+          <Divider />
+          <ButtonGroup>
             <button
               type="button"
               className={"px-2"}
@@ -212,7 +231,7 @@ function EditRecipePage() {
             >
               Cancel
             </button>
-          </div>
+          </ButtonGroup>
         </div>
       </FloatingFocusManager>
     </FloatingOverlay>

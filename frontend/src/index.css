@@ -87,6 +87,9 @@ input[type="button"]:disabled {
     cursor: not-allowed;
 }
 
+label::after {
+    content: ": ";
+}
 /*
   Dotted line to conect items.
   These remaining parameters were hard to define in Tailwind
