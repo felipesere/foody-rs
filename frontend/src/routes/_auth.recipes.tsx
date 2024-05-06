@@ -10,8 +10,8 @@ import {
   addRecipeToShoppinglist,
   useAllRecipes,
 } from "../apis/recipes.ts";
-import { ButtonGroup } from "../components/ButtonGroup.tsx";
 import { AddToShoppinglist } from "../components/addToShoppinglist.tsx";
+import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
 

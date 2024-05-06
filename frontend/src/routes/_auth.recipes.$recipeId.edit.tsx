@@ -11,7 +11,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useRecipe } from "../apis/recipes.ts";
 
 import { useState } from "react";
-import { ButtonGroup } from "../components/ButtonGroup.tsx";
+import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
 import { Editable } from "../components/editable.tsx";
@@ -115,7 +115,7 @@ function EditRecipePage() {
     <FloatingOverlay
       lockScroll
       className={
-        "the-overlay-backdrop bg-black/25 overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full flex"
+        "the-overlay-backdrop py-4 bg-black/25 overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full flex"
       }
       style={{ margin: 0 }}
     >
@@ -127,6 +127,7 @@ function EditRecipePage() {
               "m-2 p-4 bg-white w-full h-full max-w-2xl relative border-solid border-black border-2 space-y-4",
           })}
         >
+          <p className={"font-bold"}>Edit recipe</p>
           <form>
             <fieldset
               className={"border-black border-2 p-2 flex flex-row gap-4"}
@@ -178,34 +179,37 @@ function EditRecipePage() {
             <EditWebsite website={maybeWebsite} />
           )}
 
-          <div>
-            <label>Ingredients</label>
-            <ol>
-              {recipe.ingredients.map((ingredient) => {
-                return (
-                  <li
-                    key={ingredient.id}
-                    className={"flex flex-row justify-between"}
-                  >
-                    <p>{ingredient.name}</p>
-                    <DottedLine className={"flex-shrink"} />
-                    <Editable
-                      isEditing={true}
-                      value={humanize(ingredient.quantity[0])}
-                      onBlur={(v) => console.log(v)}
-                    />
-                  </li>
-                );
-              })}
-            </ol>
+          <form>
+            <fieldset className={"border-black border-2 p-2"}>
+              <legend className={"px-2"}>Ingredients</legend>
+              <ol>
+                {recipe.ingredients.map((ingredient) => {
+                  return (
+                    <li
+                      key={ingredient.id}
+                      className={"flex flex-row justify-between"}
+                    >
+                      <p>{ingredient.name}</p>
+                      <DottedLine className={"flex-shrink"} />
+                      <Editable
+                        isEditing={true}
+                        value={humanize(ingredient.quantity[0])}
+                        onBlur={(v) => console.log(v)}
+                      />
+                    </li>
+                  );
+                })}
+              </ol>
 
-            <FindIngredient
-              token={token}
-              onIngredient={(_ingredient, _quantity) => {
-                // here is where we can add an ingredient and quantity to a recipe!
-              }}
-            />
-          </div>
+              <FindIngredient
+                className={"mt-2"}
+                token={token}
+                onIngredient={(_ingredient, _quantity) => {
+                  // here is where we can add an ingredient and quantity to a recipe!
+                }}
+              />
+            </fieldset>
+          </form>
           <Divider />
           <ButtonGroup>
             <button

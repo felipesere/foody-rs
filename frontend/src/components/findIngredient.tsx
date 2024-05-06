@@ -1,3 +1,4 @@
+import classnames from "classnames";
 import { useRef, useState } from "react";
 import {
   type Ingredient,
@@ -12,6 +13,7 @@ import { Dropdown } from "./dropdown.tsx";
 export function FindIngredient(props: {
   token: string;
   onIngredient: (i: Ingredient, q: Quantity) => void;
+  className?: string;
 }) {
   const ingredients = useAllIngredients(props.token);
 
@@ -40,7 +42,7 @@ export function FindIngredient(props: {
   }
 
   return (
-    <div className={"flex flex-row"}>
+    <div className={classnames(props.className, "flex flex-row")}>
       <Dropdown
         items={ingredients.data}
         dropdownClassnames={"border-gray-500 border-solid border-2"}

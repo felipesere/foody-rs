@@ -12,7 +12,7 @@ import {
   useUpdateQuantityOnShoppinglist,
 } from "../apis/shoppinglists.ts";
 import { useShoppinglist } from "../apis/shoppinglists.ts";
-import { ButtonGroup } from "../components/ButtonGroup.tsx";
+import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
 import { Editable } from "../components/editable.tsx";

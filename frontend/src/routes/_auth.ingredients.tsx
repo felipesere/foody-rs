@@ -6,8 +6,8 @@ import {
   addIngredientToShoppinglist,
   useAllIngredients,
 } from "../apis/ingredients.ts";
-import { ButtonGroup } from "../components/ButtonGroup.tsx";
 import { AddToShoppinglist } from "../components/addToShoppinglist.tsx";
+import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
 import { ToggleButton } from "../components/toggle.tsx";
 
