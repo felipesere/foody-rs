@@ -59,7 +59,7 @@ export function FindIngredient(props: {
       <input
         className={"ml-2 w-1/3 border-gray-500 border-solid border-2"}
         type={"text"}
-        name={"quantity"}
+        name={"new_quantity"}
         placeholder={"e.g. 200g"}
         value={quantity.raw}
         onChange={(e) => {

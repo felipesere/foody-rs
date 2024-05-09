@@ -11,7 +11,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useRecipe } from "../apis/recipes.ts";
 
 import classnames from "classnames";
-import { type InputHTMLAttributes, useState } from "react";
+import { FormEvent, type InputHTMLAttributes, useState } from "react";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
@@ -61,15 +61,13 @@ function EditRecipePage() {
   };
   function EditWebsite(props: { website: Website | null }) {
     return (
-      <form>
-        <fieldset className={"border-black border-2 p-2"}>
-          <legend className={"px-2"}>Website</legend>
-          <div className={"flex flex-row gap-2"}>
-            <label>URL</label>
-            <FancyInput3 value={props.website?.url || ""} />
-          </div>
-        </fieldset>
-      </form>
+      <fieldset className={"border-black border-2 p-2"}>
+        <legend className={"px-2"}>Website</legend>
+        <div className={"flex flex-row gap-2"}>
+          <label>URL</label>
+          <FancyInput3 value={props.website?.url || ""} />
+        </div>
+      </fieldset>
     );
   }
 
@@ -80,21 +78,22 @@ function EditRecipePage() {
 
   function EditBook(props: { book: Book | null }) {
     return (
-      <form>
-        <fieldset className={"border-black border-2 p-2"}>
-          <legend className={"px-2"}>Book</legend>
+      <fieldset className={"border-black border-2 p-2"}>
+        <legend className={"px-2"}>Book</legend>
 
-          <div className={"flex flex-row gap-2"}>
-            <label>Title</label>
-            <FancyInput3 value={props.book?.title || ""} />
-          </div>
+        <div className={"flex flex-row gap-2"}>
+          <label>Title</label>
+          <FancyInput3 name={"bookTitle"} value={props.book?.title || ""} />
+        </div>
 
-          <div className={"flex flex-row gap-2"}>
-            <label>Page</label>
-            <input type={"number"} defaultValue={props.book?.page || ""} />
-          </div>
-        </fieldset>
-      </form>
+        <div className={"flex flex-row gap-2"}>
+          <label>Page</label>
+          <FancyInput3
+            name={"bookPage"}
+            value={props.book?.page.toString() || ""}
+          />
+        </div>
+      </fieldset>
     );
   }
 
@@ -115,16 +114,26 @@ function EditRecipePage() {
           })}
         >
           <p className={"font-bold"}>Edit recipe</p>
-          <form>
+          <form
+            id="editRecipe"
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+
+              const x = new FormData(e.currentTarget);
+
+              for (const [key, value] of x.entries()) {
+                console.log(`${key} => ${value}`);
+              }
+            }}
+          >
             <fieldset
               className={"border-black border-2 p-2 flex flex-row gap-4"}
             >
               <legend className={"px-2"}>Name</legend>
-              <FancyInput3 value={recipe.name} />
+              <FancyInput3 name={"name"} value={recipe.name} />
             </fieldset>
-          </form>
 
-          <form>
             <fieldset
               className={"border-black border-2 p-2 flex flex-row gap-4"}
             >
@@ -153,15 +162,13 @@ function EditRecipePage() {
                 <label htmlFor="website">Website</label>
               </div>
             </fieldset>
-          </form>
 
-          {sourceKind === "book" ? (
-            <EditBook book={maybeBook} />
-          ) : (
-            <EditWebsite website={maybeWebsite} />
-          )}
+            {sourceKind === "book" ? (
+              <EditBook book={maybeBook} />
+            ) : (
+              <EditWebsite website={maybeWebsite} />
+            )}
 
-          <form>
             <fieldset className={"border-black border-2 p-2"}>
               <legend className={"px-2"}>Ingredients</legend>
               <ol>
@@ -173,7 +180,10 @@ function EditRecipePage() {
                     >
                       <p>{ingredient.name}</p>
                       <DottedLine className={"flex-shrink"} />
-                      <FancyInput3 value={humanize(ingredient.quantity[0])} />
+                      <FancyInput3
+                        name={`quantity[${ingredient.name}][${ingredient.quantity[0].id}]`}
+                        value={humanize(ingredient.quantity[0])}
+                      />
                     </li>
                   );
                 })}
@@ -198,11 +208,7 @@ function EditRecipePage() {
               Close
             </button>
 
-            <button
-              type="button"
-              className={"px-2"}
-              onClick={() => navigate({ to: "/recipes" })}
-            >
+            <button type="submit" form={"editRecipe"} className={"px-2"}>
               Save
             </button>
 
