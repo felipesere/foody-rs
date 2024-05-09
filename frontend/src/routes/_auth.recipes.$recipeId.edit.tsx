@@ -10,11 +10,11 @@ import {
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useRecipe } from "../apis/recipes.ts";
 
-import { useState } from "react";
+import classnames from "classnames";
+import { type InputHTMLAttributes, useState } from "react";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
-import { Editable } from "../components/editable.tsx";
 import { FindIngredient } from "../components/findIngredient.tsx";
 import { humanize } from "../quantities.ts";
 
@@ -66,12 +66,7 @@ function EditRecipePage() {
           <legend className={"px-2"}>Website</legend>
           <div className={"flex flex-row gap-2"}>
             <label>URL</label>
-            <Editable
-              isEditing={true}
-              className={"w-full"}
-              value={props.website?.url || ""}
-              onBlur={(url) => console.log(url)}
-            />
+            <FancyInput3 value={props.website?.url || ""} />
           </div>
         </fieldset>
       </form>
@@ -91,20 +86,12 @@ function EditRecipePage() {
 
           <div className={"flex flex-row gap-2"}>
             <label>Title</label>
-            <Editable
-              isEditing={true}
-              value={props.book?.title || ""}
-              onBlur={(title) => console.log(title)}
-            />
+            <FancyInput3 value={props.book?.title || ""} />
           </div>
 
           <div className={"flex flex-row gap-2"}>
             <label>Page</label>
-            <Editable
-              isEditing={true}
-              value={props.book?.page.toString() || ""}
-              onBlur={(page) => console.log(page)}
-            />
+            <input type={"number"} defaultValue={props.book?.page || ""} />
           </div>
         </fieldset>
       </form>
@@ -133,15 +120,10 @@ function EditRecipePage() {
               className={"border-black border-2 p-2 flex flex-row gap-4"}
             >
               <legend className={"px-2"}>Name</legend>
-              <Editable
-                isEditing={true}
-                value={recipe.name}
-                onBlur={(name) => console.log(`new name: ${name}`)}
-              />
+              <FancyInput3 value={recipe.name} />
             </fieldset>
           </form>
 
-          {/* Figure out how to make it all a form that is possibly editable?! */}
           <form>
             <fieldset
               className={"border-black border-2 p-2 flex flex-row gap-4"}
@@ -191,11 +173,7 @@ function EditRecipePage() {
                     >
                       <p>{ingredient.name}</p>
                       <DottedLine className={"flex-shrink"} />
-                      <Editable
-                        isEditing={true}
-                        value={humanize(ingredient.quantity[0])}
-                        onBlur={(v) => console.log(v)}
-                      />
+                      <FancyInput3 value={humanize(ingredient.quantity[0])} />
                     </li>
                   );
                 })}
@@ -239,5 +217,58 @@ function EditRecipePage() {
         </div>
       </FloatingFocusManager>
     </FloatingOverlay>
+  );
+}
+
+// function FancyInput(props: { value: string }) {
+//   return (
+//     <input
+//       className={"flex-shrink w-fit"}
+//       type={"text"}
+//       defaultValue={props.value}
+//     />
+//   );
+// }
+
+/*
+function FancyInput2(props: { value: string }) {
+  const len = props.value.length;
+  return (
+    <input
+      className={"flex-shrink"}
+      style={{ width: `${len}ch` }}
+      type={"text"}
+      defaultValue={props.value}
+    />
+  );
+}
+ */
+
+interface InputAutosizeProps extends InputHTMLAttributes<HTMLInputElement> {
+  value: string;
+}
+
+export default function FancyInput3({
+  className,
+  value,
+  ...props
+}: InputAutosizeProps) {
+  const [x, setX] = useState(value);
+  return (
+    <div className={classnames("grid", className)}>
+      <span className="invisible" style={{ gridArea: " 1 / 1 " }}>
+        {!x && "\u00A0"}
+        {x.replace(/ /g, "\u00A0")}
+      </span>
+      <input
+        size={1}
+        style={{ gridArea: " 1 / 1 " }}
+        type="text"
+        value={x}
+        className={"border-none bg-transparent focus:outline-none"}
+        {...props}
+        onChange={(e) => setX(e.target.value)}
+      />
+    </div>
   );
 }
