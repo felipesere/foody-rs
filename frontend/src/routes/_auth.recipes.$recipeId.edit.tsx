@@ -8,10 +8,11 @@ import {
   useRole,
 } from "@floating-ui/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useRecipe } from "../apis/recipes.ts";
+import { type Quantity, useRecipe } from "../apis/recipes.ts";
+import type { Ingredient } from "../apis/ingredients.ts";
 
 import classnames from "classnames";
-import { FormEvent, type InputHTMLAttributes, useState } from "react";
+import { type InputHTMLAttributes, useState } from "react";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
@@ -43,6 +44,10 @@ function EditRecipePage() {
   // Merge all the interactions into prop getters
   const { getFloatingProps } = useInteractions([click, dismiss, role]);
   const [sourceKind, setSourceKind] = useState<"book" | "website">("book");
+
+  const [additionalIngredients, setAdditionalIngredients] = useState<
+    Array<{ ingredient: Ingredient; quantity: Quantity }>
+  >([]);
 
   if (!data.data) {
     return undefined;
@@ -120,11 +125,7 @@ function EditRecipePage() {
               e.preventDefault();
               e.stopPropagation();
 
-              const x = new FormData(e.currentTarget);
-
-              for (const [key, value] of x.entries()) {
-                console.log(`${key} => ${value}`);
-              }
+              const _newRecipeForm = new FormData(e.currentTarget);
             }}
           >
             <fieldset
@@ -172,7 +173,7 @@ function EditRecipePage() {
             <fieldset className={"border-black border-2 p-2"}>
               <legend className={"px-2"}>Ingredients</legend>
               <ol>
-                {recipe.ingredients.map((ingredient) => {
+                {recipe.ingredients.map((ingredient, ) => {
                   return (
                     <li
                       key={ingredient.id}
@@ -181,8 +182,23 @@ function EditRecipePage() {
                       <p>{ingredient.name}</p>
                       <DottedLine className={"flex-shrink"} />
                       <FancyInput3
-                        name={`quantity[${ingredient.name}][${ingredient.quantity[0].id}]`}
+                        name={`ingredient[${ingredient.name}]`}
                         value={humanize(ingredient.quantity[0])}
+                      />
+                    </li>
+                  );
+                })}
+                {additionalIngredients.map(({ ingredient, quantity }) => {
+                  return (
+                    <li
+                      key={ingredient.id}
+                      className={"flex flex-row justify-between"}
+                    >
+                      <p>{ingredient.name}</p>
+                      <DottedLine className={"flex-shrink"} />
+                      <FancyInput3
+                        name={`quantity[${ingredient.name}]`}
+                        value={humanize(quantity)}
                       />
                     </li>
                   );
@@ -192,7 +208,11 @@ function EditRecipePage() {
               <FindIngredient
                 className={"mt-2"}
                 token={token}
-                onIngredient={(_ingredient, _quantity) => {
+                onIngredient={(ingredient, quantity) => {
+                  setAdditionalIngredients((before) => [
+                    ...before,
+                    { ingredient, quantity },
+                  ]);
                   // here is where we can add an ingredient and quantity to a recipe!
                 }}
               />
