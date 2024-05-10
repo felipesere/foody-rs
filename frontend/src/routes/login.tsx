@@ -53,7 +53,6 @@ function UserDetails(props: { token: string }) {
 function Login() {
   const { redirect } = Route.useSearch();
 
-  // this `as` cast is a bit gnarly, but I don't know how to automatically derive a zod validator
   const login = useLogin({ redirectTo: redirect });
 
   const form = useForm({

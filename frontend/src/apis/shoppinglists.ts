@@ -7,7 +7,7 @@ import { type StoredQuantity, StoredQuantitySchema } from "./recipes.ts";
 const MinimalShoppinglistSchema = z.object({
   id: z.number(),
   name: z.string(),
-  last_updated: z.string().datetime(),
+  last_updated: z.string().datetime().pipe(z.coerce.date()),
 });
 const AllShoppinglistsSchema = z.object({
   shoppinglists: z.array(MinimalShoppinglistSchema),
@@ -233,6 +233,41 @@ export function useRemoveIngredientFromShoppinglist(
         )}`,
       );
       toast.error(`Failed to remove ${params.ingredient} from shoppinglist`);
+    },
+  });
+}
+
+type DeleteShoppinglistParams = {
+  id: Shoppinglist["id"];
+};
+export function useRemoveShoppinglist(token: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: DeleteShoppinglistParams) => {
+      await http
+        .delete(`api/shoppinglists/${params.id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .json();
+    },
+    onSettled: (_data, _error, params) => {
+      client.invalidateQueries({
+        queryKey: ["shoppinglists"],
+      });
+      return client.invalidateQueries({
+        queryKey: ["shoppinglist", params.id],
+      });
+    },
+    onError: (err, params) => {
+      console.log(
+        `Failed to remove shoppinglist : ${JSON.stringify(err, null, 2)}`,
+      );
+      toast.error(`Failed to remove shoppinglist ${params.id}`);
+    },
+    onSuccess: (_data, params) => {
+      toast.success(`Removed shoppinglist ${params.id}`);
     },
   });
 }

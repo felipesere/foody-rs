@@ -245,6 +245,20 @@ pub async fn remove_ingredient(
     Ok(())
 }
 
+pub async fn remove_shoppinglist(
+    auth: middleware::auth::JWT,
+    Path(id): Path<i32>,
+    State(ctx): State<AppContext>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    shoppinglists::Entity::delete_by_id(id)
+        .exec(&ctx.db)
+        .await?;
+
+    Ok(())
+}
+
 pub async fn shoppinglist(
     auth: middleware::auth::JWT,
     Path(id): Path<u32>,
@@ -471,6 +485,7 @@ pub fn routes() -> Routes {
         .prefix("shoppinglists")
         .add("/", get(all_shoppinglists))
         .add("/:id", get(shoppinglist))
+        .add("/:id", delete(remove_shoppinglist))
         .add("/", post(create_shoppinglist))
         .add("/:id/ingredient", post(add_ingredient))
         .add("/:id/ingredient", delete(remove_ingredient))
