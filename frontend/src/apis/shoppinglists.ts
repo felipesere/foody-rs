@@ -252,8 +252,8 @@ export function useRemoveShoppinglist(token: string) {
         })
         .json();
     },
-    onSettled: (_data, _error, params) => {
-      client.invalidateQueries({
+    onSettled: async (_data, _error, params) => {
+      await client.invalidateQueries({
         queryKey: ["shoppinglists"],
       });
       return client.invalidateQueries({
@@ -377,40 +377,6 @@ export function useUpdateQuantityOnShoppinglist(
         } on shoppinglist ${shoppinglistId}: ${JSON.stringify(err, null, 2)}`,
       );
       toast.error("Failed to update quantity on shoppinglist");
-    },
-  });
-}
-
-type DeleteShoppinglistParams = {
-  id: Shoppinglist["id"];
-};
-export function useDeleteShoppinglist(token: string) {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: async (params: DeleteShoppinglistParams) => {
-      return http.delete(`api/shoppinglists/${params.id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-    },
-    onSettled: async (_res, _err, params) => {
-      await client.invalidateQueries({
-        queryKey: ["shoppinglists"],
-      });
-      return client.invalidateQueries({
-        queryKey: ["shoppinglist", params.id],
-      });
-    },
-    onError: (err, params) => {
-      console.log(
-        `Failed to delete shoppinglist ${params.id}: ${JSON.stringify(
-          err,
-          null,
-          2,
-        )}`,
-      );
-      toast.error(`Failed to delete shoppinglist ${params.id}`);
     },
   });
 }
