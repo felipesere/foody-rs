@@ -8,7 +8,7 @@ import {
   useRole,
 } from "@floating-ui/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { type Quantity, useRecipe } from "../apis/recipes.ts";
+import { type Quantity, useRecipeOptions } from "../apis/recipes.ts";
 import type { Ingredient } from "../apis/ingredients.ts";
 
 import classnames from "classnames";
@@ -18,16 +18,26 @@ import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
 import { FindIngredient } from "../components/findIngredient.tsx";
 import { humanize } from "../quantities.ts";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/_auth/recipes/$recipeId/edit")({
   component: EditRecipePage,
+  loader: ({ params: { recipeId }, context }) => {
+    // TODO use `signal` from loader to handel cancellation
+    context.queryClient.ensureQueryData(
+      useRecipeOptions(context.token, Number(recipeId)),
+    );
+  },
 });
 
 function EditRecipePage() {
   const { recipeId } = Route.useParams();
   const { token } = Route.useRouteContext();
+  const { data: recipe } = useSuspenseQuery(
+    useRecipeOptions(token, Number(recipeId)),
+  );
 
-  const data = useRecipe(token, Number(recipeId));
+  // const data = useRecipe(token, Number(recipeId));
   const navigate = useNavigate({ from: "/recipes/$recipeId/edit" });
 
   const { refs, context } = useFloating({
@@ -48,12 +58,6 @@ function EditRecipePage() {
   const [additionalIngredients, setAdditionalIngredients] = useState<
     Array<{ ingredient: Ingredient; quantity: Quantity }>
   >([]);
-
-  if (!data.data) {
-    return undefined;
-  }
-
-  const recipe = data.data;
 
   const maybeBook =
     recipe.source === "book"
@@ -125,7 +129,7 @@ function EditRecipePage() {
               e.preventDefault();
               e.stopPropagation();
 
-              const _newRecipeForm = new FormData(e.currentTarget);
+              // const _newRecipeForm = new FormData(e.currentTarget);
             }}
           >
             <fieldset
@@ -173,7 +177,7 @@ function EditRecipePage() {
             <fieldset className={"border-black border-2 p-2"}>
               <legend className={"px-2"}>Ingredients</legend>
               <ol>
-                {recipe.ingredients.map((ingredient, ) => {
+                {recipe.ingredients.map((ingredient) => {
                   return (
                     <li
                       key={ingredient.id}

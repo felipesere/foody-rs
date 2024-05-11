@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {queryOptions, useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import { z } from "zod";
 import { http } from "./http.ts";
 import type { Shoppinglist } from "./shoppinglists.ts";
@@ -98,8 +98,8 @@ export function useAllRecipes(token: string) {
   });
 }
 
-export function useRecipe(token: string, id: Recipe["id"]) {
-  return useQuery({
+export function useRecipeOptions(token: string, id: Recipe["id"]) {
+  return queryOptions({
     queryKey: ["recipe", id],
     queryFn: async () => {
       const body = await http
@@ -113,4 +113,8 @@ export function useRecipe(token: string, id: Recipe["id"]) {
       return RecipeSchema.parse(body);
     },
   });
+}
+
+export function useRecipe(token: string, id: Recipe["id"]) {
+  return useQuery(useRecipeOptions(token, id));
 }
