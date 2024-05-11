@@ -78,7 +78,7 @@ function EditRecipeFrom(props: {token: string, recipeId: Recipe["id"]}) {
       useRecipeOptions(token, props.recipeId),
   );
   const navigate = useNavigate({ from: "/recipes/$recipeId/edit" });
-  const [sourceKind, setSourceKind] = useState<"book" | "website">("book");
+  const [sourceKind, setSourceKind] = useState<"book" | "website">(recipe.source);
 
   const [additionalIngredients, setAdditionalIngredients] = useState<
       Array<{ ingredient: Ingredient; quantity: Quantity }>
