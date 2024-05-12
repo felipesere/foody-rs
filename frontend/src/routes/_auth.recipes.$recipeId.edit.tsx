@@ -8,8 +8,8 @@ import {
   useRole,
 } from "@floating-ui/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import {type Quantity, type Recipe, useRecipeOptions} from "../apis/recipes.ts";
 import type { Ingredient } from "../apis/ingredients.ts";
+import { type Quantity, type Recipe, useRecipe } from "../apis/recipes.ts";
 
 import classnames from "classnames";
 import { type InputHTMLAttributes, useState } from "react";
@@ -18,21 +18,15 @@ import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
 import { FindIngredient } from "../components/findIngredient.tsx";
 import { humanize } from "../quantities.ts";
-import { useSuspenseQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/_auth/recipes/$recipeId/edit")({
   component: EditRecipePage,
-  loader: ({ params: { recipeId }, context }) => {
-    // TODO use `signal` from loader to handel cancellation
-    context.queryClient.ensureQueryData(
-      useRecipeOptions(context.token, Number(recipeId)),
-    );
-  },
 });
 
 function EditRecipePage() {
   const { recipeId } = Route.useParams();
   const { token } = Route.useRouteContext();
+  const data = useRecipe(token, Number(recipeId));
   const navigate = useNavigate({ from: "/recipes/$recipeId/edit" });
 
   const { refs, context } = useFloating({
@@ -48,6 +42,10 @@ function EditRecipePage() {
 
   // Merge all the interactions into prop getters
   const { getFloatingProps } = useInteractions([click, dismiss, role]);
+
+  if (data.isLoading || !data.data) {
+    return <p>Loading...</p>;
+  }
 
   return (
     <FloatingOverlay
@@ -65,29 +63,32 @@ function EditRecipePage() {
               "m-2 p-4 bg-white w-full h-full max-w-2xl relative border-solid border-black border-2 space-y-4",
           })}
         >
-          <EditRecipeFrom token={token} recipeId={Number(recipeId)} />
+          <EditRecipeFrom token={token} recipe={data.data} />
         </div>
       </FloatingFocusManager>
     </FloatingOverlay>
   );
 }
 
-function EditRecipeFrom(props: {token: string, recipeId: Recipe["id"]}) {
-  const token = props.token
-  const { data: recipe } = useSuspenseQuery(
-      useRecipeOptions(token, props.recipeId),
-  );
+function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
+  const token = props.token;
+  const recipe = props.recipe;
   const navigate = useNavigate({ from: "/recipes/$recipeId/edit" });
-  const [sourceKind, setSourceKind] = useState<"book" | "website">(recipe.source);
+  const [sourceKind, setSourceKind] = useState<"book" | "website">(
+    recipe.source,
+  );
+  const [removedIngredients, setRemovedIngredients] = useState<Array<string>>(
+    [],
+  );
 
   const [additionalIngredients, setAdditionalIngredients] = useState<
-      Array<{ ingredient: Ingredient; quantity: Quantity }>
+    Array<{ ingredient: Ingredient; quantity: Quantity }>
   >([]);
 
   const maybeBook =
-      recipe.source === "book"
-          ? { page: recipe.page, title: recipe.title }
-          : null;
+    recipe.source === "book"
+      ? { page: recipe.page, title: recipe.title }
+      : null;
   const maybeWebsite = recipe.source === "website" ? { url: recipe.url } : null;
   return (
     <>
@@ -142,27 +143,54 @@ function EditRecipeFrom(props: {token: string, recipeId: Recipe["id"]}) {
         <fieldset className={"border-black border-2 p-2"}>
           <legend className={"px-2"}>Ingredients</legend>
           <ol>
-            {recipe.ingredients.map((ingredient) => {
-              return (
-                <li
-                  key={ingredient.id}
-                  className={"flex flex-row justify-between"}
-                >
-                  <p>{ingredient.name}</p>
-                  <DottedLine className={"flex-shrink"} />
-                  <FancyInput3
-                    name={`ingredient[${ingredient.name}]`}
-                    value={humanize(ingredient.quantity[0])}
-                  />
-                </li>
-              );
-            })}
+            {recipe.ingredients
+              .filter((i) => !removedIngredients.includes(i.name))
+              .map((ingredient) => {
+                return (
+                  <li
+                    key={ingredient.id}
+                    className={"flex flex-row justify-between"}
+                  >
+                    <button
+                      type={"button"}
+                      className={"text-red-700 mr-2"}
+                      onClick={() =>
+                        setRemovedIngredients((old) => [
+                          ...old,
+                          ingredient.name,
+                        ])
+                      }
+                    >
+                      ⓧ
+                    </button>
+                    <p>{ingredient.name}</p>
+                    <DottedLine className={"flex-shrink"} />
+                    <FancyInput3
+                      name={`ingredient[${ingredient.name}]`}
+                      value={humanize(ingredient.quantity[0])}
+                    />
+                  </li>
+                );
+              })}
             {additionalIngredients.map(({ ingredient, quantity }) => {
               return (
                 <li
                   key={ingredient.id}
                   className={"flex flex-row justify-between"}
                 >
+                  <button
+                    type={"button"}
+                    className={"text-red-700 mr-2"}
+                    onClick={() =>
+                      setAdditionalIngredients((old) =>
+                        old.filter(
+                          ({ ingredient: i }) => i.name !== ingredient.name,
+                        ),
+                      )
+                    }
+                  >
+                    ⓧ
+                  </button>
                   <p>{ingredient.name}</p>
                   <DottedLine className={"flex-shrink"} />
                   <FancyInput3
@@ -247,13 +275,13 @@ type Website = {
 };
 function EditWebsite(props: { website: Website | null }) {
   return (
-      <fieldset className={"border-black border-2 p-2"}>
-        <legend className={"px-2"}>Website</legend>
-        <div className={"flex flex-row gap-2"}>
-          <label>URL</label>
-          <FancyInput3 value={props.website?.url || ""} />
-        </div>
-      </fieldset>
+    <fieldset className={"border-black border-2 p-2"}>
+      <legend className={"px-2"}>Website</legend>
+      <div className={"flex flex-row gap-2"}>
+        <label>URL</label>
+        <FancyInput3 value={props.website?.url || ""} />
+      </div>
+    </fieldset>
   );
 }
 
@@ -264,21 +292,21 @@ type Book = {
 
 function EditBook(props: { book: Book | null }) {
   return (
-      <fieldset className={"border-black border-2 p-2"}>
-        <legend className={"px-2"}>Book</legend>
+    <fieldset className={"border-black border-2 p-2"}>
+      <legend className={"px-2"}>Book</legend>
 
-        <div className={"flex flex-row gap-2"}>
-          <label>Title</label>
-          <FancyInput3 name={"bookTitle"} value={props.book?.title || ""} />
-        </div>
+      <div className={"flex flex-row gap-2"}>
+        <label>Title</label>
+        <FancyInput3 name={"bookTitle"} value={props.book?.title || ""} />
+      </div>
 
-        <div className={"flex flex-row gap-2"}>
-          <label>Page</label>
-          <FancyInput3
-              name={"bookPage"}
-              value={props.book?.page.toString() || ""}
-          />
-        </div>
-      </fieldset>
+      <div className={"flex flex-row gap-2"}>
+        <label>Page</label>
+        <FancyInput3
+          name={"bookPage"}
+          value={props.book?.page.toString() || ""}
+        />
+      </div>
+    </fieldset>
   );
 }
