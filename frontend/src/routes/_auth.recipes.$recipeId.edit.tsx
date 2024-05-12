@@ -105,7 +105,7 @@ function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
       >
         <fieldset className={"border-black border-2 p-2 flex flex-row gap-4"}>
           <legend className={"px-2"}>Name</legend>
-          <FancyInput3 name={"name"} value={recipe.name} />
+          <ResizingInput name={"name"} value={recipe.name} />
         </fieldset>
 
         <fieldset className={"border-black border-2 p-2 flex flex-row gap-4"}>
@@ -163,7 +163,7 @@ function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
                     />
                     <p>{ingredient.name}</p>
                     <DottedLine className={"flex-shrink"} />
-                    <FancyInput3
+                    <ResizingInput
                       name={`ingredient[${ingredient.name}]`}
                       value={humanize(ingredient.quantity[0])}
                     />
@@ -188,7 +188,7 @@ function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
                   />
                   <p>{ingredient.name}</p>
                   <DottedLine className={"flex-shrink"} />
-                  <FancyInput3
+                  <ResizingInput
                     name={`quantity[${ingredient.name}]`}
                     value={humanize(quantity)}
                   />
@@ -239,7 +239,7 @@ interface InputAutosizeProps extends InputHTMLAttributes<HTMLInputElement> {
   value: string;
 }
 
-export default function FancyInput3({
+export default function ResizingInput({
   className,
   value,
   ...props
@@ -275,7 +275,7 @@ function EditWebsite(props: { website: Website | null }) {
       <legend className={"px-2"}>Website</legend>
       <div className={"flex flex-row gap-2"}>
         <label>URL</label>
-        <FancyInput3 value={props.website?.url || ""} />
+        <ResizingInput value={props.website?.url || ""} />
       </div>
     </fieldset>
   );
@@ -293,12 +293,12 @@ function EditBook(props: { book: Book | null }) {
 
       <div className={"flex flex-row gap-2"}>
         <label>Title</label>
-        <FancyInput3 name={"bookTitle"} value={props.book?.title || ""} />
+        <ResizingInput name={"bookTitle"} value={props.book?.title || ""} />
       </div>
 
       <div className={"flex flex-row gap-2"}>
         <label>Page</label>
-        <FancyInput3
+        <ResizingInput
           name={"bookPage"}
           value={props.book?.page.toString() || ""}
         />
