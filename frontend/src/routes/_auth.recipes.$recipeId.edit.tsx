@@ -14,6 +14,7 @@ import { type Quantity, type Recipe, useRecipe } from "../apis/recipes.ts";
 import classnames from "classnames";
 import { type InputHTMLAttributes, useState } from "react";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
+import { DeleteRowButton } from "../components/deleteRowButton.tsx";
 import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
 import { FindIngredient } from "../components/findIngredient.tsx";
@@ -151,8 +152,7 @@ function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
                     key={ingredient.id}
                     className={"flex flex-row justify-between"}
                   >
-                    <button
-                      type={"button"}
+                    <DeleteRowButton
                       className={"text-red-700 mr-2"}
                       onClick={() =>
                         setRemovedIngredients((old) => [
@@ -160,9 +160,7 @@ function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
                           ingredient.name,
                         ])
                       }
-                    >
-                      ⓧ
-                    </button>
+                    />
                     <p>{ingredient.name}</p>
                     <DottedLine className={"flex-shrink"} />
                     <FancyInput3
@@ -178,8 +176,7 @@ function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
                   key={ingredient.id}
                   className={"flex flex-row justify-between"}
                 >
-                  <button
-                    type={"button"}
+                  <DeleteRowButton
                     className={"text-red-700 mr-2"}
                     onClick={() =>
                       setAdditionalIngredients((old) =>
@@ -188,9 +185,7 @@ function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
                         ),
                       )
                     }
-                  >
-                    ⓧ
-                  </button>
+                  />
                   <p>{ingredient.name}</p>
                   <DottedLine className={"flex-shrink"} />
                   <FancyInput3
@@ -210,7 +205,6 @@ function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
                 ...before,
                 { ingredient, quantity },
               ]);
-              // here is where we can add an ingredient and quantity to a recipe!
             }}
           />
         </fieldset>
@@ -250,21 +244,23 @@ export default function FancyInput3({
   value,
   ...props
 }: InputAutosizeProps) {
-  const [x, setX] = useState(value);
+  const [changedValue, setChangedValue] = useState(value);
   return (
     <div className={classnames("grid", className)}>
       <span className="invisible" style={{ gridArea: " 1 / 1 " }}>
-        {!x && "\u00A0"}
-        {x.replace(/ /g, "\u00A0")}
+        {!changedValue && "\u00A0"}
+        {changedValue.replace(/ /g, "\u00A0").concat("\u00A0")}
       </span>
       <input
         size={1}
         style={{ gridArea: " 1 / 1 " }}
         type="text"
-        value={x}
-        className={"border-none bg-transparent focus:outline-none"}
+        value={changedValue}
+        className={
+          "border-none bg-transparent outline-2 -outline-offset-2 outline-dashed outline-amber-400 focus:outline"
+        }
         {...props}
-        onChange={(e) => setX(e.target.value)}
+        onChange={(e) => setChangedValue(e.target.value)}
       />
     </div>
   );
