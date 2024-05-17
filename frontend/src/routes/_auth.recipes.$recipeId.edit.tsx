@@ -18,6 +18,7 @@ import { DeleteRowButton } from "../components/deleteRowButton.tsx";
 import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
 import { FindIngredient } from "../components/findIngredient.tsx";
+import { parseEditFormData } from "../editRecipeForm.ts";
 import { humanize } from "../quantities.ts";
 
 export const Route = createFileRoute("/_auth/recipes/$recipeId/edit")({
@@ -100,7 +101,11 @@ function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
           e.preventDefault();
           e.stopPropagation();
 
-          // const _newRecipeForm = new FormData(e.currentTarget);
+          const newRecipeForm = new FormData(e.currentTarget);
+
+          const x = parseEditFormData(newRecipeForm);
+
+          console.log(JSON.stringify(x, null, 2));
         }}
       >
         <fieldset className={"border-black border-2 p-2 flex flex-row gap-4"}>
@@ -164,7 +169,8 @@ function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
                     <p>{ingredient.name}</p>
                     <DottedLine className={"flex-shrink"} />
                     <ResizingInput
-                      name={`ingredient[${ingredient.name}]`}
+                      name={`ingredient[${ingredient.id}]`}
+                      id={`ingredient[${ingredient.id}]`}
                       value={humanize(ingredient.quantity[0])}
                     />
                   </li>
@@ -189,7 +195,8 @@ function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
                   <p>{ingredient.name}</p>
                   <DottedLine className={"flex-shrink"} />
                   <ResizingInput
-                    name={`quantity[${ingredient.name}]`}
+                    name={`ingredient[${ingredient.id}]`}
+                    id={`ingredient[${ingredient.id}]`}
                     value={humanize(quantity)}
                   />
                 </li>
@@ -242,6 +249,7 @@ interface InputAutosizeProps extends InputHTMLAttributes<HTMLInputElement> {
 export default function ResizingInput({
   className,
   value,
+  name,
   ...props
 }: InputAutosizeProps) {
   const [changedValue, setChangedValue] = useState(value);
@@ -259,6 +267,7 @@ export default function ResizingInput({
         className={
           "border-none bg-transparent outline-2 -outline-offset-2 outline-dashed outline-amber-400 focus:outline"
         }
+        name={name}
         {...props}
         onChange={(e) => setChangedValue(e.target.value)}
       />
@@ -275,7 +284,11 @@ function EditWebsite(props: { website: Website | null }) {
       <legend className={"px-2"}>Website</legend>
       <div className={"flex flex-row gap-2"}>
         <label>URL</label>
-        <ResizingInput value={props.website?.url || ""} />
+        <ResizingInput
+          id={"url"}
+          name={"url"}
+          value={props.website?.url || ""}
+        />
       </div>
     </fieldset>
   );
@@ -293,12 +306,17 @@ function EditBook(props: { book: Book | null }) {
 
       <div className={"flex flex-row gap-2"}>
         <label>Title</label>
-        <ResizingInput name={"bookTitle"} value={props.book?.title || ""} />
+        <ResizingInput
+          id={"bookTitle"}
+          name={"bookTitle"}
+          value={props.book?.title || ""}
+        />
       </div>
 
       <div className={"flex flex-row gap-2"}>
         <label>Page</label>
         <ResizingInput
+          id={"bookPage"}
           name={"bookPage"}
           value={props.book?.page.toString() || ""}
         />
