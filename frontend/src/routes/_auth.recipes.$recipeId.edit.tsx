@@ -9,7 +9,12 @@ import {
 } from "@floating-ui/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import type { Ingredient } from "../apis/ingredients.ts";
-import { type Quantity, type Recipe, useRecipe } from "../apis/recipes.ts";
+import {
+  type Quantity,
+  type Recipe,
+  useRecipe,
+  useUpdateRecipe,
+} from "../apis/recipes.ts";
 
 import classnames from "classnames";
 import { type InputHTMLAttributes, useState } from "react";
@@ -18,7 +23,7 @@ import { DeleteRowButton } from "../components/deleteRowButton.tsx";
 import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
 import { FindIngredient } from "../components/findIngredient.tsx";
-import { parseEditFormData } from "../editRecipeForm.ts";
+import { isError, parseEditFormData } from "../editRecipeForm.ts";
 import { humanize } from "../quantities.ts";
 
 export const Route = createFileRoute("/_auth/recipes/$recipeId/edit")({
@@ -87,11 +92,8 @@ function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
     Array<{ ingredient: Ingredient; quantity: Quantity }>
   >([]);
 
-  const maybeBook =
-    recipe.source === "book"
-      ? { page: recipe.page, title: recipe.title }
-      : null;
-  const maybeWebsite = recipe.source === "website" ? { url: recipe.url } : null;
+  const updateItem = useUpdateRecipe(props.token);
+
   return (
     <>
       <p className={"font-bold"}>Edit recipe</p>
@@ -103,11 +105,22 @@ function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
 
           const newRecipeForm = new FormData(e.currentTarget);
 
-          const x = parseEditFormData(newRecipeForm);
+          const updatedRecipe = parseEditFormData(newRecipeForm);
 
-          console.log(JSON.stringify(x, null, 2));
+          if (isError(updatedRecipe)) {
+            console.log(JSON.stringify(updatedRecipe, null, 2));
+          } else {
+            updateItem.mutate(updatedRecipe);
+          }
         }}
       >
+        <input
+          name={"id"}
+          id={"id"}
+          className={"hidden"}
+          value={recipe.id}
+          readOnly={true}
+        />
         <fieldset className={"border-black border-2 p-2 flex flex-row gap-4"}>
           <legend className={"px-2"}>Name</legend>
           <ResizingInput name={"name"} value={recipe.name} />
@@ -141,9 +154,17 @@ function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
         </fieldset>
 
         {sourceKind === "book" ? (
-          <EditBook book={maybeBook} />
+          <EditBook
+            book={
+              recipe.source === "book"
+                ? { page: recipe.page, title: recipe.title }
+                : null
+            }
+          />
         ) : (
-          <EditWebsite website={maybeWebsite} />
+          <EditWebsite
+            website={recipe.source === "website" ? { url: recipe.url } : null}
+          />
         )}
 
         <fieldset className={"border-black border-2 p-2"}>

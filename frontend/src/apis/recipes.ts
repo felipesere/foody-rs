@@ -5,6 +5,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { z } from "zod";
+import type { EditRecipeForm } from "../editRecipeForm.ts";
 import { http } from "./http.ts";
 import type { Shoppinglist } from "./shoppinglists.ts";
 
@@ -46,10 +47,31 @@ const WebsiteSchema = z.object({
   ingredients: z.array(IngredientSchema),
 });
 
-const RecipeSchema = z.discriminatedUnion("source", [
-  BookSchema,
-  WebsiteSchema,
+const BookSourceSchema = z.object({
+  source: z.literal("book"),
+  title: z.string(),
+  page: z.number(),
+});
+
+const WebsiteSourceSchema = z.object({
+  source: z.literal("website"),
+  url: z.string(),
+});
+
+const SourceSchema = z.discriminatedUnion("source", [
+  BookSourceSchema,
+  WebsiteSourceSchema,
 ]);
+
+export type Source = z.infer<typeof SourceSchema>;
+
+const RecipeSchema = z
+  .object({
+    id: z.number(),
+    name: z.string(),
+    ingredients: z.array(IngredientSchema),
+  })
+  .and(SourceSchema);
 
 export type Recipe = z.infer<typeof RecipeSchema>;
 export type Website = z.infer<typeof WebsiteSchema>;
@@ -122,4 +144,27 @@ export function useRecipeOptions(token: string, id: Recipe["id"]) {
 
 export function useRecipe(token: string, id: Recipe["id"]) {
   return useQuery(useRecipeOptions(token, id));
+}
+
+export function useUpdateRecipe(token: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (variables: EditRecipeForm) => {
+      const body = await http
+        .post(`api/recipes/${variables.id}`, {
+          method: "POST",
+          json: variables,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .json();
+
+      return RecipeSchema.parse(body);
+    },
+    onSuccess: async (_, vars) => {
+      await client.invalidateQueries({ queryKey: ["recipe", vars.id] });
+      await client.invalidateQueries({ queryKey: ["recipes"] });
+    },
+  });
 }

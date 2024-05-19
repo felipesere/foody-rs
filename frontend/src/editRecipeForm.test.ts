@@ -3,6 +3,7 @@ import { parseEditFormData } from "./editRecipeForm.ts";
 
 test("extract data from form", () => {
   const f = new FormData();
+  f.append("id", "123");
   f.append("name", "Tartiflette");
   f.append("source", "book");
   f.append("bookTitle", "Simplissime");
@@ -15,12 +16,11 @@ test("extract data from form", () => {
   const actual = parseEditFormData(f);
 
   const recipe = {
+    id: "123",
     name: "Tartiflette",
-    source: {
-      kind: "book",
-      title: "Simplissime",
-      page: 132,
-    },
+    source: "book",
+    title: "Simplissime",
+    page: 132,
     ingredients: [
       { id: "6", quantity: "6x" },
       { id: "9", quantity: "400g" },

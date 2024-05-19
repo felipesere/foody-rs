@@ -1,53 +1,79 @@
-export function parseEditFormData(f: FormData) {
-  for (const [k, v] of f.entries()) {
-    console.log(`${k} => ${v}`);
-  }
-  const recipe = {
-    name: "",
-    source: {} as
-      | { kind: "book"; title: string; page: number }
-      | { kind: "website"; url: string },
-    ingredients: [] as { quantity: string; id: string }[],
-  };
+import type { Ingredient, Recipe, Source } from "./apis/recipes.ts";
+
+export type EditRecipeForm = Omit<Recipe, "ingredients"> & {
+  ingredients: { quantity: string; id: Ingredient["id"] }[];
+};
+
+export type Error = {
+  message: string;
+};
+
+export function isError<T>(val: Error | T): val is Error {
+  return (val as Error).message !== undefined;
+}
+
+export function parseEditFormData(f: FormData): EditRecipeForm | Error {
   const ingredientIdAndQuantity = /ingredient\[(\d+)\]/;
 
-  const name = f.get("name");
-  if (name) {
-    recipe.name = name.toString();
+  const rawId = f.get("id")?.toString();
+  if (!rawId) {
+    return { message: "id missing" };
+  }
+  const id = Number(rawId);
+
+  const name = f.get("name")?.toString();
+  if (!name) {
+    return { message: "name missing" };
   }
 
-  const source = f.get("source");
-  if (source) {
-    if (source === "book") {
-      const page = f.get("bookPage");
-      const title = f.get("bookTitle");
-      if (page && title) {
-        recipe.source = {
-          kind: "book",
-          title: title.toString(),
-          page: Number(page.toString()),
-        };
-      }
+  const source = f.get("source")?.toString();
+  if (!source) {
+    return { message: "'source' missing" };
+  }
+
+  let sourceDetails: Source | undefined;
+  if (source === "book") {
+    const page = f.get("bookPage");
+    const title = f.get("bookTitle");
+    if (page && title) {
+      sourceDetails = {
+        source: "book",
+        title: title.toString(),
+        page: Number(page.toString()),
+      };
+    } else {
+      return { message: "page and title" };
     }
-    if (source === "website") {
-      const url = f.get("url");
-      if (url) {
-        recipe.source = {
-          kind: "website",
-          url: url.toString(),
-        };
-      }
+  } else if (source === "website") {
+    const url = f.get("url");
+    if (url) {
+      sourceDetails = {
+        source: "website",
+        url: url.toString(),
+      };
+    } else {
+      return { message: "url missing" };
     }
   }
 
+  if (!sourceDetails) {
+    return { message: "details for selected source missing" };
+  }
+
+  const ingredients: EditRecipeForm["ingredients"] = [];
   for (const [key, value] of f.entries()) {
     const quantityMatches = ingredientIdAndQuantity[Symbol.match](key);
     if (quantityMatches) {
-      recipe.ingredients.push({
-        id: quantityMatches[1],
+      ingredients.push({
+        id: Number(quantityMatches[1]),
         quantity: value.toString(),
       });
     }
   }
-  return recipe;
+  return {
+    id,
+    name,
+    ...sourceDetails,
+    ingredients,
+  };
 }
