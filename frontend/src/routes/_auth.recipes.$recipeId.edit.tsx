@@ -106,12 +106,15 @@ function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
           const newRecipeForm = new FormData(e.currentTarget);
 
           const updatedRecipe = parseEditFormData(newRecipeForm);
+          // console.log(JSON.stringify(updatedRecipe, null, 2));
 
           if (isError(updatedRecipe)) {
             console.log(JSON.stringify(updatedRecipe, null, 2));
           } else {
             updateItem.mutate(updatedRecipe);
           }
+          setRemovedIngredients([]);
+          setAdditionalIngredients([]);
         }}
       >
         <input
@@ -254,7 +257,10 @@ function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
         <button
           type="button"
           className={"px-2"}
-          onClick={() => navigate({ to: "/recipes" })}
+          onClick={() => {
+            setAdditionalIngredients([]);
+            setRemovedIngredients([]);
+          }}
         >
           Cancel
         </button>

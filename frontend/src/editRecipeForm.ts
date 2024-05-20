@@ -64,8 +64,13 @@ export function parseEditFormData(f: FormData): EditRecipeForm | Error {
   for (const [key, value] of f.entries()) {
     const quantityMatches = ingredientIdAndQuantity[Symbol.match](key);
     if (quantityMatches) {
+      const id = Number(quantityMatches[1]);
+      if (ingredients.find((i) => i.id === id)) {
+        // skip dupes, if there are any...
+        continue;
+      }
       ingredients.push({
-        id: Number(quantityMatches[1]),
+        id,
         quantity: value.toString(),
       });
     }

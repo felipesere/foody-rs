@@ -9,6 +9,7 @@ test("extract data from form", () => {
   f.append("bookTitle", "Simplissime");
   f.append("bookPage", "132");
   f.append("ingredient[6]", "6x");
+  f.append("ingredient[6]", "6x");
   f.append("ingredient[9]", "400g");
   f.append("ingredient[1]", "a handful");
   f.append("ingredient[876]", "200ml");
@@ -16,16 +17,16 @@ test("extract data from form", () => {
   const actual = parseEditFormData(f);
 
   const recipe = {
-    id: "123",
+    id: 123,
     name: "Tartiflette",
     source: "book",
     title: "Simplissime",
     page: 132,
     ingredients: [
-      { id: "6", quantity: "6x" },
-      { id: "9", quantity: "400g" },
-      { id: "1", quantity: "a handful" },
-      { id: "876", quantity: "200ml" },
+      { id: 6, quantity: "6x" },
+      { id: 9, quantity: "400g" },
+      { id: 1, quantity: "a handful" },
+      { id: 876, quantity: "200ml" },
     ],
   };
 
