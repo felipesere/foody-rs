@@ -6,8 +6,8 @@ import {
   addIngredientToShoppinglist,
   useAllIngredients,
 } from "../apis/ingredients.ts";
-import { ButtonGroup } from "../components/ButtonGroup.tsx";
 import { AddToShoppinglist } from "../components/addToShoppinglist.tsx";
+import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
 import { ToggleButton } from "../components/toggle.tsx";
 
@@ -57,7 +57,10 @@ function IngredientView(props: IngredientViewProps) {
             value={props.ingredient.name}
           />
         ) : (
-          <p onClick={() => setOpen(true)} className="flex-grow uppercase tracking-wider">
+          <p
+            onClick={() => setOpen(true)}
+            className="flex-grow uppercase tracking-wider"
+          >
             {props.ingredient.name}
           </p>
         )}
@@ -86,7 +89,11 @@ function IngredientView(props: IngredientViewProps) {
                 );
               }}
             />
-            <button onChange={() => setEdit(e => !e)} type={"button"} className={"px-2 text-black shadow"}>
+            <button
+              onChange={() => setEdit((e) => !e)}
+              type={"button"}
+              className={"px-2 text-black shadow"}
+            >
               Edit
             </button>
           </ButtonGroup>

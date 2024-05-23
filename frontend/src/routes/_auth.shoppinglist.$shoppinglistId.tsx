@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import classnames from "classnames";
-import { useRef, useState } from "react";
-import { useEditable } from "use-editable";
+import { useState } from "react";
+import { addIngredientToShoppinglist } from "../apis/ingredients.ts";
 import { type StoredQuantity, useAllRecipes } from "../apis/recipes.ts";
 import {
   type Ingredient,
@@ -12,9 +12,11 @@ import {
   useUpdateQuantityOnShoppinglist,
 } from "../apis/shoppinglists.ts";
 import { useShoppinglist } from "../apis/shoppinglists.ts";
-import { ButtonGroup } from "../components/ButtonGroup.tsx";
+import { ButtonGroup } from "../components/buttonGroup.tsx";
+import { DeleteRowButton } from "../components/deleteRowButton.tsx";
 import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
+import { Editable } from "../components/editable.tsx";
 import { FindIngredient } from "../components/findIngredient.tsx";
 import { Toggle, ToggleButton } from "../components/toggle.tsx";
 import { combineQuantities, humanize, parse } from "../quantities.ts";
@@ -34,6 +36,8 @@ export function ShoppingPage() {
     token,
     shoppinglistId,
   );
+
+  const addIngredient = addIngredientToShoppinglist(token);
 
   if (shoppinglist.isLoading || recipes.isLoading) {
     return <p>Loading</p>;
@@ -55,7 +59,16 @@ export function ShoppingPage() {
   return (
     <div className="content-grid space-y-4 max-w-md">
       <Toggle buttonLabel={"Add Ingredient"}>
-        <FindIngredient token={token} shoppinglistId={shoppinglistId} />
+        <FindIngredient
+          token={token}
+          onIngredient={(ingredient, quantity) => {
+            addIngredient.mutate({
+              shoppinglistId: shoppinglistId,
+              ingredient: ingredient.name,
+              quantity: [quantity],
+            });
+          }}
+        />
       </Toggle>
       <ul className="grid max-w-md gap-4">
         {shoppinglist.data?.ingredients.map((ingredient) => (
@@ -189,7 +202,7 @@ function EditIngredient({
         <div key={quantity.id} className={"flex flex-row"}>
           <div className={"w-5"}>
             {isEditing ? (
-              <span
+              <DeleteRowButton
                 className={"text-red-700"}
                 onClick={() => {
                   setChanges((previous) => ({
@@ -203,9 +216,7 @@ function EditIngredient({
                     ),
                   }));
                 }}
-              >
-                ⓧ
-              </span>
+              />
             ) : null}
           </div>
           <p className={"ml-2"}>
@@ -277,36 +288,5 @@ function EditIngredient({
         </button>
       </ButtonGroup>
     </div>
-  );
-}
-
-function Editable(props: {
-  isEditing: boolean;
-  value: string;
-  onBlur: (value: string) => void;
-}) {
-  const [currentValue, setCurrentValue] = useState(props.value);
-  const currentValueRef = useRef<HTMLParagraphElement | null>(null);
-
-  useEditable(currentValueRef, setCurrentValue, { disabled: !props.isEditing });
-
-  return (
-    <p
-      className={classnames("mx-2 min-w-4", {
-        "outline-dashed outline-2 outline-yellow-400": props.isEditing,
-      })}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          e.stopPropagation();
-          // props.onBlur(currentValue)
-          currentValueRef.current?.blur();
-        }
-      }}
-      onBlur={() => props.onBlur(currentValue.trim())}
-      ref={currentValueRef}
-    >
-      {currentValue}
-    </p>
   );
 }

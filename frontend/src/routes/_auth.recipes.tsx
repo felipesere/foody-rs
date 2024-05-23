@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Outlet, createFileRoute, useNavigate } from "@tanstack/react-router";
 import classnames from "classnames";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -10,8 +10,8 @@ import {
   addRecipeToShoppinglist,
   useAllRecipes,
 } from "../apis/recipes.ts";
-import { ButtonGroup } from "../components/ButtonGroup.tsx";
 import { AddToShoppinglist } from "../components/addToShoppinglist.tsx";
+import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
 
@@ -21,21 +21,27 @@ export const Route = createFileRoute("/_auth/recipes")({
 
 export function RecipesPage() {
   const { token } = Route.useRouteContext();
+  const { data, isLoading, isError } = useAllRecipes(token);
 
-  const { data: recipes } = useAllRecipes(token);
+  if (isError) {
+    return <p>Error</p>;
+  }
+
+  if (isLoading) {
+    return <p>Loading</p>;
+  }
 
   return (
-    <div className="content-grid">
-      <ul className="grid gap-4">
-        {recipes ? (
-          recipes.recipes.map((recipe) => (
+    <>
+      <Outlet />
+      <div className="content-grid">
+        <ul className="grid gap-4">
+          {data?.recipes.map((recipe) => (
             <RecipeView key={recipe.id} recipe={recipe} />
-          ))
-        ) : (
-          <p>Loading</p>
-        )}
-      </ul>
-    </div>
+          ))}
+        </ul>
+      </div>
+    </>
   );
 }
 
@@ -48,6 +54,7 @@ function RecipeView(props: RecipeProps) {
   const [open, setOpen] = useState(false);
   const addRecipe = addRecipeToShoppinglist(token);
   const recipeId = props.recipe.id;
+  const navigate = useNavigate({ from: "/recipes" });
 
   return (
     <li className="p-2 border-black border-solid border-2">
@@ -84,6 +91,21 @@ function RecipeView(props: RecipeProps) {
         >
           Details
         </button>
+        <button
+          className={classnames("px-2", {
+            "double-border": open,
+            shadow: !open,
+          })}
+          type={"submit"}
+          onClick={() =>
+            navigate({
+              to: "/recipes/$recipeId/edit",
+              params: { recipeId: props.recipe.id.toString() },
+            })
+          }
+        >
+          Edit
+        </button>
         <AddToShoppinglist
           token={token}
           onSelect={(shoppinglist) => {
@@ -115,8 +137,8 @@ function IngredientView({ ingredient }: { ingredient: Ingredient }) {
   );
 }
 
-type BookSourceProps = Pick<Book, "title" | "page">;
-function BookSource(props: BookSourceProps) {
+export type BookSourceProps = Pick<Book, "title" | "page">;
+export function BookSource(props: BookSourceProps) {
   return (
     <div className="flex flex-row">
       <p className="mr-4">{props.title}</p>
@@ -125,11 +147,19 @@ function BookSource(props: BookSourceProps) {
   );
 }
 
-type WebsiteSourceProps = Pick<Website, "url">;
-function WebsiteSource(props: WebsiteSourceProps) {
+export type WebsiteSourceProps = Pick<Website, "url">;
+export function WebsiteSource(props: WebsiteSourceProps) {
   return (
     <a target="_blank" href={props.url} rel="noreferrer">
-      {new URL(props.url).hostname}
+      {maybeHostname(props.url)}
     </a>
   );
+}
+
+function maybeHostname(v: string): string {
+  try {
+    return new URL(v).hostname;
+  } catch (err) {
+    return v;
+  }
 }

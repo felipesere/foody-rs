@@ -1,4 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  queryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { toast } from "sonner";
 import { z } from "zod";
 import { http } from "./http.ts";
 import type { Shoppinglist } from "./shoppinglists.ts";
@@ -41,10 +47,31 @@ const WebsiteSchema = z.object({
   ingredients: z.array(IngredientSchema),
 });
 
-const RecipeSchema = z.discriminatedUnion("source", [
-  BookSchema,
-  WebsiteSchema,
+const BookSourceSchema = z.object({
+  source: z.literal("book"),
+  title: z.string(),
+  page: z.number(),
+});
+
+const WebsiteSourceSchema = z.object({
+  source: z.literal("website"),
+  url: z.string(),
+});
+
+const SourceSchema = z.discriminatedUnion("source", [
+  BookSourceSchema,
+  WebsiteSourceSchema,
 ]);
+
+export type Source = z.infer<typeof SourceSchema>;
+
+const RecipeSchema = z
+  .object({
+    id: z.number(),
+    name: z.string(),
+    ingredients: z.array(IngredientSchema),
+  })
+  .and(SourceSchema);
 
 export type Recipe = z.infer<typeof RecipeSchema>;
 export type Website = z.infer<typeof WebsiteSchema>;
@@ -94,6 +121,55 @@ export function useAllRecipes(token: string) {
         .json();
 
       return RecipesSchema.parse(body);
+    },
+  });
+}
+
+export function useRecipeOptions(token: string, id: Recipe["id"]) {
+  return queryOptions({
+    queryKey: ["recipe", id],
+    queryFn: async () => {
+      const body = await http
+        .get(`api/recipes/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .json();
+
+      return RecipeSchema.parse(body);
+    },
+  });
+}
+
+export function useRecipe(token: string, id: Recipe["id"]) {
+  return useQuery(useRecipeOptions(token, id));
+}
+
+export type EditRecipeFormParams = Omit<Recipe, "ingredients"> & {
+  ingredients: { quantity: string; id: Ingredient["id"] }[];
+};
+
+export function useUpdateRecipe(token: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (variables: EditRecipeFormParams) => {
+      const body = await http
+        .post(`api/recipes/${variables.id}`, {
+          method: "POST",
+          json: variables,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .json();
+
+      return RecipeSchema.parse(body);
+    },
+    onSuccess: async (_, vars) => {
+      await client.invalidateQueries({ queryKey: ["recipe", vars.id] });
+      await client.invalidateQueries({ queryKey: ["recipes"] });
+      toast(`Updated "${vars.name}"`);
     },
   });
 }

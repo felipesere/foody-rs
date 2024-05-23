@@ -65,6 +65,7 @@ if (rootElement && !rootElement.innerHTML) {
           toastOptions={{
             classNames: {
               toast: "bg-white border-solid border-black border-2 px-2 py-4",
+              closeButton: "bg-white",
             },
           }}
           position={"top-right"}

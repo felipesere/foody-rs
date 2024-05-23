@@ -1,9 +1,12 @@
 import type { FieldApi } from "@tanstack/react-form";
 import { useForm } from "@tanstack/react-form";
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { zodValidator } from "@tanstack/zod-form-adapter";
+import { z } from "zod";
 import {
   useAllShoppinglists,
   useCreateShoppinglist,
+  useRemoveShoppinglist,
 } from "../apis/shoppinglists.ts";
 import { KebabMenu } from "../components/kebabMenu.tsx";
 
@@ -21,9 +24,13 @@ export function ShoppingPage() {
       <ul className="grid max-w-md gap-4">
         {!data.data || data.isLoading
           ? "Loading"
-          : data.data.shoppinglists.map((list) => (
-              <Shoppinglist key={list.name} list={list} />
-            ))}
+          : data.data.shoppinglists
+              .sort(
+                (a, b) => b.last_updated.getTime() - a.last_updated.getTime(),
+              )
+              .map((list) => (
+                <Shoppinglist key={list.name} list={list} token={token} />
+              ))}
       </ul>
     </div>
   );
@@ -40,6 +47,7 @@ function NewShoppinglist(props: { token: string }) {
       await createNewShoppinglist.mutateAsync(value);
       void form.reset();
     },
+    validatorAdapter: zodValidator,
   });
   return (
     <form
@@ -52,6 +60,9 @@ function NewShoppinglist(props: { token: string }) {
     >
       <form.Field
         name={"name"}
+        validators={{
+          onBlur: z.string().min(1),
+        }}
         children={(field) => (
           <>
             <input
@@ -68,13 +79,20 @@ function NewShoppinglist(props: { token: string }) {
           </>
         )}
       />
-      <button
-        className={"px-2 ml-2 bg-gray-300 shadow"}
-        type={"submit"}
-        id={"submit"}
-      >
-        Create
-      </button>
+
+      <form.Subscribe
+        selector={(state) => [state.canSubmit]}
+        children={([canSubmit]) => (
+          <button
+            className={"px-2 ml-2 bg-gray-300 shadow"}
+            type={"submit"}
+            id={"submit"}
+            disabled={!canSubmit}
+          >
+            Create
+          </button>
+        )}
+      />
     </form>
   );
 }
@@ -91,7 +109,11 @@ function FieldInfo({ field }: { field: FieldApi<any, any, any, any> }) {
   );
 }
 
-function Shoppinglist({ list }: { list: { name: string; id: number } }) {
+function Shoppinglist({
+  list,
+  token,
+}: { list: { name: string; id: number }; token: string }) {
+  const removeShoppinglist = useRemoveShoppinglist(token);
   return (
     <li className="flex flex-row justify-between shadow border-black border-solid border-2 p-2 col-span-2">
       <Link
@@ -105,7 +127,7 @@ function Shoppinglist({ list }: { list: { name: string; id: number } }) {
         <KebabMenu.Button
           value={"Delete"}
           style={"dark"}
-          onClick={() => console.log("hi there!")}
+          onClick={() => removeShoppinglist.mutate({ id: list.id })}
         />
       </KebabMenu>
     </li>

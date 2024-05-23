@@ -44,7 +44,7 @@ recipes:
     unsalted butter:
       unit: gram
       value: 15
-    waxy potatoes, such as charlotte or désirée:
+    waxy potatoes:
       unit: gram
       value: 140
 - name: easy chicken fajitas
@@ -2704,7 +2704,7 @@ ingredients:
 - washing-up liquid
 - water
 - watercress
-- waxy potatoes, such as charlotte or désirée
+- waxy potatoes
 - wet wipes
 - white beans
 - white wine

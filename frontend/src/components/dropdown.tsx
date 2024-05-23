@@ -133,7 +133,7 @@ export const Dropdown = forwardRef<HTMLInputElement, DropdownProps>(
                     ...floatingStyles,
                   },
                   className:
-                    "bg-white overflow-y-auto border-solid border-black border-2",
+                    "z-50 bg-white overflow-y-auto border-solid border-black border-2",
                 })}
               >
                 {items.map((item, idx) => (

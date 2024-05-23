@@ -1,7 +1,7 @@
+import classnames from "classnames";
 import { useRef, useState } from "react";
 import {
   type Ingredient,
-  addIngredientToShoppinglist,
   useAllIngredients,
   useCreateNewIngredient,
 } from "../apis/ingredients.ts";
@@ -12,7 +12,8 @@ import { Dropdown } from "./dropdown.tsx";
 // TODO: refactor this to be a pure "finding component"!
 export function FindIngredient(props: {
   token: string;
-  shoppinglistId: number;
+  onIngredient: (i: Ingredient, q: Quantity) => void;
+  className?: string;
 }) {
   const ingredients = useAllIngredients(props.token);
 
@@ -32,7 +33,6 @@ export function FindIngredient(props: {
     quantity: undefined,
   });
 
-  const addIngredient = addIngredientToShoppinglist(props.token);
   const newIngredient = useCreateNewIngredient(props.token);
 
   const ingredientRef = useRef<HTMLInputElement | null>(null);
@@ -42,7 +42,7 @@ export function FindIngredient(props: {
   }
 
   return (
-    <div className={"flex flex-row"}>
+    <div className={classnames(props.className, "flex flex-row")}>
       <Dropdown
         items={ingredients.data}
         dropdownClassnames={"border-gray-500 border-solid border-2"}
@@ -59,7 +59,7 @@ export function FindIngredient(props: {
       <input
         className={"ml-2 w-1/3 border-gray-500 border-solid border-2"}
         type={"text"}
-        name={"quantity"}
+        name={"new_quantity"}
         placeholder={"e.g. 200g"}
         value={quantity.raw}
         onChange={(e) => {
@@ -78,11 +78,7 @@ export function FindIngredient(props: {
         }
         onClick={() => {
           if (selectedIngredient && quantity.quantity) {
-            addIngredient.mutate({
-              shoppinglistId: props.shoppinglistId,
-              ingredient: selectedIngredient.name,
-              quantity: [quantity.quantity],
-            });
+            props.onIngredient(selectedIngredient, quantity.quantity);
           }
 
           if (newIngredientName && quantity.quantity) {
@@ -93,13 +89,7 @@ export function FindIngredient(props: {
                 name: newIngredientName,
                 tags: [],
               })
-              .then((ingredient) => {
-                return addIngredient.mutateAsync({
-                  shoppinglistId: props.shoppinglistId,
-                  ingredient: ingredient.name,
-                  quantity: [quant],
-                });
-              });
+              .then((ingredient) => props.onIngredient(ingredient, quant));
           }
 
           setQuantity({
