@@ -8,22 +8,16 @@ import {
   useRole,
 } from "@floating-ui/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import type { Ingredient } from "../apis/ingredients.ts";
-import {
-  type Quantity,
-  type Recipe,
-  useRecipe,
-  useUpdateRecipe,
-} from "../apis/recipes.ts";
+import { type Recipe, useRecipe, useUpdateRecipe } from "../apis/recipes.ts";
 
+import { useForm } from "@tanstack/react-form";
 import classnames from "classnames";
-import { type InputHTMLAttributes, useState } from "react";
+import type { InputHTMLAttributes } from "react";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { DeleteRowButton } from "../components/deleteRowButton.tsx";
 import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
 import { FindIngredient } from "../components/findIngredient.tsx";
-import { isError, parseEditFormData } from "../editRecipeForm.ts";
 import { humanize } from "../quantities.ts";
 
 export const Route = createFileRoute("/_auth/recipes/$recipeId/edit")({
@@ -81,18 +75,27 @@ function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
   const token = props.token;
   const recipe = props.recipe;
   const navigate = useNavigate({ from: "/recipes/$recipeId/edit" });
-  const [sourceKind, setSourceKind] = useState<"book" | "website">(
-    recipe.source,
-  );
-  const [removedIngredients, setRemovedIngredients] = useState<Array<string>>(
-    [],
-  );
-
-  const [additionalIngredients, setAdditionalIngredients] = useState<
-    Array<{ ingredient: Ingredient; quantity: Quantity }>
-  >([]);
-
   const updateItem = useUpdateRecipe(props.token);
+
+  const form = useForm({
+    defaultValues: {
+      name: recipe.name,
+      id: recipe.id,
+      source: recipe.source,
+      title: recipe.source === "book" ? recipe.title : null,
+      page: recipe.source === "book" ? recipe.page : null,
+      url: recipe.source === "website" ? recipe.url : null,
+      ingredients: recipe.ingredients.map((i) => ({
+        id: i.id,
+        name: i.name,
+        quantity: humanize(i.quantity[0]),
+      })),
+    },
+    onSubmit: async (vals) => {
+      updateItem.mutate(vals.value);
+      // void form.reset();
+    },
+  });
 
   return (
     <>
@@ -102,175 +105,226 @@ function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
         onSubmit={(e) => {
           e.preventDefault();
           e.stopPropagation();
-
-          const newRecipeForm = new FormData(e.currentTarget);
-
-          const updatedRecipe = parseEditFormData(newRecipeForm);
-          // console.log(JSON.stringify(updatedRecipe, null, 2));
-
-          if (isError(updatedRecipe)) {
-            console.log(JSON.stringify(updatedRecipe, null, 2));
-          } else {
-            updateItem.mutate(updatedRecipe);
-          }
-          setRemovedIngredients([]);
-          setAdditionalIngredients([]);
+          void form.handleSubmit();
         }}
       >
-        <input
-          name={"id"}
-          id={"id"}
-          className={"hidden"}
-          value={recipe.id}
-          readOnly={true}
-        />
         <fieldset className={"border-black border-2 p-2 flex flex-row gap-4"}>
           <legend className={"px-2"}>Name</legend>
-          <ResizingInput name={"name"} value={recipe.name} />
+          <form.Field
+            name={"name"}
+            children={(field) => (
+              <ResizingInput
+                name={"name"}
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+              />
+            )}
+          />
         </fieldset>
 
         <fieldset className={"border-black border-2 p-2 flex flex-row gap-4"}>
           <legend className={"px-2"}>Kind of source</legend>
-          <div className="flex flex-row gap-1">
-            <input
-              type="radio"
-              id="book"
-              name="source"
-              value="book"
-              checked={sourceKind === "book"}
-              onChange={() => setSourceKind("book")}
-            />
-            <label htmlFor="book">Book</label>
-          </div>
-
-          <div className="flex flex-row gap-1">
-            <input
-              type="radio"
-              id="website"
-              name="source"
-              value="website"
-              checked={sourceKind === "website"}
-              onChange={() => setSourceKind("website")}
-            />
-            <label htmlFor="website">Website</label>
-          </div>
+          <form.Field
+            name="source"
+            children={(field) => (
+              <>
+                <div className="flex flex-row gap-1">
+                  <input
+                    type="radio"
+                    id="book"
+                    name="source"
+                    value={"book"}
+                    checked={field.state.value === "book"}
+                    onChange={(_) => field.handleChange("book")}
+                  />
+                  <label htmlFor="book">Book</label>
+                </div>
+                <div className="flex flex-row gap-1">
+                  <input
+                    type="radio"
+                    id="website"
+                    name="source"
+                    value="website"
+                    checked={field.state.value === "website"}
+                    onChange={() => field.handleChange("website")}
+                  />
+                  <label htmlFor="website">Website</label>
+                </div>
+              </>
+            )}
+          />
         </fieldset>
 
-        {sourceKind === "book" ? (
-          <EditBook
-            book={
-              recipe.source === "book"
-                ? { page: recipe.page, title: recipe.title }
-                : null
-            }
-          />
-        ) : (
-          <EditWebsite
-            website={recipe.source === "website" ? { url: recipe.url } : null}
-          />
-        )}
-
-        <fieldset className={"border-black border-2 p-2"}>
-          <legend className={"px-2"}>Ingredients</legend>
-          <ol>
-            {recipe.ingredients
-              .filter((i) => !removedIngredients.includes(i.name))
-              .map((ingredient) => {
-                return (
-                  <li
-                    key={ingredient.id}
-                    className={"flex flex-row justify-between"}
-                  >
-                    <DeleteRowButton
-                      className={"text-red-700 mr-2"}
-                      onClick={() =>
-                        setRemovedIngredients((old) => [
-                          ...old,
-                          ingredient.name,
-                        ])
-                      }
-                    />
-                    <p>{ingredient.name}</p>
-                    <DottedLine className={"flex-shrink"} />
-                    <ResizingInput
-                      name={`ingredient[${ingredient.id}]`}
-                      id={`ingredient[${ingredient.id}]`}
-                      value={humanize(ingredient.quantity[0])}
-                    />
-                  </li>
-                );
-              })}
-            {additionalIngredients.map(({ ingredient, quantity }) => {
+        <form.Subscribe
+          selector={(state) => [state.values.source]}
+          children={([source]) => {
+            if (source === "book") {
               return (
-                <li
-                  key={ingredient.id}
-                  className={"flex flex-row justify-between"}
-                >
-                  <DeleteRowButton
-                    className={"text-red-700 mr-2"}
-                    onClick={() =>
-                      setAdditionalIngredients((old) =>
-                        old.filter(
-                          ({ ingredient: i }) => i.name !== ingredient.name,
-                        ),
-                      )
-                    }
-                  />
-                  <p>{ingredient.name}</p>
-                  <DottedLine className={"flex-shrink"} />
-                  <ResizingInput
-                    name={`ingredient[${ingredient.id}]`}
-                    id={`ingredient[${ingredient.id}]`}
-                    value={humanize(quantity)}
-                  />
-                </li>
-              );
-            })}
-          </ol>
+                <fieldset className={"border-black border-2 p-2"}>
+                  <legend className={"px-2"}>Book</legend>
 
-          <FindIngredient
-            className={"mt-2"}
-            token={token}
-            onIngredient={(ingredient, quantity) => {
-              setAdditionalIngredients((before) => [
-                ...before,
-                { ingredient, quantity },
-              ]);
+                  <form.Field
+                    name={"title"}
+                    children={(field) => (
+                      <div className={"flex flex-row gap-2"}>
+                        <label>Title</label>
+                        <ResizingInput
+                          id={"bookTitle"}
+                          name={"bookTitle"}
+                          value={field.state.value || ""}
+                          onBlur={field.handleBlur}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                        />
+                      </div>
+                    )}
+                  />
+
+                  <form.Field
+                    name={"page"}
+                    children={(field) => (
+                      <div className={"flex flex-row gap-2"}>
+                        <label>Page</label>
+                        <ResizingInput
+                          id={"bookPage"}
+                          name={"bookPage"}
+                          value={field.state.value?.toString() || ""}
+                          onBlur={field.handleBlur}
+                          onChange={(e) =>
+                            field.handleChange(Number(e.target.value))
+                          }
+                        />
+                      </div>
+                    )}
+                  />
+                </fieldset>
+              );
+            }
+            if (source === "website") {
+              return (
+                <form.Field
+                  name={"url"}
+                  children={(field) => (
+                    <fieldset className={"border-black border-2 p-2"}>
+                      <legend className={"px-2"}>Website</legend>
+                      <div className={"flex flex-row gap-2"}>
+                        <label>URL</label>
+                        <ResizingInput
+                          id={"url"}
+                          name={"websiteUrl"}
+                          value={field.state.value || ""}
+                          onBlur={field.handleBlur}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                        />
+                      </div>
+                    </fieldset>
+                  )}
+                />
+              );
+            }
+          }}
+        />
+
+        <form.Field
+          name="ingredients"
+          mode={"array"}
+          children={(ingredientsField) => {
+            return (
+              <fieldset className={"border-black border-2 p-2"}>
+                <legend className={"px-2"}>Ingredients</legend>
+                <ol>
+                  {ingredientsField.state.value.map((ingredient, idx) => {
+                    return (
+                      <li
+                        key={idx.toString()}
+                        className={"flex flex-row justify-between"}
+                      >
+                        <DeleteRowButton
+                          className={"text-red-700 mr-2"}
+                          onClick={() => ingredientsField.removeValue(idx)}
+                        />
+                        <p>{ingredient.name}</p>
+                        <DottedLine className={"flex-shrink"} />
+                        <form.Field
+                          name={`ingredients[${idx}].quantity`}
+                          children={(field) => {
+                            return (
+                              <ResizingInput
+                                name={"quantity"}
+                                value={field.state.value}
+                                onBlur={field.handleBlur}
+                                onChange={(e) =>
+                                  field.handleChange(e.target.value)
+                                }
+                              />
+                            );
+                          }}
+                        />
+                      </li>
+                    );
+                  })}
+                </ol>
+
+                <FindIngredient
+                  className={"mt-2"}
+                  token={token}
+                  onIngredient={(ingredient, quantity) => {
+                    ingredientsField.pushValue({
+                      name: ingredient.name,
+                      id: ingredient.id,
+                      quantity: humanize(quantity),
+                    });
+                  }}
+                />
+              </fieldset>
+            );
+          }}
+        />
+        <Divider />
+        <ButtonGroup>
+          <button
+            type="button"
+            className={"px-2"}
+            onClick={() => navigate({ to: "/recipes" })}
+          >
+            Close
+          </button>
+
+          <form.Subscribe
+            selector={(state) => [state.isDirty, state.isTouched]}
+            children={(_) => {
+              return (
+                <>
+                  <button type="submit" form={"editRecipe"} className={"px-2"}>
+                    Save
+                  </button>
+
+                  <button
+                    type="button"
+                    className={"px-2"}
+                    onClick={() => {
+                      form.reset();
+                    }}
+                  >
+                    Reset
+                  </button>
+                </>
+              );
             }}
           />
-        </fieldset>
+        </ButtonGroup>
       </form>
-      <Divider />
-      <ButtonGroup>
-        <button
-          type="button"
-          className={"px-2"}
-          onClick={() => navigate({ to: "/recipes" })}
-        >
-          Close
-        </button>
-
-        <button type="submit" form={"editRecipe"} className={"px-2"}>
-          Save
-        </button>
-
-        <button
-          type="button"
-          className={"px-2"}
-          onClick={() => {
-            setAdditionalIngredients([]);
-            setRemovedIngredients([]);
-          }}
-        >
-          Cancel
-        </button>
-      </ButtonGroup>
     </>
   );
 }
 
 interface InputAutosizeProps extends InputHTMLAttributes<HTMLInputElement> {
+  name: string;
   value: string;
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  onBlur: (e: any) => void;
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  onChange: (e: any) => void;
 }
 
 export default function ResizingInput({
@@ -279,75 +333,26 @@ export default function ResizingInput({
   name,
   ...props
 }: InputAutosizeProps) {
-  const [changedValue, setChangedValue] = useState(value);
   return (
     <div className={classnames("grid", className)}>
       <span className="invisible" style={{ gridArea: " 1 / 1 " }}>
-        {!changedValue && "\u00A0"}
-        {changedValue.replace(/ /g, "\u00A0").concat("\u00A0")}
+        {!value && "\u00A0\u00A0\u00A0"}
+        {value?.replace(/ /g, "\u00A0").concat("\u00A0")}
       </span>
       <input
+        autoComplete={"off"}
         size={1}
         style={{ gridArea: " 1 / 1 " }}
         type="text"
-        value={changedValue}
+        value={value}
         className={
           "border-none bg-transparent outline-2 -outline-offset-2 outline-dashed outline-amber-400 focus:outline"
         }
         name={name}
         {...props}
-        onChange={(e) => setChangedValue(e.target.value)}
+        onChange={props.onChange}
+        onBlur={props.onBlur}
       />
     </div>
-  );
-}
-
-type Website = {
-  url: string;
-};
-function EditWebsite(props: { website: Website | null }) {
-  return (
-    <fieldset className={"border-black border-2 p-2"}>
-      <legend className={"px-2"}>Website</legend>
-      <div className={"flex flex-row gap-2"}>
-        <label>URL</label>
-        <ResizingInput
-          id={"url"}
-          name={"url"}
-          value={props.website?.url || ""}
-        />
-      </div>
-    </fieldset>
-  );
-}
-
-type Book = {
-  page: number;
-  title: string;
-};
-
-function EditBook(props: { book: Book | null }) {
-  return (
-    <fieldset className={"border-black border-2 p-2"}>
-      <legend className={"px-2"}>Book</legend>
-
-      <div className={"flex flex-row gap-2"}>
-        <label>Title</label>
-        <ResizingInput
-          id={"bookTitle"}
-          name={"bookTitle"}
-          value={props.book?.title || ""}
-        />
-      </div>
-
-      <div className={"flex flex-row gap-2"}>
-        <label>Page</label>
-        <ResizingInput
-          id={"bookPage"}
-          name={"bookPage"}
-          value={props.book?.page.toString() || ""}
-        />
-      </div>
-    </fieldset>
   );
 }

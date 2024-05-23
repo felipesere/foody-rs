@@ -151,7 +151,15 @@ export type WebsiteSourceProps = Pick<Website, "url">;
 export function WebsiteSource(props: WebsiteSourceProps) {
   return (
     <a target="_blank" href={props.url} rel="noreferrer">
-      {new URL(props.url).hostname}
+      {maybeHostname(props.url)}
     </a>
   );
+}
+
+function maybeHostname(v: string): string {
+  try {
+    return new URL(v).hostname;
+  } catch (err) {
+    return v;
+  }
 }

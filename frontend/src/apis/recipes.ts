@@ -4,6 +4,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { z } from "zod";
 import type { EditRecipeForm } from "../editRecipeForm.ts";
 import { http } from "./http.ts";
@@ -165,6 +166,7 @@ export function useUpdateRecipe(token: string) {
     onSuccess: async (_, vars) => {
       await client.invalidateQueries({ queryKey: ["recipe", vars.id] });
       await client.invalidateQueries({ queryKey: ["recipes"] });
+      toast(`Updated "${vars.name}"`);
     },
   });
 }
