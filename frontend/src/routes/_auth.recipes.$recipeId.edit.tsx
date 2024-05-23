@@ -11,14 +11,13 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { type Recipe, useRecipe, useUpdateRecipe } from "../apis/recipes.ts";
 
 import { useForm } from "@tanstack/react-form";
-import classnames from "classnames";
-import type { InputHTMLAttributes } from "react";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { DeleteRowButton } from "../components/deleteRowButton.tsx";
 import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
 import { FindIngredient } from "../components/findIngredient.tsx";
 import { humanize } from "../quantities.ts";
+import { ResizingInput } from "../components/resizeableInput.tsx";
 
 export const Route = createFileRoute("/_auth/recipes/$recipeId/edit")({
   component: EditRecipePage,
@@ -315,44 +314,5 @@ function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
         </ButtonGroup>
       </form>
     </>
-  );
-}
-
-interface InputAutosizeProps extends InputHTMLAttributes<HTMLInputElement> {
-  name: string;
-  value: string;
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  onBlur: (e: any) => void;
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  onChange: (e: any) => void;
-}
-
-export default function ResizingInput({
-  className,
-  value,
-  name,
-  ...props
-}: InputAutosizeProps) {
-  return (
-    <div className={classnames("grid", className)}>
-      <span className="invisible" style={{ gridArea: " 1 / 1 " }}>
-        {!value && "\u00A0\u00A0\u00A0"}
-        {value?.replace(/ /g, "\u00A0").concat("\u00A0")}
-      </span>
-      <input
-        autoComplete={"off"}
-        size={1}
-        style={{ gridArea: " 1 / 1 " }}
-        type="text"
-        value={value}
-        className={
-          "border-none bg-transparent outline-2 -outline-offset-2 outline-dashed outline-amber-400 focus:outline"
-        }
-        name={name}
-        {...props}
-        onChange={props.onChange}
-        onBlur={props.onBlur}
-      />
-    </div>
   );
 }
