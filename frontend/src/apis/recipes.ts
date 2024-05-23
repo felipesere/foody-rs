@@ -6,7 +6,6 @@ import {
 } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { z } from "zod";
-import type { EditRecipeForm } from "../editRecipeForm.ts";
 import { http } from "./http.ts";
 import type { Shoppinglist } from "./shoppinglists.ts";
 
@@ -147,10 +146,14 @@ export function useRecipe(token: string, id: Recipe["id"]) {
   return useQuery(useRecipeOptions(token, id));
 }
 
+export type EditRecipeFormParams = Omit<Recipe, "ingredients"> & {
+  ingredients: { quantity: string; id: Ingredient["id"] }[];
+};
+
 export function useUpdateRecipe(token: string) {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: async (variables: EditRecipeForm) => {
+    mutationFn: async (variables: EditRecipeFormParams) => {
       const body = await http
         .post(`api/recipes/${variables.id}`, {
           method: "POST",
