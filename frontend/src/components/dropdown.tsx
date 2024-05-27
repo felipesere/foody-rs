@@ -14,9 +14,14 @@ import {
 } from "@floating-ui/react";
 import classNames from "classnames";
 import Fuse from "fuse.js";
-import { forwardRef, useMemo, useRef, useState } from "react";
+import {
+  type ForwardedRef,
+  forwardRef,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { ChangeEvent, HTMLProps, ReactNode } from "react";
-import type { Ingredient } from "../apis/ingredients.ts";
 
 const matchWidth = size({
   apply({ rects, elements }) {
@@ -26,134 +31,146 @@ const matchWidth = size({
   },
 });
 
-interface DropdownProps {
-  items: Array<Ingredient>;
+interface Named {
+  name: string;
+}
+interface DropdownProps<T extends Named> {
+  items: Array<T>;
   dropdownClassnames?: string;
-  onSelectedItem: (item: Ingredient) => void;
-  onNewItem: (name: string) => void;
+  onSelectedItem: (item: T) => void;
+  onNewItem: (value: string) => void;
+  placeholder: string;
 }
 
-export const Dropdown = forwardRef<HTMLInputElement, DropdownProps>(
-  function MyDropdown(props, ref) {
-    const [open, setIsOpen] = useState(false);
-    const [query, setQuery] = useState("");
-    const [activeIndex, setActiveIndex] = useState<number | null>(null);
+export const Dropdown = forwardRef(InnerDropdown) as <T extends Named>(
+  props: DropdownProps<T> & { ref?: ForwardedRef<HTMLInputElement> },
+) => ReturnType<typeof InnerDropdown>;
 
-    const listRef = useRef<Array<HTMLElement | null>>([]);
+function InnerDropdown<T extends Named>(
+  props: DropdownProps<T>,
+  ref: ForwardedRef<HTMLInputElement>,
+) {
+  const [open, setIsOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-    const searchIndex = useMemo(() => {
-      return new Fuse(props.items, {
-        shouldSort: true,
-        threshold: 0.3,
-        keys: ["name"],
-      });
-    }, [props.items]);
+  const listRef = useRef<Array<HTMLElement | null>>([]);
 
-    const items = searchIndex.search(query).map((r) => r.item);
-
-    const changeActiveItem = (idx: number | null) => {
-      // TODO: Possible bug: we never really say "no item is selected",
-      // but we don't control _when_ changeActiveItem is called (up to float-ui).
-      // We want to avoid "spamming" `onSelectedItem` with `nulls`
-      setActiveIndex(idx);
-      if (idx != null && items[idx]) {
-        props.onSelectedItem(items[idx]);
-      } else {
-        props.onNewItem(query);
-      }
-    };
-
-    const { refs, floatingStyles, context } = useFloating<HTMLElement>({
-      whileElementsMounted: autoUpdate,
-      open,
-      onOpenChange: setIsOpen,
-      middleware: [matchWidth, offset(3)],
+  const searchIndex = useMemo(() => {
+    return new Fuse(props.items, {
+      shouldSort: true,
+      threshold: 0.3,
+      keys: ["name"],
     });
+  }, [props.items]);
 
-    const role = useRole(context);
-    const dismiss = useDismiss(context);
-    const listNav = useListNavigation(context, {
-      listRef,
-      activeIndex,
-      onNavigate: changeActiveItem,
-      virtual: true,
-      loop: true,
-    });
+  const items = searchIndex.search(query).map((r) => r.item);
 
-    const { getReferenceProps, getFloatingProps, getItemProps } =
-      useInteractions([role, dismiss, listNav]);
-
-    function onChange(event: ChangeEvent<HTMLInputElement>) {
-      const value = event.target.value;
-      setQuery(value);
-      if (value.length > 2) {
-        setIsOpen(true);
-        changeActiveItem(0);
-      } else {
-        setIsOpen(false);
-      }
+  const changeActiveItem = (idx: number | null) => {
+    // TODO: Possible bug: we never really say "no item is selected",
+    // but we don't control _when_ changeActiveItem is called (up to float-ui).
+    // We want to avoid "spamming" `onSelectedItem` with `nulls`
+    setActiveIndex(idx);
+    if (idx != null && items[idx]) {
+      props.onSelectedItem(items[idx]);
+    } else {
+      props.onNewItem(query);
     }
+  };
 
-    const mergedRefs = useMergeRefs([refs.setReference, ref]);
+  const { refs, floatingStyles, context } = useFloating<HTMLElement>({
+    whileElementsMounted: autoUpdate,
+    open,
+    onOpenChange: setIsOpen,
+    middleware: [matchWidth, offset(3)],
+  });
 
-    return (
-      <>
-        <input
-          {...getReferenceProps({
-            className: props.dropdownClassnames || "",
-            ref: mergedRefs,
-            onChange,
-            value: query,
-            placeholder: "ingredient...",
-            "aria-autocomplete": "list",
-            onKeyDown(event) {
-              if (
-                event.key === "Enter" &&
-                activeIndex != null &&
-                items[activeIndex]
-              ) {
-                setQuery(items[activeIndex].name);
-                changeActiveItem(null);
-                setIsOpen(false);
-              }
-            },
-          })}
-        />
-        <FloatingPortal>
-          {open && (
-            <FloatingFocusManager
-              context={context}
-              initialFocus={-1}
-              visuallyHiddenDismiss
+  const role = useRole(context);
+  const dismiss = useDismiss(context);
+  const listNav = useListNavigation(context, {
+    listRef,
+    activeIndex,
+    onNavigate: changeActiveItem,
+    virtual: true,
+    loop: true,
+  });
+
+  const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions(
+    [role, dismiss, listNav],
+  );
+
+  function onChange(event: ChangeEvent<HTMLInputElement>) {
+    const value = event.target.value;
+    setQuery(value);
+    if (value.length > 2) {
+      setIsOpen(true);
+      changeActiveItem(0);
+    } else {
+      setIsOpen(false);
+    }
+  }
+
+  const mergedRefs = useMergeRefs([refs.setReference, ref]);
+
+  return (
+    <>
+      <input
+        {...getReferenceProps({
+          className: props.dropdownClassnames || "",
+          ref: mergedRefs,
+          onChange,
+          value: query,
+          placeholder: props.placeholder,
+          "aria-autocomplete": "list",
+          onKeyDown(event) {
+            if (
+              event.key === "Enter" &&
+              activeIndex != null &&
+              items[activeIndex]
+            ) {
+              setQuery(items[activeIndex].name);
+              changeActiveItem(null);
+              setIsOpen(false);
+            }
+          },
+        })}
+      />
+      <FloatingPortal>
+        {open && (
+          <FloatingFocusManager
+            context={context}
+            initialFocus={-1}
+            visuallyHiddenDismiss
+          >
+            <ul
+              {...getFloatingProps({
+                ref: refs.setFloating,
+                style: {
+                  ...floatingStyles,
+                },
+                className:
+                  "z-50 bg-white overflow-y-auto border-solid border-black border-2",
+              })}
             >
-              <ul
-                {...getFloatingProps({
-                  ref: refs.setFloating,
-                  style: {
-                    ...floatingStyles,
-                  },
-                  className:
-                    "z-50 bg-white overflow-y-auto border-solid border-black border-2",
-                })}
-              >
-                {items.map((item, idx) => (
-                  <Item
-                    {...getItemProps({
-                      ref(node) {
-                        listRef.current[idx] = node;
-                      },
-                      onClick() {
-                        setQuery(item.name);
-                        setIsOpen(false);
-                        refs.domReference.current?.focus();
-                      },
-                    })}
-                    key={item.id}
-                    active={activeIndex === idx}
-                  >
-                    {item.name}
-                  </Item>
-                ))}
+              {items.map((item, idx) => (
+                <Item
+                  {...getItemProps({
+                    ref(node) {
+                      listRef.current[idx] = node;
+                    },
+                    onClick() {
+                      setQuery(item.name);
+                      setIsOpen(false);
+                      refs.domReference.current?.focus();
+                    },
+                  })}
+                  key={item.name}
+                  active={activeIndex === idx}
+                >
+                  {item.name}
+                </Item>
+              ))}
+              {query && (
                 <NewItem
                   ref={(node) => {
                     listRef.current[items.length] = node;
@@ -167,14 +184,14 @@ export const Dropdown = forwardRef<HTMLInputElement, DropdownProps>(
                 >
                   {query}
                 </NewItem>
-              </ul>
-            </FloatingFocusManager>
-          )}
-        </FloatingPortal>
-      </>
-    );
-  },
-);
+              )}
+            </ul>
+          </FloatingFocusManager>
+        )}
+      </FloatingPortal>
+    </>
+  );
+}
 
 interface ItemProps {
   children: ReactNode;

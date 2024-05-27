@@ -44,6 +44,7 @@ export function FindIngredient(props: {
   return (
     <div className={classnames(props.className, "flex flex-row")}>
       <Dropdown
+        placeholder={"ingredients..."}
         items={ingredients.data}
         dropdownClassnames={"border-gray-500 border-solid border-2"}
         onSelectedItem={(v) => {
