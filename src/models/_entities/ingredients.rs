@@ -12,7 +12,7 @@ pub struct Model {
     pub id: i32,
     #[sea_orm(unique)]
     pub name: String,
-    pub tag: Option<String>,
+    pub tags: Vec<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
