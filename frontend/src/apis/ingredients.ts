@@ -106,20 +106,20 @@ export function useSetIngredientTags(
   return useMutation({
     mutationFn: async ({ tags }: SetTagsParams) => {
       const response = await http
-          .post(`api/ingredients/${ingredient}/tags`, {
-            json: {
-              tags,
-            },
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          })
-          .json();
+        .post(`api/ingredients/${ingredient}/tags`, {
+          json: {
+            tags,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .json();
 
       return IngredientSchema.parse(response);
-  },
+    },
     onSettled: async () => {
-      return client.invalidateQueries({queryKey: ["ingredients"]});
-    }
-  })
+      return client.invalidateQueries({ queryKey: ["ingredients"] });
+    },
+  });
 }

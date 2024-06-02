@@ -170,7 +170,11 @@ function SelectTags(props: {
       selected={props.currentTags}
       items={props.knownTags}
       onItemsSelected={(tags) => {
-        setTags.mutate({tags})
+        setTags.mutate({ tags });
+      }}
+      newItemPlaceholder={"New tag..."}
+      onNewItem={(value) => {
+        setTags.mutate({ tags: [...props.currentTags, value] });
       }}
     />
   );

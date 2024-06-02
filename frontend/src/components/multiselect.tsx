@@ -23,6 +23,8 @@ type Props = {
   items: string[];
   selected?: string[];
   onItemsSelected: (items: string[]) => void;
+  onNewItem?: (value: string) => void;
+  newItemPlaceholder?: string;
 };
 
 export function MultiSelect(props: Props) {
@@ -36,7 +38,7 @@ export function MultiSelect(props: Props) {
   });
 
   const click = useClick(context);
-  const dismiss = useDismiss(context);
+  const dismiss = useDismiss(context, { escapeKey: true });
   const role = useRole(context);
 
   // Merge all the interactions into prop getters
@@ -130,6 +132,21 @@ export function MultiSelect(props: Props) {
                     ));
                   }}
                 />
+                {props.onNewItem && (
+                  <div className={"flex flex-row gap-2"} key={"new-item"}>
+                    <input
+                      type={"text"}
+                      className={"border-2 border-solid border-black px-2"}
+                      id={"new-item"}
+                      placeholder={props.newItemPlaceholder || "New..."}
+                      onBlur={(e) => {
+                        if (e.target.value) {
+                          props.onNewItem?.(e.target.value);
+                        }
+                      }}
+                    />
+                  </div>
+                )}
               </ol>
               <Divider />
               <ButtonGroup>
