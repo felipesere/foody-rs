@@ -18,7 +18,9 @@ frontend-lint:
 frontend-fmt:
   cd frontend; npm run fmt
 
-run: frontend-build
+run: frontend-build run-backend
+
+run-backend:
   cargo loco start
 
 pg-start:

@@ -87,6 +87,7 @@ pub(crate) async fn find_one(
             "r1"."updated_at" as "i_updated_at",
             "r1"."id" as "i_id",
             "r1"."name" as "i_name",
+            "r1"."tags" as "i_tags",
             "q"."id" as "q_id",
             "q"."created_at" as "q_created_at",
             "q"."updated_at" as "q_updated_at",
