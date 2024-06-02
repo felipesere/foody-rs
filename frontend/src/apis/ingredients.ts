@@ -7,7 +7,7 @@ import type { Shoppinglist } from "./shoppinglists.ts";
 const IngredientSchema = z.object({
   id: z.number(),
   name: z.string(),
-  tags: z.array(z.object({})),
+  tags: z.array(z.string()),
 });
 export type Ingredient = z.infer<typeof IngredientSchema>;
 const IngredientsSchema = z.array(IngredientSchema);
@@ -56,7 +56,9 @@ export function useAllIngredients(token: string) {
         })
         .json();
 
-      return IngredientsSchema.parse(body);
+      return IngredientsSchema.parse(body).sort((a, b) =>
+        a.name.localeCompare(b.name),
+      );
     },
   });
 }
@@ -89,4 +91,35 @@ export function useCreateNewIngredient(token: string) {
       });
     },
   });
+}
+
+type SetTagsParams = {
+  tags: Array<string>;
+};
+
+export function useSetIngredientTags(
+  token: string,
+  ingredient: Ingredient["id"],
+) {
+  const client = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ tags }: SetTagsParams) => {
+      const response = await http
+          .post(`api/ingredients/${ingredient}/tags`, {
+            json: {
+              tags,
+            },
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+          .json();
+
+      return IngredientSchema.parse(response);
+  },
+    onSettled: async () => {
+      return client.invalidateQueries({queryKey: ["ingredients"]});
+    }
+  })
 }

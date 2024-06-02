@@ -87,7 +87,7 @@ input[type="button"]:disabled {
     cursor: not-allowed;
 }
 
-label::after {
+label:not(.no-colon)::after {
     content: ": ";
 }
 /*

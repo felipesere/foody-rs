@@ -1,5 +1,6 @@
 #![allow(clippy::unused_async)]
 use axum::extract;
+use ingredients::ingredients::ActiveModel;
 use loco_rs::{controller::middleware, prelude::*};
 use sea_orm::{SqlErr, TransactionTrait};
 use serde::{Deserialize, Serialize};
@@ -13,14 +14,7 @@ use crate::models::{
 pub struct IngredientResponse {
     id: i32,
     name: String,
-    tags: Vec<Tag>,
-}
-
-#[derive(Serialize, Debug)]
-struct Tag {
-    id: i32,
-    name: String,
-    isle_order: i32,
+    tags: Vec<String>,
 }
 
 impl From<Ingredient> for IngredientResponse {
@@ -28,7 +22,7 @@ impl From<Ingredient> for IngredientResponse {
         Self {
             id: value.id,
             name: value.name,
-            tags: Vec::new(),
+            tags: value.tags,
         }
     }
 }
@@ -65,12 +59,9 @@ pub async fn add_ingredient(
 
     let tx = ctx.db.begin().await?;
 
-    for _tag in params.tags {
-        // TODO!
-    }
-
     let ingredient_outcome = ingredients::ActiveModel {
         name: sea_orm::ActiveValue::Set(params.name.clone()),
+        tags: sea_orm::ActiveValue::Set(params.tags.clone()),
         ..Default::default()
     }
     .insert(&tx)
@@ -99,9 +90,37 @@ pub async fn add_ingredient(
     }
 }
 
+#[derive(Deserialize)]
+struct SetTagsParams {
+    tags: Vec<String>,
+}
+
+async fn set_tags_in_ingredient(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+    Path(id): Path<i32>,
+    extract::Json(params): extract::Json<SetTagsParams>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let tx = ctx.db.begin().await?;
+    let ingredient = ingredients::Entity::find_by_id(id)
+        .one(&tx)
+        .await?
+        .ok_or_else(|| Error::NotFound)?;
+
+    let mut model = ActiveModel::from(ingredient);
+    model.tags = ActiveValue::set(params.tags);
+    model.save(&tx).await?;
+    tx.commit().await?;
+
+    Ok(())
+}
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("ingredients")
         .add("/", get(all_ingredients))
         .add("/", post(add_ingredient))
+        .add("/:id/tags", post(set_tags_in_ingredient))
 }
