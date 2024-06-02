@@ -1,6 +1,6 @@
-import type { InputHTMLAttributes } from "react";
 import classnames from "classnames";
 import classNames from "classnames";
+import type { InputHTMLAttributes } from "react";
 
 interface InputAutosizeProps extends InputHTMLAttributes<HTMLInputElement> {
   name: string;

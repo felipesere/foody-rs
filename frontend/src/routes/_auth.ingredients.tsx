@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import classnames from "classnames";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -10,10 +11,9 @@ import {
 import { AddToShoppinglist } from "../components/addToShoppinglist.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
-import { ToggleButton } from "../components/toggle.tsx";
-import { ResizingInput } from "../components/resizeableInput.tsx";
-import classnames from "classnames";
 import { MultiSelect } from "../components/multiselect.tsx";
+import { ResizingInput } from "../components/resizeableInput.tsx";
+import { ToggleButton } from "../components/toggle.tsx";
 
 export const Route = createFileRoute("/_auth/ingredients")({
   component: IngredientsPage,

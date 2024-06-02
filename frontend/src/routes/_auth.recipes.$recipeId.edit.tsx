@@ -16,8 +16,8 @@ import { DeleteRowButton } from "../components/deleteRowButton.tsx";
 import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
 import { FindIngredient } from "../components/findIngredient.tsx";
-import { humanize } from "../quantities.ts";
 import { ResizingInput } from "../components/resizeableInput.tsx";
+import { humanize } from "../quantities.ts";
 
 export const Route = createFileRoute("/_auth/recipes/$recipeId/edit")({
   component: EditRecipePage,
