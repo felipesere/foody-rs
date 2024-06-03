@@ -14,6 +14,7 @@ import { Divider } from "../components/divider.tsx";
 import { MultiSelect } from "../components/multiselect.tsx";
 import { ResizingInput } from "../components/resizeableInput.tsx";
 import { ToggleButton } from "../components/toggle.tsx";
+import { useHotkeys } from "react-hotkeys-hook";
 
 export const Route = createFileRoute("/_auth/ingredients")({
   component: IngredientsPage,
@@ -22,6 +23,35 @@ export const Route = createFileRoute("/_auth/ingredients")({
 function IngredientsPage() {
   const { token } = Route.useRouteContext();
   const { data: ingredients } = useAllIngredients(token);
+  const [selected, setSelected] = useState<number | undefined>(undefined);
+
+  useHotkeys(
+    "j",
+    () => {
+      setSelected((previous) => {
+        if (previous !== undefined) {
+          return (previous + 1) % (ingredients?.length || 0);
+        }
+        return 0;
+      });
+    },
+    {},
+    [ingredients],
+  );
+
+  useHotkeys(
+    "k",
+    () => {
+      setSelected((previous) => {
+        if (previous !== undefined) {
+          return (previous - 1) % (ingredients?.length || 0);
+        }
+        return 0;
+      });
+    },
+    {},
+    [ingredients],
+  );
 
   if (!ingredients) {
     return <p>Loading...</p>;
@@ -38,12 +68,14 @@ function IngredientsPage() {
   return (
     <div className="content-grid">
       <ul className="grid gap-4 max-w-md">
-        {ingredients.map((ingredient) => (
+        {ingredients.map((ingredient, idx) => (
           <IngredientView
             key={ingredient.name}
             ingredient={ingredient}
             knownTags={tags}
+            selected={idx === selected}
             token={token}
+            onClick={() => setSelected(idx)}
           />
         ))}
       </ul>
@@ -55,14 +87,23 @@ type IngredientViewProps = {
   ingredient: Ingredient;
   knownTags: string[];
   token: string;
+  selected: boolean;
+  onClick: () => void;
 };
 function IngredientView(props: IngredientViewProps) {
-  if (props.ingredient.tags.length) {
-    console.log(props.ingredient.name);
-  }
   const [open, setOpen] = useState(false);
   const [edit, setEdit] = useState(false);
   const [temporaryName, setTemporaryName] = useState<string>("");
+
+  useHotkeys(
+    "ctrl+e",
+    () => {
+      if (open) {
+        setEdit((f) => !f);
+      }
+    },
+    [open],
+  );
 
   const [isDirty, setIsDirty] = useState(false);
 
@@ -70,8 +111,16 @@ function IngredientView(props: IngredientViewProps) {
 
   const addIngredient = addIngredientToShoppinglist(props.token);
   return (
-    <li className="p-2 border-black border-solid border-2">
-      <div className={"flex flex-row gap-1 font-black align-middle"}>
+    <li
+      className={classnames("p-2 border-solid border-2", {
+        "border-black": !props.selected,
+        "border-yellow-400": props.selected,
+      })}
+    >
+      <div
+        onClick={props.onClick}
+        className={"flex flex-row gap-1 font-black align-middle"}
+      >
         <ToggleButton
           onToggle={() => {
             if (open) {

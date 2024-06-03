@@ -15,7 +15,10 @@ import classnames from "classnames";
 import { useState } from "react";
 import { ButtonGroup } from "./buttonGroup.tsx";
 import { Divider } from "./divider.tsx";
+import { useHotkeys } from "react-hotkeys-hook";
 
+// TODO: Cleanup props and come up with good API.
+//       Make it look and behave similar to the `dropdown`
 type Props = {
   token: string;
   label: string;
@@ -106,7 +109,26 @@ export function MultiSelect(props: Props) {
                       <form.Field
                         key={item.name}
                         name={`items[${idx}].value`}
-                        children={(itemApi) => {
+                        children={(itemField) => {
+                          const [first, ...remaining] = item.name;
+
+                          useHotkeys(
+                            [first],
+                            () => {
+                              console.log(`${first} was pressed...`);
+                              console.log(
+                                `The value in "useHotKeys" for ${
+                                  item.name
+                                } is: ${JSON.stringify(itemField.state.value)}`,
+                              );
+                              itemField.setValue((p) => !p, { touch: true });
+                            },
+                            {},
+                            [itemField],
+                          );
+
+                          // console.log(`The value in "children" is: ${JSON.stringify(itemField.state)}`)
+
                           return (
                             <div
                               className={"flex flex-row gap-2"}
@@ -117,13 +139,16 @@ export function MultiSelect(props: Props) {
                                 className={"px-2 bg-white shadow"}
                                 id={item.name}
                                 key={item.name}
-                                defaultChecked={itemApi.state.value}
+                                defaultChecked={itemField.state.value}
                                 onClick={() => {
-                                  itemApi.handleChange(!itemApi.state.value);
+                                  itemField.handleChange(
+                                    !itemField.state.value,
+                                  );
                                 }}
                               />
                               <label className={"no-colon"} htmlFor={item.name}>
-                                {item.name}
+                                <span className={"font-bold"}>{first}</span>
+                                {remaining.join("")}
                               </label>
                             </div>
                           );
