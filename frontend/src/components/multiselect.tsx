@@ -11,9 +11,9 @@ import {
   useRole,
 } from "@floating-ui/react";
 import { useForm } from "@tanstack/react-form";
-import classnames from "classnames";
 import { useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+import { Button } from "./button.tsx";
 import { ButtonGroup } from "./buttonGroup.tsx";
 import { Divider } from "./divider.tsx";
 
@@ -27,6 +27,7 @@ type Props = {
   onItemsSelected: (items: string[]) => void;
   onNewItem?: (value: string) => void;
   newItemPlaceholder?: string;
+  hotkey?: string;
 };
 
 export function MultiSelect(props: Props) {
@@ -37,10 +38,6 @@ export function MultiSelect(props: Props) {
     onOpenChange: setIsOpen,
     middleware: [offset(3), flip(), shift()],
     whileElementsMounted: autoUpdate,
-  });
-
-  useHotkeys("t", () => {
-    setIsOpen((open) => !open);
   });
 
   const click = useClick(context);
@@ -71,23 +68,16 @@ export function MultiSelect(props: Props) {
     },
   });
 
-  useHotkeys("s", () => {
-    void form.handleSubmit();
-  });
-
   return (
     <>
-      <button
-        ref={refs.setReference}
+      <Button
+        setRef={refs.setReference}
         {...getReferenceProps()}
-        type="submit"
-        className={classnames(
-          props.className,
-          "px-2 text-black bg-gray-300 shadow",
-        )}
-      >
-        {props.label}
-      </button>
+        label={props.label}
+        className={props.className}
+        type={"submit"}
+        hotkey={props.hotkey}
+      />
       {isOpen && (
         <FloatingFocusManager context={context} modal={false} initialFocus={-1}>
           <div
@@ -166,22 +156,16 @@ export function MultiSelect(props: Props) {
               </ol>
               <Divider />
               <ButtonGroup>
-                <button
-                  type="submit"
-                  className="px-2 text-black bg-gray-300 shadow"
-                >
-                  Save
-                </button>
-                <button
+                <Button label="Save" type="submit" hotkey="ctrl+s" />
+                <Button
+                  label={"Reset"}
+                  hotkey={"ctrl+r"}
                   type="button"
-                  className="px-2 text-black bg-gray-300 shadow"
                   onClick={() => {
                     form.reset();
                     console.log("...resetting...");
                   }}
-                >
-                  Reset
-                </button>
+                />
               </ButtonGroup>
             </form>
           </div>

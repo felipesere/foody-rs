@@ -10,6 +10,7 @@ import {
   useSetIngredientTags,
 } from "../apis/ingredients.ts";
 import { AddToShoppinglist } from "../components/addToShoppinglist.tsx";
+import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
 import { MultiSelect } from "../components/multiselect.tsx";
@@ -96,16 +97,6 @@ function IngredientView(props: IngredientViewProps) {
   const [temporaryName, setTemporaryName] = useState<string>("");
 
   useHotkeys(
-    "e",
-    () => {
-      if (open) {
-        setEdit((f) => !f);
-      }
-    },
-    [open],
-  );
-
-  useHotkeys(
     "o",
     () => {
       if (props.selected) {
@@ -190,24 +181,21 @@ function IngredientView(props: IngredientViewProps) {
           </div>
           <Divider />
           <ButtonGroup>
-            <button
+            <Button
+              label={"Edit"}
+              hotkey={"ctrl+e"}
               onClick={() => {
                 setEdit((e) => !e);
               }}
               type={"button"}
-              className={classnames("px-2 text-black shadow", {
-                "border-amber-400": edit,
-              })}
-            >
-              Edit
-            </button>
-            <button
+              classNames={{ "border-amber-400": edit }}
+            />
+            <Button
+              label={"Reset"}
+              hotkey={"ctrl+r"}
+              type="button"
               onClick={() => {}}
-              type={"button"}
-              className={"px-2 text-black shadow"}
-            >
-              Reset
-            </button>
+            />
           </ButtonGroup>
         </>
       )}
@@ -234,6 +222,7 @@ function SelectTags(props: {
       onNewItem={(value) => {
         setTags.mutate({ tags: [...props.currentTags, value] });
       }}
+      hotkey={"ctrl+t"}
     />
   );
 }
