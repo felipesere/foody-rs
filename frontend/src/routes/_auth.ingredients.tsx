@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import classnames from "classnames";
 import { useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 import { toast } from "sonner";
 import {
   type Ingredient,
@@ -14,7 +15,6 @@ import { Divider } from "../components/divider.tsx";
 import { MultiSelect } from "../components/multiselect.tsx";
 import { ResizingInput } from "../components/resizeableInput.tsx";
 import { ToggleButton } from "../components/toggle.tsx";
-import { useHotkeys } from "react-hotkeys-hook";
 
 export const Route = createFileRoute("/_auth/ingredients")({
   component: IngredientsPage,
@@ -96,13 +96,23 @@ function IngredientView(props: IngredientViewProps) {
   const [temporaryName, setTemporaryName] = useState<string>("");
 
   useHotkeys(
-    "ctrl+e",
+    "e",
     () => {
       if (open) {
         setEdit((f) => !f);
       }
     },
     [open],
+  );
+
+  useHotkeys(
+    "o",
+    () => {
+      if (props.selected) {
+        setOpen((f) => !f);
+      }
+    },
+    [props.selected],
   );
 
   const [isDirty, setIsDirty] = useState(false);
@@ -214,7 +224,6 @@ function SelectTags(props: {
   const setTags = useSetIngredientTags(props.token, props.ingredientId);
   return (
     <MultiSelect
-      token={props.token}
       label={"Select tags"}
       selected={props.currentTags}
       items={props.knownTags}

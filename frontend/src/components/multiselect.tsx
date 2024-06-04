@@ -13,14 +13,13 @@ import {
 import { useForm } from "@tanstack/react-form";
 import classnames from "classnames";
 import { useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 import { ButtonGroup } from "./buttonGroup.tsx";
 import { Divider } from "./divider.tsx";
-import { useHotkeys } from "react-hotkeys-hook";
 
 // TODO: Cleanup props and come up with good API.
 //       Make it look and behave similar to the `dropdown`
 type Props = {
-  token: string;
   label: string;
   className?: string;
   items: string[];
@@ -40,6 +39,10 @@ export function MultiSelect(props: Props) {
     whileElementsMounted: autoUpdate,
   });
 
+  useHotkeys("t", () => {
+    setIsOpen((open) => !open);
+  });
+
   const click = useClick(context);
   const dismiss = useDismiss(context, { escapeKey: true });
   const role = useRole(context);
@@ -51,13 +54,9 @@ export function MultiSelect(props: Props) {
     role,
   ]);
 
-  function isSelected(item: string) {
-    return props.selected?.includes(item) || false;
-  }
-
   const items = props.items.map((i) => ({
     name: i,
-    value: isSelected(i),
+    value: props.selected?.includes(i) || false,
   }));
 
   const form = useForm({
@@ -70,6 +69,10 @@ export function MultiSelect(props: Props) {
         .map((i) => i.name);
       props.onItemsSelected(selected);
     },
+  });
+
+  useHotkeys("s", () => {
+    void form.handleSubmit();
   });
 
   return (
@@ -86,8 +89,9 @@ export function MultiSelect(props: Props) {
         {props.label}
       </button>
       {isOpen && (
-        <FloatingFocusManager context={context} modal={false}>
+        <FloatingFocusManager context={context} modal={false} initialFocus={-1}>
           <div
+            tabIndex={-1}
             ref={refs.setFloating}
             style={floatingStyles}
             {...getFloatingProps()}
@@ -111,23 +115,9 @@ export function MultiSelect(props: Props) {
                         name={`items[${idx}].value`}
                         children={(itemField) => {
                           const [first, ...remaining] = item.name;
-
-                          useHotkeys(
-                            [first],
-                            () => {
-                              console.log(`${first} was pressed...`);
-                              console.log(
-                                `The value in "useHotKeys" for ${
-                                  item.name
-                                } is: ${JSON.stringify(itemField.state.value)}`,
-                              );
-                              itemField.setValue((p) => !p, { touch: true });
-                            },
-                            {},
-                            [itemField],
+                          useHotkeys([first], () =>
+                            itemField.handleChange((p) => !p),
                           );
-
-                          // console.log(`The value in "children" is: ${JSON.stringify(itemField.state)}`)
 
                           return (
                             <div
@@ -139,7 +129,8 @@ export function MultiSelect(props: Props) {
                                 className={"px-2 bg-white shadow"}
                                 id={item.name}
                                 key={item.name}
-                                defaultChecked={itemField.state.value}
+                                checked={itemField.state.value}
+                                readOnly={true}
                                 onClick={() => {
                                   itemField.handleChange(
                                     !itemField.state.value,
