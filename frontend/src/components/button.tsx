@@ -70,8 +70,6 @@ function labelWithHotkeyhighlight(
   const lowerLabel = label.toLowerCase();
   const point = lowerLabel.indexOf(actualKey);
 
-  // Save <span className="bold">F</span>orm
-
   const before = label.slice(0, point);
   const character = label.slice(point, point + 1);
   const after = label.slice(point + 1);
