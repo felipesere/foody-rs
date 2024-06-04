@@ -28,6 +28,7 @@
     "ky": "^1.2.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-hotkeys-hook": "^4.5.0",
     "sonner": "^1.4.41",
     "use-editable": "^2.3.3",
     "zod": "^3.22.4"

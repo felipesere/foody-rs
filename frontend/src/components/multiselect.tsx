@@ -11,13 +11,15 @@ import {
   useRole,
 } from "@floating-ui/react";
 import { useForm } from "@tanstack/react-form";
-import classnames from "classnames";
 import { useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
+import { Button } from "./button.tsx";
 import { ButtonGroup } from "./buttonGroup.tsx";
 import { Divider } from "./divider.tsx";
 
+// TODO: Cleanup props and come up with good API.
+//       Make it look and behave similar to the `dropdown`
 type Props = {
-  token: string;
   label: string;
   className?: string;
   items: string[];
@@ -25,6 +27,7 @@ type Props = {
   onItemsSelected: (items: string[]) => void;
   onNewItem?: (value: string) => void;
   newItemPlaceholder?: string;
+  hotkey?: string;
 };
 
 export function MultiSelect(props: Props) {
@@ -48,13 +51,9 @@ export function MultiSelect(props: Props) {
     role,
   ]);
 
-  function isSelected(item: string) {
-    return props.selected?.includes(item) || false;
-  }
-
   const items = props.items.map((i) => ({
     name: i,
-    value: isSelected(i),
+    value: props.selected?.includes(i) || false,
   }));
 
   const form = useForm({
@@ -71,20 +70,18 @@ export function MultiSelect(props: Props) {
 
   return (
     <>
-      <button
-        ref={refs.setReference}
+      <Button
+        setRef={refs.setReference}
         {...getReferenceProps()}
-        type="submit"
-        className={classnames(
-          props.className,
-          "px-2 text-black bg-gray-300 shadow",
-        )}
-      >
-        {props.label}
-      </button>
+        label={props.label}
+        className={props.className}
+        type={"submit"}
+        hotkey={props.hotkey}
+      />
       {isOpen && (
-        <FloatingFocusManager context={context} modal={false}>
+        <FloatingFocusManager context={context} modal={false} initialFocus={-1}>
           <div
+            tabIndex={-1}
             ref={refs.setFloating}
             style={floatingStyles}
             {...getFloatingProps()}
@@ -106,7 +103,12 @@ export function MultiSelect(props: Props) {
                       <form.Field
                         key={item.name}
                         name={`items[${idx}].value`}
-                        children={(itemApi) => {
+                        children={(itemField) => {
+                          const [first, ...remaining] = item.name;
+                          useHotkeys([first], () =>
+                            itemField.handleChange((p) => !p),
+                          );
+
                           return (
                             <div
                               className={"flex flex-row gap-2"}
@@ -117,13 +119,17 @@ export function MultiSelect(props: Props) {
                                 className={"px-2 bg-white shadow"}
                                 id={item.name}
                                 key={item.name}
-                                defaultChecked={itemApi.state.value}
+                                checked={itemField.state.value}
+                                readOnly={true}
                                 onClick={() => {
-                                  itemApi.handleChange(!itemApi.state.value);
+                                  itemField.handleChange(
+                                    !itemField.state.value,
+                                  );
                                 }}
                               />
                               <label className={"no-colon"} htmlFor={item.name}>
-                                {item.name}
+                                <span className={"font-bold"}>{first}</span>
+                                {remaining.join("")}
                               </label>
                             </div>
                           );
@@ -150,22 +156,16 @@ export function MultiSelect(props: Props) {
               </ol>
               <Divider />
               <ButtonGroup>
-                <button
-                  type="submit"
-                  className="px-2 text-black bg-gray-300 shadow"
-                >
-                  Save
-                </button>
-                <button
+                <Button label="Save" type="submit" hotkey="ctrl+s" />
+                <Button
+                  label={"Reset"}
+                  hotkey={"ctrl+r"}
                   type="button"
-                  className="px-2 text-black bg-gray-300 shadow"
                   onClick={() => {
                     form.reset();
                     console.log("...resetting...");
                   }}
-                >
-                  Reset
-                </button>
+                />
               </ButtonGroup>
             </form>
           </div>
