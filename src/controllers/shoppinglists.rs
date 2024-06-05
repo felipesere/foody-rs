@@ -44,6 +44,7 @@ impl From<Quantity> for QuantityResponse {
 struct ListItem {
     id: i32,
     name: String,
+    tags: Vec<String>,
     quantities: Vec<ItemQuantity>,
 }
 
@@ -96,6 +97,7 @@ impl From<Ingredient> for ListItem {
         Self {
             id: value.id,
             name: value.name,
+            tags: value.tags,
             quantities: Vec::new(),
         }
     }
@@ -279,6 +281,7 @@ pub async fn shoppinglist(
             .map(|(ingredient, quantities)| ListItem {
                 id: ingredient.id,
                 name: ingredient.name,
+                tags: ingredient.tags,
                 quantities: quantities
                     .into_iter()
                     .map(|(in_basket, quantity, recipe_id)| ItemQuantity {
