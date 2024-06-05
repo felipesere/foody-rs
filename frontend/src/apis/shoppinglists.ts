@@ -37,6 +37,7 @@ const ItemQuantitySchema = StoredQuantitySchema.extend({
 const IngredientSchema = z.object({
   id: z.number(),
   name: z.string(),
+  tags: z.array(z.string()),
   quantities: z.array(ItemQuantitySchema),
 });
 export type Ingredient = z.infer<typeof IngredientSchema>;

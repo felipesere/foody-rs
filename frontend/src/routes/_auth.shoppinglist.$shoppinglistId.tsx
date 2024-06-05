@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import classnames from "classnames";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { addIngredientToShoppinglist } from "../apis/ingredients.ts";
 import { type StoredQuantity, useAllRecipes } from "../apis/recipes.ts";
 import {
@@ -17,6 +17,7 @@ import { DeleteRowButton } from "../components/deleteRowButton.tsx";
 import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
 import { Editable } from "../components/editable.tsx";
+import { FieldSet } from "../components/fieldset.tsx";
 import { FindIngredient } from "../components/findIngredient.tsx";
 import { Toggle, ToggleButton } from "../components/toggle.tsx";
 import { combineQuantities, humanize, parse } from "../quantities.ts";
@@ -39,6 +40,8 @@ export function ShoppingPage() {
 
   const addIngredient = addIngredientToShoppinglist(token);
 
+  const [groupByAisles, setGroupByAisles] = useState(false);
+
   if (shoppinglist.isLoading || recipes.isLoading) {
     return <p>Loading</p>;
   }
@@ -56,33 +59,105 @@ export function ShoppingPage() {
       {} as Record<number, string>,
     ) || {};
 
+  const tagged: Record<string, Ingredient[]> = {};
+  const untagged: Ingredient[] = [];
+  for (const i of shoppinglist.data?.ingredients || []) {
+    if (i.tags.length) {
+      const first = i.tags[0];
+      const taggedIngredients = tagged[first] || [];
+      taggedIngredients.push(i);
+      tagged[first] = taggedIngredients;
+    } else {
+      untagged.push(i);
+    }
+  }
+
   return (
     <div className="content-grid space-y-4 max-w-md">
-      <Toggle buttonLabel={"Add Ingredient"}>
-        <FindIngredient
-          token={token}
-          onIngredient={(ingredient, quantity) => {
-            addIngredient.mutate({
-              shoppinglistId: shoppinglistId,
-              ingredient: ingredient.name,
-              quantity: [quantity],
-            });
-          }}
-        />
+      <Toggle buttonLabel={"More..."}>
+        <FieldSet legend={"Add ingredient"}>
+          <FindIngredient
+            token={token}
+            onIngredient={(ingredient, quantity) => {
+              addIngredient.mutate({
+                shoppinglistId: shoppinglistId,
+                ingredient: ingredient.name,
+                quantity: [quantity],
+              });
+            }}
+          />
+        </FieldSet>
+        <FieldSet
+          legend={"Filter and Sort"}
+          className={{ fieldSet: "mt-4 flex flex-col" }}
+        >
+          <div className={"flex flex-row gap-2"}>
+            <input
+              id={"groupByAisle"}
+              type={"checkbox"}
+              className={"px-2 bg-white shadow"}
+              checked={groupByAisles}
+              onChange={() => setGroupByAisles((b) => !b)}
+            />
+            <label className={"no-colon"} htmlFor={"groupByAisle"}>
+              <span className={"font-bold"}>G</span>
+              roup by aisle
+            </label>
+          </div>
+        </FieldSet>
       </Toggle>
       <ul className="grid max-w-md gap-4">
-        {shoppinglist.data?.ingredients.map((ingredient) => (
-          <CompactIngredientView
-            key={ingredient.name}
-            token={token}
-            shoppinglistId={shoppinglistId}
-            ingredient={ingredient}
-            allRecipes={allRecipes}
-            onToggle={(ingredientId, inBasket) =>
-              toggleIngredient.mutate({ ingredientId, inBasket })
-            }
-          />
-        ))}
+        {groupByAisles ||
+          shoppinglist.data?.ingredients.map((ingredient) => (
+            <CompactIngredientView
+              key={ingredient.name}
+              token={token}
+              shoppinglistId={shoppinglistId}
+              ingredient={ingredient}
+              allRecipes={allRecipes}
+              onToggle={(ingredientId, inBasket) =>
+                toggleIngredient.mutate({ ingredientId, inBasket })
+              }
+            />
+          ))}
+        {groupByAisles &&
+          Object.entries(tagged).map(([tag, ingredients]) => {
+            return (
+              <Fragment key={tag}>
+                <Divider label={tag} key={tag} />
+                {ingredients.map((ingredient) => (
+                  <CompactIngredientView
+                    key={ingredient.name}
+                    token={token}
+                    shoppinglistId={shoppinglistId}
+                    ingredient={ingredient}
+                    allRecipes={allRecipes}
+                    onToggle={(ingredientId, inBasket) =>
+                      toggleIngredient.mutate({ ingredientId, inBasket })
+                    }
+                  />
+                ))}
+              </Fragment>
+            );
+          })}
+
+        {groupByAisles && untagged.length && (
+          <>
+            <Divider label={"Untagged"} key={"untagged"} />
+            {untagged.map((ingredient) => (
+              <CompactIngredientView
+                key={ingredient.name}
+                token={token}
+                shoppinglistId={shoppinglistId}
+                ingredient={ingredient}
+                allRecipes={allRecipes}
+                onToggle={(ingredientId, inBasket) =>
+                  toggleIngredient.mutate({ ingredientId, inBasket })
+                }
+              />
+            ))}
+          </>
+        )}
       </ul>
     </div>
   );
