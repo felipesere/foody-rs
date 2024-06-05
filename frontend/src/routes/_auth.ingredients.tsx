@@ -27,25 +27,12 @@ function IngredientsPage() {
   const [selected, setSelected] = useState<number | undefined>(undefined);
 
   useHotkeys(
-    "j",
-    () => {
+    ["j", "k"],
+    (_, hotkey) => {
       setSelected((previous) => {
         if (previous !== undefined) {
-          return (previous + 1) % (ingredients?.length || 0);
-        }
-        return 0;
-      });
-    },
-    {},
-    [ingredients],
-  );
-
-  useHotkeys(
-    "k",
-    () => {
-      setSelected((previous) => {
-        if (previous !== undefined) {
-          return (previous - 1) % (ingredients?.length || 0);
+          const next = hotkey.keys?.includes("j") ? previous + 1 : previous - 1;
+          return next % (ingredients?.length || 0);
         }
         return 0;
       });
