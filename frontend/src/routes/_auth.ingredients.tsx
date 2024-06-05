@@ -1,10 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import classnames from "classnames";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { toast } from "sonner";
+import { z } from "zod";
 import {
   type Ingredient,
+  IngredientSchema,
   addIngredientToShoppinglist,
   useAllIngredients,
   useSetIngredientTags,
@@ -16,15 +18,28 @@ import { Divider } from "../components/divider.tsx";
 import { MultiSelect } from "../components/multiselect.tsx";
 import { ResizingInput } from "../components/resizeableInput.tsx";
 import { ToggleButton } from "../components/toggle.tsx";
+import { useScrollTo } from "../hooks/useScrollTo.ts";
+
+const ingredientSearchSchema = z.object({
+  ingredient: IngredientSchema.pick({ id: true }).optional(),
+});
+
+// type IngredientSearch = z.infer<typeof ingredientSearchSchema>;
 
 export const Route = createFileRoute("/_auth/ingredients")({
   component: IngredientsPage,
+  validateSearch: ingredientSearchSchema,
 });
 
 function IngredientsPage() {
   const { token } = Route.useRouteContext();
   const { data: ingredients } = useAllIngredients(token);
-  const [selected, setSelected] = useState<number | undefined>(undefined);
+  const { ingredient } = Route.useSearch();
+  let selectedIndex = undefined;
+  if (ingredient?.id && ingredients) {
+    selectedIndex = ingredients.findIndex((i) => i.id === ingredient.id);
+  }
+  const [selected, setSelected] = useState<number | undefined>(selectedIndex);
 
   useHotkeys(
     ["j", "k"],
@@ -82,6 +97,11 @@ function IngredientView(props: IngredientViewProps) {
   const [open, setOpen] = useState(false);
   const [edit, setEdit] = useState(false);
   const [temporaryName, setTemporaryName] = useState<string>("");
+  const [scrollToRef, setScrollTo] = useScrollTo<HTMLLIElement>();
+
+  useEffect(() => {
+    setScrollTo(props.selected);
+  }, [setScrollTo, props.selected]);
 
   useHotkeys(
     "o",
@@ -94,12 +114,11 @@ function IngredientView(props: IngredientViewProps) {
   );
 
   const [isDirty, setIsDirty] = useState(false);
-
   const anyTags = props.ingredient.tags.length > 0;
-
   const addIngredient = addIngredientToShoppinglist(props.token);
   return (
     <li
+      ref={scrollToRef}
       className={classnames("p-2 border-solid border-2", {
         "border-black": !props.selected,
         "border-yellow-400": props.selected,

@@ -4,7 +4,7 @@ import { http } from "./http.ts";
 import type { Quantity } from "./recipes.ts";
 import type { Shoppinglist } from "./shoppinglists.ts";
 
-const IngredientSchema = z.object({
+export const IngredientSchema = z.object({
   id: z.number(),
   name: z.string(),
   tags: z.array(z.string()),

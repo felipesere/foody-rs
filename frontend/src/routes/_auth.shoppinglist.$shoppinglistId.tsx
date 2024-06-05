@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import classnames from "classnames";
 import { Fragment, useState } from "react";
 import { addIngredientToShoppinglist } from "../apis/ingredients.ts";
@@ -124,7 +124,7 @@ export function ShoppingPage() {
           Object.entries(tagged).map(([tag, ingredients]) => {
             return (
               <Fragment key={tag}>
-                <Divider label={tag} key={tag} />
+                <Divider className={"capitalize"} label={tag} />
                 {ingredients.map((ingredient) => (
                   <CompactIngredientView
                     key={ingredient.name}
@@ -143,7 +143,11 @@ export function ShoppingPage() {
 
         {groupByAisles && untagged.length && (
           <>
-            <Divider label={"Untagged"} key={"untagged"} />
+            <Divider
+              className={"capitalize"}
+              label={"untagged"}
+              key={"untagged"}
+            />
             {untagged.map((ingredient) => (
               <CompactIngredientView
                 key={ingredient.name}
@@ -361,6 +365,14 @@ function EditIngredient({
         >
           Delete
         </button>
+        <Link
+          className={"underline"}
+          from={Route.fullPath}
+          to={"/ingredients"}
+          search={{ ingredient: { id: ingredient.id } }}
+        >
+          Full edit
+        </Link>
       </ButtonGroup>
     </div>
   );
