@@ -15,6 +15,7 @@ import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { DeleteRowButton } from "../components/deleteRowButton.tsx";
 import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
+import { FieldSet } from "../components/fieldset.tsx";
 import { FindIngredient } from "../components/findIngredient.tsx";
 import { ResizingInput } from "../components/resizeableInput.tsx";
 import { humanize } from "../quantities.ts";
@@ -107,8 +108,7 @@ function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
           void form.handleSubmit();
         }}
       >
-        <fieldset className={"border-black border-2 p-2 flex flex-row gap-4"}>
-          <legend className={"px-2"}>Name</legend>
+        <FieldSet legend={"Name"}>
           <form.Field
             name={"name"}
             children={(field) => (
@@ -120,10 +120,9 @@ function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
               />
             )}
           />
-        </fieldset>
+        </FieldSet>
 
-        <fieldset className={"border-black border-2 p-2 flex flex-row gap-4"}>
-          <legend className={"px-2"}>Kind of source</legend>
+        <FieldSet legend={"Kind of source"}>
           <form.Field
             name="source"
             children={(field) => (
@@ -153,16 +152,14 @@ function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
               </>
             )}
           />
-        </fieldset>
+        </FieldSet>
 
         <form.Subscribe
           selector={(state) => [state.values.source]}
           children={([source]) => {
             if (source === "book") {
               return (
-                <fieldset className={"border-black border-2 p-2"}>
-                  <legend className={"px-2"}>Book</legend>
-
+                <FieldSet legend={"Book"}>
                   <form.Field
                     name={"title"}
                     children={(field) => (
@@ -196,7 +193,7 @@ function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
                       </div>
                     )}
                   />
-                </fieldset>
+                </FieldSet>
               );
             }
             if (source === "website") {
@@ -204,8 +201,7 @@ function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
                 <form.Field
                   name={"url"}
                   children={(field) => (
-                    <fieldset className={"border-black border-2 p-2"}>
-                      <legend className={"px-2"}>Website</legend>
+                    <FieldSet legend={"Website"}>
                       <div className={"flex flex-row gap-2"}>
                         <label>URL</label>
                         <ResizingInput
@@ -216,7 +212,7 @@ function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
                           onChange={(e) => field.handleChange(e.target.value)}
                         />
                       </div>
-                    </fieldset>
+                    </FieldSet>
                   )}
                 />
               );
@@ -229,8 +225,7 @@ function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
           mode={"array"}
           children={(ingredientsField) => {
             return (
-              <fieldset className={"border-black border-2 p-2"}>
-                <legend className={"px-2"}>Ingredients</legend>
+              <FieldSet legend={"Ingredients"}>
                 <ol>
                   {ingredientsField.state.value.map((ingredient, idx) => {
                     return (
@@ -262,20 +257,20 @@ function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
                       </li>
                     );
                   })}
-                </ol>
 
-                <FindIngredient
-                  className={"mt-2"}
-                  token={token}
-                  onIngredient={(ingredient, quantity) => {
-                    ingredientsField.pushValue({
-                      name: ingredient.name,
-                      id: ingredient.id,
-                      quantity: humanize(quantity),
-                    });
-                  }}
-                />
-              </fieldset>
+                  <FindIngredient
+                    className={"mt-2"}
+                    token={token}
+                    onIngredient={(ingredient, quantity) => {
+                      ingredientsField.pushValue({
+                        name: ingredient.name,
+                        id: ingredient.id,
+                        quantity: humanize(quantity),
+                      });
+                    }}
+                  />
+                </ol>
+              </FieldSet>
             );
           }}
         />
