@@ -134,7 +134,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "unit": "count",
                   "value": 10.0
                 }
-              ]
+              ],
+              "tags": []
             }
           ],
           "last_updated": "[date]",
@@ -175,7 +176,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "unit": "count",
                   "value": 10.0
                 }
-              ]
+              ],
+              "tags": []
             }
           ],
           "last_updated": "[date]",
@@ -228,7 +230,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "unit": "tablespoon",
                   "value": 2.0
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redacted]",
@@ -241,7 +244,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "text": "3x",
                   "unit": "arbitrary"
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redacted]",
@@ -254,7 +258,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "unit": "gram",
                   "value": 100.0
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redacted]",
@@ -267,7 +272,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "text": "1 sheet",
                   "unit": "arbitrary"
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redacted]",
@@ -280,7 +286,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "unit": "count",
                   "value": 10.0
                 }
-              ]
+              ],
+              "tags": []
             }
           ],
           "last_updated": "[date]",
@@ -320,7 +327,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "unit": "tablespoon",
                   "value": 2.0
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redactor]",
@@ -333,7 +341,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "text": "3x",
                   "unit": "arbitrary"
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redactor]",
@@ -346,7 +355,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "unit": "gram",
                   "value": 100.0
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redactor]",
@@ -359,7 +369,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "text": "1 sheet",
                   "unit": "arbitrary"
                 }
-              ]
+              ],
+              "tags": []
             }
           ],
           "last_updated": "[date]",
@@ -412,7 +423,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "unit": "tablespoon",
                   "value": 2.0
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redacted]",
@@ -425,7 +437,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "text": "3x",
                   "unit": "arbitrary"
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redacted]",
@@ -445,7 +458,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "unit": "kilogram",
                   "value": 3.5
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redacted]",
@@ -458,7 +472,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "text": "1 sheet",
                   "unit": "arbitrary"
                 }
-              ]
+              ],
+              "tags": []
             }
           ],
           "last_updated": "[date]",
@@ -494,7 +509,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "unit": "tablespoon",
                   "value": 2.0
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redacted]",
@@ -507,7 +523,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "text": "3x",
                   "unit": "arbitrary"
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redacted]",
@@ -527,7 +544,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "unit": "kilogram",
                   "value": 3.5
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redacted]",
@@ -540,7 +558,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "text": "1 sheet",
                   "unit": "arbitrary"
                 }
-              ]
+              ],
+              "tags": []
             }
           ],
           "last_updated": "[date]",
@@ -593,7 +612,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "unit": "count",
                   "value": 2.0
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redacted]",
@@ -606,7 +626,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "unit": "tablespoon",
                   "value": 2.0
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redacted]",
@@ -619,7 +640,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "unit": "gram",
                   "value": 230.0
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redacted]",
@@ -632,7 +654,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "unit": "count",
                   "value": 2.0
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redacted]",
@@ -645,7 +668,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "unit": "tablespoon",
                   "value": 1.0
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redacted]",
@@ -658,7 +682,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "text": "pinch",
                   "unit": "arbitrary"
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redacted]",
@@ -671,7 +696,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "text": "3x",
                   "unit": "arbitrary"
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redacted]",
@@ -684,7 +710,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "unit": "count",
                   "value": 1.0
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redacted]",
@@ -697,7 +724,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "text": "1 bag",
                   "unit": "arbitrary"
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redacted]",
@@ -710,7 +738,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "unit": "tablespoon",
                   "value": 4.0
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redacted]",
@@ -730,7 +759,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "unit": "kilogram",
                   "value": 3.5
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redacted]",
@@ -743,7 +773,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "text": "1 sheet",
                   "unit": "arbitrary"
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redacted]",
@@ -756,7 +787,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "unit": "count",
                   "value": 1.0
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redacted]",
@@ -769,7 +801,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "unit": "count",
                   "value": 1.0
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redacted]",
@@ -782,7 +815,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "unit": "count",
                   "value": 1.0
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redacted]",
@@ -795,7 +829,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "text": "pinch",
                   "unit": "arbitrary"
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redacted]",
@@ -808,7 +843,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "unit": "tablespoon",
                   "value": 4.0
                 }
-              ]
+              ],
+              "tags": []
             },
             {
               "id": "[redacted]",
@@ -821,7 +857,8 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                   "unit": "count",
                   "value": 8.0
                 }
-              ]
+              ],
+              "tags": []
             }
           ],
           "last_updated": "[date]",

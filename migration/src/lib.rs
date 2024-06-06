@@ -18,6 +18,9 @@ mod m20240321_201052_alert_ingredients_in_shoppinglist_track_recipes;
 mod m20240413_203033_remove_notes;
 mod m20240527_152107_add_tags_to_ingredients;
 mod m20240527_170641_tags_are_arrays;
+mod m20240606_074154_tags;
+mod m20240606_104740_tags_on_ingredients;
+mod m20240606_104940_tags_order_nullable;
 pub struct Migrator;
 
 #[async_trait::async_trait]
@@ -39,6 +42,9 @@ impl MigratorTrait for Migrator {
             Box::new(m20240413_203033_remove_notes::Migration),
             Box::new(m20240527_152107_add_tags_to_ingredients::Migration),
             Box::new(m20240527_170641_tags_are_arrays::Migration),
+            Box::new(m20240606_074154_tags::Migration),
+            Box::new(m20240606_104740_tags_on_ingredients::Migration),
+            Box::new(m20240606_104940_tags_order_nullable::Migration),
         ]
     }
 }
