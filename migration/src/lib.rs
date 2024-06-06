@@ -21,6 +21,7 @@ mod m20240527_170641_tags_are_arrays;
 mod m20240606_074154_tags;
 mod m20240606_104740_tags_on_ingredients;
 mod m20240606_104940_tags_order_nullable;
+mod m20240606_110159_move_current_tags_to_new_table;
 pub struct Migrator;
 
 #[async_trait::async_trait]
@@ -45,6 +46,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20240606_074154_tags::Migration),
             Box::new(m20240606_104740_tags_on_ingredients::Migration),
             Box::new(m20240606_104940_tags_order_nullable::Migration),
+            Box::new(m20240606_110159_move_current_tags_to_new_table::Migration),
         ]
     }
 }
