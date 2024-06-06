@@ -3,9 +3,9 @@
 # Application logging configuration
 logger:
   # Enable or disable logging.
-  enable: false
+  enable: true
   # Log level, options: trace, debug, info, warn or error.
-  level: debug
+  level: trace
   # Define the logging format. options: compact, pretty or Json
   format: compact
   # By default the logger has filtering only logs that came from your code or logs that came from `loco` framework. to see all third party libraries

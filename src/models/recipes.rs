@@ -67,6 +67,7 @@ pub(crate) async fn find_all(db: &DatabaseConnection) -> Result<Vec<FullRecipe>,
     Ok(result)
 }
 
+// TODO: actually join in on the tags!
 pub(crate) async fn find_one(
     db: &DatabaseConnection,
     id: i32,
@@ -87,7 +88,6 @@ pub(crate) async fn find_one(
             "r1"."updated_at" as "i_updated_at",
             "r1"."id" as "i_id",
             "r1"."name" as "i_name",
-            "r1"."tags" as "i_tags",
             "q"."id" as "q_id",
             "q"."created_at" as "q_created_at",
             "q"."updated_at" as "q_updated_at",
@@ -100,6 +100,8 @@ pub(crate) async fn find_one(
             on "r0"."recipes_id" = "recipes"."id"
         left join "ingredients" as "r1" on "r0"."ingredients_id" = "r1"."id"
         left join "quantities" as "q" on "r0"."quantities_id" = "q".id
+        left join "tags_on_ingredients" as "t_on_i" on "t_on_i"."ingredient_id" = "r1"."id"
+        left join "tags" as "t" on "t_on_i"."tag_id" = "t".id
         where "recipes"."id" = $1
         order by "recipes"."id" asc, "r1"."id" asc, "q"."id" asc
         "#,

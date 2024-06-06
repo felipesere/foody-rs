@@ -1,11 +1,15 @@
 #![allow(clippy::unused_async)]
 use axum::extract;
-use ingredients::ingredients::ActiveModel;
+use ingredients::ingredients::IngredientToTags;
 use loco_rs::{controller::middleware, prelude::*};
-use sea_orm::{SqlErr, TransactionTrait};
+use sea_orm::{ActiveValue, SqlErr, TransactionTrait};
 use serde::{Deserialize, Serialize};
 
 use crate::models::{
+    _entities::{
+        tags::{self, batch_insert_if_not_exists, Model as Tag},
+        tags_on_ingredients,
+    },
     ingredients::{self, Model as Ingredient},
     users,
 };
@@ -17,12 +21,12 @@ pub struct IngredientResponse {
     tags: Vec<String>,
 }
 
-impl From<Ingredient> for IngredientResponse {
-    fn from(value: Ingredient) -> Self {
+impl From<(Ingredient, Vec<Tag>)> for IngredientResponse {
+    fn from((value, tags): (Ingredient, Vec<Tag>)) -> Self {
         Self {
             id: value.id,
             name: value.name,
-            tags: value.tags,
+            tags: tags.into_iter().map(|t| t.name).collect(),
         }
     }
 }
@@ -34,7 +38,12 @@ pub async fn all_ingredients(
     // check auth
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
-    let igs: Vec<Ingredient> = ingredients::Entity::find().all(&ctx.db).await?;
+    let igs: Vec<(Ingredient, Vec<tags::Model>)> = ingredients::Entity::find()
+        .find_with_linked(IngredientToTags)
+        .all(&ctx.db)
+        .await?;
+
+    dbg!(&igs);
 
     format::json(
         igs.into_iter()
@@ -59,9 +68,10 @@ pub async fn add_ingredient(
 
     let tx = ctx.db.begin().await?;
 
+    let tags = batch_insert_if_not_exists(&tx, &params.tags).await?;
+
     let ingredient_outcome = ingredients::ActiveModel {
-        name: sea_orm::ActiveValue::Set(params.name.clone()),
-        tags: sea_orm::ActiveValue::Set(params.tags.clone()),
+        name: ActiveValue::Set(params.name.clone()),
         ..Default::default()
     }
     .insert(&tx)
@@ -69,8 +79,21 @@ pub async fn add_ingredient(
 
     match ingredient_outcome {
         Ok(ingredient) => {
+            let mut tags_on_ingredient = Vec::new();
+            for tag_id in tags {
+                tags_on_ingredient.push(tags_on_ingredients::ActiveModel {
+                    tag_id: ActiveValue::Set(tag_id),
+                    ingredient_id: ActiveValue::Set(ingredient.id),
+                    ..Default::default()
+                })
+            }
+
+            tags_on_ingredients::Entity::insert_many(tags_on_ingredient)
+                .exec(&tx)
+                .await?;
+
             tx.commit().await?;
-            format::json(IngredientResponse::from(ingredient))
+            format::json(IngredientResponse::from((ingredient, vec![])))
         }
         Err(other_err) => {
             if let Some(SqlErr::UniqueConstraintViolation(_)) = other_err.sql_err() {
@@ -82,7 +105,7 @@ pub async fn add_ingredient(
                     .await?
                     .ok_or(Error::NotFound)?;
 
-                return format::json(IngredientResponse::from(ingredient));
+                return format::json(IngredientResponse::from((ingredient, vec![])));
             }
             tx.rollback().await?;
             Err(loco_rs::Error::DB(other_err))
@@ -109,9 +132,21 @@ async fn set_tags_in_ingredient(
         .await?
         .ok_or_else(|| Error::NotFound)?;
 
-    let mut model = ActiveModel::from(ingredient);
-    model.tags = ActiveValue::set(params.tags);
-    model.save(&tx).await?;
+    let tag_ids = batch_insert_if_not_exists(&tx, &params.tags).await?;
+
+    let tags: Vec<_> = tag_ids
+        .into_iter()
+        .map(|tag_id| tags_on_ingredients::ActiveModel {
+            tag_id: ActiveValue::Set(tag_id),
+            ingredient_id: ActiveValue::Set(ingredient.id),
+            ..Default::default()
+        })
+        .collect();
+
+    tags_on_ingredients::Entity::insert_many(tags)
+        .exec(&tx)
+        .await?;
+
     tx.commit().await?;
 
     Ok(())
