@@ -43,8 +43,6 @@ pub async fn all_ingredients(
         .all(&ctx.db)
         .await?;
 
-    dbg!(&igs);
-
     format::json(
         igs.into_iter()
             .map(IngredientResponse::from)
