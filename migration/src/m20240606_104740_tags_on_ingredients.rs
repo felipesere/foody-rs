@@ -46,9 +46,7 @@ enum TagsOnIngredients {
     Id,
     TagId,
     IngredientId,
-    
 }
-
 
 #[derive(DeriveIden)]
 enum Tags {
