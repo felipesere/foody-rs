@@ -3,7 +3,7 @@
 # Application logging configuration
 logger:
   # Enable or disable logging.
-  enable: true
+  enable: false
   # Enable pretty backtrace (sets RUST_BACKTRACE=1)
   pretty_backtrace: true
   # Log level, options: trace, debug, info, warn or error.
@@ -93,9 +93,9 @@ database:
   # Database connection URI
   uri: {{ get_env(name="DATABASE_URL", default="postgres://loco:loco@localhost:5432/foody_development") }}
   # When enabled, the sql query will be logged.
-  enable_logging: true
+  enable_logging: false
   # Set the timeout duration when acquiring a connection.
-  connect_timeout: 500
+  connect_timeout: 5000
   # Set the idle duration before closing a connection.
   idle_timeout: 500
   # Minimum number of connections for a pool.

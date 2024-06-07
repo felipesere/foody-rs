@@ -60,6 +60,7 @@ impl Hooks for App {
     fn connect_workers<'a>(_p: &'a mut Processor, _ctx: &'a AppContext) {}
 
     fn register_tasks(tasks: &mut Tasks) {
+        tasks.register(tasks::tagger::Tagger);
         tasks.register(tasks::list_users::ListUsers);
         tasks.register(tasks::change_password::ChangePassword);
         tasks.register(tasks::create_user::CreateUser);
