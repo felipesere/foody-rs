@@ -68,7 +68,11 @@ pub async fn add_ingredient(
 
     let tx = ctx.db.begin().await?;
 
-    let tags = batch_insert_if_not_exists(&tx, &params.tags).await?;
+    let tags = if !params.tags.is_empty() {
+        batch_insert_if_not_exists(&tx, &params.tags).await?
+    } else {
+        vec![]
+    };
 
     let ingredient_outcome = ingredients::ActiveModel {
         name: ActiveValue::Set(params.name.clone()),
@@ -79,18 +83,20 @@ pub async fn add_ingredient(
 
     match ingredient_outcome {
         Ok(ingredient) => {
-            let mut tags_on_ingredient = Vec::new();
-            for tag_id in tags {
-                tags_on_ingredient.push(tags_on_ingredients::ActiveModel {
-                    tag_id: ActiveValue::Set(tag_id),
-                    ingredient_id: ActiveValue::Set(ingredient.id),
-                    ..Default::default()
-                })
-            }
+            if !params.tags.is_empty() {
+                let mut tags_on_ingredient = Vec::new();
+                for tag_id in tags {
+                    tags_on_ingredient.push(tags_on_ingredients::ActiveModel {
+                        tag_id: ActiveValue::Set(tag_id),
+                        ingredient_id: ActiveValue::Set(ingredient.id),
+                        ..Default::default()
+                    })
+                }
 
-            tags_on_ingredients::Entity::insert_many(tags_on_ingredient)
-                .exec(&tx)
-                .await?;
+                tags_on_ingredients::Entity::insert_many(tags_on_ingredient)
+                    .exec(&tx)
+                    .await?;
+            }
 
             tx.commit().await?;
             format::json(IngredientResponse::from((ingredient, vec![])))
