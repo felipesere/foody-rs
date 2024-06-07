@@ -6,4 +6,6 @@ pub use super::ingredients_in_shoppinglists::Entity as IngredientsInShoppinglist
 pub use super::quantities::Entity as Quantities;
 pub use super::recipes::Entity as Recipes;
 pub use super::shoppinglists::Entity as Shoppinglists;
+pub use super::tags::Entity as Tags;
+pub use super::tags_on_ingredients::Entity as TagsOnIngredients;
 pub use super::users::Entity as Users;

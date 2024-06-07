@@ -8,10 +8,10 @@ use sea_orm::{Condition, QueryFilter, TransactionTrait};
 use serde::{Deserialize, Serialize};
 
 use crate::models::_entities::ingredients_in_shoppinglists;
+use crate::models::ingredients;
 use crate::models::ingredients::ingredients::Column;
-use crate::models::ingredients::{self, Model as Ingredient};
 use crate::models::quantities::{self, Model as Quantity};
-use crate::models::shoppinglists::{self, Shoppinglist};
+use crate::models::shoppinglists::{self, FullShoppinglist, Item, Shoppinglist};
 use crate::models::users;
 
 #[derive(Serialize)]
@@ -88,17 +88,6 @@ impl From<Shoppinglist> for ShoppinglistResponse {
             name: value.name,
             ingredients: Vec::new(),
             last_updated: value.updated_at.format("%Y-%m-%dT%H:%M:%SZ").to_string(),
-        }
-    }
-}
-
-impl From<Ingredient> for ListItem {
-    fn from(value: Ingredient) -> Self {
-        Self {
-            id: value.id,
-            name: value.name,
-            tags: value.tags,
-            quantities: Vec::new(),
         }
     }
 }
@@ -268,7 +257,7 @@ pub async fn shoppinglist(
 ) -> Result<Response> {
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
-    let Some((list, ingredients)) = Shoppinglist::find_one(&ctx.db, id).await? else {
+    let Some(FullShoppinglist { list, items }) = Shoppinglist::find_one(&ctx.db, id).await? else {
         return Err(Error::NotFound);
     };
 
@@ -276,21 +265,34 @@ pub async fn shoppinglist(
         id: list.id,
         name: list.name,
         last_updated: list.updated_at.format("%Y-%m-%dT%H:%M:%SZ").to_string(),
-        ingredients: ingredients
+        ingredients: items
             .into_iter()
-            .map(|(ingredient, quantities)| ListItem {
-                id: ingredient.id,
-                name: ingredient.name,
-                tags: ingredient.tags,
-                quantities: quantities
-                    .into_iter()
-                    .map(|(in_basket, quantity, recipe_id)| ItemQuantity {
-                        quantity: quantity.into(),
-                        in_basket,
-                        recipe_id,
-                    })
-                    .collect(),
-            })
+            .map(
+                |Item {
+                     ingredient,
+                     quantities,
+                     tags,
+                 }| ListItem {
+                    id: ingredient.id,
+                    name: ingredient.name,
+                    tags: tags.into_iter().collect(),
+                    quantities: quantities
+                        .into_iter()
+                        .map(
+                            // TODO: Consider if I just want to output this without re-mapping...
+                            |shoppinglists::ItemQuantity {
+                                 quantity,
+                                 in_basket,
+                                 recipe_id,
+                             }| ItemQuantity {
+                                quantity: quantity.into(),
+                                in_basket,
+                                recipe_id,
+                            },
+                        )
+                        .collect(),
+                },
+            )
             .collect(),
     })
 }
