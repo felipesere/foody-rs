@@ -23,7 +23,6 @@ import { FindIngredient } from "../components/findIngredient.tsx";
 import { SelectTags } from "../components/selectTags.tsx";
 import { Toggle, ToggleButton } from "../components/toggle.tsx";
 import { combineQuantities, humanize, parse } from "../quantities.ts";
-
 export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId")({
   component: ShoppingPage,
 });

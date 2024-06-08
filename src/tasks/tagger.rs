@@ -14,7 +14,7 @@ impl Task for Tagger {
     fn task(&self) -> TaskInfo {
         TaskInfo {
             name: "tagger".to_string(),
-            detail: "Task generator".to_string(),
+            detail: "Prompts user to tag items on DB".to_string(),
         }
     }
     async fn run(&self, app_context: &AppContext, _vars: &BTreeMap<String, String>) -> Result<()> {
