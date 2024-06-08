@@ -2,6 +2,7 @@ import { useForm } from "@tanstack/react-form";
 import { createFileRoute } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-form-adapter";
 import { z } from "zod";
+import { useTags } from "../apis/tags.ts";
 import { useLogin, useLogout, useUser } from "../apis/user.ts";
 
 const RedirectAfterLoginSchema = z.object({
@@ -35,18 +36,21 @@ function UserDetails(props: { token: string }) {
   );
 
   return (
-    <div>
-      {greeting}
-      <button
-        disabled={!user.data}
-        className={"px-2"}
-        type={"submit"}
-        onClick={async () => {
-          await logout();
-        }}
-      >
-        Sign out
-      </button>
+    <div className={"content-grid gap-4"}>
+      <div>
+        {greeting}
+        <button
+          disabled={!user.data}
+          className={"px-2"}
+          type={"submit"}
+          onClick={async () => {
+            await logout();
+          }}
+        >
+          Sign out
+        </button>
+      </div>
+      <AdminPanel token={props.token} />
     </div>
   );
 }
@@ -135,6 +139,51 @@ function Login() {
           )}
         />
       </form>
+    </div>
+  );
+}
+
+function AdminPanel(props: { token: string }) {
+  const tags = useTags(props.token);
+  console.log(tags);
+  if (!tags.data) {
+    return undefined;
+  }
+  tags.data.sort((a, b) => {
+    if (a.order && b.order) {
+      return a.order - b.order;
+    }
+
+    return a.order === null ? 1 : -1;
+  });
+
+  return (
+    <div>
+      <h2>Tags</h2>
+      <table className={"table-auto mt-2"}>
+        <thead>
+          <tr>
+            <th className={"pr-2 text-left"}>Name</th>
+            <th className={"pr-2 text-left"}>Order</th>
+            <th className={"pr-2 text-left"}>Is aisle</th>
+          </tr>
+        </thead>
+        <tbody>
+          {tags.data.map((t) => (
+            <tr key={t.name}>
+              <td className={"pr-2"}>{t.name}</td>
+              <td className={"pr-2"}>{t.order || ""}</td>
+              <td className={"pr-2"}>
+                <input
+                  type={"checkbox"}
+                  className={"px-2 bg-white shadow"}
+                  defaultChecked={t.is_aisle}
+                />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
