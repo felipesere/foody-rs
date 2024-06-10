@@ -37,6 +37,7 @@ const ItemQuantitySchema = StoredQuantitySchema.extend({
 const IngredientSchema = z.object({
   id: z.number(),
   name: z.string(),
+  note: z.string().nullable(),
   tags: z.array(z.string()),
   quantities: z.array(ItemQuantitySchema),
 });
@@ -376,6 +377,47 @@ export function useUpdateQuantityOnShoppinglist(
         `Failed to update quantity ${
           params.id
         } on shoppinglist ${shoppinglistId}: ${JSON.stringify(err, null, 2)}`,
+      );
+      toast.error("Failed to update quantity on shoppinglist");
+    },
+  });
+}
+
+type UpdateNoteParams = { note: string };
+export function useSetNoteOnIngredient(
+  token: string,
+  shoppinglistId: Shoppinglist["id"],
+  ingredientId: Ingredient["id"],
+) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: UpdateNoteParams) => {
+      await http
+        .post(
+          `api/shoppinglists/${shoppinglistId}/ingredient/${ingredientId}/note`,
+          {
+            json: {
+              note: params.note,
+            },
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        )
+        .json();
+    },
+    onSettled: () => {
+      return client.invalidateQueries({
+        queryKey: ["shoppinglist", shoppinglistId],
+      });
+    },
+    onError: (err) => {
+      console.log(
+        `Failed to attach note to ${shoppinglistId}: ${JSON.stringify(
+          err,
+          null,
+          2,
+        )}`,
       );
       toast.error("Failed to update quantity on shoppinglist");
     },

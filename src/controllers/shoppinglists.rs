@@ -46,6 +46,7 @@ struct ListItem {
     name: String,
     tags: Vec<String>,
     quantities: Vec<ItemQuantity>,
+    note: Option<String>,
 }
 
 #[derive(Serialize, Clone, Debug)]
@@ -272,10 +273,12 @@ pub async fn shoppinglist(
                      ingredient,
                      quantities,
                      tags,
+                     note,
                  }| ListItem {
                     id: ingredient.id,
                     name: ingredient.name,
                     tags: tags.into_iter().collect(),
+                    note,
                     quantities: quantities
                         .into_iter()
                         .map(
@@ -319,6 +322,35 @@ pub async fn toggle_in_basket_for_item(
         .col_expr(
             ingredients_in_shoppinglists::Column::InBasket,
             Expr::value(params.in_basket),
+        )
+        .exec(&ctx.db)
+        .await?;
+
+    Ok(())
+}
+
+#[derive(Deserialize)]
+pub struct NoteOnItem {
+    note: String,
+}
+
+pub async fn add_note_to_item(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+    Path((id, ingredient_id)): Path<(u32, u32)>,
+    extract::Json(params): extract::Json<NoteOnItem>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    ingredients_in_shoppinglists::Entity::update_many()
+        .filter(
+            Condition::all()
+                .add(ingredients_in_shoppinglists::Column::ShoppinglistsId.eq(id))
+                .add(ingredients_in_shoppinglists::Column::IngredientsId.eq(ingredient_id)),
+        )
+        .col_expr(
+            ingredients_in_shoppinglists::Column::Note,
+            Expr::value(params.note),
         )
         .exec(&ctx.db)
         .await?;
@@ -497,6 +529,10 @@ pub fn routes() -> Routes {
         .add(
             "/:id/ingredient/:ingredient_id/in_basket",
             post(toggle_in_basket_for_item),
+        )
+        .add(
+            "/:id/ingredient/:ingredient_id/note",
+            post(add_note_to_item),
         )
         .add("/:id/recipe/:recipe_id", post(add_recipe_to_shoppinglist))
         .add(

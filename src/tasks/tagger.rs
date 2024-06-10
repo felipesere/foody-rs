@@ -119,7 +119,7 @@ impl DbTagger {
     ) -> (JoinHandle<()>, tokio::sync::mpsc::UnboundedSender<Msg>) {
         let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
 
-        let tagger = DbTagger { db: conn, rx };
+        let tagger = Self { db: conn, rx };
 
         let fut = move || async {
             let mut this = tagger;

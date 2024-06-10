@@ -26,6 +26,7 @@ pub struct Item {
     pub ingredient: Ingredient,
     pub quantities: Vec<ItemQuantity>,
     pub tags: BTreeSet<String>,
+    pub note: Option<String>,
 }
 
 pub struct FullShoppinglist {
@@ -52,6 +53,7 @@ impl Shoppinglist {
                 "r1"."name" as "i_name",
                 "r0"."in_basket" as "iis_in_basket",
                 "r0"."recipe_id" as "iis_recipe_id",
+                "r0"."note" as "iis_note",
                 "q"."id" as "q_id",
                 "q"."created_at" as "q_created_at",
                 "q"."updated_at" as "q_updated_at",
@@ -82,6 +84,7 @@ impl Shoppinglist {
             let in_basket = row.try_get::<Option<bool>>("iis_", "in_basket")?;
 
             let recipe_id = row.try_get::<Option<i32>>("iis_", "recipe_id")?;
+            let note = row.try_get::<Option<String>>("iis_", "note")?;
             let tag = row.try_get::<Option<String>>("t_", "tag")?;
 
             if result.is_empty() || result[result.len() - 1].list.id != list.id {
@@ -115,6 +118,7 @@ impl Shoppinglist {
                     ingredient,
                     quantities: vec![item_quantity],
                     tags: BTreeSet::from_iter(tag.into_iter()),
+                    note,
                 });
             };
         }
@@ -199,6 +203,7 @@ impl Shoppinglist {
                     ingredient,
                     quantities: vec![item_quantity],
                     tags: BTreeSet::from_iter(tag.into_iter()),
+                    note: None,
                 })
             };
         }

@@ -8,6 +8,7 @@ import {
   type Shoppinglist,
   useRemoveIngredientFromShoppinglist,
   useRemoveQuantityFromShoppinglist,
+  useSetNoteOnIngredient,
   useToggleIngredientInShoppinglist,
   useUpdateQuantityOnShoppinglist,
 } from "../apis/shoppinglists.ts";
@@ -245,6 +246,12 @@ function EditIngredient({
   allRecipes,
 }: EditIngredientProps) {
   const [isEditing, setIsEditing] = useState(false);
+  const [newNote, setNewNote] = useState<string | undefined>(undefined);
+  const useAddNote = useSetNoteOnIngredient(
+    token,
+    shoppinglistId,
+    ingredient.id,
+  );
 
   const [changes, setChanges] = useState<Changes>({
     removals: [],
@@ -277,6 +284,21 @@ function EditIngredient({
   return (
     <div>
       <Divider />
+      {(ingredient.note || newNote) && (
+        <>
+          <div className={"flex flex-row gap-2"}>
+            <span>Note:</span>
+            <Editable
+              isEditing={isEditing}
+              value={newNote || ingredient.note || ""}
+              onBlur={(v) => {
+                useAddNote.mutate({ note: v });
+              }}
+            />
+          </div>
+          <Divider />
+        </>
+      )}
       {modifiedIngredient.quantities.map((quantity) => (
         <div key={quantity.id} className={"flex flex-row"}>
           <div className={"w-5"}>
@@ -355,6 +377,16 @@ function EditIngredient({
           }}
         >
           {isEditing ? "Save" : "Edit"}
+        </button>
+        <button
+          type={"button"}
+          className={"px-2"}
+          disabled={ingredient.note !== null}
+          onClick={() => {
+            setNewNote("...");
+          }}
+        >
+          Note
         </button>
         <button
           type={"button"}

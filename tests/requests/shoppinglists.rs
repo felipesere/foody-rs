@@ -126,6 +126,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redactored]",
               "name": "bananas",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redactored]",
@@ -168,6 +169,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redactored]",
               "name": "bananas",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redactored]",
@@ -222,6 +224,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "double cream",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -236,6 +239,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "leeks",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -250,6 +254,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "parmesan shavings",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -264,6 +269,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "puff pastry",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -278,6 +284,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "bananas",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -319,6 +326,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redactor]",
               "name": "double cream",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redactor]",
@@ -333,6 +341,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redactor]",
               "name": "leeks",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redactor]",
@@ -347,6 +356,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redactor]",
               "name": "parmesan shavings",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redactor]",
@@ -361,6 +371,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redactor]",
               "name": "puff pastry",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redactor]",
@@ -415,6 +426,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "double cream",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -429,6 +441,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "leeks",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -443,6 +456,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "parmesan shavings",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -464,6 +478,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "puff pastry",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -501,6 +516,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "double cream",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -515,6 +531,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "leeks",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -529,6 +546,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "parmesan shavings",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -550,6 +568,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "puff pastry",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -604,6 +623,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "chicken breasts",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -618,6 +638,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "double cream",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -632,6 +653,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "fresh salsa",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -646,6 +668,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "garlic",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -660,6 +683,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "ground coriander",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -674,6 +698,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "ground cumin",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -688,6 +713,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "leeks",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -702,6 +728,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "lime",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -716,6 +743,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "mixed salad",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -730,6 +758,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "olive oil",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -744,6 +773,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "parmesan shavings",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -765,6 +795,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "puff pastry",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -779,6 +810,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "red chilli",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -793,6 +825,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "red onion",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -807,6 +840,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "red pepper",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -821,6 +855,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "smoked paprika",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -835,6 +870,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "tabasco",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
@@ -849,6 +885,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             {
               "id": "[redacted]",
               "name": "tortilla",
+              "note": null,
               "quantities": [
                 {
                   "id": "[redacted]",
