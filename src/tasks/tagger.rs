@@ -1,9 +1,8 @@
 use std::collections::BTreeMap;
 
-use crate::models::_entities::{
-    ingredients::{Column, IngredientToTags},
-    prelude::*,
-    tags_on_ingredients,
+use crate::models::{
+    _entities::{ingredients::Column, prelude::*, tags_on_ingredients},
+    ingredients::IngredientToTags,
 };
 use loco_rs::prelude::*;
 use sea_orm::{QueryOrder, QuerySelect};

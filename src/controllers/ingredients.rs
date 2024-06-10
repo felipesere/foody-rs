@@ -1,16 +1,16 @@
 #![allow(clippy::unused_async)]
 use axum::extract;
-use ingredients::ingredients::IngredientToTags;
 use loco_rs::{controller::middleware, prelude::*};
 use sea_orm::{ActiveValue, SqlErr, TransactionTrait};
 use serde::{Deserialize, Serialize};
 
 use crate::models::{
     _entities::{
-        tags::{self, batch_insert_if_not_exists, Model as Tag},
+        tags::{self, Model as Tag},
         tags_on_ingredients,
     },
-    ingredients::{self, Model as Ingredient},
+    ingredients::{self, IngredientToTags, Model as Ingredient},
+    ingredients_in_shoppinglists::batch_insert_if_not_exists,
     users,
 };
 
