@@ -2,8 +2,10 @@ import { useForm } from "@tanstack/react-form";
 import { createFileRoute } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-form-adapter";
 import { z } from "zod";
-import { useTags } from "../apis/tags.ts";
+import { type Tags, useAllTags } from "../apis/tags.ts";
 import { useLogin, useLogout, useUser } from "../apis/user.ts";
+import { ButtonGroup } from "../components/buttonGroup.tsx";
+import { Button } from "../components/button.tsx";
 
 const RedirectAfterLoginSchema = z.object({
   redirect: z.string().optional(),
@@ -144,46 +146,131 @@ function Login() {
 }
 
 function AdminPanel(props: { token: string }) {
-  const tags = useTags(props.token);
-  console.log(tags);
-  if (!tags.data) {
-    return undefined;
-  }
-  tags.data.sort((a, b) => {
-    if (a.order && b.order) {
-      return a.order - b.order;
-    }
+  const tags = useAllTags(props.token);
 
-    return a.order === null ? 1 : -1;
-  });
+  if (!tags.data) {
+    return <p>Loading tags...</p>;
+  }
 
   return (
     <div>
-      <h2>Tags</h2>
-      <table className={"table-auto mt-2"}>
-        <thead>
-          <tr>
-            <th className={"pr-2 text-left"}>Name</th>
-            <th className={"pr-2 text-left"}>Order</th>
-            <th className={"pr-2 text-left"}>Is aisle</th>
-          </tr>
-        </thead>
-        <tbody>
-          {tags.data.map((t) => (
-            <tr key={t.name}>
-              <td className={"pr-2"}>{t.name}</td>
-              <td className={"pr-2"}>{t.order || ""}</td>
-              <td className={"pr-2"}>
-                <input
-                  type={"checkbox"}
-                  className={"px-2 bg-white shadow"}
-                  defaultChecked={t.is_aisle}
-                />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <EditTagsForm token={props.token} tags={tags.data} />
     </div>
+  );
+}
+
+function EditTagsForm(props: { token: string; tags: Tags }) {
+  const form = useForm({
+    defaultValues: {
+      tags: props.tags,
+    },
+    onSubmit: ({ value: { tags } }) => {
+      console.log(`About to submit ${JSON.stringify(tags, null, 2)}`);
+    },
+  });
+
+  return (
+    <>
+      <h2>Tags</h2>
+
+      <form
+        id="tags"
+        className={"grid gap-4"}
+        onSubmit={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          void form.handleSubmit();
+        }}
+      >
+        <table className={"table-auto border-collapse mt-2"}>
+          <thead>
+            <tr>
+              <th className={"pr-4 text-left border-black border-r-2"}>Name</th>
+              <th className={"px-4 text-left border-black border-r-2"}>
+                Is aisle
+              </th>
+              <th className={"px-4 text-left"}>Order</th>
+            </tr>
+          </thead>
+          <tbody>
+            <form.Field
+              name={"tags"}
+              mode={"array"}
+              children={(tagsField) => {
+                return tagsField.state.value.map((t, idx) => {
+                  return (
+                    <tr key={t.name}>
+                      <td className={"pr-4 border-black border-r-2"}>
+                        {t.name}
+                      </td>
+                      <td className={"px-4 border-black border-r-2"}>
+                        <div>
+                          <form.Field
+                            name={`tags[${idx}].is_aisle`}
+                            children={(isAisleField) => {
+                              return (
+                                <input
+                                  name={isAisleField.name}
+                                  type={"checkbox"}
+                                  className={"px-2 bg-white shadow"}
+                                  checked={isAisleField.state.value}
+                                  readOnly={true}
+                                  onClick={() =>
+                                    isAisleField.handleChange((p) => !p)
+                                  }
+                                />
+                              );
+                            }}
+                          />
+                        </div>
+                      </td>
+                      <td className={"px-4"}>
+                        <form.Subscribe
+                          selector={(state) => [
+                            state.values.tags[idx].is_aisle,
+                          ]}
+                          children={([is_aisle]) => is_aisle ? (
+                                  <form.Field
+                                      name={`tags[${idx}].order`}
+                                      children={(orderField) =>
+                                          (
+                                              <input
+                                                  type={"number"}
+                                                  value={orderField.state.value}
+                                                  readOnly={true}
+                                                  onChange={(e) => {
+                                                      orderField.handleChange(
+                                                          +e.target.value,
+                                                      );
+                                                  }}
+                                              />
+                                          )}
+                                  />
+                              ) : (
+                                  <></>
+                              )}
+                        />
+                      </td>
+                    </tr>
+                  );
+                });
+              }}
+            />
+          </tbody>
+        </table>
+        <ButtonGroup>
+          <Button label={"Save"} type={"submit"} hotkey={"ctrl+s"} />
+          <Button
+            label={"Add row"}
+            onClick={() =>
+              form.pushFieldValue("tags", {
+                name: "",
+                is_aisle: false,
+              })
+            }
+          />
+        </ButtonGroup>
+      </form>
+    </>
   );
 }
