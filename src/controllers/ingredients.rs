@@ -147,6 +147,11 @@ async fn set_tags_in_ingredient(
         })
         .collect();
 
+    tags_on_ingredients::Entity::delete_many()
+        .filter(tags_on_ingredients::Column::IngredientId.eq(id))
+        .exec(&tx)
+        .await?;
+
     tags_on_ingredients::Entity::insert_many(tags)
         .exec(&tx)
         .await?;

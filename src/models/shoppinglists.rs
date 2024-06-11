@@ -16,12 +16,14 @@ impl ActiveModelBehavior for ActiveModel {
     // extend activemodel below (keep comment for generators)
 }
 
+#[derive(Debug)]
 pub struct ItemQuantity {
     pub quantity: Quantity,
     pub in_basket: bool,
     pub recipe_id: Option<i32>,
 }
 
+#[derive(Debug)]
 pub struct Item {
     pub ingredient: Ingredient,
     pub quantities: Vec<ItemQuantity>,
@@ -29,6 +31,7 @@ pub struct Item {
     pub note: Option<String>,
 }
 
+#[derive(Debug)]
 pub struct FullShoppinglist {
     pub list: Shoppinglist,
     pub items: Vec<Item>,
@@ -97,12 +100,13 @@ impl Shoppinglist {
             let Some(ingredient) = ingredient else {
                 continue;
             };
+
             let Some(quantity) = quantity else { continue };
             let last_list_idx = result.len();
             let list = &mut result[last_list_idx - 1];
             let items = &mut list.items;
 
-            let idx = items
+            let item_idx = items
                 .iter()
                 .position(|item| item.ingredient.id == ingredient.id);
             let item_quantity = ItemQuantity {
@@ -110,9 +114,17 @@ impl Shoppinglist {
                 recipe_id,
                 in_basket: in_basket.unwrap_or(false),
             };
-            if let Some(idx) = idx {
-                items[idx].quantities.push(item_quantity);
-                items[idx].tags.extend(tag);
+
+            if let Some(item_idx) = item_idx {
+                // Thank you _JOINS_, we've seen this quantity already...
+                items[item_idx].tags.extend(tag);
+                if items[item_idx]
+                    .quantities
+                    .iter()
+                    .any(|q| q.quantity.id != item_quantity.quantity.id)
+                {
+                    items[item_idx].quantities.push(item_quantity);
+                }
             } else {
                 items.push(Item {
                     ingredient,

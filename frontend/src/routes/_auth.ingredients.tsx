@@ -9,14 +9,13 @@ import {
   IngredientSchema,
   addIngredientToShoppinglist,
   useAllIngredients,
-  useSetIngredientTags,
 } from "../apis/ingredients.ts";
 import { AddToShoppinglist } from "../components/addToShoppinglist.tsx";
 import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
-import { MultiSelect } from "../components/multiselect.tsx";
 import { ResizingInput } from "../components/resizeableInput.tsx";
+import { SelectTags } from "../components/selectTags.tsx";
 import { ToggleButton } from "../components/toggle.tsx";
 import { useScrollTo } from "../hooks/useScrollTo.ts";
 
@@ -206,29 +205,5 @@ function IngredientView(props: IngredientViewProps) {
         </>
       )}
     </li>
-  );
-}
-
-function SelectTags(props: {
-  token: string;
-  ingredientId: Ingredient["id"];
-  currentTags: string[];
-  knownTags: string[];
-}) {
-  const setTags = useSetIngredientTags(props.token, props.ingredientId);
-  return (
-    <MultiSelect
-      label={"Select tags"}
-      selected={props.currentTags}
-      items={props.knownTags}
-      onItemsSelected={(tags) => {
-        setTags.mutate({ tags });
-      }}
-      newItemPlaceholder={"New tag..."}
-      onNewItem={(value) => {
-        setTags.mutate({ tags: [...props.currentTags, value] });
-      }}
-      hotkey={"ctrl+t"}
-    />
   );
 }

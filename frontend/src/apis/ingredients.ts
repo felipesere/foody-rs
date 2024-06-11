@@ -100,6 +100,9 @@ type SetTagsParams = {
 export function useSetIngredientTags(
   token: string,
   ingredient: Ingredient["id"],
+  invalidate?: {
+    shoppinglistId: Shoppinglist["id"];
+  },
 ) {
   const client = useQueryClient();
 
@@ -119,6 +122,11 @@ export function useSetIngredientTags(
       return IngredientSchema.parse(response);
     },
     onSettled: async () => {
+      if (invalidate) {
+        await client.invalidateQueries({
+          queryKey: ["shoppinglist", invalidate.shoppinglistId],
+        });
+      }
       return client.invalidateQueries({ queryKey: ["ingredients"] });
     },
   });
