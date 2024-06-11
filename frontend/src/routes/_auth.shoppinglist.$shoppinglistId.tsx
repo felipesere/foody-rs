@@ -23,7 +23,6 @@ import { FindIngredient } from "../components/findIngredient.tsx";
 import { SelectTags } from "../components/selectTags.tsx";
 import { Toggle, ToggleButton } from "../components/toggle.tsx";
 import { combineQuantities, humanize, parse } from "../quantities.ts";
-import {useAllTags} from "../apis/tags.ts";
 export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId")({
   component: ShoppingPage,
 });
@@ -44,8 +43,6 @@ export function ShoppingPage() {
 
   const [groupByAisles, setGroupByAisles] = useState(false);
 
-
-
   if (shoppinglist.isLoading || recipes.isLoading) {
     return <p>Loading</p>;
   }
@@ -63,14 +60,10 @@ export function ShoppingPage() {
       {} as Record<number, string>,
     ) || {};
 
-  const allTags = new Set<string>();
   const tagged: Record<string, Ingredient[]> = {};
   const untagged: Ingredient[] = [];
   for (const i of shoppinglist.data?.ingredients || []) {
     if (i.tags.length) {
-      for (const t of i.tags) {
-        allTags.add(t);
-      }
       const first = i.tags[0];
       const taggedIngredients = tagged[first] || [];
       taggedIngredients.push(i);
@@ -79,7 +72,6 @@ export function ShoppingPage() {
       untagged.push(i);
     }
   }
-  const knownTags = Array.from(allTags.values());
 
   return (
     <div className="content-grid space-y-4 max-w-md">
@@ -123,7 +115,6 @@ export function ShoppingPage() {
               token={token}
               shoppinglistId={shoppinglistId}
               ingredient={ingredient}
-              knownTags={knownTags}
               allRecipes={allRecipes}
               onToggle={(ingredientId, inBasket) =>
                 toggleIngredient.mutate({ ingredientId, inBasket })
@@ -141,7 +132,6 @@ export function ShoppingPage() {
                     token={token}
                     shoppinglistId={shoppinglistId}
                     ingredient={ingredient}
-                    knownTags={knownTags}
                     allRecipes={allRecipes}
                     onToggle={(ingredientId, inBasket) =>
                       toggleIngredient.mutate({ ingredientId, inBasket })
@@ -163,7 +153,6 @@ export function ShoppingPage() {
               <CompactIngredientView
                 key={ingredient.name}
                 token={token}
-                knownTags={knownTags}
                 shoppinglistId={shoppinglistId}
                 ingredient={ingredient}
                 allRecipes={allRecipes}
@@ -182,14 +171,12 @@ export function ShoppingPage() {
 function CompactIngredientView({
   token,
   ingredient,
-  knownTags,
   shoppinglistId,
   onToggle,
   allRecipes,
 }: {
   token: string;
   ingredient: Ingredient;
-  knownTags: string[];
   shoppinglistId: Shoppinglist["id"];
   allRecipes: Record<number, string>;
   onToggle: (ingredient: Ingredient["id"], inBasket: boolean) => void;
@@ -230,7 +217,6 @@ function CompactIngredientView({
       </div>
       {open && (
         <EditIngredient
-          knownTags={knownTags}
           ingredient={ingredient}
           shoppinglistId={shoppinglistId}
           allRecipes={allRecipes}
@@ -243,7 +229,6 @@ function CompactIngredientView({
 
 type EditIngredientProps = {
   ingredient: Ingredient;
-  knownTags: string[];
   shoppinglistId: Shoppinglist["id"];
   allRecipes: Record<number, string>;
   token: string;
@@ -256,7 +241,6 @@ type Changes = {
 
 function EditIngredient({
   ingredient,
-  knownTags,
   token,
   shoppinglistId,
   allRecipes,
@@ -320,7 +304,6 @@ function EditIngredient({
           <div className={"flex flex-row gap-2"}>
             <Tags
               token={token}
-              knownTags={knownTags}
               ingredientId={ingredient.id}
               tags={ingredient.tags}
               isEditing={isEditing}
@@ -443,7 +426,6 @@ function EditIngredient({
 function Tags(props: {
   token: string;
   ingredientId: Ingredient["id"];
-  knownTags: string[];
   tags: string[];
   isEditing?: boolean;
 }) {
@@ -459,7 +441,6 @@ function Tags(props: {
           token={props.token}
           ingredientId={props.ingredientId}
           currentTags={props.tags}
-          knownTags={props.knownTags}
         />
       )}
     </div>

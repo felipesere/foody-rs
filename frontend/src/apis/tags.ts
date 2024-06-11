@@ -13,7 +13,7 @@ const TagSchema = z.object({
 
 const TagsSchema = z.array(TagSchema);
 
-export type Tags = z.infer<typeof TagsSchema>
+export type Tags = z.infer<typeof TagsSchema>;
 
 export function useAllTags(token: string) {
   return useQuery({

@@ -4,8 +4,8 @@ import { zodValidator } from "@tanstack/zod-form-adapter";
 import { z } from "zod";
 import { type Tags, useAllTags } from "../apis/tags.ts";
 import { useLogin, useLogout, useUser } from "../apis/user.ts";
-import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { Button } from "../components/button.tsx";
+import { ButtonGroup } from "../components/buttonGroup.tsx";
 
 const RedirectAfterLoginSchema = z.object({
   redirect: z.string().optional(),
@@ -229,26 +229,25 @@ function EditTagsForm(props: { token: string; tags: Tags }) {
                           selector={(state) => [
                             state.values.tags[idx].is_aisle,
                           ]}
-                          children={([is_aisle]) => is_aisle ? (
-                                  <form.Field
-                                      name={`tags[${idx}].order`}
-                                      children={(orderField) =>
-                                          (
-                                              <input
-                                                  type={"number"}
-                                                  value={orderField.state.value}
-                                                  readOnly={true}
-                                                  onChange={(e) => {
-                                                      orderField.handleChange(
-                                                          +e.target.value,
-                                                      );
-                                                  }}
-                                              />
-                                          )}
+                          children={([is_aisle]) =>
+                            is_aisle ? (
+                              <form.Field
+                                name={`tags[${idx}].order`}
+                                children={(orderField) => (
+                                  <input
+                                    type={"number"}
+                                    value={orderField.state.value}
+                                    readOnly={true}
+                                    onChange={(e) => {
+                                      orderField.handleChange(+e.target.value);
+                                    }}
                                   />
-                              ) : (
-                                  <></>
-                              )}
+                                )}
+                              />
+                            ) : (
+                              <></>
+                            )
+                          }
                         />
                       </td>
                     </tr>

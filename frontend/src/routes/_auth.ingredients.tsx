@@ -59,14 +59,6 @@ function IngredientsPage() {
     return <p>Loading...</p>;
   }
 
-  const uniqueTags = new Set<string>();
-  for (const ingredient of ingredients) {
-    for (const tag of ingredient.tags) {
-      uniqueTags.add(tag);
-    }
-  }
-  const tags = Array.from(uniqueTags);
-
   return (
     <div className="content-grid">
       <ul className="grid gap-4 max-w-md">
@@ -74,7 +66,6 @@ function IngredientsPage() {
           <IngredientView
             key={ingredient.name}
             ingredient={ingredient}
-            knownTags={tags}
             selected={idx === selected}
             token={token}
             onClick={() => setSelected(idx)}
@@ -87,7 +78,6 @@ function IngredientsPage() {
 
 type IngredientViewProps = {
   ingredient: Ingredient;
-  knownTags: string[];
   token: string;
   selected: boolean;
   onClick: () => void;
@@ -180,7 +170,6 @@ function IngredientView(props: IngredientViewProps) {
                 token={props.token}
                 ingredientId={props.ingredient.id}
                 currentTags={props.ingredient.tags}
-                knownTags={props.knownTags}
               />
             )}
           </div>
