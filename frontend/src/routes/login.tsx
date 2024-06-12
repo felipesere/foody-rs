@@ -162,7 +162,7 @@ function AdminPanel(props: { token: string }) {
 function EditTagsForm(props: { token: string; tags: Tags }) {
   const form = useForm({
     defaultValues: {
-      tags: props.tags,
+      tags: Object.values(props.tags),
     },
     onSubmit: ({ value: { tags } }) => {
       console.log(`About to submit ${JSON.stringify(tags, null, 2)}`);
@@ -236,7 +236,7 @@ function EditTagsForm(props: { token: string; tags: Tags }) {
                                 children={(orderField) => (
                                   <input
                                     type={"number"}
-                                    value={orderField.state.value}
+                                    value={orderField.state.value as number}
                                     readOnly={true}
                                     onChange={(e) => {
                                       orderField.handleChange(+e.target.value);

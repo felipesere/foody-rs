@@ -13,6 +13,7 @@ import {
   useUpdateQuantityOnShoppinglist,
 } from "../apis/shoppinglists.ts";
 import { useShoppinglist } from "../apis/shoppinglists.ts";
+import { useAllTags } from "../apis/tags.ts";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { DeleteRowButton } from "../components/deleteRowButton.tsx";
 import { Divider } from "../components/divider.tsx";
@@ -22,6 +23,7 @@ import { FieldSet } from "../components/fieldset.tsx";
 import { FindIngredient } from "../components/findIngredient.tsx";
 import { SelectTags } from "../components/selectTags.tsx";
 import { Toggle, ToggleButton } from "../components/toggle.tsx";
+import { orderByTags } from "../domain/tags.tsx";
 import { combineQuantities, humanize, parse } from "../quantities.ts";
 export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId")({
   component: ShoppingPage,
@@ -33,17 +35,16 @@ export function ShoppingPage() {
   const { token } = Route.useRouteContext();
   const shoppinglist = useShoppinglist(token, shoppinglistId);
   const recipes = useAllRecipes(token);
-
   const toggleIngredient = useToggleIngredientInShoppinglist(
     token,
     shoppinglistId,
   );
-
   const addIngredient = addIngredientToShoppinglist(token);
-
   const [groupByAisles, setGroupByAisles] = useState(false);
 
-  if (shoppinglist.isLoading || recipes.isLoading) {
+  const tags = useAllTags(token);
+
+  if (shoppinglist.isLoading || !recipes.data || !tags.data) {
     return <p>Loading</p>;
   }
 
@@ -52,7 +53,7 @@ export function ShoppingPage() {
   }
 
   const allRecipes =
-    recipes.data?.recipes.reduce(
+    recipes.data.recipes.reduce(
       (acc, recipe) => {
         acc[recipe.id] = recipe.name;
         return acc;
@@ -60,18 +61,7 @@ export function ShoppingPage() {
       {} as Record<number, string>,
     ) || {};
 
-  const tagged: Record<string, Ingredient[]> = {};
-  const untagged: Ingredient[] = [];
-  for (const i of shoppinglist.data?.ingredients || []) {
-    if (i.tags.length) {
-      const first = i.tags[0];
-      const taggedIngredients = tagged[first] || [];
-      taggedIngredients.push(i);
-      tagged[first] = taggedIngredients;
-    } else {
-      untagged.push(i);
-    }
-  }
+  const sections = orderByTags(shoppinglist.data?.ingredients || [], tags.data);
 
   return (
     <div className="content-grid space-y-4 max-w-md">
@@ -122,47 +112,23 @@ export function ShoppingPage() {
             />
           ))}
         {groupByAisles &&
-          Object.entries(tagged).map(([tag, ingredients]) => {
-            return (
-              <Fragment key={tag}>
-                <Divider className={"capitalize"} label={tag} />
-                {ingredients.map((ingredient) => (
-                  <CompactIngredientView
-                    key={ingredient.name}
-                    token={token}
-                    shoppinglistId={shoppinglistId}
-                    ingredient={ingredient}
-                    allRecipes={allRecipes}
-                    onToggle={(ingredientId, inBasket) =>
-                      toggleIngredient.mutate({ ingredientId, inBasket })
-                    }
-                  />
-                ))}
-              </Fragment>
-            );
-          })}
-
-        {groupByAisles && untagged.length && (
-          <>
-            <Divider
-              className={"capitalize"}
-              label={"untagged"}
-              key={"untagged"}
-            />
-            {untagged.map((ingredient) => (
-              <CompactIngredientView
-                key={ingredient.name}
-                token={token}
-                shoppinglistId={shoppinglistId}
-                ingredient={ingredient}
-                allRecipes={allRecipes}
-                onToggle={(ingredientId, inBasket) =>
-                  toggleIngredient.mutate({ ingredientId, inBasket })
-                }
-              />
-            ))}
-          </>
-        )}
+          sections.map((section) => (
+            <Fragment key={section.name}>
+              <Divider className={"capitalize"} label={section.name} />
+              {section.ingredients.map((ingredient) => (
+                <CompactIngredientView
+                  key={ingredient.name}
+                  token={token}
+                  shoppinglistId={shoppinglistId}
+                  ingredient={ingredient}
+                  allRecipes={allRecipes}
+                  onToggle={(ingredientId, inBasket) =>
+                    toggleIngredient.mutate({ ingredientId, inBasket })
+                  }
+                />
+              ))}
+            </Fragment>
+          ))}
       </ul>
     </div>
   );

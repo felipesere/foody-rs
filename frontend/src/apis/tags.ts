@@ -2,18 +2,30 @@ import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { http } from "./http.ts";
 
-const TagSchema = z.object({
-  name: z.string(),
-  order: z
-    .number()
-    .nullable()
-    .transform((x) => x ?? undefined),
-  is_aisle: z.boolean(),
+const IsleTagSchema = z.object({
+  is_aisle: z.literal(true),
+  order: z.number(),
 });
+
+const BoringTagSchema = z.object({
+  is_aisle: z.literal(false),
+});
+
+const IsleOrBoring = z.discriminatedUnion("is_aisle", [
+  IsleTagSchema,
+  BoringTagSchema,
+]);
+
+const TagSchema = z
+  .object({
+    name: z.string(),
+  })
+  .and(IsleOrBoring);
 
 const TagsSchema = z.array(TagSchema);
 
-export type Tags = z.infer<typeof TagsSchema>;
+export type Tag = z.infer<typeof TagSchema>;
+export type Tags = Record<string, Tag>;
 
 export function useAllTags(token: string) {
   return useQuery({
@@ -29,13 +41,12 @@ export function useAllTags(token: string) {
 
       const tags = TagsSchema.parse(body);
 
-      return tags.sort((a, b) => {
-        if (a.order && b.order) {
-          return a.order - b.order;
-        }
+      const ts: Record<string, Tag> = {};
+      for (const tag of tags) {
+        ts[tag.name] = tag;
+      }
 
-        return a.order === null ? 1 : -1;
-      });
+      return ts;
     },
   });
 }
