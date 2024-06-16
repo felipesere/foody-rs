@@ -17,6 +17,7 @@ import { Route as AuthIndexImport } from './routes/_auth.index'
 import { Route as AuthRecipesImport } from './routes/_auth.recipes'
 import { Route as AuthIngredientsImport } from './routes/_auth.ingredients'
 import { Route as AuthShoppinglistShoppinglistIdImport } from './routes/_auth.shoppinglist.$shoppinglistId'
+import { Route as AuthRecipesNewImport } from './routes/_auth.recipes.new'
 import { Route as AuthRecipesRecipeIdEditImport } from './routes/_auth.recipes.$recipeId.edit'
 
 // Create/Update Routes
@@ -52,6 +53,11 @@ const AuthShoppinglistShoppinglistIdRoute =
     getParentRoute: () => AuthRoute,
   } as any)
 
+const AuthRecipesNewRoute = AuthRecipesNewImport.update({
+  path: '/new',
+  getParentRoute: () => AuthRecipesRoute,
+} as any)
+
 const AuthRecipesRecipeIdEditRoute = AuthRecipesRecipeIdEditImport.update({
   path: '/$recipeId/edit',
   getParentRoute: () => AuthRecipesRoute,
@@ -81,6 +87,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthIndexImport
       parentRoute: typeof AuthImport
     }
+    '/_auth/recipes/new': {
+      preLoaderRoute: typeof AuthRecipesNewImport
+      parentRoute: typeof AuthRecipesImport
+    }
     '/_auth/shoppinglist/$shoppinglistId': {
       preLoaderRoute: typeof AuthShoppinglistShoppinglistIdImport
       parentRoute: typeof AuthImport
@@ -97,7 +107,10 @@ declare module '@tanstack/react-router' {
 export const routeTree = rootRoute.addChildren([
   AuthRoute.addChildren([
     AuthIngredientsRoute,
-    AuthRecipesRoute.addChildren([AuthRecipesRecipeIdEditRoute]),
+    AuthRecipesRoute.addChildren([
+      AuthRecipesNewRoute,
+      AuthRecipesRecipeIdEditRoute,
+    ]),
     AuthIndexRoute,
     AuthShoppinglistShoppinglistIdRoute,
   ]),
