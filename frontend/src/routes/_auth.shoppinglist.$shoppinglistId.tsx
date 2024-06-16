@@ -21,6 +21,7 @@ import { DottedLine } from "../components/dottedLine.tsx";
 import { Editable } from "../components/editable.tsx";
 import { FieldSet } from "../components/fieldset.tsx";
 import { FindIngredient } from "../components/findIngredient.tsx";
+import { Progressbar } from "../components/progressbar.tsx";
 import { SelectTags } from "../components/selectTags.tsx";
 import { Toggle, ToggleButton } from "../components/toggle.tsx";
 import { orderByTags } from "../domain/tags.tsx";
@@ -41,6 +42,7 @@ export function ShoppingPage() {
   );
   const addIngredient = addIngredientToShoppinglist(token);
   const [groupByAisles, setGroupByAisles] = useState(false);
+  const [showProgressBar, setShowProgressBar] = useState(false);
 
   const tags = useAllTags(token);
 
@@ -62,6 +64,14 @@ export function ShoppingPage() {
     ) || {};
 
   const sections = orderByTags(shoppinglist.data?.ingredients || [], tags.data);
+
+  const inBasket =
+    shoppinglist.data?.ingredients.filter((i) =>
+      i.quantities.some((q) => q.in_basket),
+    ) || [];
+
+  const fraction =
+    (inBasket.length / (shoppinglist.data?.ingredients.length || 1)) * 100;
 
   return (
     <div className="content-grid space-y-4 max-w-md">
@@ -96,7 +106,20 @@ export function ShoppingPage() {
             </label>
           </div>
         </FieldSet>
+        <div className={"p-2 flex flex-row gap-2"}>
+          <input
+            id={"groupByAisle"}
+            type={"checkbox"}
+            className={"px-2 bg-white shadow"}
+            checked={showProgressBar}
+            onChange={() => setShowProgressBar((b) => !b)}
+          />
+          <label className={"no-colon"} htmlFor={"groupByAisle"}>
+            Show progress bar
+          </label>
+        </div>
       </Toggle>
+      {showProgressBar && <Progressbar fraction={fraction} sticky={true} />}
       <ul className="grid max-w-md gap-4">
         {groupByAisles ||
           shoppinglist.data?.ingredients.map((ingredient) => (
