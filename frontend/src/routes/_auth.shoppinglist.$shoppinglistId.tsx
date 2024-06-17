@@ -74,7 +74,7 @@ export function ShoppingPage() {
     (inBasket.length / (shoppinglist.data?.ingredients.length || 1)) * 100;
 
   return (
-    <div className="content-grid space-y-4 max-w-md">
+    <div className="content-grid space-y-4 max-w-md pb-20">
       <Toggle buttonLabel={"More..."}>
         <FieldSet legend={"Add ingredient"}>
           <FindIngredient
