@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { Outlet, createFileRoute, useNavigate } from "@tanstack/react-router";
 import classnames from "classnames";
 import { useState } from "react";
@@ -9,6 +10,7 @@ import {
   type Website,
   addRecipeToShoppinglist,
   useAllRecipes,
+  useRecipeOptions,
 } from "../apis/recipes.ts";
 import { AddToShoppinglist } from "../components/addToShoppinglist.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
@@ -55,6 +57,7 @@ function RecipeView(props: RecipeProps) {
   const addRecipe = addRecipeToShoppinglist(token);
   const recipeId = props.recipe.id;
   const navigate = useNavigate({ from: "/recipes" });
+  const client = useQueryClient();
 
   return (
     <li className="p-2 border-black border-solid border-2">
@@ -97,6 +100,9 @@ function RecipeView(props: RecipeProps) {
             shadow: !open,
           })}
           type={"submit"}
+          onMouseEnter={(_) => {
+            client.prefetchQuery(useRecipeOptions(token, recipeId));
+          }}
           onClick={() =>
             navigate({
               to: "/recipes/$recipeId/edit",
