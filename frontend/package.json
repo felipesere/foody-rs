@@ -11,7 +11,7 @@
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "fmt": "biome format . --write",
-    "test": "vitest"
+    "test": "NODE_OPTIONS='--no-deprecation' vitest run"
   },
   "dependencies": {
     "@floating-ui/react": "^0.26.10",
