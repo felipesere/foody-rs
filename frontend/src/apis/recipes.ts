@@ -146,16 +146,17 @@ export function useRecipe(token: string, id: Recipe["id"]) {
   return useQuery(useRecipeOptions(token, id));
 }
 
-export type EditRecipeFormParams = Omit<Recipe, "ingredients"> & {
+export type EditRecipeFormParams = Omit<Recipe, "ingredients" | "id"> & {
+  id?: Recipe["id"];
   ingredients: { quantity: string; id: Ingredient["id"] }[];
 };
 
-export function useUpdateRecipe(token: string) {
+export function useUpdateRecipe(token: string, recipeId: Recipe["id"]) {
   const client = useQueryClient();
   return useMutation({
     mutationFn: async (variables: EditRecipeFormParams) => {
       const body = await http
-        .post(`api/recipes/${variables.id}`, {
+        .post(`api/recipes/${recipeId}`, {
           method: "POST",
           json: variables,
           headers: {
@@ -167,7 +168,7 @@ export function useUpdateRecipe(token: string) {
       return RecipeSchema.parse(body);
     },
     onSuccess: async (_, vars) => {
-      await client.invalidateQueries({ queryKey: ["recipe", vars.id] });
+      await client.invalidateQueries({ queryKey: ["recipe", recipeId] });
       await client.invalidateQueries({ queryKey: ["recipes"] });
       toast(`Updated "${vars.name}"`);
     },

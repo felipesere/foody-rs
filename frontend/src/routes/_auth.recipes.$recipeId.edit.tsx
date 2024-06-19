@@ -19,7 +19,6 @@ import { FieldSet } from "../components/fieldset.tsx";
 import { FindIngredient } from "../components/findIngredient.tsx";
 import { ResizingInput } from "../components/resizeableInput.tsx";
 import { humanize } from "../quantities.ts";
-import { resolveCaa } from "node:dns";
 
 export const Route = createFileRoute("/_auth/recipes/$recipeId/edit")({
   component: EditRecipePage,
@@ -76,12 +75,11 @@ export function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
   const token = props.token;
   const recipe = props.recipe;
   const navigate = useNavigate({ from: "/recipes/$recipeId/edit" });
-  const updateItem = useUpdateRecipe(props.token);
+  const updateItem = useUpdateRecipe(props.token, recipe.id);
 
   const form = useForm({
     defaultValues: {
       name: recipe.name,
-      id: recipe.id,
       source: recipe.source,
       title: recipe.source === "book" ? recipe.title : null,
       page: recipe.source === "book" ? recipe.page : null,
