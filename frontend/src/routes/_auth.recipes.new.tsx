@@ -1,5 +1,3 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import type { Recipe } from "../apis/recipes.ts";
 import {
   FloatingFocusManager,
   FloatingOverlay,
@@ -9,7 +7,10 @@ import {
   useInteractions,
   useRole,
 } from "@floating-ui/react";
-import { EditRecipeFrom } from "./_auth.recipes.$recipeId.edit.tsx";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import type { Recipe } from "../apis/recipes.ts";
+
+import { EditRecipeFrom } from "../components/editRecipeFrom.tsx";
 
 export const Route = createFileRoute("/_auth/recipes/new")({
   component: NewRecipePage,

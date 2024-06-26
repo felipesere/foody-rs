@@ -65,19 +65,6 @@ function InnerDropdown<T extends Named>(
   }, [props.items]);
 
   const items = searchIndex.search(query).map((r) => r.item);
-
-  const changeActiveItem = (idx: number | null) => {
-    // TODO: Possible bug: we never really say "no item is selected",
-    // but we don't control _when_ changeActiveItem is called (up to float-ui).
-    // We want to avoid "spamming" `onSelectedItem` with `nulls`
-    setActiveIndex(idx);
-    if (idx != null && items[idx]) {
-      props.onSelectedItem(items[idx]);
-    } else {
-      props.onNewItem(query);
-    }
-  };
-
   const { refs, floatingStyles, context } = useFloating<HTMLElement>({
     whileElementsMounted: autoUpdate,
     open,
@@ -90,7 +77,7 @@ function InnerDropdown<T extends Named>(
   const listNav = useListNavigation(context, {
     listRef,
     activeIndex,
-    onNavigate: changeActiveItem,
+    onNavigate: setActiveIndex,
     virtual: true,
     loop: true,
   });
@@ -104,7 +91,6 @@ function InnerDropdown<T extends Named>(
     setQuery(value);
     if (value.length > 2) {
       setIsOpen(true);
-      changeActiveItem(0);
     } else {
       setIsOpen(false);
     }
@@ -123,14 +109,23 @@ function InnerDropdown<T extends Named>(
           placeholder: props.placeholder,
           "aria-autocomplete": "list",
           onKeyDown(event) {
-            if (
-              event.key === "Enter" &&
-              activeIndex != null &&
-              items[activeIndex]
-            ) {
-              setQuery(items[activeIndex].name);
-              changeActiveItem(null);
+            if (event.key === "Enter") {
+              event.preventDefault();
+              event.stopPropagation();
+
               setIsOpen(false);
+              // Not 100% sure about this...
+              if (!activeIndex) {
+                props.onNewItem(query);
+                return;
+              }
+              if (items[activeIndex]) {
+                const item = items[activeIndex];
+                setQuery(item.name);
+                props.onSelectedItem(item);
+              } else {
+                props.onNewItem(query);
+              }
             }
           },
         })}
@@ -161,6 +156,7 @@ function InnerDropdown<T extends Named>(
                     onClick() {
                       setQuery(item.name);
                       setIsOpen(false);
+                      props.onSelectedItem(item);
                       refs.domReference.current?.focus();
                     },
                   })}
@@ -179,6 +175,7 @@ function InnerDropdown<T extends Named>(
                   onClick={() => {
                     setQuery(query);
                     setIsOpen(false);
+                    props.onNewItem(query);
                     refs.domReference.current?.focus();
                   }}
                 >

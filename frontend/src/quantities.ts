@@ -37,7 +37,7 @@ export function combineQuantities(quantities: Quantity[]): string {
   return elements.concat(allArbitraryOnes).join(" & ");
 }
 
-export function parse(raw: string): Quantity | undefined {
+export function parse(raw: string): Quantity {
   const matches =
     / *(?<numerator>\d+\.?\d*) *\/? *(?<denominator>\d+\.?\d*)? *(?<unit>[^ ]+)?/.exec(
       raw,

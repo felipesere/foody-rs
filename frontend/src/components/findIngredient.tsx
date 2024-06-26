@@ -25,13 +25,13 @@ export function FindIngredient(props: {
     string | undefined
   >(undefined);
 
-  const [quantity, setQuantity] = useState<{
-    raw: string;
-    quantity: Quantity | undefined;
-  }>({
-    raw: "",
-    quantity: undefined,
-  });
+  const [quantity, setQuantity] = useState<
+    | {
+        raw: string;
+        quantity: Quantity;
+      }
+    | undefined
+  >(undefined);
 
   const newIngredient = useCreateNewIngredient(props.token);
 
@@ -61,42 +61,47 @@ export function FindIngredient(props: {
         className={"ml-2 w-1/3 border-gray-500 border-solid border-2"}
         type={"text"}
         name={"new_quantity"}
+        data-testid="new-quantity"
         placeholder={"e.g. 200g"}
-        value={quantity.raw}
+        value={quantity?.raw || ""}
         onChange={(e) => {
-          const value = e.target.value;
+          const raw = e.target.value;
+          const quantity = parse(raw);
           setQuantity({
-            raw: value,
-            quantity: value ? parse(value) : undefined,
+            raw,
+            quantity,
           });
         }}
       />
       <button
         className={"ml-2 px-2"}
         type={"button"}
-        disabled={
-          !((selectedIngredient || newIngredientName) && quantity.quantity)
-        }
+        disabled={!((selectedIngredient || newIngredientName) && quantity)}
         onClick={() => {
-          if (selectedIngredient && quantity.quantity) {
+          console.log(quantity);
+          if (quantity === undefined) {
+            console.log("There is no quanitty?!");
+            return;
+          }
+
+          if (selectedIngredient) {
             props.onIngredient(selectedIngredient, quantity.quantity);
           }
 
-          if (newIngredientName && quantity.quantity) {
-            // strange... if I don't assign it then quantity can be `undefined`?
-            const quant = quantity.quantity;
+          if (newIngredientName) {
+            console.log(newIngredientName);
             newIngredient
               .mutateAsync({
                 name: newIngredientName,
                 tags: [],
               })
-              .then((ingredient) => props.onIngredient(ingredient, quant));
+              .then((ingredient) => {
+                console.log(quantity.quantity);
+                props.onIngredient(ingredient, quantity.quantity);
+              });
           }
 
-          setQuantity({
-            raw: "",
-            quantity: undefined,
-          });
+          setQuantity(undefined);
           ingredientRef.current?.focus();
         }}
       >

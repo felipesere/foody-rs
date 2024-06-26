@@ -12,6 +12,7 @@
   },
   "linter": {
     "enabled": true,
+    "ignore": ["**/*.test.tsx"],
     "rules": {
       "recommended": true,
       "correctness": {
