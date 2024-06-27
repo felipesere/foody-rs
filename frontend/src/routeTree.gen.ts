@@ -68,34 +68,58 @@ const AuthRecipesRecipeIdEditRoute = AuthRecipesRecipeIdEditImport.update({
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
     '/_auth': {
+      id: '/_auth'
+      path: ''
+      fullPath: ''
       preLoaderRoute: typeof AuthImport
       parentRoute: typeof rootRoute
     }
     '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
       preLoaderRoute: typeof LoginImport
       parentRoute: typeof rootRoute
     }
     '/_auth/ingredients': {
+      id: '/_auth/ingredients'
+      path: '/ingredients'
+      fullPath: '/ingredients'
       preLoaderRoute: typeof AuthIngredientsImport
       parentRoute: typeof AuthImport
     }
     '/_auth/recipes': {
+      id: '/_auth/recipes'
+      path: '/recipes'
+      fullPath: '/recipes'
       preLoaderRoute: typeof AuthRecipesImport
       parentRoute: typeof AuthImport
     }
     '/_auth/': {
+      id: '/_auth/'
+      path: '/'
+      fullPath: '/'
       preLoaderRoute: typeof AuthIndexImport
       parentRoute: typeof AuthImport
     }
     '/_auth/recipes/new': {
+      id: '/_auth/recipes/new'
+      path: '/new'
+      fullPath: '/recipes/new'
       preLoaderRoute: typeof AuthRecipesNewImport
       parentRoute: typeof AuthRecipesImport
     }
     '/_auth/shoppinglist/$shoppinglistId': {
+      id: '/_auth/shoppinglist/$shoppinglistId'
+      path: '/shoppinglist/$shoppinglistId'
+      fullPath: '/shoppinglist/$shoppinglistId'
       preLoaderRoute: typeof AuthShoppinglistShoppinglistIdImport
       parentRoute: typeof AuthImport
     }
     '/_auth/recipes/$recipeId/edit': {
+      id: '/_auth/recipes/$recipeId/edit'
+      path: '/$recipeId/edit'
+      fullPath: '/recipes/$recipeId/edit'
       preLoaderRoute: typeof AuthRecipesRecipeIdEditImport
       parentRoute: typeof AuthRecipesImport
     }
@@ -104,17 +128,71 @@ declare module '@tanstack/react-router' {
 
 // Create and export the route tree
 
-export const routeTree = rootRoute.addChildren([
-  AuthRoute.addChildren([
+export const routeTree = rootRoute.addChildren({
+  AuthRoute: AuthRoute.addChildren({
     AuthIngredientsRoute,
-    AuthRecipesRoute.addChildren([
+    AuthRecipesRoute: AuthRecipesRoute.addChildren({
       AuthRecipesNewRoute,
       AuthRecipesRecipeIdEditRoute,
-    ]),
+    }),
     AuthIndexRoute,
     AuthShoppinglistShoppinglistIdRoute,
-  ]),
+  }),
   LoginRoute,
-])
+})
 
 /* prettier-ignore-end */
+
+/* ROUTE_MANIFEST_START
+{
+  "routes": {
+    "__root__": {
+      "filePath": "__root.tsx",
+      "children": [
+        "/_auth",
+        "/login"
+      ]
+    },
+    "/_auth": {
+      "filePath": "_auth.tsx",
+      "children": [
+        "/_auth/ingredients",
+        "/_auth/recipes",
+        "/_auth/",
+        "/_auth/shoppinglist/$shoppinglistId"
+      ]
+    },
+    "/login": {
+      "filePath": "login.tsx"
+    },
+    "/_auth/ingredients": {
+      "filePath": "_auth.ingredients.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/recipes": {
+      "filePath": "_auth.recipes.tsx",
+      "parent": "/_auth",
+      "children": [
+        "/_auth/recipes/new",
+        "/_auth/recipes/$recipeId/edit"
+      ]
+    },
+    "/_auth/": {
+      "filePath": "_auth.index.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/recipes/new": {
+      "filePath": "_auth.recipes.new.tsx",
+      "parent": "/_auth/recipes"
+    },
+    "/_auth/shoppinglist/$shoppinglistId": {
+      "filePath": "_auth.shoppinglist.$shoppinglistId.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/recipes/$recipeId/edit": {
+      "filePath": "_auth.recipes.$recipeId.edit.tsx",
+      "parent": "/_auth/recipes"
+    }
+  }
+}
+ROUTE_MANIFEST_END */

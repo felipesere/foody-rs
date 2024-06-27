@@ -47,7 +47,7 @@ function NewShoppinglist(props: { token: string }) {
       await createNewShoppinglist.mutateAsync(value);
       void form.reset();
     },
-    validatorAdapter: zodValidator,
+    validatorAdapter: zodValidator(),
   });
   return (
     <form

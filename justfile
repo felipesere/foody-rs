@@ -11,7 +11,7 @@ rust-fmt:
   cargo fmt
 
 frontend-lint:
-  cd frontend; npx biome check --apply .
+  cd frontend; npx biome check --write .
   cd frontend; npx biome check .
   cd frontend; npm run tsc
 

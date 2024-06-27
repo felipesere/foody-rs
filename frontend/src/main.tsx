@@ -26,7 +26,7 @@ persistQueryClient({
   queryClient,
   persister: localStoragePersister,
   dehydrateOptions: {
-    shouldDehydrateQuery: (query) => {
+    shouldDehydrateQuery: (query): boolean => {
       return query.meta?.persist || false;
     },
   },
@@ -45,12 +45,14 @@ declare module "@tanstack/react-router" {
   }
 }
 
-interface Meta {
+interface Meta extends Record<string, unknown> {
   persist?: boolean;
 }
 
 declare module "@tanstack/react-query" {
-  interface QueryMeta extends Meta {}
+  interface Register {
+    queryMeta: Meta;
+  }
 }
 
 const rootElement = document.getElementById("root");

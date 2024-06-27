@@ -7,7 +7,7 @@ import {
   screen,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { http, HttpResponse } from "msw";
+import { http, HttpResponse, RequestHandler } from "msw";
 import { setupServer } from "msw/node";
 import type { ReactElement } from "react";
 import { expect, test } from "vitest";
@@ -47,38 +47,42 @@ const handlers = [
   }),
 ];
 
-test("doing something with the form", async () => {
+const tartiflette: Recipe = {
+  name: "Tartiflette",
+  id: 123,
+  ingredients: [
+    {
+      id: 1,
+      name: "potato",
+      quantity: [{ id: 1, ...parse("100g") }],
+    },
+    {
+      id: 2,
+      name: "cream",
+      quantity: [{ id: 2, ...parse("2x") }],
+    },
+  ],
+  page: 123,
+  source: "book",
+  title: "Simplissime",
+};
+
+function backendServer(handlers: Array<RequestHandler>) {
   const server = setupServer(...handlers);
   server.events.on("request:start", ({ request }) => {
     console.log("Outgoing:", request.method, request.url);
   });
   server.listen({ onUnhandledRequest: "error" });
+}
 
-  const tartiflette: Recipe = {
-    name: "Tartiflette",
-    id: 123,
-    ingredients: [
-      {
-        id: 1,
-        name: "potato",
-        quantity: [{ id: 1, ...parse("100g") }],
-      },
-      {
-        id: 2,
-        name: "cream",
-        quantity: [{ id: 2, ...parse("2x") }],
-      },
-    ],
-    page: 123,
-    source: "book",
-    title: "Simplissime",
-  };
+test("doing something with the form", async () => {
+  backendServer(handlers);
+
   customRender(<EditRecipeFrom token={"123"} recipe={tartiflette} />);
   await act(async () => {});
 
   const ingredientSearch = await screen.findByPlaceholderText("ingredients...");
   await userEvent.type(ingredientSearch, "carr");
-  await act(async () => {});
 
   // biome-ignore lint/style/noNonNullAssertion: We are in a test scenario and know that text exists
   const carrotsInDropdown = (await screen.findAllByText("carrots")).find(
@@ -97,6 +101,5 @@ test("doing something with the form", async () => {
     .map((i) => i.textContent!)
     .sort();
 
-  //screen.debug();
   expect(ingredients).toEqual(["carrots", "cream", "potato"]);
 });

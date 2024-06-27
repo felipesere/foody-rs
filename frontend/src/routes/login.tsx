@@ -69,7 +69,7 @@ function Login() {
     onSubmit: async ({ value }) => {
       await login.mutateAsync(value);
     },
-    validatorAdapter: zodValidator,
+    validatorAdapter: zodValidator(),
   });
   return (
     <div className="content-grid">
