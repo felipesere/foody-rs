@@ -75,7 +75,7 @@ pub(crate) async fn find_one(
     let s = Statement::from_sql_and_values(
         DbBackend::Postgres,
         r#"
-        select
+        select distinct
             "recipes"."created_at" as "r_created_at",
             "recipes"."updated_at" as "r_updated_at",
             "recipes"."id" as "r_id",
