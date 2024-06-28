@@ -1,6 +1,5 @@
 import { useForm } from "@tanstack/react-form";
-import { useNavigate } from "@tanstack/react-router";
-import { type Recipe, useUpdateRecipe } from "../apis/recipes.ts";
+import type { Recipe } from "../apis/recipes.ts";
 import { humanize } from "../quantities.ts";
 import { ButtonGroup } from "./buttonGroup.tsx";
 import { DeleteRowButton } from "./deleteRowButton.tsx";
@@ -10,11 +9,18 @@ import { FieldSet } from "./fieldset.tsx";
 import { FindIngredient } from "./findIngredient.tsx";
 import { ResizingInput } from "./resizeableInput.tsx";
 
-export function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
+export type SimplifiedRecipe = Omit<Recipe, "id" | "ingredients"> & {
+  ingredients: { id: number; name: string; quantity: string }[];
+};
+
+export function EditRecipeFrom(props: {
+  token: string;
+  recipe: Recipe;
+  onSubmit: (s: SimplifiedRecipe) => void;
+  onClose: () => void;
+}) {
   const token = props.token;
   const recipe = props.recipe;
-  const navigate = useNavigate({ from: "/recipes/$recipeId/edit" });
-  const updateItem = useUpdateRecipe(props.token, recipe.id);
 
   const form = useForm({
     defaultValues: {
@@ -26,13 +32,13 @@ export function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
       ingredients: recipe.ingredients.map((i) => ({
         id: i.id,
         name: i.name,
+        // TODO: I think I need fox `quantity[0]` at some point
         quantity: humanize(i.quantity[0]),
       })),
     },
     onSubmit: async (vals) => {
-      // const _: Recipe = vals.value;
-      updateItem.mutate(vals.value);
-      // void form.reset();
+      const s: SimplifiedRecipe = vals.value;
+      props.onSubmit(s);
     },
   });
 
@@ -217,7 +223,7 @@ export function EditRecipeFrom(props: { token: string; recipe: Recipe }) {
           <button
             type="button"
             className={"px-2"}
-            onClick={() => navigate({ to: "/recipes" })}
+            onClick={() => props.onClose()}
           >
             Close
           </button>

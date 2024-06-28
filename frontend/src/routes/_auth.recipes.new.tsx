@@ -59,7 +59,16 @@ function NewRecipePage() {
               "m-2 p-4 bg-white w-full h-full max-w-2xl relative border-solid border-black border-2 space-y-4",
           })}
         >
-          <EditRecipeFrom token={token} recipe={recipe} />
+          <EditRecipeFrom
+            token={token}
+            recipe={recipe}
+            onSubmit={() => {
+              // actually create the recipe!
+            }}
+            onClose={() => {
+              //redirect somewhere...
+            }}
+          />
         </div>
       </FloatingFocusManager>
     </FloatingOverlay>

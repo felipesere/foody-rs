@@ -3,6 +3,7 @@ import "@testing-library/dom";
 import {
   type RenderOptions,
   act,
+  fireEvent,
   render,
   screen,
 } from "@testing-library/react";
@@ -75,10 +76,17 @@ function backendServer(handlers: Array<RequestHandler>) {
   server.listen({ onUnhandledRequest: "error" });
 }
 
-test("doing something with the form", async () => {
+test("add an existing ingredient to a recipe", async () => {
   backendServer(handlers);
 
-  customRender(<EditRecipeFrom token={"123"} recipe={tartiflette} />);
+  customRender(
+    <EditRecipeFrom
+      token={"123"}
+      recipe={tartiflette}
+      onSubmit={(_) => {}}
+      onClose={() => {}}
+    />,
+  );
   await act(async () => {});
 
   const ingredientSearch = await screen.findByPlaceholderText("ingredients...");
@@ -102,4 +110,25 @@ test("doing something with the form", async () => {
     .sort();
 
   expect(ingredients).toEqual(["carrots", "cream", "potato"]);
+});
+
+test("change a recipe from book to website", async () => {
+  backendServer(handlers);
+
+  customRender(
+    <EditRecipeFrom
+      token={"123"}
+      recipe={tartiflette}
+      onSubmit={(_) => {}}
+      onClose={() => {}}
+    />,
+  );
+  const element = await screen.findByLabelText("website");
+  act(() => {
+    fireEvent.click(element);
+  });
+  screen.debug(element);
+  screen.debug();
+
+  expect(true).toBeFalsy();
 });

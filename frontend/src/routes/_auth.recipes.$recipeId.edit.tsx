@@ -8,7 +8,7 @@ import {
   useRole,
 } from "@floating-ui/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useRecipe } from "../apis/recipes.ts";
+import { useRecipe, useUpdateRecipe } from "../apis/recipes.ts";
 import { EditRecipeFrom } from "../components/editRecipeFrom.tsx";
 
 export const Route = createFileRoute("/_auth/recipes/$recipeId/edit")({
@@ -19,6 +19,8 @@ function EditRecipePage() {
   const { recipeId } = Route.useParams();
   const { token } = Route.useRouteContext();
   const data = useRecipe(token, Number(recipeId));
+  const updateItem = useUpdateRecipe(token, Number(recipeId));
+
   const navigate = useNavigate({ from: "/recipes/$recipeId/edit" });
 
   const { refs, context } = useFloating({
@@ -55,7 +57,12 @@ function EditRecipePage() {
               "m-2 p-4 bg-white w-full h-full max-w-2xl relative border-solid border-black border-2 space-y-4",
           })}
         >
-          <EditRecipeFrom token={token} recipe={data.data} />
+          <EditRecipeFrom
+            token={token}
+            recipe={data.data}
+            onSubmit={(r) => updateItem.mutate(r)}
+            onClose={() => navigate({ to: "/recipes" })}
+          />
         </div>
       </FloatingFocusManager>
     </FloatingOverlay>
