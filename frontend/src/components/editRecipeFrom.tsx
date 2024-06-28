@@ -37,6 +37,15 @@ export function EditRecipeFrom(props: {
       })),
     },
     onSubmit: async (vals) => {
+      switch (vals.value.source) {
+        case "website":
+          vals.value.page = null;
+          vals.value.title = null;
+          break;
+        case "book":
+          vals.value.url = null;
+          break;
+      }
       const s: SimplifiedRecipe = vals.value;
       props.onSubmit(s);
     },
