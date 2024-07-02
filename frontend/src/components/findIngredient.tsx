@@ -78,9 +78,7 @@ export function FindIngredient(props: {
         type={"button"}
         disabled={!((selectedIngredient || newIngredientName) && quantity)}
         onClick={() => {
-          console.log(quantity);
           if (quantity === undefined) {
-            console.log("There is no quanitty?!");
             return;
           }
 
@@ -96,7 +94,6 @@ export function FindIngredient(props: {
                 tags: [],
               })
               .then((ingredient) => {
-                console.log(quantity.quantity);
                 props.onIngredient(ingredient, quantity.quantity);
               });
           }

@@ -1,11 +1,11 @@
-use axum::{extract, response::Response};
+use axum::{extract, http::StatusCode, response::Response};
 use loco_rs::controller::middleware;
 use loco_rs::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::models::{
-    _entities::ingredients_in_recipes,
-    quantities::{self, Quantity},
+    _entities::{self, ingredients_in_recipes, quantities},
+    quantities::Quantity,
     users::users,
 };
 
@@ -127,6 +127,70 @@ where
 }
 
 #[derive(Deserialize, Debug)]
+struct IngredientX {
+    id: i32,
+    quantity: String,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct CreateRecipe {
+    name: String,
+    #[serde(flatten)]
+    source: RecipeSource,
+    ingredients: Vec<IngredientX>,
+}
+
+pub async fn create_recipe(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+    extract::Json(params): extract::Json<CreateRecipe>,
+) -> Result<StatusCode> {
+    // check auth
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let tx = ctx.db.begin().await.unwrap();
+
+    let mut recipe = _entities::recipes::ActiveModel {
+        name: ActiveValue::set(params.name),
+        ..Default::default()
+    };
+
+    match params.source {
+        RecipeSource::Book { title, page } => {
+            recipe.source = ActiveValue::set("book".into());
+            recipe.book_title = ActiveValue::set(Some(title));
+            recipe.book_page = ActiveValue::set(Some(page));
+            recipe.website_url = ActiveValue::set(None);
+        }
+        RecipeSource::Website { url } => {
+            recipe.source = ActiveValue::set("website".into());
+            recipe.website_url = ActiveValue::set(Some(url));
+            recipe.book_title = ActiveValue::set(None);
+            recipe.book_page = ActiveValue::set(None);
+        }
+    };
+    let recipe = recipe.save(&tx).await?;
+    tracing::info!("The recipe is {:?}", recipe.name);
+    for i in params.ingredients {
+        let q = Quantity::parse(&i.quantity);
+        let quantity = q.into_active_model().save(&tx).await?;
+
+        ingredients_in_recipes::ActiveModel {
+            recipes_id: recipe.id.clone(),
+            quantities_id: quantity.id,
+            ingredients_id: ActiveValue::set(i.id),
+            ..Default::default()
+        }
+        .save(&tx)
+        .await?;
+    }
+
+    tx.commit().await?;
+
+    Ok(StatusCode::OK)
+}
+
+#[derive(Deserialize, Debug)]
 pub struct UpdateRecipe {
     name: String,
     #[serde(flatten)]
@@ -178,17 +242,17 @@ pub async fn update_recipe(
     for i in params.ingredients {
         let mut quantity = quantities::ActiveModel::new();
         match i.quantity {
-            quantities::Quantity::Count(n) => {
+            Quantity::Count(n) => {
                 quantity.unit = ActiveValue::set("count".to_string());
                 quantity.value = ActiveValue::set(Some(n));
                 quantity.text = ActiveValue::not_set();
             }
-            quantities::Quantity::WithUnit { value, unit } => {
+            Quantity::WithUnit { value, unit } => {
                 quantity.unit = ActiveValue::set(unit);
                 quantity.value = ActiveValue::set(Some(value));
                 quantity.text = ActiveValue::not_set();
             }
-            quantities::Quantity::Arbitrary(text) => {
+            Quantity::Arbitrary(text) => {
                 quantity.unit = ActiveValue::set("arbitrary".to_string());
                 quantity.value = ActiveValue::not_set();
                 quantity.text = ActiveValue::set(Some(text));
@@ -237,6 +301,7 @@ pub fn routes() -> Routes {
     Routes::new()
         .prefix("recipes")
         .add("/", get(all_recipes))
+        .add("/", post(create_recipe))
         .add("/:id", get(recipe))
         .add("/:id", post(update_recipe))
 }
@@ -262,6 +327,6 @@ mod tests {
             }
             "#;
 
-        let actual: UpdateRecipe = serde_json::from_str(raw_json).unwrap();
+        let _actual: UpdateRecipe = serde_json::from_str(raw_json).unwrap();
     }
 }

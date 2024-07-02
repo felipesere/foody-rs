@@ -13,6 +13,7 @@ import {
   useRecipeOptions,
 } from "../apis/recipes.ts";
 import { AddToShoppinglist } from "../components/addToShoppinglist.tsx";
+import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
@@ -24,6 +25,7 @@ export const Route = createFileRoute("/_auth/recipes")({
 export function RecipesPage() {
   const { token } = Route.useRouteContext();
   const { data, isLoading, isError } = useAllRecipes(token);
+  const navigate = useNavigate({ from: Route.path });
 
   if (isError) {
     return <p>Error</p>;
@@ -36,7 +38,13 @@ export function RecipesPage() {
   return (
     <>
       <Outlet />
-      <div className="content-grid">
+      <div className="content-grid space-y-4">
+        <ButtonGroup>
+          <Button
+            onClick={() => navigate({ to: "/recipes/new" })}
+            label={"New Recipe"}
+          />
+        </ButtonGroup>
         <ul className="grid gap-4">
           {data?.recipes.map((recipe) => (
             <RecipeView key={recipe.id} recipe={recipe} />

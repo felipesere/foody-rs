@@ -8,7 +8,7 @@ import {
   useRole,
 } from "@floating-ui/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import type { Recipe } from "../apis/recipes.ts";
+import { type Recipe, useCreateRecipe } from "../apis/recipes.ts";
 
 import { EditRecipeFrom } from "../components/editRecipeFrom.tsx";
 
@@ -18,7 +18,9 @@ export const Route = createFileRoute("/_auth/recipes/new")({
 
 function NewRecipePage() {
   const { token } = Route.useRouteContext();
-  const navigate = useNavigate({ from: "/recipes/$recipeId/edit" });
+
+  const createRecipe = useCreateRecipe(token);
+  const navigate = useNavigate({ from: "/recipes/new" });
 
   const { refs, context } = useFloating({
     open: true,
@@ -62,11 +64,11 @@ function NewRecipePage() {
           <EditRecipeFrom
             token={token}
             recipe={recipe}
-            onSubmit={() => {
-              // actually create the recipe!
+            onSubmit={(r) => {
+              createRecipe.mutate(r);
             }}
             onClose={() => {
-              //redirect somewhere...
+              return navigate({ to: "/recipes" });
             }}
           />
         </div>

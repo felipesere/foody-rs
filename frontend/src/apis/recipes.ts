@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { z } from "zod";
+import type { SimplifiedRecipe } from "../components/editRecipeFrom.tsx";
 import { http } from "./http.ts";
 import type { Shoppinglist } from "./shoppinglists.ts";
 
@@ -171,6 +172,27 @@ export function useUpdateRecipe(token: string, recipeId: Recipe["id"]) {
       await client.invalidateQueries({ queryKey: ["recipe", recipeId] });
       await client.invalidateQueries({ queryKey: ["recipes"] });
       toast(`Updated "${vars.name}"`);
+    },
+  });
+}
+
+export function useCreateRecipe(token: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (variables: SimplifiedRecipe) => {
+      await http
+        .post("api/recipes", {
+          method: "POST",
+          json: variables,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .json();
+    },
+    onSuccess: async (_, vars) => {
+      await client.invalidateQueries({ queryKey: ["recipes"] });
+      toast(`Created "${vars.name}"`);
     },
   });
 }
