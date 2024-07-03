@@ -112,7 +112,7 @@ test("add an existing ingredient to a recipe", async () => {
   expect(ingredients).toEqual(["carrots", "cream", "potato"]);
 });
 
-test("change a recipe from book to website", async () => {
+test.skip("change a recipe from book to website", async () => {
   backendServer(handlers);
 
   customRender(

@@ -57,8 +57,6 @@ test("clicking on a new item", async () => {
   await userEvent.type(i, "Epsilon", {});
   await userEvent.click(await screen.findByText("Epsilon"));
 
-  screen.debug();
-
   expect(selected).toBeUndefined();
   expect(newItem).toBeDefined();
 });

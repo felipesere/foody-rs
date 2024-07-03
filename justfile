@@ -3,12 +3,16 @@ default:
 
 lint: rust-lint frontend-lint
 fmt: rust-fmt frontend-fmt
+test: rust-test frontend-test
 
 rust-lint:
   cargo clippy --all-features -- -D warnings -W clippy::nursery -W rust-2018-idioms
 
 rust-fmt:
   cargo fmt
+
+rust-test:
+  cargo test
 
 frontend-lint:
   cd frontend; npx biome check --write .
@@ -17,6 +21,9 @@ frontend-lint:
 
 frontend-fmt:
   cd frontend; npm run fmt
+
+frontend-test:
+  cd frontend; npm run test
 
 run: frontend-build run-backend
 
