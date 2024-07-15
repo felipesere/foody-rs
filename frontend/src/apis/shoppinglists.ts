@@ -34,6 +34,8 @@ const ItemQuantitySchema = StoredQuantitySchema.extend({
   in_basket: z.boolean(),
   recipe_id: z.nullable(z.number()),
 });
+export type Quantity = z.infer<typeof ItemQuantitySchema>;
+
 const IngredientSchema = z.object({
   id: z.number(),
   name: z.string(),

@@ -24,11 +24,29 @@ import { FindIngredient } from "../components/findIngredient.tsx";
 import { Progressbar } from "../components/progressbar.tsx";
 import { SelectTags } from "../components/selectTags.tsx";
 import { Toggle, ToggleButton } from "../components/toggle.tsx";
-import { orderByTags } from "../domain/tags.tsx";
+import { orderByRecipe } from "../domain/orderByRecipe.ts";
+import { type Section, orderByTags } from "../domain/tags.tsx";
 import { combineQuantities, humanize, parse } from "../quantities.ts";
 export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId")({
   component: ShoppingPage,
 });
+
+enum Grouping {
+  None = "none",
+  ByTag = "byTag",
+  ByRecipe = "byRecipe",
+}
+
+function GroupingLabel(v: Grouping): string {
+  switch (v) {
+    case Grouping.None:
+      return "None";
+    case Grouping.ByTag:
+      return "By Tag";
+    case Grouping.ByRecipe:
+      return "By Recipe";
+  }
+}
 
 export function ShoppingPage() {
   const params = Route.useParams();
@@ -41,7 +59,7 @@ export function ShoppingPage() {
     shoppinglistId,
   );
   const addIngredient = addIngredientToShoppinglist(token);
-  const [groupByAisles, setGroupByAisles] = useState(false);
+  const [grouping, setGrouping] = useState<Grouping>(Grouping.None);
   const [showProgressBar, setShowProgressBar] = useState(false);
 
   const tags = useAllTags(token);
@@ -63,7 +81,19 @@ export function ShoppingPage() {
       {} as Record<number, string>,
     ) || {};
 
-  const sections = orderByTags(shoppinglist.data?.ingredients || [], tags.data);
+  let sections: Section[] = [];
+  switch (grouping) {
+    case "none":
+    case "byTag":
+      sections = orderByTags(shoppinglist.data?.ingredients || [], tags.data);
+      break;
+    case "byRecipe":
+      sections = orderByRecipe(
+        shoppinglist.data?.ingredients || [],
+        allRecipes,
+      );
+      break;
+  }
 
   const inBasket =
     shoppinglist.data?.ingredients.filter((i) =>
@@ -92,18 +122,24 @@ export function ShoppingPage() {
           legend={"Filter and Sort"}
           className={{ fieldSet: "mt-4 flex flex-col" }}
         >
-          <div className={"flex flex-row gap-2"}>
-            <input
-              id={"groupByAisle"}
-              type={"checkbox"}
-              className={"px-2 bg-white shadow"}
-              checked={groupByAisles}
-              onChange={() => setGroupByAisles((b) => !b)}
-            />
-            <label className={"no-colon"} htmlFor={"groupByAisle"}>
-              <span className={"font-bold"}>G</span>
-              roup by aisle
-            </label>
+          <div className={"flex flex-row gap-6"}>
+            {Object.values(Grouping).map((option) => (
+              <div key={option}>
+                <input
+                  type={"radio"}
+                  name={"grouping"}
+                  id={option}
+                  value={option}
+                  checked={option === grouping}
+                  onChange={() => {
+                    setGrouping(option);
+                  }}
+                />
+                <label className={"no-colon pl-2"} htmlFor={option}>
+                  {GroupingLabel(option)}
+                </label>
+              </div>
+            ))}
           </div>
         </FieldSet>
         <div className={"p-2 flex flex-row gap-2"}>
@@ -121,7 +157,7 @@ export function ShoppingPage() {
       </Toggle>
       {showProgressBar && <Progressbar fraction={fraction} sticky={true} />}
       <ul className="grid max-w-md gap-4">
-        {groupByAisles ||
+        {grouping === "none" &&
           shoppinglist.data?.ingredients.map((ingredient) => (
             <CompactIngredientView
               key={ingredient.name}
@@ -134,7 +170,7 @@ export function ShoppingPage() {
               }
             />
           ))}
-        {groupByAisles &&
+        {grouping !== "none" &&
           sections.map((section) => (
             <Fragment key={section.name}>
               <Divider className={"capitalize"} label={section.name} />

@@ -21,7 +21,7 @@ export function lowestOrderedTag(
 
   return v ? v[1] : undefined;
 }
-type Section = {
+export type Section = {
   name: string;
   ingredients: Ingredient[];
 };
