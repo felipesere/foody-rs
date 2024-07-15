@@ -196,3 +196,21 @@ export function useCreateRecipe(token: string) {
     },
   });
 }
+
+export function useDeleteRecipe(token: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (recipeId: Recipe["id"]) => {
+      await http.delete(`api/recipes/${recipeId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    },
+    onSuccess: async (_, vars) => {
+      await client.invalidateQueries({ queryKey: ["recipe", vars] });
+      await client.invalidateQueries({ queryKey: ["recipes"] });
+      toast(`Deleted "${vars}"`);
+    },
+  });
+}

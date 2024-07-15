@@ -10,6 +10,7 @@ import {
   type Website,
   addRecipeToShoppinglist,
   useAllRecipes,
+  useDeleteRecipe,
   useRecipeOptions,
 } from "../apis/recipes.ts";
 import { AddToShoppinglist } from "../components/addToShoppinglist.tsx";
@@ -63,6 +64,7 @@ function RecipeView(props: RecipeProps) {
   const { token } = Route.useRouteContext();
   const [open, setOpen] = useState(false);
   const addRecipe = addRecipeToShoppinglist(token);
+  const deleteRecipe = useDeleteRecipe(token);
   const recipeId = props.recipe.id;
   const navigate = useNavigate({ from: "/recipes" });
   const client = useQueryClient();
@@ -129,7 +131,11 @@ function RecipeView(props: RecipeProps) {
             );
           }}
         />
-        <button type="submit" className="px-2 text-white bg-gray-700 shadow">
+        <button
+          type="submit"
+          className="px-2 text-white bg-gray-700 shadow"
+          onClick={() => deleteRecipe.mutate(recipeId)}
+        >
           Delete
         </button>
       </ButtonGroup>

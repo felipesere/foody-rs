@@ -1,10 +1,10 @@
 use axum::{extract, http::StatusCode, response::Response};
-use loco_rs::controller::middleware;
+use loco_rs::controller::middleware::{self};
 use loco_rs::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::models::{
-    _entities::{self, ingredients_in_recipes, quantities},
+    _entities::{self, ingredients_in_recipes, quantities, recipes},
     quantities::Quantity,
     users::users,
 };
@@ -102,6 +102,27 @@ pub async fn recipe(
             })
             .collect(),
     })
+}
+pub async fn delete_recipe(
+    auth: middleware::auth::JWT,
+    Path(recipe_id): Path<i32>,
+    State(ctx): State<AppContext>,
+) -> Result<()> {
+    // check auth
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let tx = ctx.db.begin().await?;
+
+    ingredients_in_recipes::Entity::delete_many()
+        .filter(ingredients_in_recipes::Column::RecipesId.eq(recipe_id))
+        .exec(&tx)
+        .await?;
+
+    recipes::Entity::delete_by_id(recipe_id).exec(&tx).await?;
+
+    tx.commit().await?;
+
+    Ok(())
 }
 
 #[derive(Deserialize, Debug)]
@@ -304,6 +325,7 @@ pub fn routes() -> Routes {
         .add("/", post(create_recipe))
         .add("/:id", get(recipe))
         .add("/:id", post(update_recipe))
+        .add("/:id", delete(delete_recipe))
 }
 
 #[cfg(test)]
