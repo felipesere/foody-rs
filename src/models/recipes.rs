@@ -9,13 +9,13 @@ impl ActiveModelBehavior for ActiveModel {
     // extend activemodel below (keep comment for generators)
 }
 
-type FullRecipe = (Recipes, Vec<(Ingredient, Quantity)>);
+type FullRecipe = (Recipes, Vec<(Ingredient, Quantity)>, Vec<String>);
 
 pub(crate) async fn find_all(db: &DatabaseConnection) -> Result<Vec<FullRecipe>, ModelError> {
     let s = Statement::from_string(
         DbBackend::Postgres,
         r#"
-        select
+        select distinct
             "recipes"."created_at" as "r_created_at",
             "recipes"."updated_at" as "r_updated_at",
             "recipes"."id" as "r_id",
@@ -33,13 +33,16 @@ pub(crate) async fn find_all(db: &DatabaseConnection) -> Result<Vec<FullRecipe>,
             "q"."updated_at" as "q_updated_at",
             "q"."unit" as "q_unit",
             "q"."value" as "q_value",
-            "q"."text" as "q_text"
+            "q"."text" as "q_text",
+            "t"."name" as "t_name"
         from "recipes"
         left join
             "ingredients_in_recipes" as "r0"
             on "r0"."recipes_id" = "recipes"."id"
         left join "ingredients" as "r1" on "r0"."ingredients_id" = "r1"."id"
         left join "quantities" as "q" on "r0"."quantities_id" = "q".id
+        left join "tags_on_recipes" as "t_on_r" on "t_on_r"."recipe_id" = "recipes"."id"
+        left join "tags" as "t" on "t_on_r"."tag_id" = "t".id
         order by "recipes"."id" asc, "r1"."id" asc, "q"."id" asc
         "#,
     );
@@ -53,7 +56,7 @@ pub(crate) async fn find_all(db: &DatabaseConnection) -> Result<Vec<FullRecipe>,
         let quantity = Quantity::from_query_result_optional(row, "q_")?;
 
         if result.is_empty() || result[result.len() - 1].0.id != recipe.id {
-            result.push((recipe, Vec::new()));
+            result.push((recipe, Vec::new(), Vec::new()));
         };
 
         let Some(ingredient) = ingredient else {
@@ -93,7 +96,8 @@ pub(crate) async fn find_one(
             "q"."updated_at" as "q_updated_at",
             "q"."unit" as "q_unit",
             "q"."value" as "q_value",
-            "q"."text" as "q_text"
+            "q"."text" as "q_text",
+            "tr"."name" as "recipe_tag"
         from "recipes"
         left join
             "ingredients_in_recipes" as "r0"
@@ -101,7 +105,9 @@ pub(crate) async fn find_one(
         left join "ingredients" as "r1" on "r0"."ingredients_id" = "r1"."id"
         left join "quantities" as "q" on "r0"."quantities_id" = "q".id
         left join "tags_on_ingredients" as "t_on_i" on "t_on_i"."ingredient_id" = "r1"."id"
-        left join "tags" as "t" on "t_on_i"."tag_id" = "t".id
+        left join "tags_on_recipes" as "t_on_r" on "t_on_r"."recipe_id" = "recipes"."id"
+        left join "tags" as "ti" on "t_on_i"."tag_id" = "ti".id
+        left join "tags" as "tr" on "t_on_r"."tag_id" = "tr".id
         where "recipes"."id" = $1
         order by "recipes"."id" asc, "r1"."id" asc, "q"."id" asc
         "#,
@@ -117,7 +123,7 @@ pub(crate) async fn find_one(
         let quantity = Quantity::from_query_result_optional(row, "q_")?;
 
         if result.is_empty() || result[result.len() - 1].0.id != recipe.id {
-            result.push((recipe, Vec::new()));
+            result.push((recipe, Vec::new(), Vec::new()));
         };
 
         let Some(ingredient) = ingredient else {

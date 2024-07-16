@@ -8,4 +8,5 @@ pub use super::recipes::Entity as Recipes;
 pub use super::shoppinglists::Entity as Shoppinglists;
 pub use super::tags::Entity as Tags;
 pub use super::tags_on_ingredients::Entity as TagsOnIngredients;
+pub use super::tags_on_recipes::Entity as TagsOnRecipes;
 pub use super::users::Entity as Users;

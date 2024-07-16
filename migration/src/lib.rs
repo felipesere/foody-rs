@@ -24,6 +24,7 @@ mod m20240606_104940_tags_order_nullable;
 mod m20240606_110159_move_current_tags_to_new_table;
 mod m20240606_183314_drop_tags_column_from_ingredients;
 mod m20240610_182331_add_notes_to_ingredients_on_list;
+mod m20240716_111758_tags_on_recipes;
 pub struct Migrator;
 
 #[async_trait::async_trait]
@@ -51,6 +52,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20240606_110159_move_current_tags_to_new_table::Migration),
             Box::new(m20240606_183314_drop_tags_column_from_ingredients::Migration),
             Box::new(m20240610_182331_add_notes_to_ingredients_on_list::Migration),
+            Box::new(m20240716_111758_tags_on_recipes::Migration),
         ]
     }
 }

@@ -22,6 +22,8 @@ pub enum Relation {
     IngredientsInShoppinglists,
     #[sea_orm(has_many = "super::tags_on_ingredients::Entity")]
     TagsOnIngredients,
+    #[sea_orm(has_many = "super::tags_on_recipes::Entity")]
+    TagsOnRecipes,
 }
 
 impl Related<super::ingredients_in_recipes::Entity> for Entity {
@@ -39,5 +41,11 @@ impl Related<super::ingredients_in_shoppinglists::Entity> for Entity {
 impl Related<super::tags_on_ingredients::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::TagsOnIngredients.def()
+    }
+}
+
+impl Related<super::tags_on_recipes::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::TagsOnRecipes.def()
     }
 }

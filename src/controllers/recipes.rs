@@ -25,6 +25,7 @@ pub struct RecipeResponse {
     pub title: Option<String>,
     pub page: Option<i32>,
     pub ingredients: Vec<IngredientResponse>,
+    pub tags: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -43,7 +44,7 @@ pub async fn all_recipes(
 
     let mut recipes = Vec::new();
 
-    for (recipe, ingredients) in crate::models::recipes::find_all(&ctx.db).await? {
+    for (recipe, ingredients, _recipe_tags) in crate::models::recipes::find_all(&ctx.db).await? {
         recipes.push(RecipeResponse {
             id: recipe.id,
             source: recipe.source,
@@ -51,6 +52,7 @@ pub async fn all_recipes(
             url: recipe.website_url,
             title: recipe.book_title,
             page: recipe.book_page,
+            tags: Vec::new(),
             ingredients: ingredients
                 .into_iter()
                 .map(|(ingredient, quantity)| IngredientResponse {
@@ -78,7 +80,7 @@ pub async fn recipe(
     // check auth
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
-    let (recipe, ingredients) = crate::models::recipes::find_one(&ctx.db, id)
+    let (recipe, ingredients, _recipe_tags) = crate::models::recipes::find_one(&ctx.db, id)
         .await?
         .ok_or_else(|| Error::NotFound)?;
     format::json(RecipeResponse {
@@ -88,6 +90,7 @@ pub async fn recipe(
         url: recipe.website_url,
         title: recipe.book_title,
         page: recipe.book_page,
+        tags: Vec::new(), // TODO: fill in!
         ingredients: ingredients
             .into_iter()
             .map(|(ingredient, quantity)| IngredientResponse {
@@ -291,7 +294,7 @@ pub async fn update_recipe(
     }
     tx.commit().await?;
 
-    let (recipe, ingredients) = crate::models::recipes::find_one(&ctx.db, id)
+    let (recipe, ingredients, _recipe_tags) = crate::models::recipes::find_one(&ctx.db, id)
         .await?
         .ok_or_else(|| Error::NotFound)?;
 
@@ -302,6 +305,7 @@ pub async fn update_recipe(
         url: recipe.website_url,
         title: recipe.book_title,
         page: recipe.book_page,
+        tags: Vec::new(),
         ingredients: ingredients
             .into_iter()
             .map(|(ingredient, quantity)| IngredientResponse {
