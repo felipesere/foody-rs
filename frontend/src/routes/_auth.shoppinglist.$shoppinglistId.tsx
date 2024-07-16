@@ -82,16 +82,16 @@ export function ShoppingPage() {
     ) || {};
 
   let sections: Section[] = [];
+  const ingredients = shoppinglist.data?.ingredients || [];
   switch (grouping) {
     case "none":
+      sections = [{ name: "Items", ingredients }];
+      break;
     case "byTag":
-      sections = orderByTags(shoppinglist.data?.ingredients || [], tags.data);
+      sections = orderByTags(ingredients, tags.data);
       break;
     case "byRecipe":
-      sections = orderByRecipe(
-        shoppinglist.data?.ingredients || [],
-        allRecipes,
-      );
+      sections = orderByRecipe(ingredients, allRecipes);
       break;
   }
 
@@ -157,37 +157,23 @@ export function ShoppingPage() {
       </Toggle>
       {showProgressBar && <Progressbar fraction={fraction} sticky={true} />}
       <ul className="grid max-w-md gap-4">
-        {grouping === "none" &&
-          shoppinglist.data?.ingredients.map((ingredient) => (
-            <CompactIngredientView
-              key={ingredient.name}
-              token={token}
-              shoppinglistId={shoppinglistId}
-              ingredient={ingredient}
-              allRecipes={allRecipes}
-              onToggle={(ingredientId, inBasket) =>
-                toggleIngredient.mutate({ ingredientId, inBasket })
-              }
-            />
-          ))}
-        {grouping !== "none" &&
-          sections.map((section) => (
-            <Fragment key={section.name}>
-              <Divider className={"capitalize"} label={section.name} />
-              {section.ingredients.map((ingredient) => (
-                <CompactIngredientView
-                  key={ingredient.name}
-                  token={token}
-                  shoppinglistId={shoppinglistId}
-                  ingredient={ingredient}
-                  allRecipes={allRecipes}
-                  onToggle={(ingredientId, inBasket) =>
-                    toggleIngredient.mutate({ ingredientId, inBasket })
-                  }
-                />
-              ))}
-            </Fragment>
-          ))}
+        {sections.map((section) => (
+          <Fragment key={section.name}>
+            <Divider className={"capitalize"} label={section.name} />
+            {section.ingredients.map((ingredient) => (
+              <CompactIngredientView
+                key={ingredient.name}
+                token={token}
+                shoppinglistId={shoppinglistId}
+                ingredient={ingredient}
+                allRecipes={allRecipes}
+                onToggle={(ingredientId, inBasket) =>
+                  toggleIngredient.mutate({ ingredientId, inBasket })
+                }
+              />
+            ))}
+          </Fragment>
+        ))}
       </ul>
     </div>
   );
