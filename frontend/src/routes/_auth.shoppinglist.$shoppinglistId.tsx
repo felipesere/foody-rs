@@ -2,7 +2,11 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import classnames from "classnames";
 import { Fragment, useState } from "react";
 import { addIngredientToShoppinglist } from "../apis/ingredients.ts";
-import { type StoredQuantity, useAllRecipes } from "../apis/recipes.ts";
+import {
+  type Recipe,
+  type StoredQuantity,
+  useAllRecipes,
+} from "../apis/recipes.ts";
 import {
   type Ingredient,
   type Shoppinglist,
@@ -292,6 +296,20 @@ function EditIngredient({
     }
   }
 
+  function LinkToRecipe(props: {
+    recipeId: Recipe["id"];
+    name: Recipe["name"];
+  }) {
+    return (
+      <Link
+        to={"/recipes/$recipeId/edit"}
+        params={{ recipeId: props.recipeId.toString() }}
+      >
+        {props.name}
+      </Link>
+    );
+  }
+
   return (
     <div>
       <Divider />
@@ -345,9 +363,14 @@ function EditIngredient({
             ) : null}
           </div>
           <p className={"ml-2"}>
-            {quantity.recipe_id
-              ? allRecipes[quantity.recipe_id] || "Manual"
-              : "Manual"}
+            {quantity.recipe_id ? (
+              <LinkToRecipe
+                recipeId={quantity.recipe_id}
+                name={allRecipes[quantity.recipe_id] || "Manual"}
+              />
+            ) : (
+              "Manual"
+            )}
           </p>
           <DottedLine />
           <Editable
