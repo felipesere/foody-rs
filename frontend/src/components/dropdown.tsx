@@ -1,6 +1,5 @@
 import {
   FloatingFocusManager,
-  FloatingPortal,
   autoUpdate,
   offset,
   size,
@@ -130,12 +129,14 @@ function InnerDropdown<T extends Named>(
           },
         })}
       />
-      <FloatingPortal>
-        {open && (
-          <FloatingFocusManager
-            context={context}
-            initialFocus={-1}
-            visuallyHiddenDismiss
+      {open && (
+        <FloatingFocusManager context={context} modal={false} initialFocus={-1}>
+          <div
+            tabIndex={-1}
+            ref={refs.setFloating}
+            style={floatingStyles}
+            {...getFloatingProps()}
+            className={"bg-gray-100 p-2 border-solid border-black border-2"}
           >
             <ul
               {...getFloatingProps({
@@ -183,9 +184,9 @@ function InnerDropdown<T extends Named>(
                 </NewItem>
               )}
             </ul>
-          </FloatingFocusManager>
-        )}
-      </FloatingPortal>
+          </div>
+        </FloatingFocusManager>
+      )}
     </>
   );
 }

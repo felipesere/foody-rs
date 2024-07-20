@@ -9,7 +9,6 @@ import {
   useFloating,
   useInteractions,
   useRole,
-  FloatingPortal,
 } from "@floating-ui/react";
 import { useForm } from "@tanstack/react-form";
 import { useState } from "react";
@@ -17,8 +16,6 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { Button } from "./button.tsx";
 import { ButtonGroup } from "./buttonGroup.tsx";
 import { Divider } from "./divider.tsx";
-
-const modalRootElement = document.getElementById("modelRoot")
 
 // TODO: Cleanup props and come up with good API.
 //       Make it look and behave similar to the `dropdown`
@@ -70,7 +67,6 @@ export function MultiSelect(props: Props) {
       props.onItemsSelected(selected);
     },
   });
-
 
   return (
     <>
