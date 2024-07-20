@@ -586,7 +586,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
         }
         "###);
 
-        let res = request.get(&format!("/api/recipes")).await;
+        let res = request.get("/api/recipes").await;
         assert_eq!(res.status_code(), 200);
         let recipes = res.json::<RecipesResponse>();
         let easy_chicken_fajitas = recipes

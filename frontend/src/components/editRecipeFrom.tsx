@@ -8,6 +8,8 @@ import { DottedLine } from "./dottedLine.tsx";
 import { FieldSet } from "./fieldset.tsx";
 import { FindIngredient } from "./findIngredient.tsx";
 import { ResizingInput } from "./resizeableInput.tsx";
+import { MultiSelect } from "./multiselect.tsx";
+import { useAllTags } from "../apis/tags.ts";
 
 export type SimplifiedRecipe = Omit<Recipe, "id" | "ingredients"> & {
   ingredients: { id: number; name: string; quantity: string }[];
@@ -22,6 +24,8 @@ export function EditRecipeFrom(props: {
   const token = props.token;
   const recipe = props.recipe;
 
+  const tags = useAllTags(token);
+
   const form = useForm({
     defaultValues: {
       name: recipe.name,
@@ -35,6 +39,7 @@ export function EditRecipeFrom(props: {
         // TODO: I think I need fox `quantity[0]` at some point
         quantity: humanize(i.quantity[0]),
       })),
+      tags: recipe.tags,
     },
     onSubmit: async (vals) => {
       switch (vals.value.source) {
@@ -73,6 +78,36 @@ export function EditRecipeFrom(props: {
                 onChange={(e) => field.handleChange(e.target.value)}
               />
             )}
+          />
+        </FieldSet>
+        <FieldSet legend={"Tags"}>
+          <form.Field
+            name={"tags"}
+            mode={"array"}
+            children={(field) => {
+              return (
+                <>
+                  <ol className={"flex flex-row gap-2"}>
+                    {field.state.value.map((tag) => (
+                      <p key={tag}>#{tag}</p>
+                    ))}
+                  </ol>
+                  <MultiSelect
+                    label={"Select Tags"}
+                    items={Object.keys(tags.data || [])}
+                    onItemsSelected={(items) => {
+                      const total = field.state.value.length;
+                      for (let i = 0; i < total; i++) {
+                        field.removeValue(i);
+                      }
+                      for (const item in items) {
+                        field.pushValue(item);
+                      }
+                    }}
+                  />
+                </>
+              );
+            }}
           />
         </FieldSet>
 

@@ -81,6 +81,16 @@ function RecipeView(props: RecipeProps) {
       </div>
       {open ? (
         <div>
+            {
+                props.recipe.tags.length > 0 && (
+                    <>
+                        <Divider />
+                        <ol className={"flex flex-row gap-2"}>
+                            {props.recipe.tags.map((tag) => (<p key={tag}>#{tag}</p>))}
+                        </ol>
+                    </>
+                )
+            }
           <Divider />
           <p className="uppercase">Ingredients:</p>
           <ul>
