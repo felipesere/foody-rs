@@ -66,9 +66,9 @@ input[type="checkbox"]::before {
     box-shadow: inset 1em 1em currentColor;
     clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
 }
-*:has(input[type="checkbox"]) {
-    z-index: 1;
-}
+/**:has(input[type="checkbox"]) {*/
+/*    z-index: 1;*/
+/*}*/
 
 /* And this is the checked version which resets the scale back to 1 */
 input[type="checkbox"]:checked::before {

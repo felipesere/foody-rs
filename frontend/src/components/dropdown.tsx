@@ -144,7 +144,7 @@ function InnerDropdown<T extends Named>(
                   ...floatingStyles,
                 },
                 className:
-                  "z-50 bg-white overflow-y-auto border-solid border-black border-2",
+                  "z-10 bg-white overflow-y-auto border-solid border-black border-2",
               })}
             >
               {items.map((item, idx) => (

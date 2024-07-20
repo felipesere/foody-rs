@@ -95,6 +95,9 @@ export function EditRecipeFrom(props: {
                   <MultiSelect
                     label={"Select Tags"}
                     items={Object.keys(tags.data || [])}
+                    onNewItem={(item) => {
+                      field.pushValue(item);
+                    }}
                     onItemsSelected={(items) => {
                       const total = field.state.value.length;
                       for (let i = 0; i < total; i++) {

@@ -9,6 +9,7 @@ import {
   useFloating,
   useInteractions,
   useRole,
+  FloatingPortal,
 } from "@floating-ui/react";
 import { useForm } from "@tanstack/react-form";
 import { useState } from "react";
@@ -16,6 +17,8 @@ import { useHotkeys } from "react-hotkeys-hook";
 import { Button } from "./button.tsx";
 import { ButtonGroup } from "./buttonGroup.tsx";
 import { Divider } from "./divider.tsx";
+
+const modalRootElement = document.getElementById("modelRoot")
 
 // TODO: Cleanup props and come up with good API.
 //       Make it look and behave similar to the `dropdown`
@@ -68,6 +71,7 @@ export function MultiSelect(props: Props) {
     },
   });
 
+
   return (
     <>
       <Button
@@ -75,101 +79,115 @@ export function MultiSelect(props: Props) {
         {...getReferenceProps()}
         label={props.label}
         className={props.className}
-        type={"submit"}
+        type={"button"}
         hotkey={props.hotkey}
       />
       {isOpen && (
-        <FloatingFocusManager context={context} modal={false} initialFocus={-1}>
-          <div
-            tabIndex={-1}
-            ref={refs.setFloating}
-            style={floatingStyles}
-            {...getFloatingProps()}
-            className={"bg-gray-100 p-2 border-solid border-black border-2"}
+        <FloatingPortal root={modalRootElement} >
+          <FloatingFocusManager
+            context={context}
+            modal={false}
+            initialFocus={-1}
           >
-            <form
-              id="multiselect"
-              onSubmit={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                void form.handleSubmit();
-              }}
+            <div
+              tabIndex={-1}
+              ref={refs.setFloating}
+              className={"bg-gray-100 p-2 border-solid border-black border-2 z-50 felipe-is-here"}
+              style={floatingStyles}
+              {...getFloatingProps()}
             >
-              <ol className={"space-y-2"}>
-                <form.Field
-                  name={"items"}
-                  children={(itemsField) => {
-                    return itemsField.state.value.map((item, idx) => (
-                      <form.Field
-                        key={item.name}
-                        name={`items[${idx}].value`}
-                        children={(itemField) => {
-                          const [first, ...remaining] = item.name;
-                          useHotkeys([first], () =>
-                            itemField.handleChange((p) => !p),
-                          );
+              <form
+                id="multiselect"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  void form.handleSubmit();
+                }}
+              >
+                <ol className={"space-y-2"}>
+                  <form.Field
+                    name={"items"}
+                    children={(itemsField) => {
+                      return itemsField.state.value.map((item, idx) => (
+                        <form.Field
+                          key={item.name}
+                          name={`items[${idx}].value`}
+                          children={(itemField) => {
+                            const [first, ...remaining] = item.name;
+                            useHotkeys([first], () =>
+                              itemField.handleChange((p) => !p),
+                            );
 
-                          return (
-                            <div
-                              className={"flex flex-row gap-2"}
-                              key={item.name}
-                            >
-                              <input
-                                type={"checkbox"}
-                                className={"px-2 bg-white shadow"}
-                                id={item.name}
+                            return (
+                              <div
+                                className={"flex flex-row gap-2"}
                                 key={item.name}
-                                checked={itemField.state.value}
-                                readOnly={true}
-                                onClick={() => {
-                                  itemField.handleChange(
-                                    !itemField.state.value,
-                                  );
-                                }}
-                              />
-                              <label className={"no-colon"} htmlFor={item.name}>
-                                <span className={"font-bold"}>{first}</span>
-                                {remaining.join("")}
-                              </label>
-                            </div>
-                          );
+                              >
+                                <input
+                                  type={"checkbox"}
+                                  className={"px-2 bg-white shadow"}
+                                  id={item.name}
+                                  key={item.name}
+                                  checked={itemField.state.value}
+                                  readOnly={true}
+                                  onClick={() => {
+                                    itemField.handleChange(
+                                      !itemField.state.value,
+                                    );
+                                  }}
+                                />
+                                <label
+                                  className={"no-colon"}
+                                  htmlFor={item.name}
+                                >
+                                  <span className={"font-bold"}>{first}</span>
+                                  {remaining.join("")}
+                                </label>
+                              </div>
+                            );
+                          }}
+                        />
+                      ));
+                    }}
+                  />
+                  {props.onNewItem && (
+                    <div className={"flex flex-row gap-2"} key={"new-item"}>
+                      <input
+                        type={"text"}
+                        className={"border-2 border-solid border-black px-2"}
+                        id={"new-item"}
+                        placeholder={props.newItemPlaceholder || "New..."}
+                        onBlur={(e) => {
+                          if (e.target.value) {
+                            props.onNewItem?.(e.target.value);
+                          }
                         }}
                       />
-                    ));
-                  }}
-                />
-                {props.onNewItem && (
-                  <div className={"flex flex-row gap-2"} key={"new-item"}>
-                    <input
-                      type={"text"}
-                      className={"border-2 border-solid border-black px-2"}
-                      id={"new-item"}
-                      placeholder={props.newItemPlaceholder || "New..."}
-                      onBlur={(e) => {
-                        if (e.target.value) {
-                          props.onNewItem?.(e.target.value);
-                        }
-                      }}
-                    />
-                  </div>
-                )}
-              </ol>
-              <Divider />
-              <ButtonGroup>
-                <Button label="Save" type="submit" hotkey="ctrl+s" />
-                <Button
-                  label={"Reset"}
-                  hotkey={"ctrl+r"}
-                  type="button"
-                  onClick={() => {
-                    form.reset();
-                    console.log("...resetting...");
-                  }}
-                />
-              </ButtonGroup>
-            </form>
-          </div>
-        </FloatingFocusManager>
+                    </div>
+                  )}
+                </ol>
+                <Divider />
+                <ButtonGroup>
+                  <Button
+                    label="Save"
+                    type="submit"
+                    hotkey="ctrl+s"
+                    onClick={() => console.log("here we go!")}
+                  />
+                  <Button
+                    label={"Reset"}
+                    hotkey={"ctrl+r"}
+                    type="button"
+                    onClick={() => {
+                      form.reset();
+                      console.log("...resetting...");
+                    }}
+                  />
+                </ButtonGroup>
+              </form>
+            </div>
+          </FloatingFocusManager>
+        </FloatingPortal>
       )}
     </>
   );
