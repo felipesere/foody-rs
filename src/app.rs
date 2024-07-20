@@ -13,15 +13,15 @@ use loco_rs::{
 };
 use migration::Migrator;
 use sea_orm::{
-    ActiveModelBehavior, ActiveModelTrait, ActiveValue, ConnectionTrait, DatabaseConnection,
-    DbBackend, Statement,
+    ActiveModelBehavior, ActiveModelTrait, ConnectionTrait, DatabaseConnection, DbBackend,
+    Statement,
 };
 
 use crate::{
     controllers,
     models::_entities::{
-        ingredients, ingredients_in_recipes, ingredients_in_shoppinglists, quantities, recipes,
-        shoppinglists, users,
+        self, ingredients, ingredients_in_recipes, ingredients_in_shoppinglists, quantities,
+        recipes, shoppinglists, users,
     },
     tasks,
 };
@@ -95,6 +95,7 @@ impl Hooks for App {
             book_title: Option<String>,
             website_url: Option<String>,
             ingredients: HashMap<String, Quantity>,
+            tags: Option<Vec<String>>,
         }
 
         #[derive(serde::Deserialize)]
@@ -115,7 +116,7 @@ impl Hooks for App {
         let data_yaml = File::open(base.join("data.yaml"))?;
         let data: Data = serde_yaml::from_reader(data_yaml)?;
 
-        use ActiveValue as AV;
+        use sea_orm::ActiveValue as AV;
         let mut ingredients = HashMap::new();
         for ingredient_name in data.ingredients {
             let mut ingredient = ingredients::ActiveModel::new();
@@ -153,6 +154,20 @@ impl Hooks for App {
                 in_recipe.quantities_id = AV::set(quantity.id);
                 in_recipe.recipes_id = AV::set(model.id);
                 in_recipe.insert(db).await.unwrap();
+            }
+
+            for tag in recipe.tags.unwrap_or_default() {
+                println!("about to create tag {tag}");
+
+                let upsert_tag = _entities::tags::Entity::upsert(db, tag).await?;
+
+                _entities::tags_on_recipes::ActiveModel {
+                    tag_id: AV::set(upsert_tag.id),
+                    recipe_id: AV::set(model.id),
+                    ..Default::default()
+                }
+                .insert(db)
+                .await?;
             }
         }
 

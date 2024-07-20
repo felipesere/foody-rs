@@ -1,3 +1,5 @@
+use std::collections::{BTreeSet};
+
 use super::_entities::ingredients::Model as Ingredient;
 use super::_entities::quantities::Model as Quantity;
 use super::_entities::recipes::{ActiveModel, Model as Recipes};
@@ -9,7 +11,8 @@ impl ActiveModelBehavior for ActiveModel {
     // extend activemodel below (keep comment for generators)
 }
 
-type FullRecipe = (Recipes, Vec<(Ingredient, Quantity)>, Vec<String>);
+// TODO: Turn this into an actual struct with proper names
+type FullRecipe = (Recipes, Vec<(Ingredient, Quantity)>, BTreeSet<String>);
 
 pub(crate) async fn find_all(db: &DatabaseConnection) -> Result<Vec<FullRecipe>, ModelError> {
     let s = Statement::from_string(
@@ -54,9 +57,11 @@ pub(crate) async fn find_all(db: &DatabaseConnection) -> Result<Vec<FullRecipe>,
         let recipe = Recipes::from_query_result(row, "r_")?;
         let ingredient = Ingredient::from_query_result_optional(row, "i_")?;
         let quantity = Quantity::from_query_result_optional(row, "q_")?;
+        let tag: Option<String> = row.try_get("t_", "name")?;
+
 
         if result.is_empty() || result[result.len() - 1].0.id != recipe.id {
-            result.push((recipe, Vec::new(), Vec::new()));
+            result.push((recipe, Vec::new(), BTreeSet::new()));
         };
 
         let Some(ingredient) = ingredient else {
@@ -65,6 +70,11 @@ pub(crate) async fn find_all(db: &DatabaseConnection) -> Result<Vec<FullRecipe>,
         let Some(quantity) = quantity else { continue };
         let last_list_idx = result.len();
         let list = &mut result[last_list_idx - 1];
+
+        if let Some(t) = tag {
+            list.2.insert(t);
+        }
+
         list.1.push((ingredient, quantity));
     }
     Ok(result)
@@ -121,9 +131,10 @@ pub(crate) async fn find_one(
         let recipe = Recipes::from_query_result(row, "r_")?;
         let ingredient = Ingredient::from_query_result_optional(row, "i_")?;
         let quantity = Quantity::from_query_result_optional(row, "q_")?;
+        let tag: Option<String> = row.try_get_by("recipe_tag")?;
 
         if result.is_empty() || result[result.len() - 1].0.id != recipe.id {
-            result.push((recipe, Vec::new(), Vec::new()));
+            result.push((recipe, Vec::new(), BTreeSet::new()));
         };
 
         let Some(ingredient) = ingredient else {
@@ -132,6 +143,10 @@ pub(crate) async fn find_one(
         let Some(quantity) = quantity else { continue };
         let last_list_idx = result.len();
         let list = &mut result[last_list_idx - 1];
+        if let Some(tag) = tag {
+            list.2.insert(tag);
+        }
+
         list.1.push((ingredient, quantity));
     }
     Ok(Some(result.remove(0)))

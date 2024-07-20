@@ -3,6 +3,8 @@ recipes:
   source: book
   book_page: 120
   book_title: simplissime easy tart
+  tags:
+    - vegetarian
   ingredients:
     double cream:
       unit: tablespoon

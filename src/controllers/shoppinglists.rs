@@ -106,6 +106,7 @@ pub async fn all_shoppinglists(
         .into_iter()
         .map(MinimalShoppinglistResponse::from)
         .collect();
+
     format::json(ShoppinglistsResponse { shoppinglists })
 }
 
@@ -419,7 +420,6 @@ pub async fn add_quantity_to_ingredient(
     extract::Json(params): extract::Json<RawQuantity>,
 ) -> Result<()> {
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
-    let _ = shoppinglists::Entity::find_by_id(id).one(&ctx.db).await?;
 
     let quantity = crate::models::quantities::Quantity::parse(&params.quantity)
         .into_active_model()
