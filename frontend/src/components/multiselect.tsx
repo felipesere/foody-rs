@@ -65,6 +65,7 @@ export function MultiSelect(props: Props) {
         .filter((i) => i.value)
         .map((i) => i.name);
       props.onItemsSelected(selected);
+      setIsOpen(false);
     },
   });
 
@@ -79,111 +80,112 @@ export function MultiSelect(props: Props) {
         hotkey={props.hotkey}
       />
       {isOpen && (
-        <FloatingPortal root={modalRootElement} >
-          <FloatingFocusManager
-            context={context}
-            modal={false}
-            initialFocus={-1}
+        <FloatingFocusManager context={context} modal={false} initialFocus={-1}>
+          <div
+            tabIndex={-1}
+            ref={refs.setFloating}
+            className={
+              "bg-gray-100 p-2 border-solid border-black border-2 z-50 felipe-is-here"
+            }
+            style={floatingStyles}
+            {...getFloatingProps()}
           >
             <div
-              tabIndex={-1}
-              ref={refs.setFloating}
-              className={"bg-gray-100 p-2 border-solid border-black border-2 z-50 felipe-is-here"}
-              style={floatingStyles}
-              {...getFloatingProps()}
+              id="multiselect"
+              // onSubmit={(e) => {
+              //   e.preventDefault();
+              //   e.stopPropagation();
+              //   void form.handleSubmit();
+              // }}
             >
-              <form
-                id="multiselect"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  void form.handleSubmit();
-                }}
-              >
-                <ol className={"space-y-2"}>
-                  <form.Field
-                    name={"items"}
-                    children={(itemsField) => {
-                      return itemsField.state.value.map((item, idx) => (
-                        <form.Field
-                          key={item.name}
-                          name={`items[${idx}].value`}
-                          children={(itemField) => {
-                            const [first, ...remaining] = item.name;
-                            useHotkeys([first], () =>
-                              itemField.handleChange((p) => !p),
-                            );
+              <ol className={"space-y-2"}>
+                <form.Field
+                  name={"items"}
+                  children={(itemsField) => {
+                    return itemsField.state.value.map((item, idx) => (
+                      <form.Field
+                        key={item.name}
+                        name={`items[${idx}].value`}
+                        children={(itemField) => {
+                          const [first, ...remaining] = item.name;
+                          useHotkeys([first], () =>
+                            itemField.handleChange((p) => !p),
+                          );
 
-                            return (
-                              <div
-                                className={"flex flex-row gap-2"}
+                          return (
+                            <div
+                              className={"flex flex-row gap-2"}
+                              key={item.name}
+                            >
+                              <input
+                                type={"checkbox"}
+                                className={"px-2 bg-white shadow"}
+                                id={item.name}
                                 key={item.name}
-                              >
-                                <input
-                                  type={"checkbox"}
-                                  className={"px-2 bg-white shadow"}
-                                  id={item.name}
-                                  key={item.name}
-                                  checked={itemField.state.value}
-                                  readOnly={true}
-                                  onClick={() => {
-                                    itemField.handleChange(
-                                      !itemField.state.value,
-                                    );
-                                  }}
-                                />
-                                <label
-                                  className={"no-colon"}
-                                  htmlFor={item.name}
-                                >
-                                  <span className={"font-bold"}>{first}</span>
-                                  {remaining.join("")}
-                                </label>
-                              </div>
-                            );
-                          }}
-                        />
-                      ));
-                    }}
-                  />
-                  {props.onNewItem && (
-                    <div className={"flex flex-row gap-2"} key={"new-item"}>
-                      <input
-                        type={"text"}
-                        className={"border-2 border-solid border-black px-2"}
-                        id={"new-item"}
-                        placeholder={props.newItemPlaceholder || "New..."}
-                        onBlur={(e) => {
-                          if (e.target.value) {
-                            props.onNewItem?.(e.target.value);
-                          }
+                                checked={itemField.state.value}
+                                readOnly={true}
+                                // onChange={(event) => {
+                                //   event.preventDefault();
+                                //   event.stopPropagation();
+                                //   itemField.setValue(event.target.checked)
+                                // }}
+                                onClick={() => {
+                                  itemField.handleChange(
+                                    !itemField.state.value,
+                                  );
+                                }}
+                              />
+                              <label className={"no-colon"} htmlFor={item.name}>
+                                <span className={"font-bold"}>{first}</span>
+                                {remaining.join("")}
+                              </label>
+                            </div>
+                          );
                         }}
                       />
-                    </div>
-                  )}
-                </ol>
-                <Divider />
-                <ButtonGroup>
-                  <Button
-                    label="Save"
-                    type="submit"
-                    hotkey="ctrl+s"
-                    onClick={() => console.log("here we go!")}
-                  />
-                  <Button
-                    label={"Reset"}
-                    hotkey={"ctrl+r"}
-                    type="button"
-                    onClick={() => {
-                      form.reset();
-                      console.log("...resetting...");
-                    }}
-                  />
-                </ButtonGroup>
-              </form>
+                    ));
+                  }}
+                />
+                {props.onNewItem && (
+                  <div className={"flex flex-row gap-2"} key={"new-item"}>
+                    <input
+                      type={"text"}
+                      className={"border-2 border-solid border-black px-2"}
+                      id={"new-item"}
+                      placeholder={props.newItemPlaceholder || "New..."}
+                      onBlur={(e) => {
+                        if (e.target.value) {
+                          props.onNewItem?.(e.target.value);
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+              </ol>
+              <Divider />
+              <ButtonGroup>
+                <Button
+                  label="Save"
+                  type="submit"
+                  hotkey="ctrl+s"
+                  onClick={() => {
+                    console.log("here we go!");
+                    void form.handleSubmit();
+                  }}
+                />
+                <Button
+                  label={"Reset"}
+                  hotkey={"ctrl+r"}
+                  type="button"
+                  onClick={() => {
+                    form.reset();
+                    console.log("...resetting...");
+                  }}
+                />
+              </ButtonGroup>
             </div>
-          </FloatingFocusManager>
-        </FloatingPortal>
+          </div>
+        </FloatingFocusManager>
       )}
     </>
   );

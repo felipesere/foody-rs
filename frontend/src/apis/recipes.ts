@@ -71,7 +71,7 @@ const RecipeSchema = z
     id: z.number(),
     name: z.string(),
     ingredients: z.array(IngredientSchema),
-    tags: z.array(z.string())
+    tags: z.array(z.string()),
   })
   .and(SourceSchema);
 

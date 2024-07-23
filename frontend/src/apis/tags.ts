@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { http } from "./http.ts";
 
@@ -47,6 +47,27 @@ export function useAllTags(token: string) {
       }
 
       return ts;
+    },
+  });
+}
+
+type CreateTagParams = {
+  name: string;
+};
+
+export function useCreateTag(token: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (variables: CreateTagParams) => {
+      return http.post("api/tags", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        json: variables,
+      });
+    },
+    onSuccess: async () => {
+      await client.invalidateQueries({ queryKey: ["tags"] });
     },
   });
 }

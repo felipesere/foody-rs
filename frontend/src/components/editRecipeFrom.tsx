@@ -9,7 +9,7 @@ import { FieldSet } from "./fieldset.tsx";
 import { FindIngredient } from "./findIngredient.tsx";
 import { ResizingInput } from "./resizeableInput.tsx";
 import { MultiSelect } from "./multiselect.tsx";
-import { useAllTags } from "../apis/tags.ts";
+import {useAllTags, useCreateTag} from "../apis/tags.ts";
 
 export type SimplifiedRecipe = Omit<Recipe, "id" | "ingredients"> & {
   ingredients: { id: number; name: string; quantity: string }[];
@@ -25,6 +25,7 @@ export function EditRecipeFrom(props: {
   const recipe = props.recipe;
 
   const tags = useAllTags(token);
+  const createTag = useCreateTag(token)
 
   const form = useForm({
     defaultValues: {
@@ -87,25 +88,20 @@ export function EditRecipeFrom(props: {
             children={(field) => {
               return (
                 <>
-                  <ol className={"flex flex-row gap-2"}>
+                  <ol className={"flex flex-wrap gap-2"}>
                     {field.state.value.map((tag) => (
-                      <p key={tag}>#{tag}</p>
+                      <li key={tag}>#{tag}</li>
                     ))}
                   </ol>
                   <MultiSelect
                     label={"Select Tags"}
                     items={Object.keys(tags.data || [])}
-                    onNewItem={(item) => {
-                      field.pushValue(item);
+                    selected={field.state.value}
+                    onNewItem={(tag) => {
+                        createTag.mutate({name: tag})
                     }}
                     onItemsSelected={(items) => {
-                      const total = field.state.value.length;
-                      for (let i = 0; i < total; i++) {
-                        field.removeValue(i);
-                      }
-                      for (const item in items) {
-                        field.pushValue(item);
-                      }
+                      field.setValue(items);
                     }}
                   />
                 </>
