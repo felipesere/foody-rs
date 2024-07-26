@@ -3,6 +3,7 @@ use loco_rs::controller::middleware::{self};
 use loco_rs::prelude::*;
 use serde::{Deserialize, Serialize};
 
+use crate::models::_entities::tags_on_recipes;
 use crate::models::{
     _entities::{self, ingredients_in_recipes, quantities, recipes},
     quantities::Quantity,
@@ -196,6 +197,7 @@ pub async fn create_recipe(
         }
     };
     let recipe = recipe.save(&tx).await?;
+
     tracing::info!("The recipe is {:?}", recipe.name);
     for i in params.ingredients {
         let q = Quantity::parse(&i.quantity);
@@ -222,6 +224,7 @@ pub struct UpdateRecipe {
     #[serde(flatten)]
     source: RecipeSource,
     ingredients: Vec<Ingredient>,
+    tags: Vec<String>,
 }
 
 pub async fn update_recipe(
@@ -259,6 +262,22 @@ pub async fn update_recipe(
         }
     }
     a.save(&tx).await?;
+
+    let tags = Tags::batch_upsert(&tx, &params.tags).await?;
+    TagsOnRecipes::delete_many()
+        .filter(tags_on_recipes::Column::RecipeId.eq(id))
+        .exec(&tx)
+        .await?;
+
+    for tag in tags {
+        tags_on_recipes::ActiveModel {
+            recipe_id: ActiveValue::set(id),
+            tag_id: ActiveValue::set(tag.id),
+            ..Default::default()
+        }
+        .insert(&tx)
+        .await?;
+    }
 
     IngredientsInRecipes::delete_many()
         .filter(ingredients_in_recipes::Column::RecipesId.eq(id))
@@ -351,7 +370,8 @@ mod tests {
                   "id": 46,
                   "quantity": "0.5 tsp"
                 }
-              ]
+              ],
+              "tags": ["vegetarian"]
             }
             "#;
 

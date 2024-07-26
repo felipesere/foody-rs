@@ -18,8 +18,8 @@ pub struct Model {
 pub enum Relation {
     #[sea_orm(
         belongs_to = "super::ingredients::Entity",
-        from = "(Column::IngredientId, Column::IngredientId, Column::IngredientId, Column::IngredientId)",
-        to = "(super::ingredients::Column::Id, super::ingredients::Column::Id, super::ingredients::Column::Id, super::ingredients::Column::Id)",
+        from = "Column::IngredientId",
+        to = "super::ingredients::Column::Id",
         on_update = "Cascade",
         on_delete = "Cascade"
     )]

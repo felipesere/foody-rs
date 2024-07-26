@@ -17,13 +17,13 @@ pub struct Model {
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
     #[sea_orm(
-        belongs_to = "super::ingredients::Entity",
-        from = "(Column::RecipeId, Column::RecipeId, Column::RecipeId, Column::RecipeId)",
-        to = "(super::ingredients::Column::Id, super::ingredients::Column::Id, super::ingredients::Column::Id, super::ingredients::Column::Id)",
+        belongs_to = "super::recipes::Entity",
+        from = "Column::RecipeId",
+        to = "super::recipes::Column::Id",
         on_update = "Cascade",
         on_delete = "Cascade"
     )]
-    Ingredients,
+    Recipes,
     #[sea_orm(
         belongs_to = "super::tags::Entity",
         from = "Column::TagId",
@@ -34,9 +34,9 @@ pub enum Relation {
     Tags,
 }
 
-impl Related<super::ingredients::Entity> for Entity {
+impl Related<super::recipes::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::Ingredients.def()
+        Relation::Recipes.def()
     }
 }
 

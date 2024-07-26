@@ -1,4 +1,5 @@
 use super::_entities::tags::ActiveModel;
+use super::_entities::tags::Column;
 use super::_entities::tags::Entity;
 use migration::OnConflict;
 use sea_orm::entity::prelude::*;
@@ -28,5 +29,34 @@ impl Entity {
             .exec_with_returning(db)
             .await
             .inspect_err(|e| println!("The error when upserting was: {e}"))
+    }
+
+    pub async fn batch_upsert<'a, C: ConnectionTrait>(
+        db: &'a C,
+        values: &[String],
+    ) -> Result<Vec<super::_entities::tags::Model>, sea_orm::DbErr> {
+        let mut tags = Entity::find()
+            .filter(Column::Name.is_in(values))
+            .all(db)
+            .await?;
+
+        let existing_tag_names: Vec<_> = tags.iter().map(|t| t.name.clone()).collect();
+
+        let remaining: Vec<_> = values
+            .iter()
+            .filter(|name| !existing_tag_names.contains(name))
+            .collect();
+
+        for tag in remaining {
+            let model = ActiveModel {
+                name: ActiveValue::Set(tag.to_owned()),
+                is_aisle: ActiveValue::Set(false),
+                ..Default::default()
+            };
+            let model = model.insert(db).await?;
+            tags.push(model);
+        }
+
+        Ok(tags)
     }
 }
