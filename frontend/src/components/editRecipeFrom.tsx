@@ -9,7 +9,7 @@ import { FieldSet } from "./fieldset.tsx";
 import { FindIngredient } from "./findIngredient.tsx";
 import { ResizingInput } from "./resizeableInput.tsx";
 import { MultiSelect } from "./multiselect.tsx";
-import {useAllTags, useCreateTag} from "../apis/tags.ts";
+import { useAllTags, useCreateTag } from "../apis/tags.ts";
 
 export type SimplifiedRecipe = Omit<Recipe, "id" | "ingredients"> & {
   ingredients: { id: number; name: string; quantity: string }[];
@@ -25,7 +25,7 @@ export function EditRecipeFrom(props: {
   const recipe = props.recipe;
 
   const tags = useAllTags(token);
-  const createTag = useCreateTag(token)
+  const createTag = useCreateTag(token);
 
   const form = useForm({
     defaultValues: {
@@ -98,7 +98,7 @@ export function EditRecipeFrom(props: {
                     items={Object.keys(tags.data || [])}
                     selected={field.state.value}
                     onNewItem={(tag) => {
-                        createTag.mutate({name: tag})
+                      createTag.mutate({ name: tag });
                     }}
                     onItemsSelected={(items) => {
                       field.setValue(items);
