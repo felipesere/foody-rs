@@ -28,7 +28,6 @@ impl Entity {
             )
             .exec_with_returning(db)
             .await
-            .inspect_err(|e| println!("The error when upserting was: {e}"))
     }
 
     pub async fn batch_upsert<'a, C: ConnectionTrait>(

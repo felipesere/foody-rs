@@ -1,9 +1,9 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashMap};
 
+use super::_entities;
 use super::_entities::ingredients::Model as Ingredient;
 use super::_entities::quantities::Model as Quantity;
 use super::_entities::recipes::{ActiveModel, Model as Recipes};
-use super::_entities::{self};
 use loco_rs::model::ModelError;
 use sea_orm::entity::prelude::*;
 use sea_orm::{DbBackend, FromQueryResult, Statement};
@@ -33,68 +33,75 @@ impl Linked for RecipeToTags {
 type FullRecipe = (Recipes, Vec<(Ingredient, Quantity)>, BTreeSet<String>);
 
 pub(crate) async fn find_all(db: &DatabaseConnection) -> Result<Vec<FullRecipe>, ModelError> {
-    let s = Statement::from_string(
-        DbBackend::Postgres,
+    let backend = db.get_database_backend();
+
+    let tags_statement = Statement::from_string(
+        backend,
         r#"
-        select distinct
-            "recipes"."created_at" as "r_created_at",
-            "recipes"."updated_at" as "r_updated_at",
-            "recipes"."id" as "r_id",
-            "recipes"."name" as "r_name",
-            "recipes"."book_title" as "r_book_title",
-            "recipes"."book_page" as "r_book_page",
-            "recipes"."website_url" as "r_website_url",
-            "recipes"."source" as "r_source",
-            "r1"."created_at" as "i_created_at",
-            "r1"."updated_at" as "i_updated_at",
-            "r1"."id" as "i_id",
-            "r1"."name" as "i_name",
-            "q"."id" as "q_id",
-            "q"."created_at" as "q_created_at",
-            "q"."updated_at" as "q_updated_at",
-            "q"."unit" as "q_unit",
-            "q"."value" as "q_value",
-            "q"."text" as "q_text",
-            "t"."name" as "t_name"
-        from "recipes"
-        left join
-            "ingredients_in_recipes" as "r0"
-            on "r0"."recipes_id" = "recipes"."id"
-        left join "ingredients" as "r1" on "r0"."ingredients_id" = "r1"."id"
-        left join "quantities" as "q" on "r0"."quantities_id" = "q".id
-        left join "tags_on_recipes" as "t_on_r" on "t_on_r"."recipe_id" = "recipes"."id"
-        left join "tags" as "t" on "t_on_r"."tag_id" = "t".id
-        order by "recipes"."id" asc, "r1"."id" asc, "q"."id" asc
-        "#,
+        SELECT
+            recipe_id,
+            t.name as t_name
+        FROM tags_on_recipes
+            JOIN tags as t on tags_on_recipes.tag_id = t.id
+    "#,
+    );
+    let rows = &db.query_all(tags_statement).await?;
+    let mut tagged_recipes = HashMap::new();
+    for row in rows {
+        let recipe_id: i32 = row.try_get("", "recipe_id")?;
+        let tag: String = row.try_get("t_", "name")?;
+        tagged_recipes
+            .entry(recipe_id)
+            .or_insert_with(BTreeSet::new)
+            .insert(tag);
+    }
+
+    let ingredients_with_quantities = Statement::from_string(
+        backend,
+        r#"
+        SELECT recipes_id,
+               i.created_at as i_created_at,
+               i.updated_at as i_updated_at,
+               i.id as i_id,
+               i.name as i_name,
+               q.created_at as q_created_at,
+               q.updated_at as q_updated_at,
+               q.id as q_id,
+               q.text as q_text,
+               q.unit as q_unit,
+               q.value as q_value
+        FROM ingredients_in_recipes
+                 JOIN ingredients i ON ingredients_in_recipes.ingredients_id = i.id
+                 JOIN quantities q ON q.id = ingredients_in_recipes.quantities_id
+    "#,
     );
 
-    let rows = &db.query_all(s).await?;
-
-    let mut result: Vec<FullRecipe> = Vec::new();
+    let rows = &db.query_all(ingredients_with_quantities).await;
+    let mut ingredients_for_recipes = HashMap::new();
     for row in rows {
-        let recipe = Recipes::from_query_result(row, "r_")?;
-        let ingredient = Ingredient::from_query_result_optional(row, "i_")?;
-        let quantity = Quantity::from_query_result_optional(row, "q_")?;
-        let tag: Option<String> = row.try_get("t_", "name")?;
-
-        if result.is_empty() || result[result.len() - 1].0.id != recipe.id {
-            result.push((recipe, Vec::new(), BTreeSet::new()));
-        };
-
-        let Some(ingredient) = ingredient else {
-            continue;
-        };
-        let Some(quantity) = quantity else { continue };
-        let last_list_idx = result.len();
-        let list = &mut result[last_list_idx - 1];
-
-        if let Some(t) = tag {
-            list.2.insert(t);
-        }
-
-        list.1.push((ingredient, quantity));
+        let recipe_id: i32 = row.try_get("", "recipes_id")?;
+        let ingredient = _entities::ingredients::Model::from_query_result(row, "i_")?;
+        let quantity = _entities::quantities::Model::from_query_result(row, "q_")?;
+        ingredients_for_recipes
+            .entry(recipe_id)
+            .or_insert_with(Vec::new)
+            .push((ingredient, quantity));
     }
-    Ok(result)
+
+    let recipes = _entities::recipes::Entity::find().all(db).await?;
+
+    let mut full_recipes = Vec::new();
+    for recipe in recipes {
+        let its_tags = tagged_recipes.get(&recipe.id).cloned().unwrap_or_default();
+        let its_ingredients = ingredients_for_recipes
+            .get(&recipe.id)
+            .cloned()
+            .unwrap_or_default();
+
+        full_recipes.push((recipe, its_ingredients, its_tags));
+    }
+
+    Ok(full_recipes)
 }
 
 // TODO: actually join in on the tags!
