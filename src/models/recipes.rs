@@ -6,7 +6,7 @@ use super::_entities::quantities::Model as Quantity;
 use super::_entities::recipes::{ActiveModel, Model as Recipes};
 use loco_rs::model::ModelError;
 use sea_orm::entity::prelude::*;
-use sea_orm::{DbBackend, FromQueryResult, Statement};
+use sea_orm::{FromQueryResult, Statement};
 
 impl ActiveModelBehavior for ActiveModel {
     // extend activemodel below (keep comment for generators)
@@ -76,7 +76,7 @@ pub(crate) async fn find_all(db: &DatabaseConnection) -> Result<Vec<FullRecipe>,
     "#,
     );
 
-    let rows = &db.query_all(ingredients_with_quantities).await;
+    let rows = &db.query_all(ingredients_with_quantities).await?;
     let mut ingredients_for_recipes = HashMap::new();
     for row in rows {
         let recipe_id: i32 = row.try_get("", "recipes_id")?;
