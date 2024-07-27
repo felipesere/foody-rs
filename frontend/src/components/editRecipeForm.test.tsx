@@ -66,7 +66,7 @@ const tartiflette: Recipe = {
   page: 123,
   source: "book",
   title: "Simplissime",
-  tags: []
+  tags: [],
 };
 
 function backendServer(handlers: Array<RequestHandler>) {

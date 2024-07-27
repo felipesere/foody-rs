@@ -20,7 +20,7 @@ impl Entity {
             ..Default::default()
         };
 
-        Entity::insert(tag_model)
+        Self::insert(tag_model)
             .on_conflict(
                 OnConflict::column(super::_entities::tags::Column::Name)
                     .value(super::_entities::tags::Column::Name, name)
@@ -34,7 +34,7 @@ impl Entity {
         db: &'a C,
         values: &[String],
     ) -> Result<Vec<super::_entities::tags::Model>, sea_orm::DbErr> {
-        let mut tags = Entity::find()
+        let mut tags = Self::find()
             .filter(Column::Name.is_in(values))
             .all(db)
             .await?;
