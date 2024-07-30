@@ -34,10 +34,14 @@ type RecipeSearch = z.infer<typeof RecipeSearchSchema>;
 function updateSearch(
   previous: RecipeSearch,
   changes: {
-    tags?: { add?: string; remove?: string };
+    tags?: { set?: string[]; add?: string; remove?: string };
     term?: { set?: string };
   },
 ): RecipeSearch {
+  if (changes.tags?.set) {
+    previous.tags = changes.tags.set;
+  }
+
   if (changes.tags?.add) {
     previous.tags = [...(previous.tags || []), changes.tags.add];
   }
@@ -111,7 +115,10 @@ export function RecipesPage() {
               selected={tags || []}
               items={knownTags}
               onItemsSelected={(items) => {
-                navigate({ search: { tags: items } });
+                navigate({
+                  search: (params) =>
+                    updateSearch(params, { tags: { set: items } }),
+                });
               }}
               hotkey={"ctrl+t"}
             />
