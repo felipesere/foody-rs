@@ -76,11 +76,17 @@ input[type="checkbox"]:checked::before {
 }
 
 /* Broad styles for all buttons */
+
 button,
 input[type="button"] {
     color: black;
     border: 2px solid black;
     cursor: pointer;
+}
+
+button.borderless,
+input[type="button"].borderless {
+    border: 0;
 }
 
 button:disabled,

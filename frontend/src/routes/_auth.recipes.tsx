@@ -3,6 +3,7 @@ import { Outlet, createFileRoute, useNavigate } from "@tanstack/react-router";
 import classnames from "classnames";
 import { useState } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
 import {
   type Book,
   type Ingredient,
@@ -13,20 +14,61 @@ import {
   useDeleteRecipe,
   useRecipeOptions,
 } from "../apis/recipes.ts";
+import { useAllTags } from "../apis/tags.ts";
+import searchIcon from "../assets/search.png";
 import { AddToShoppinglist } from "../components/addToShoppinglist.tsx";
 import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
+import { FieldSet } from "../components/fieldset.tsx";
+import { MultiSelect } from "../components/multiselect.tsx";
+import { Pill } from "../components/pill.tsx";
 
+const RecipeSearchSchema = z.object({
+  tags: z.array(z.string()).optional(),
+  term: z.string().optional(),
+});
+type RecipeSearch = z.infer<typeof RecipeSearchSchema>;
+
+function updateSearch(
+  previous: RecipeSearch,
+  changes: {
+    tags?: { add?: string; remove?: string };
+    term?: { set?: string };
+  },
+): RecipeSearch {
+  if (changes.tags?.add) {
+    previous.tags = [...(previous.tags || []), changes.tags.add];
+  }
+
+  if (changes.tags?.remove) {
+    previous.tags = (previous.tags || []).filter(
+      (t) => t !== changes.tags?.remove,
+    );
+    if (previous.tags.length === 0) {
+      previous.tags = undefined;
+    }
+  }
+
+  if (changes.term) {
+    previous.term = changes.term.set;
+  }
+
+  return previous;
+}
 export const Route = createFileRoute("/_auth/recipes")({
   component: RecipesPage,
+  validateSearch: RecipeSearchSchema,
 });
 
 export function RecipesPage() {
   const { token } = Route.useRouteContext();
+  const { tags, term } = Route.useSearch();
   const { data, isLoading, isError } = useAllRecipes(token);
   const navigate = useNavigate({ from: Route.path });
+
+  const allTags = useAllTags(token);
 
   if (isError) {
     return <p>Error</p>;
@@ -36,18 +78,84 @@ export function RecipesPage() {
     return <p>Loading</p>;
   }
 
+  if (!(allTags.data && data?.recipes)) {
+    return <p>Loading...</p>;
+  }
+
+  const recipes = data.recipes.filter(
+    (recipe) =>
+      (tags || []).every((t) => recipe.tags.includes(t)) &&
+      (recipe.name.includes(term || "") ||
+        recipe.ingredients.some((ingredient) =>
+          ingredient.name.includes(term || ""),
+        )),
+  );
+
+  const knownTags = Object.keys(allTags.data);
+
   return (
     <>
       <Outlet />
       <div className="content-grid space-y-4">
-        <ButtonGroup>
-          <Button
-            onClick={() => navigate({ to: "/recipes/new" })}
-            label={"New Recipe"}
-          />
-        </ButtonGroup>
+        <FieldSet legend={"..."} className={{ fieldSet: "flex flex-col" }}>
+          <ButtonGroup>
+            <Button
+              onClick={() => navigate({ to: "/recipes/new" })}
+              label={"New Recipe"}
+            />
+          </ButtonGroup>
+          <FieldSet legend={"Filter"}>
+            <MultiSelect
+              key={(tags || []).toString()} // force to re-render when tags change...
+              label={"Select tags"}
+              selected={tags || []}
+              items={knownTags}
+              onItemsSelected={(items) => {
+                navigate({ search: { tags: items } });
+              }}
+              hotkey={"ctrl+t"}
+            />
+            <ul className={"flex flex-row gap-2"}>
+              {(tags || []).map((tag) => (
+                <Pill
+                  key={"tag"}
+                  value={tag}
+                  onClose={() => {
+                    navigate({
+                      search: (params) =>
+                        updateSearch(params, { tags: { remove: tag } }),
+                    });
+                  }}
+                />
+              ))}
+            </ul>
+          </FieldSet>
+          <FieldSet legend={"Word Search"}>
+            <Search
+              onSubmit={(term) => {
+                navigate({
+                  search: (params) =>
+                    updateSearch(params, {
+                      term: { set: term.toLowerCase() },
+                    }),
+                });
+              }}
+            />
+            {term && (
+              <Pill
+                value={term}
+                onClose={() => {
+                  navigate({
+                    search: (params) =>
+                      updateSearch(params, { term: { set: undefined } }),
+                  });
+                }}
+              />
+            )}
+          </FieldSet>
+        </FieldSet>
         <ul className="grid gap-4">
-          {data?.recipes.map((recipe) => (
+          {recipes.map((recipe) => (
             <RecipeView key={recipe.id} recipe={recipe} />
           ))}
         </ul>
@@ -56,6 +164,39 @@ export function RecipesPage() {
   );
 }
 
+type SearchProps = {
+  onSubmit: (term: string) => void;
+};
+
+function Search(props: SearchProps) {
+  const [term, setTerm] = useState("");
+  return (
+    <div className={"flex flex-row"}>
+      <input
+        type="text"
+        className={"pl-2 bg-gray-200"}
+        placeholder={"anything..."}
+        onChange={(e) => setTerm(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            props.onSubmit(term);
+          }
+        }}
+      />
+      <button
+        type={"button"}
+        className={"borderless hover:bg-gray-300 p-2"}
+        onClick={() => props.onSubmit(term)}
+      >
+        <img
+          className={"size-4"}
+          alt={"Magnifying glass symbolising a search"}
+          src={searchIcon}
+        />
+      </button>
+    </div>
+  );
+}
 type RecipeProps = {
   recipe: Recipe;
 };
