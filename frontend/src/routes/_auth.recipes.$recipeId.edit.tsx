@@ -45,7 +45,7 @@ function EditRecipePage() {
     <FloatingOverlay
       lockScroll
       className={
-        "the-overlay-backdrop py-4 bg-black/25 overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-20 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full flex"
+        "z-20 py-4 bg-black/25 overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full flex"
       }
       style={{ margin: 0 }}
     >

@@ -87,7 +87,6 @@ export function FindIngredient(props: {
           }
 
           if (newIngredientName) {
-            console.log(newIngredientName);
             newIngredient
               .mutateAsync({
                 name: newIngredientName,

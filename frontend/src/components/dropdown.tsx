@@ -1,5 +1,6 @@
 import {
   FloatingFocusManager,
+  FloatingPortal,
   autoUpdate,
   offset,
   size,
@@ -108,85 +109,88 @@ function InnerDropdown<T extends Named>(
           placeholder: props.placeholder,
           "aria-autocomplete": "list",
           onKeyDown(event) {
-            if (event.key === "Enter") {
-              event.preventDefault();
-              event.stopPropagation();
-
-              setIsOpen(false);
-              // Not 100% sure about this...
-              if (!activeIndex) {
-                props.onNewItem(query);
+            switch (event.key) {
+              case "Enter":
+                event.preventDefault();
+                event.stopPropagation();
+                break;
+              case "Tab":
+                break;
+              default:
                 return;
-              }
-              if (items[activeIndex]) {
-                const item = items[activeIndex];
-                setQuery(item.name);
-                props.onSelectedItem(item);
-              } else {
-                props.onNewItem(query);
-              }
+            }
+
+            setIsOpen(false);
+            // Not 100% sure about this...
+            if (activeIndex === null) {
+              props.onNewItem(query);
+              return;
+            }
+            if (items[activeIndex]) {
+              const item = items[activeIndex];
+              setQuery(item.name);
+              props.onSelectedItem(item);
+            } else {
+              props.onNewItem(query);
             }
           },
         })}
       />
-      {open && (
-        <FloatingFocusManager context={context} modal={false} initialFocus={-1}>
-          <div
-            tabIndex={-1}
-            ref={refs.setFloating}
-            style={floatingStyles}
-            {...getFloatingProps()}
-            className={"bg-gray-100 p-2 border-solid border-black border-2"}
+      <FloatingPortal>
+        {open && (
+          <FloatingFocusManager
+            context={context}
+            initialFocus={-1}
+            modal={false}
           >
-            <ul
+            <div
+              ref={refs.setFloating}
+              style={floatingStyles}
               {...getFloatingProps({
-                ref: refs.setFloating,
-                style: {
-                  ...floatingStyles,
-                },
-                className:
-                  "z-10 bg-white overflow-y-auto border-solid border-black border-2",
+                className: "z-30 bg-white border-solid border-black border-2",
               })}
             >
-              {items.map((item, idx) => (
-                <Item
-                  {...getItemProps({
-                    ref(node) {
-                      listRef.current[idx] = node;
-                    },
-                    onClick() {
-                      setQuery(item.name);
+              <ul>
+                {items.map((item, idx) => (
+                  <Item
+                    {...getItemProps({
+                      ref(node) {
+                        listRef.current[idx] = node;
+                      },
+                      onClick() {
+                        setQuery(item.name);
+                        setIsOpen(false);
+                        props.onSelectedItem(item);
+                        refs.domReference.current?.focus();
+                      },
+                    })}
+                    key={item.name}
+                    active={activeIndex === idx}
+                  >
+                    {item.name}
+                  </Item>
+                ))}
+                {query && (
+                  <NewItem
+                    ref={(node) => {
+                      listRef.current[items.length] = node;
+                    }}
+                    active={activeIndex === items.length}
+                    onClick={() => {
+                      setQuery(query);
                       setIsOpen(false);
-                      props.onSelectedItem(item);
+                      props.onNewItem(query);
                       refs.domReference.current?.focus();
-                    },
-                  })}
-                  key={item.name}
-                  active={activeIndex === idx}
-                >
-                  {item.name}
-                </Item>
-              ))}
-              {query && (
-                <NewItem
-                  ref={(node) => {
-                    listRef.current[items.length] = node;
-                  }}
-                  active={activeIndex === items.length}
-                  onClick={() => {
-                    setQuery(query);
-                    setIsOpen(false);
-                    props.onNewItem(query);
-                    refs.domReference.current?.focus();
-                  }}
-                >
-                  {query}
-                </NewItem>
-              )}
-            </ul>
-          </div>
-        </FloatingFocusManager>
-      )}
+                    }}
+                  >
+                    {query}
+                  </NewItem>
+                )}
+              </ul>
+            </div>
+          </FloatingFocusManager>
+        )}
+      </FloatingPortal>
     </>
   );
 }
@@ -194,11 +198,10 @@ function InnerDropdown<T extends Named>(
 interface ItemProps {
   children: ReactNode;
   active: boolean;
-  className?: string;
 }
 
 const NewItem = forwardRef<HTMLLIElement, ItemProps & HTMLProps<HTMLLIElement>>(
-  ({ children, active, className, ...rest }, ref) => {
+  ({ children, active, ...rest }, ref) => {
     const id = useId();
     return (
       <li
@@ -224,7 +227,7 @@ const NewItem = forwardRef<HTMLLIElement, ItemProps & HTMLProps<HTMLLIElement>>(
   },
 );
 const Item = forwardRef<HTMLLIElement, ItemProps & HTMLProps<HTMLLIElement>>(
-  ({ children, active, className, ...rest }, ref) => {
+  ({ children, active, ...rest }, ref) => {
     const id = useId();
     return (
       <li
@@ -232,16 +235,10 @@ const Item = forwardRef<HTMLLIElement, ItemProps & HTMLProps<HTMLLIElement>>(
         id={id}
         aria-selected={active}
         {...rest}
-        style={{
-          ...rest.style,
-        }}
-        className={classNames(
-          className,
-          "p-2 hover:bg-gray-300 cursor-default",
-          {
-            "bg-gray-300": active,
-          },
-        )}
+        style={rest.style}
+        className={classNames("p-2 hover:bg-gray-300 cursor-default", {
+          "bg-gray-300": active,
+        })}
       >
         {children}
       </li>
