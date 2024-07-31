@@ -1,6 +1,5 @@
-use std::collections::BTreeMap;
-
 use loco_rs::prelude::*;
+use task::Vars;
 
 use crate::models::users::{users, Entity as Users};
 use rpassword;
@@ -14,10 +13,10 @@ impl Task for ChangePassword {
             detail: "Change email of user based on ID".to_string(),
         }
     }
-    async fn run(&self, app_context: &AppContext, vars: &BTreeMap<String, String>) -> Result<()> {
+    async fn run(&self, app_context: &AppContext, vars: &Vars) -> Result<()> {
         let user_id = vars
-            .get("id")
-            .ok_or_else(|| Error::Message("ID missing to update password".to_string()))?
+            .cli_arg("id")
+            .map_err(|_| Error::Message("ID missing to update password".to_string()))?
             .parse::<i32>()
             .map_err(|_| Error::Message("ID not a number".to_string()))?;
 
