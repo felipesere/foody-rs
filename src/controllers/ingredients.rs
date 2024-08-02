@@ -1,15 +1,17 @@
 #![allow(clippy::unused_async)]
-use axum::extract;
+use axum::{extract, http::StatusCode};
 use loco_rs::{controller::middleware, prelude::*};
+use migration::Expr;
 use sea_orm::{ActiveValue, SqlErr, TransactionTrait};
 use serde::{Deserialize, Serialize};
 
 use crate::models::{
     _entities::{
+        ingredients, ingredients_in_recipes, ingredients_in_shoppinglists,
         tags::{self, Model as Tag},
         tags_on_ingredients,
     },
-    ingredients::{self, IngredientToTags, Model as Ingredient},
+    ingredients::{IngredientToTags, Model as Ingredient},
     ingredients_in_shoppinglists::batch_insert_if_not_exists,
     users,
 };
@@ -104,7 +106,7 @@ pub async fn add_ingredient(
                 tx.commit().await?;
 
                 let ingredient = ingredients::Entity::find()
-                    .filter(ingredients::ingredients::Column::Name.eq(params.name))
+                    .filter(ingredients::Column::Name.eq(params.name))
                     .one(&ctx.db)
                     .await?
                     .ok_or(Error::NotFound)?;
@@ -161,10 +163,64 @@ async fn set_tags_in_ingredient(
     Ok(())
 }
 
+#[derive(Deserialize)]
+struct MergeIngredientsParams {
+    /// Replace these ingredient IDs...
+    replace: Vec<u32>,
+    /// ...with this ingredient ID.
+    target: u32,
+}
+
+async fn merge_ingredients(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+    extract::Json(params): extract::Json<MergeIngredientsParams>,
+) -> Result<StatusCode> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let tx = ctx.db.begin().await?;
+    // ...recipes
+    ingredients_in_recipes::Entity::update_many()
+        .col_expr(
+            ingredients_in_recipes::Column::IngredientsId,
+            Expr::value(params.target),
+        )
+        .filter(ingredients_in_recipes::Column::IngredientsId.is_in(params.replace.clone()))
+        .exec(&tx)
+        .await?;
+
+    // ...shoppinglists
+    ingredients_in_shoppinglists::Entity::update_many()
+        .col_expr(
+            ingredients_in_shoppinglists::Column::IngredientsId,
+            Expr::value(params.target),
+        )
+        .filter(ingredients_in_shoppinglists::Column::IngredientsId.is_in(params.replace.clone()))
+        .exec(&tx)
+        .await?;
+
+    // ...tags
+    tags_on_ingredients::Entity::delete_many()
+        .filter(tags_on_ingredients::Column::IngredientId.is_in(params.replace.clone()))
+        .exec(&tx)
+        .await?;
+
+    // delete the actual ingredients
+    ingredients::Entity::delete_many()
+        .filter(ingredients::Column::Id.is_in(params.replace.clone()))
+        .exec(&tx)
+        .await?;
+
+    tx.commit().await?;
+
+    Ok(StatusCode::OK)
+}
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("ingredients")
         .add("/", get(all_ingredients))
         .add("/", post(add_ingredient))
         .add("/:id/tags", post(set_tags_in_ingredient))
+        .add("/merge", post(merge_ingredients))
 }
