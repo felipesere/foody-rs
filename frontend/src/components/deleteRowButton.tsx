@@ -10,7 +10,7 @@ export function DeleteRowButton(props: {
       className={classnames(props.className, "border-0")}
       onClick={props.onClick}
     >
-      ⓧ
+      &#x2715;
     </button>
   );
 }
