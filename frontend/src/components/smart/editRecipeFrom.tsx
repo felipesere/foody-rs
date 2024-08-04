@@ -1,14 +1,14 @@
 import { useForm } from "@tanstack/react-form";
-import type { Recipe } from "../apis/recipes.ts";
-import { useAllTags, useCreateTag } from "../apis/tags.ts";
-import { humanize } from "../quantities.ts";
-import { ButtonGroup } from "./buttonGroup.tsx";
-import { DeleteRowButton } from "./deleteRowButton.tsx";
-import { Divider } from "./divider.tsx";
-import { DottedLine } from "./dottedLine.tsx";
-import { FieldSet } from "./fieldset.tsx";
-import { MultiSelect } from "./multiselect.tsx";
-import { ResizingInput } from "./resizeableInput.tsx";
+import type { Recipe } from "../../apis/recipes.ts";
+import { useAllTags, useCreateTag } from "../../apis/tags.ts";
+import { humanize } from "../../quantities.ts";
+import { ButtonGroup } from "../buttonGroup.tsx";
+import { DeleteRowButton } from "../deleteRowButton.tsx";
+import { Divider } from "../divider.tsx";
+import { DottedLine } from "../dottedLine.tsx";
+import { FieldSet } from "../fieldset.tsx";
+import { MultiSelect } from "../multiselect.tsx";
+import { ResizingInput } from "../resizeableInput.tsx";
 import { SelectIngredientWithQuantity } from "./selectIngredientWithQuantity.tsx";
 
 export type SimplifiedRecipe = Omit<Recipe, "id" | "ingredients"> & {

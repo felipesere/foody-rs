@@ -6,7 +6,7 @@ import {
 } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { z } from "zod";
-import type { SimplifiedRecipe } from "../components/editRecipeFrom.tsx";
+import type { SimplifiedRecipe } from "../components/smart/editRecipeFrom.tsx";
 import { http } from "./http.ts";
 import type { Shoppinglist } from "./shoppinglists.ts";
 

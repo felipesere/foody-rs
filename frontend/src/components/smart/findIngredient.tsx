@@ -1,6 +1,6 @@
-import { type Ingredient, useAllIngredients } from "../apis/ingredients.ts";
-import type { DropdownProps } from "./dropdown.tsx";
-import { Dropdown } from "./dropdown.tsx";
+import { type Ingredient, useAllIngredients } from "../../apis/ingredients.ts";
+import type { DropdownProps } from "../dropdown.tsx";
+import { Dropdown } from "../dropdown.tsx";
 
 type FindIngredientProps = {
   token: string;

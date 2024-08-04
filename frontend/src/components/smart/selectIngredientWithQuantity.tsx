@@ -3,9 +3,9 @@ import { useRef, useState } from "react";
 import {
   type Ingredient,
   useCreateNewIngredient,
-} from "../apis/ingredients.ts";
-import type { Quantity } from "../apis/recipes.ts";
-import { parse } from "../quantities.ts";
+} from "../../apis/ingredients.ts";
+import type { Quantity } from "../../apis/recipes.ts";
+import { parse } from "../../quantities.ts";
 import { FindIngredient } from "./findIngredient.tsx";
 
 type SelectIngredientWithQuantityProps = {

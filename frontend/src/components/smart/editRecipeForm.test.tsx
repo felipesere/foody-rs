@@ -12,8 +12,8 @@ import { http, HttpResponse, RequestHandler } from "msw";
 import { setupServer } from "msw/node";
 import type { ReactElement } from "react";
 import { expect, test } from "vitest";
-import type { Recipe } from "../apis/recipes.ts";
-import { parse } from "../quantities.ts";
+import type { Recipe } from "../../apis/recipes.ts";
+import { parse } from "../../quantities.ts";
 import { EditRecipeFrom } from "./editRecipeFrom.tsx";
 
 const queryClient = new QueryClient();

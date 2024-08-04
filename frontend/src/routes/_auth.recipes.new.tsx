@@ -10,7 +10,7 @@ import {
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { type Recipe, useCreateRecipe } from "../apis/recipes.ts";
 
-import { EditRecipeFrom } from "../components/editRecipeFrom.tsx";
+import { EditRecipeFrom } from "../components/smart/editRecipeFrom.tsx";
 
 export const Route = createFileRoute("/_auth/recipes/new")({
   component: NewRecipePage,

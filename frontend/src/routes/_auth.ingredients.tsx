@@ -10,12 +10,12 @@ import {
   addIngredientToShoppinglist,
   useAllIngredients,
 } from "../apis/ingredients.ts";
-import { AddToShoppinglist } from "../components/addToShoppinglist.tsx";
 import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
 import { ResizingInput } from "../components/resizeableInput.tsx";
-import { SelectTags } from "../components/selectTags.tsx";
+import { AddToShoppinglist } from "../components/smart/addToShoppinglist.tsx";
+import { SelectTags } from "../components/smart/selectTags.tsx";
 import { ToggleButton } from "../components/toggle.tsx";
 import { useScrollTo } from "../hooks/useScrollTo.ts";
 

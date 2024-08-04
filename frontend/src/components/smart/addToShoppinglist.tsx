@@ -11,8 +11,8 @@ import {
   useRole,
 } from "@floating-ui/react";
 import { useState } from "react";
-import { useAllShoppinglists } from "../apis/shoppinglists.ts";
-import type { Shoppinglist } from "../apis/shoppinglists.ts";
+import { useAllShoppinglists } from "../../apis/shoppinglists.ts";
+import type { Shoppinglist } from "../../apis/shoppinglists.ts";
 
 type ShoppinglistIdentifier = Pick<Shoppinglist, "id" | "name">;
 

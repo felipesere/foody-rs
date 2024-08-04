@@ -16,7 +16,6 @@ import {
 } from "../apis/recipes.ts";
 import { useAllTags } from "../apis/tags.ts";
 import searchIcon from "../assets/search.png";
-import { AddToShoppinglist } from "../components/addToShoppinglist.tsx";
 import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
@@ -24,6 +23,7 @@ import { DottedLine } from "../components/dottedLine.tsx";
 import { FieldSet } from "../components/fieldset.tsx";
 import { MultiSelect } from "../components/multiselect.tsx";
 import { Pill } from "../components/pill.tsx";
+import { AddToShoppinglist } from "../components/smart/addToShoppinglist.tsx";
 
 const RecipeSearchSchema = z.object({
   tags: z.array(z.string()).optional(),
