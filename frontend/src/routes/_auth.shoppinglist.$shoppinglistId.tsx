@@ -24,8 +24,8 @@ import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
 import { Editable } from "../components/editable.tsx";
 import { FieldSet } from "../components/fieldset.tsx";
-import { FindIngredient } from "../components/findIngredient.tsx";
 import { Progressbar } from "../components/progressbar.tsx";
+import { SelectIngredientWithQuantity } from "../components/selectIngredientWithQuantity.tsx";
 import { SelectTags } from "../components/selectTags.tsx";
 import { Toggle, ToggleButton } from "../components/toggle.tsx";
 import { orderByRecipe } from "../domain/orderByRecipe.ts";
@@ -111,7 +111,7 @@ export function ShoppingPage() {
     <div className="content-grid space-y-4 max-w-md pb-20">
       <Toggle buttonLabel={"More..."}>
         <FieldSet legend={"Add ingredient"}>
-          <FindIngredient
+          <SelectIngredientWithQuantity
             token={token}
             onIngredient={(ingredient, quantity) => {
               addIngredient.mutate({

@@ -9,12 +9,15 @@ import type { Quantity } from "../apis/recipes.ts";
 import { parse } from "../quantities.ts";
 import { Dropdown } from "./dropdown.tsx";
 
-// TODO: refactor this to be a pure "finding component"!
-export function FindIngredient(props: {
+type SelectIngredientWithQuantityProps = {
   token: string;
   onIngredient: (i: Ingredient, q: Quantity) => void;
   className?: string;
-}) {
+};
+
+export function SelectIngredientWithQuantity(
+  props: SelectIngredientWithQuantityProps,
+) {
   const ingredients = useAllIngredients(props.token);
 
   const [selectedIngredient, setSelectedIngredient] = useState<

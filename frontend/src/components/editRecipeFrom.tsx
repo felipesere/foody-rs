@@ -7,9 +7,9 @@ import { DeleteRowButton } from "./deleteRowButton.tsx";
 import { Divider } from "./divider.tsx";
 import { DottedLine } from "./dottedLine.tsx";
 import { FieldSet } from "./fieldset.tsx";
-import { FindIngredient } from "./findIngredient.tsx";
 import { MultiSelect } from "./multiselect.tsx";
 import { ResizingInput } from "./resizeableInput.tsx";
+import { SelectIngredientWithQuantity } from "./selectIngredientWithQuantity.tsx";
 
 export type SimplifiedRecipe = Omit<Recipe, "id" | "ingredients"> & {
   ingredients: { id: number; name: string; quantity: string }[];
@@ -245,7 +245,7 @@ export function EditRecipeFrom(props: {
                       </li>
                     );
                   })}
-                  <FindIngredient
+                  <SelectIngredientWithQuantity
                     className={"mt-2"}
                     token={token}
                     onIngredient={(ingredient, quantity) => {
