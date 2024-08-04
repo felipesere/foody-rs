@@ -84,9 +84,9 @@ const unitConversion: Record<string, string> = {
   millilitre: "ml",
   litre: "l",
   liter: "l",
-  tablespoon: " tbsp",
-  teaspoon: " tsp",
-  cup: " cup",
+  tablespoon: "tbsp",
+  teaspoon: "tsp",
+  cup: "cup",
   count: "x",
 };
 
