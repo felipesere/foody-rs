@@ -38,7 +38,7 @@ interface DropdownProps<T extends Named> {
   items: Array<T>;
   dropdownClassnames?: string;
   onSelectedItem: (item: T) => void;
-  onNewItem: (value: string) => void;
+  onNewItem?: (value: string) => void;
   placeholder: string;
 }
 
@@ -123,7 +123,7 @@ function InnerDropdown<T extends Named>(
             setIsOpen(false);
             // Not 100% sure about this...
             if (activeIndex === null) {
-              props.onNewItem(query);
+              props.onNewItem?.(query);
               return;
             }
             if (items[activeIndex]) {
@@ -131,7 +131,7 @@ function InnerDropdown<T extends Named>(
               setQuery(item.name);
               props.onSelectedItem(item);
             } else {
-              props.onNewItem(query);
+              props.onNewItem?.(query);
             }
           },
         })}
@@ -170,7 +170,7 @@ function InnerDropdown<T extends Named>(
                     {item.name}
                   </Item>
                 ))}
-                {query && (
+                {query && props.onNewItem && (
                   <NewItem
                     ref={(node) => {
                       listRef.current[items.length] = node;
@@ -179,7 +179,7 @@ function InnerDropdown<T extends Named>(
                     onClick={() => {
                       setQuery(query);
                       setIsOpen(false);
-                      props.onNewItem(query);
+                      props.onNewItem?.(query);
                       refs.domReference.current?.focus();
                     }}
                   >

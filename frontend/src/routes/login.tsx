@@ -2,10 +2,18 @@ import { useForm } from "@tanstack/react-form";
 import { createFileRoute } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-form-adapter";
 import { z } from "zod";
+import {
+  type Ingredient,
+  useAllIngredients,
+  useMergeIngredients,
+} from "../apis/ingredients.ts";
 import { type Tags, useAllTags } from "../apis/tags.ts";
 import { useLogin, useLogout, useUser } from "../apis/user.ts";
 import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
+import { Divider } from "../components/divider.tsx";
+import { Dropdown } from "../components/dropdown.tsx";
+import { Pill } from "../components/pill.tsx";
 
 const RedirectAfterLoginSchema = z.object({
   redirect: z.string().optional(),
@@ -110,6 +118,10 @@ function Login() {
         />
         <form.Field
           name="password"
+          validators={{
+            onChange: (v) =>
+              v.value.length === 0 ? "Password missing" : undefined,
+          }}
           children={(passwordField) => (
             <div>
               <label className={"block"} htmlFor={passwordField.name}>
@@ -128,13 +140,13 @@ function Login() {
           )}
         />
         <form.Subscribe
-          selector={(state) => [state.canSubmit]}
-          children={([canSubmit]) => (
+          selector={(state) => [state.canSubmit, state.isPristine]}
+          children={([canSubmit, isPristine]) => (
             <button
               className={"px-2"}
               type={"submit"}
               id={"submit"}
-              disabled={!canSubmit}
+              disabled={!canSubmit || isPristine}
             >
               Sign In
             </button>
@@ -153,8 +165,11 @@ function AdminPanel(props: { token: string }) {
   }
 
   return (
-    <div>
+    <div className={"flex flex-col gap-4"}>
+      <Divider />
       <EditTagsForm token={props.token} tags={tags.data} />
+      <Divider />
+      <MergeIngredients token={props.token} />
     </div>
   );
 }
@@ -170,7 +185,7 @@ function EditTagsForm(props: { token: string; tags: Tags }) {
   });
 
   return (
-    <>
+    <div>
       <h2>Tags</h2>
 
       <form
@@ -270,6 +285,134 @@ function EditTagsForm(props: { token: string; tags: Tags }) {
           />
         </ButtonGroup>
       </form>
-    </>
+    </div>
+  );
+}
+
+function MergeIngredients(props: { token: string }) {
+  const mergeIngredients = useMergeIngredients(props.token);
+
+  const form = useForm({
+    defaultValues: {
+      replace: [] as Ingredient[],
+      target: null as Ingredient | null,
+    },
+    onSubmit: (values) => {
+      const replace = values.value.replace.map((i) => i.id);
+      // biome-ignore lint/style/noNonNullAssertion: <explanation>
+      const target = values.value.target!.id;
+      mergeIngredients.mutate({ replace, target });
+      form.reset();
+    },
+  });
+  return (
+    <div>
+      <h2>Merge ingredients</h2>
+      <form
+        id={"mergeIngredient"}
+        onSubmit={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          form.handleSubmit();
+        }}
+      >
+        <form.Field
+          name={"replace"}
+          mode={"array"}
+          validators={{
+            onChange: (v) =>
+              v.value.length > 0
+                ? undefined
+                : "Need at least one ingredient to merge into",
+          }}
+          children={(fieldApi) => {
+            return (
+              <div className={"flex flex-row gap-4"}>
+                <div className={"flex flex-row"}>
+                  <p>Ingredients to merge:</p>
+                  <FindIngredient
+                    placeholder={"ingredient to merge..."}
+                    token={props.token}
+                    onIngredient={(i) => fieldApi.pushValue(i)}
+                  />
+                </div>
+                <ul className={"flex flex-row gap-2"}>
+                  {fieldApi.state.value.map((ingredient, idx) => (
+                    <li key={ingredient.id}>
+                      <Pill
+                        value={ingredient.name}
+                        onClose={() => fieldApi.removeValue(idx)}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          }}
+        />
+        <form.Field
+          name={"target"}
+          validators={{
+            onChange: (v) =>
+              v === null ? "Need an ingredient to merge into" : undefined,
+          }}
+          children={(fieldApi) => (
+            <div className={"flex flex-row gap-2"}>
+              <p>Merge into</p>
+              {fieldApi.state.value === null ? (
+                <FindIngredient
+                  placeholder={"merge into..."}
+                  token={props.token}
+                  onIngredient={(i) => fieldApi.handleChange(i)}
+                />
+              ) : (
+                <Pill
+                  value={fieldApi.state.value.name}
+                  onClose={() => fieldApi.handleChange(null)}
+                />
+              )}
+            </div>
+          )}
+        />
+        <form.Subscribe
+          selector={(state) => [state.canSubmit, state.isPristine]}
+          children={([canSubmit, isPristine]) => {
+            return (
+              <button
+                className={"px-2"}
+                type={"submit"}
+                id={"submit"}
+                disabled={!canSubmit || isPristine}
+              >
+                Merge
+              </button>
+            );
+          }}
+        />
+      </form>
+    </div>
+  );
+}
+
+type FindIngredientProps = {
+  token: string;
+  placeholder: string;
+  onIngredient: (i: Ingredient) => void;
+};
+
+function FindIngredient(props: FindIngredientProps) {
+  const ingredients = useAllIngredients(props.token);
+
+  if (!ingredients.data) {
+    return <p>Loading</p>;
+  }
+
+  return (
+    <Dropdown
+      placeholder={props.placeholder}
+      items={ingredients.data}
+      dropdownClassnames={"border-gray-500 border-solid border-2"}
+      onSelectedItem={props.onIngredient}
+    />
   );
 }

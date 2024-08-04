@@ -131,3 +131,28 @@ export function useSetIngredientTags(
     },
   });
 }
+
+type MergeIngredientParams = {
+  replace: Ingredient["id"][];
+  target: Ingredient["id"];
+};
+
+export function useMergeIngredients(token: string) {
+  const client = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: MergeIngredientParams) =>
+      http.post("api/ingredients/merge", {
+        json: params,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }),
+    onSettled: async () => {
+      await client.invalidateQueries({ queryKey: ["ingredients"] });
+      await client.invalidateQueries({ queryKey: ["recipes"] });
+      await client.invalidateQueries({ queryKey: ["recipe"] });
+      await client.invalidateQueries({ queryKey: ["shoppinglist"] });
+    },
+  });
+}
