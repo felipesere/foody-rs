@@ -1,6 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-form-adapter";
+import { toast } from "sonner";
 import { z } from "zod";
 import {
   type Ingredient,
@@ -303,6 +304,11 @@ function MergeIngredients(props: { token: string }) {
       const target = values.value.target!.id;
       mergeIngredients.mutate({ replace, target });
       form.reset();
+      const replaceNames = values.value.replace.map((i) => i.name);
+      const targetName = values.value.target?.name || "unknown";
+      toast.success(
+        `Successfully merged ${replaceNames.join(", ")} into ${targetName}`,
+      );
     },
   });
   return (
