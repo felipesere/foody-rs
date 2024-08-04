@@ -34,16 +34,17 @@ const matchWidth = size({
 interface Named {
   name: string;
 }
-interface DropdownProps<T extends Named> {
+export interface DropdownProps<T extends Named> {
   items: Array<T>;
   dropdownClassnames?: string;
   onSelectedItem: (item: T) => void;
   onNewItem?: (value: string) => void;
   placeholder: string;
+  ref?: ForwardedRef<HTMLInputElement>;
 }
 
 export const Dropdown = forwardRef(InnerDropdown) as <T extends Named>(
-  props: DropdownProps<T> & { ref?: ForwardedRef<HTMLInputElement> },
+  props: DropdownProps<T>,
 ) => ReturnType<typeof InnerDropdown>;
 
 function InnerDropdown<T extends Named>(

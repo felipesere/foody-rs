@@ -9,8 +9,8 @@ import { useLogin, useLogout, useUser } from "../apis/user.ts";
 import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
-import { Pill } from "../components/pill.tsx";
 import { FindIngredient } from "../components/findIngredient.tsx";
+import { Pill } from "../components/pill.tsx";
 
 const RedirectAfterLoginSchema = z.object({
   redirect: z.string().optional(),

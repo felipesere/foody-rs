@@ -2,12 +2,11 @@ import classnames from "classnames";
 import { useRef, useState } from "react";
 import {
   type Ingredient,
-  useAllIngredients,
   useCreateNewIngredient,
 } from "../apis/ingredients.ts";
 import type { Quantity } from "../apis/recipes.ts";
 import { parse } from "../quantities.ts";
-import { Dropdown } from "./dropdown.tsx";
+import { FindIngredient } from "./findIngredient.tsx";
 
 type SelectIngredientWithQuantityProps = {
   token: string;
@@ -18,8 +17,6 @@ type SelectIngredientWithQuantityProps = {
 export function SelectIngredientWithQuantity(
   props: SelectIngredientWithQuantityProps,
 ) {
-  const ingredients = useAllIngredients(props.token);
-
   const [selectedIngredient, setSelectedIngredient] = useState<
     Ingredient | undefined
   >(undefined);
@@ -40,21 +37,16 @@ export function SelectIngredientWithQuantity(
 
   const ingredientRef = useRef<HTMLInputElement | null>(null);
 
-  if (!ingredients.data) {
-    return null;
-  }
-
   return (
     <div className={classnames(props.className, "flex flex-row")}>
-      <Dropdown
-        placeholder={"ingredients..."}
-        items={ingredients.data}
-        dropdownClassnames={"border-gray-500 border-solid border-2"}
-        onSelectedItem={(v) => {
+      <FindIngredient
+        token={props.token}
+        placeholder={"ingredient..."}
+        onIngredient={(v) => {
           setSelectedIngredient(v);
           setNewIngredientName(undefined);
         }}
-        onNewItem={(v) => {
+        onNewIngredient={(v) => {
           setSelectedIngredient(undefined);
           setNewIngredientName(v);
         }}
