@@ -3,18 +3,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-form-adapter";
 import { toast } from "sonner";
 import { z } from "zod";
-import {
-  type Ingredient,
-  useAllIngredients,
-  useMergeIngredients,
-} from "../apis/ingredients.ts";
+import { type Ingredient, useMergeIngredients } from "../apis/ingredients.ts";
 import { type Tags, useAllTags } from "../apis/tags.ts";
 import { useLogin, useLogout, useUser } from "../apis/user.ts";
 import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
-import { Dropdown } from "../components/dropdown.tsx";
 import { Pill } from "../components/pill.tsx";
+import { FindIngredient } from "../components/findIngredient.tsx";
 
 const RedirectAfterLoginSchema = z.object({
   redirect: z.string().optional(),
@@ -397,28 +393,5 @@ function MergeIngredients(props: { token: string }) {
         />
       </form>
     </div>
-  );
-}
-
-type FindIngredientProps = {
-  token: string;
-  placeholder: string;
-  onIngredient: (i: Ingredient) => void;
-};
-
-function FindIngredient(props: FindIngredientProps) {
-  const ingredients = useAllIngredients(props.token);
-
-  if (!ingredients.data) {
-    return <p>Loading</p>;
-  }
-
-  return (
-    <Dropdown
-      placeholder={props.placeholder}
-      items={ingredients.data}
-      dropdownClassnames={"border-gray-500 border-solid border-2"}
-      onSelectedItem={props.onIngredient}
-    />
   );
 }
