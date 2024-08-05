@@ -272,11 +272,16 @@ export function EditRecipeFrom(props: {
           </button>
 
           <form.Subscribe
-            selector={(state) => [state.isDirty, state.isTouched]}
-            children={(_) => {
+            selector={(state) => [state.canSubmit, state.isPristine]}
+            children={([canSubmit, isPristine]) => {
               return (
                 <>
-                  <button type="submit" form={"editRecipe"} className={"px-2"}>
+                  <button
+                    type="submit"
+                    form={"editRecipe"}
+                    className={"px-2"}
+                    disabled={!canSubmit || isPristine}
+                  >
                     Save
                   </button>
 
@@ -286,6 +291,7 @@ export function EditRecipeFrom(props: {
                     onClick={() => {
                       form.reset();
                     }}
+                    disabled={isPristine}
                   >
                     Reset
                   </button>
