@@ -12,20 +12,19 @@ kill_timeout = 5
 [build]
 
 [env]
-  LOCO_ENV = "production"
+LOCO_ENV = "production"
 
 [http_service]
-  internal_port = 3000
-  auto_stop_machines = true
-  auto_start_machines = true
-  min_machines_running = 1
-  processes = ['app']
+internal_port = 5150
+auto_stop_machines = true
+auto_start_machines = true
+min_machines_running = 1
+processes = ['app']
 
 [[vm]]
-  memory = '1gb'
-  cpu_kind = 'shared'
-  cpus = 1
+memory = '1gb'
+cpu_kind = 'shared'
+cpus = 1
 
 [experimental]
-  entrypoint = ["/usr/app/foody-cli", "start"]
-
+entrypoint = ["/usr/app/foody-cli", "start"]
