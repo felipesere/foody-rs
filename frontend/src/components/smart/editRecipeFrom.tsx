@@ -3,7 +3,7 @@ import type { Recipe } from "../../apis/recipes.ts";
 import { useAllTags, useCreateTag } from "../../apis/tags.ts";
 import { humanize } from "../../quantities.ts";
 import { ButtonGroup } from "../buttonGroup.tsx";
-import { DeleteRowButton } from "../deleteRowButton.tsx";
+import { DeleteButton } from "../deleteButton.tsx";
 import { Divider } from "../divider.tsx";
 import { DottedLine } from "../dottedLine.tsx";
 import { FieldSet } from "../fieldset.tsx";
@@ -221,7 +221,7 @@ export function EditRecipeFrom(props: {
                         key={idx.toString()}
                         className={"flex flex-row justify-between"}
                       >
-                        <DeleteRowButton
+                        <DeleteButton
                           className={"text-red-700 mr-2"}
                           onClick={() => ingredientsField.removeValue(idx)}
                         />

@@ -19,7 +19,7 @@ import {
 import { useShoppinglist } from "../apis/shoppinglists.ts";
 import { useAllTags } from "../apis/tags.ts";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
-import { DeleteRowButton } from "../components/deleteRowButton.tsx";
+import { DeleteButton } from "../components/deleteButton.tsx";
 import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
 import { Editable } from "../components/editable.tsx";
@@ -345,7 +345,7 @@ function EditIngredient({
         <div key={quantity.id} className={"flex flex-row"}>
           <div className={"w-5"}>
             {isEditing ? (
-              <DeleteRowButton
+              <DeleteButton
                 className={"text-red-700"}
                 onClick={() => {
                   setChanges((previous) => ({

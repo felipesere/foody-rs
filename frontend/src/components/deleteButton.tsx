@@ -1,6 +1,6 @@
 import classnames from "classnames";
 
-export function DeleteRowButton(props: {
+export function DeleteButton(props: {
   className?: string;
   onClick: () => void;
 }) {
