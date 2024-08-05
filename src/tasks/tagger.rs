@@ -1,11 +1,10 @@
-use std::collections::BTreeMap;
-
 use crate::models::{
     _entities::{ingredients::Column, prelude::*, tags_on_ingredients},
     ingredients::IngredientToTags,
 };
 use loco_rs::prelude::*;
 use sea_orm::{QueryOrder, QuerySelect};
+use task::Vars;
 use tokio::task::JoinHandle;
 
 pub struct Tagger;
@@ -17,7 +16,7 @@ impl Task for Tagger {
             detail: "Prompts user to tag items on DB".to_string(),
         }
     }
-    async fn run(&self, app_context: &AppContext, _vars: &BTreeMap<String, String>) -> Result<()> {
+    async fn run(&self, app_context: &AppContext, _vars: &Vars) -> Result<()> {
         let other = app_context.db.clone();
         let existing_tags = Tags::find().all(&app_context.db).await?;
         let mut tags: Vec<_> = existing_tags.iter().map(|t| t.name.clone()).collect();

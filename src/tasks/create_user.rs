@@ -1,6 +1,5 @@
-use std::collections::BTreeMap;
-
 use loco_rs::prelude::*;
+use task::Vars;
 
 use crate::models;
 use crate::models::users::RegisterParams;
@@ -14,11 +13,11 @@ impl Task for CreateUser {
             detail: "Task generator".to_string(),
         }
     }
-    async fn run(&self, app_context: &AppContext, vars: &BTreeMap<String, String>) -> Result<()> {
+    async fn run(&self, app_context: &AppContext, vars: &Vars) -> Result<()> {
         tracing::info!("about to do a thing...");
-        let name = vars.get("name").unwrap();
-        let email = vars.get("email").unwrap();
-        let password = vars.get("password").unwrap();
+        let name = vars.cli_arg("name")?;
+        let email = vars.cli_arg("email")?;
+        let password = vars.cli_arg("password")?;
         let user = models::users::Model::create_with_password(
             &app_context.db,
             &RegisterParams {
