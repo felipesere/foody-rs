@@ -32,7 +32,7 @@ function customRender(
 }
 
 const handlers = [
-  http.get("http://localhost:3000/api/ingredients", () => {
+  http.get("http://localhost:5150/api/ingredients", () => {
     return HttpResponse.json([
       {
         id: 1,
