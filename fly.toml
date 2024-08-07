@@ -27,4 +27,4 @@ cpu_kind = 'shared'
 cpus = 1
 
 [experimental]
-entrypoint = ["/usr/app/foody-cli", "start"]
+entrypoint = ["/usr/app/foody-cli", "start", "--binding", "0.0.0.0"]
