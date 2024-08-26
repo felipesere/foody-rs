@@ -23,8 +23,6 @@ const ingredientSearchSchema = z.object({
   ingredient: IngredientSchema.pick({ id: true }).optional(),
 });
 
-// type IngredientSearch = z.infer<typeof ingredientSearchSchema>;
-
 export const Route = createFileRoute("/_auth/ingredients")({
   component: IngredientsPage,
   validateSearch: ingredientSearchSchema,
