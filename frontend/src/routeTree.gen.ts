@@ -15,6 +15,7 @@ import { Route as LoginImport } from './routes/login'
 import { Route as AuthImport } from './routes/_auth'
 import { Route as AuthIndexImport } from './routes/_auth.index'
 import { Route as AuthRecipesImport } from './routes/_auth.recipes'
+import { Route as AuthMealplanImport } from './routes/_auth.mealplan'
 import { Route as AuthIngredientsImport } from './routes/_auth.ingredients'
 import { Route as AuthShoppinglistShoppinglistIdImport } from './routes/_auth.shoppinglist.$shoppinglistId'
 import { Route as AuthRecipesNewImport } from './routes/_auth.recipes.new'
@@ -39,6 +40,11 @@ const AuthIndexRoute = AuthIndexImport.update({
 
 const AuthRecipesRoute = AuthRecipesImport.update({
   path: '/recipes',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthMealplanRoute = AuthMealplanImport.update({
+  path: '/mealplan',
   getParentRoute: () => AuthRoute,
 } as any)
 
@@ -88,6 +94,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthIngredientsImport
       parentRoute: typeof AuthImport
     }
+    '/_auth/mealplan': {
+      id: '/_auth/mealplan'
+      path: '/mealplan'
+      fullPath: '/mealplan'
+      preLoaderRoute: typeof AuthMealplanImport
+      parentRoute: typeof AuthImport
+    }
     '/_auth/recipes': {
       id: '/_auth/recipes'
       path: '/recipes'
@@ -131,6 +144,7 @@ declare module '@tanstack/react-router' {
 export const routeTree = rootRoute.addChildren({
   AuthRoute: AuthRoute.addChildren({
     AuthIngredientsRoute,
+    AuthMealplanRoute,
     AuthRecipesRoute: AuthRecipesRoute.addChildren({
       AuthRecipesNewRoute,
       AuthRecipesRecipeIdEditRoute,
@@ -157,6 +171,7 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "_auth.tsx",
       "children": [
         "/_auth/ingredients",
+        "/_auth/mealplan",
         "/_auth/recipes",
         "/_auth/",
         "/_auth/shoppinglist/$shoppinglistId"
@@ -167,6 +182,10 @@ export const routeTree = rootRoute.addChildren({
     },
     "/_auth/ingredients": {
       "filePath": "_auth.ingredients.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/mealplan": {
+      "filePath": "_auth.mealplan.tsx",
       "parent": "/_auth"
     },
     "/_auth/recipes": {

@@ -9,19 +9,22 @@ export function Navbar() {
     <nav className="content-grid pt-4 border-solid border-black border-b-2 dotted-bg">
       <ul className="mb-4 flex flex-row justify-between">
         <li>
-          <NavLink name={"Shopping"} to={"/"} />
+          <NavLink name={"Meal plan"} to={"/mealplan"}/>
         </li>
         <li>
-          <NavLink name={"Ingredients"} to={"/ingredients"} />
+          <NavLink name={"Shopping"} to={"/"}/>
         </li>
         <li>
-          <NavLink name={"Recipes"} to={"/recipes"} />
+          <NavLink name={"Ingredients"} to={"/ingredients"}/>
+        </li>
+        <li>
+          <NavLink name={"Recipes"} to={"/recipes"}/>
         </li>
         <li>
           {token ? (
-            <UserOrLogin token={token} />
+              <UserOrLogin token={token}/>
           ) : (
-            <NavLink name={"Login"} to={"/login"} />
+              <NavLink name={"Login"} to={"/login"}/>
           )}
         </li>
       </ul>
