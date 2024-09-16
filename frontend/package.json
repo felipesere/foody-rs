@@ -14,7 +14,7 @@
     "test": "NODE_OPTIONS='--no-deprecation' vitest run"
   },
   "dependencies": {
-    "@floating-ui/react": "^0.26.10",
+    "@floating-ui/react": "^0.26.24",
     "@tanstack/query-sync-storage-persister": "^5.24.8",
     "@tanstack/react-form": "^0.24.0",
     "@tanstack/react-query": "^5.24.1",
