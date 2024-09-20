@@ -13,7 +13,7 @@ type ButtonProps<RT extends ReferenceType = ReferenceType> =
   ButtonHTMLAttributes<never> & {
     label: string;
     hotkey?: string;
-    classNames?: Record<string, boolean>;
+    classNames?: Record<string, boolean> | string;
     setRef?: (node: RT | null) => void;
   };
 
