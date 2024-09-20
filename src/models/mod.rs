@@ -9,3 +9,5 @@ pub mod tags;
 pub mod tags_on_ingredients;
 pub mod tags_on_recipes;
 pub mod users;
+pub mod meal_plans;
+pub mod meals_in_meal_plans;
