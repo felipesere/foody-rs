@@ -14,7 +14,8 @@ expression: "&meal_plans"
             "type": "from_recipe",
             "id": 10
           },
-          "section": null
+          "section": null,
+          "is_cooked": true
         },
         {
           "id": 91,
@@ -22,7 +23,8 @@ expression: "&meal_plans"
             "type": "untracked",
             "name": "FrozenBanana"
           },
-          "section": null
+          "section": null,
+          "is_cooked": false
         }
       ]
     },
@@ -36,7 +38,8 @@ expression: "&meal_plans"
             "type": "from_recipe",
             "id": 11
           },
-          "section": null
+          "section": null,
+          "is_cooked": false
         }
       ]
     }

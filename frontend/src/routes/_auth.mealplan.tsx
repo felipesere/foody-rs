@@ -1,68 +1,83 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import {
+  type Meal,
+  useAddMealToPlan,
+  useAllMealPlans,
+  useToggleMealIsCooked,
+} from "../apis/mealplans.ts";
 import { type Recipe, useAllRecipes } from "../apis/recipes.ts";
 import { Button } from "../components/button.tsx";
 import { Dropdown, type DropdownProps } from "../components/dropdown.tsx";
 import { FieldSet } from "../components/fieldset.tsx";
 import { KebabMenu } from "../components/kebabMenu.tsx";
-import { useCreateMealPlan } from "../apis/mealplans.ts";
 
 export const Route = createFileRoute("/_auth/mealplan")({
   component: MealPlanPage,
 });
 
-function idOf(recipe: string | Recipe) {
-  if (typeof recipe === "string") {
-    return recipe;
-  }
-  return recipe.id;
-}
-
-function isRecipe(recipe: string | Recipe): recipe is Recipe {
-  return (recipe as Recipe).id !== undefined;
-}
-
 function MealPlanPage() {
   const { token } = Route.useRouteContext();
 
-  const [chosen, setChosen] = useState<(string | Recipe)[]>([]);
-
-  const [name, setName] = useState("");
-
-  const createMealPlan = useCreateMealPlan(token);
+  // TODO: figure out if I want one or many mealplans...
+  const addMeal = useAddMealToPlan(token, 1);
 
   return (
     <div className="content-grid space-y-4 max-w-md pb-20">
-      <FieldSet legend={"Thing"}>
-        <div className={"flex flex-col space-y-2"}>
-          <div className={"flex flex-row gap-2"}>
-            <input
-              className={"w-1/3 border-black border-solid border-2"}
-              type={"text"}
-              name={"new_mealplan_name"}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-            <Button
-              classNames={"whitespace-nowrap flex-shrink"}
-              label={"New meal plan"}
-              onClick={() => createMealPlan.mutate({ name })}
-            />
-          </div>
-        </div>
-      </FieldSet>
-      <p>Meals</p>
-      <FieldSet legend={"Thing"}>
+      <FieldSet
+        legend={"Thing"}
+        className={{ fieldSet: "flex flex-col gap-2" }}
+      >
+        <Button classNames={"whitespace-nowrap flex-shrink"} label={"Clear"} />
         <div className={"flex flex-row gap-2"}>
           <p>Add recipe or thing</p>
           <FindRecipe
             token={token}
             placeholder={"Recipe..."}
-            onRecipe={(r) => setChosen((previous) => [...previous, r])}
-            onNonRecipe={(v) => setChosen((previous) => [...previous, v])}
+            onRecipe={(r) => {
+              addMeal.mutate({
+                section: null,
+                details: {
+                  type: "from_recipe",
+                  id: r.id,
+                },
+              });
+            }}
+            onNonRecipe={(name) => {
+              addMeal.mutate({
+                section: null,
+                details: {
+                  type: "untracked",
+                  name,
+                },
+              });
+            }}
           />
         </div>
       </FieldSet>
+      <MealPlan token={token} />
+    </div>
+  );
+}
+
+function MealPlan(props: { token: string }) {
+  const all = useAllMealPlans(props.token);
+  const recipes = useAllRecipes(props.token);
+
+  const toggleIsCooked = useToggleMealIsCooked(props.token, 1);
+
+  if (all.isPending || recipes.isPending) {
+    return "Loading...";
+  }
+
+  if (!all.data || !recipes.data) {
+    return "No data?";
+  }
+
+  const fixedMealPlan = all.data.meal_plans[0];
+
+  return (
+    <>
+      <p>Meals</p>
       <table className={"relative border-collapse"}>
         <thead>
           <tr>
@@ -76,28 +91,37 @@ function MealPlanPage() {
           </tr>
         </thead>
         <tbody>
-          {chosen.map((recipe) => (
-            <tr key={idOf(recipe)}>
+          {fixedMealPlan.meals.map((meal) => (
+            <tr key={meal.id}>
               <td className={"border-2 border-black text-left align-top pl-2"}>
-                {isRecipe(recipe) ? (
-                  <Link to={`/recipes/${recipe.id}/edit`}>{recipe.name}</Link>
-                ) : (
-                  recipe
-                )}
+                <MealLink
+                  details={meal.details}
+                  allRecipes={recipes.data.recipes}
+                />
               </td>
               <td
                 className={"border-2 border-black text-left align-middle pl-2"}
               >
-                <input type={"checkbox"} />
+                <input
+                  type={"checkbox"}
+                  checked={meal.is_cooked}
+                  onClick={() =>
+                    toggleIsCooked.mutate({
+                      id: meal.id,
+                      is_cooked: !meal.is_cooked,
+                    })
+                  }
+                />
               </td>
               <td className={"border-2 border-black text-left my-auto pl-2"}>
                 <KebabMenu>
                   <KebabMenu.Button
                     value={"Delete"}
                     onClick={() => {
-                      setChosen((previous) =>
-                        previous.filter((v) => v !== recipe),
-                      );
+                      // TODO: Need an API to add individual meals
+                      // setChosen((previous) =>
+                      //   previous.filter((v) => v !== recipe),
+                      // );
                     }}
                     style={"dark"}
                   />
@@ -107,8 +131,17 @@ function MealPlanPage() {
           ))}
         </tbody>
       </table>
-    </div>
+    </>
   );
+}
+
+function MealLink(props: { details: Meal["details"]; allRecipes: Recipe[] }) {
+  if (props.details.type === "from_recipe") {
+    const id = props.details.id;
+    const name = props.allRecipes.find((r) => r.id === id)?.name || "Unknown";
+    return <Link to={`/recipes/${id}/edit`}>{name}</Link>;
+  }
+  return props.details.name;
 }
 
 type FindRecipeProps = {

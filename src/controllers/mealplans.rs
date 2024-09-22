@@ -25,6 +25,7 @@ struct Meal {
     id: i32,
     details: MealDetails,
     section: Option<String>,
+    is_cooked: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -49,7 +50,7 @@ struct MealPlansResponse {
 impl From<(meal_plans::Model, Vec<meals_in_meal_plans::Model>)> for MealPlanResponse {
     fn from(value: (meal_plans::Model, Vec<meals_in_meal_plans::Model>)) -> Self {
         let (mealplan, meals) = value;
-        MealPlanResponse {
+        Self {
             id: mealplan.id,
             name: mealplan.name,
             meals: meals
@@ -60,6 +61,7 @@ impl From<(meal_plans::Model, Vec<meals_in_meal_plans::Model>)> for MealPlanResp
                             id: m.id,
                             details: MealDetails::FromRecipe(Recipe { id: recipe_id }),
                             section: m.section,
+                            is_cooked: m.is_cooked,
                         }
                     } else {
                         Meal {
@@ -70,6 +72,7 @@ impl From<(meal_plans::Model, Vec<meals_in_meal_plans::Model>)> for MealPlanResp
                                 ),
                             }),
                             section: m.section,
+                            is_cooked: m.is_cooked,
                         }
                     }
                 })
@@ -83,7 +86,7 @@ where
     T: Into<MealPlanResponse>,
 {
     fn from(value: Vec<T>) -> Self {
-        MealPlansResponse {
+        Self {
             meal_plans: value.into_iter().map(|m| m.into()).collect(),
         }
     }
@@ -168,12 +171,43 @@ pub async fn add_to_meal(
     Ok(())
 }
 
+#[derive(Deserialize, Debug)]
+pub struct MarkMealAsCookedParams {
+    is_cooked: bool,
+}
+
+pub async fn mark_meal_as_cooked(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+    Path((id, meal_id)): Path<(i32, i32)>,
+    extract::Json(mark): extract::Json<MarkMealAsCookedParams>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let _plan = meal_plans::Entity::find_by_id(id)
+        .one(&ctx.db)
+        .await?
+        .ok_or_else(|| Error::NotFound)?;
+
+    let meal = meals_in_meal_plans::Entity::find_by_id(meal_id)
+        .one(&ctx.db)
+        .await?
+        .ok_or_else(|| Error::NotFound)?;
+
+    let mut meal = meal.into_active_model();
+    meal.is_cooked = ActiveValue::Set(mark.is_cooked);
+    meal.save(&ctx.db).await?;
+
+    Ok(())
+}
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("mealplans")
         .add("/", get(all_mealplans))
         .add("/", post(create_meal_plan))
         .add("/:id/meal", post(add_to_meal))
+        .add("/:id/meal/:meal_id/cooked", post(mark_meal_as_cooked))
 }
 
 #[cfg(test)]
@@ -196,6 +230,7 @@ mod tests {
                             id: 90,
                             details: MealDetails::FromRecipe(Recipe { id: 10 }),
                             section: None,
+                            is_cooked: true,
                         },
                         Meal {
                             id: 91,
@@ -203,6 +238,7 @@ mod tests {
                                 name: "FrozenBanana".to_string(),
                             }),
                             section: None,
+                            is_cooked: false,
                         },
                     ],
                 },
@@ -213,6 +249,7 @@ mod tests {
                         id: 91,
                         details: MealDetails::FromRecipe(Recipe { id: 11 }),
                         section: None,
+                        is_cooked: false,
                     }],
                 },
             ],
