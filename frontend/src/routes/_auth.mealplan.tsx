@@ -5,6 +5,7 @@ import { Button } from "../components/button.tsx";
 import { Dropdown, type DropdownProps } from "../components/dropdown.tsx";
 import { FieldSet } from "../components/fieldset.tsx";
 import { KebabMenu } from "../components/kebabMenu.tsx";
+import { useCreateMealPlan } from "../apis/mealplans.ts";
 
 export const Route = createFileRoute("/_auth/mealplan")({
   component: MealPlanPage,
@@ -26,26 +27,42 @@ function MealPlanPage() {
 
   const [chosen, setChosen] = useState<(string | Recipe)[]>([]);
 
+  const [name, setName] = useState("");
+
+  const createMealPlan = useCreateMealPlan(token);
+
   return (
     <div className="content-grid space-y-4 max-w-md pb-20">
       <FieldSet legend={"Thing"}>
         <div className={"flex flex-col space-y-2"}>
-          <Button
-            classNames={"whitespace-nowrap flex-shrink"}
-            label={"New meal plan"}
-          />
           <div className={"flex flex-row gap-2"}>
-            <p>Add recipe or thing</p>
-            <FindRecipe
-              token={token}
-              placeholder={"Recipe..."}
-              onRecipe={(r) => setChosen((previous) => [...previous, r])}
-              onNonRecipe={(v) => setChosen((previous) => [...previous, v])}
+            <input
+              className={"w-1/3 border-black border-solid border-2"}
+              type={"text"}
+              name={"new_mealplan_name"}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <Button
+              classNames={"whitespace-nowrap flex-shrink"}
+              label={"New meal plan"}
+              onClick={() => createMealPlan.mutate({ name })}
             />
           </div>
         </div>
       </FieldSet>
       <p>Meals</p>
+      <FieldSet legend={"Thing"}>
+        <div className={"flex flex-row gap-2"}>
+          <p>Add recipe or thing</p>
+          <FindRecipe
+            token={token}
+            placeholder={"Recipe..."}
+            onRecipe={(r) => setChosen((previous) => [...previous, r])}
+            onNonRecipe={(v) => setChosen((previous) => [...previous, v])}
+          />
+        </div>
+      </FieldSet>
       <table className={"relative border-collapse"}>
         <thead>
           <tr>
