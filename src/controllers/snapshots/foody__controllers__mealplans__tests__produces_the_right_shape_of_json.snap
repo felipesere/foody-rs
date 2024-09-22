@@ -15,7 +15,8 @@ expression: "&meal_plans"
             "id": 10
           },
           "section": null,
-          "is_cooked": true
+          "is_cooked": true,
+          "created_at": "2024-01-22 17:34:01"
         },
         {
           "id": 91,
@@ -24,7 +25,8 @@ expression: "&meal_plans"
             "name": "FrozenBanana"
           },
           "section": null,
-          "is_cooked": false
+          "is_cooked": false,
+          "created_at": "2024-01-22 17:34:01"
         }
       ]
     },
@@ -39,7 +41,8 @@ expression: "&meal_plans"
             "id": 11
           },
           "section": null,
-          "is_cooked": false
+          "is_cooked": false,
+          "created_at": "2024-01-22 17:34:01"
         }
       ]
     }

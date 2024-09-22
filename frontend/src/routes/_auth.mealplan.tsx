@@ -106,7 +106,7 @@ function MealPlan(props: { token: string }) {
               >
                 <input
                   type={"checkbox"}
-                  checked={meal.is_cooked}
+                  defaultChecked={meal.is_cooked}
                   onClick={() =>
                     toggleIsCooked.mutate({
                       id: meal.id,

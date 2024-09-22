@@ -18,6 +18,7 @@ const MealSchema = z.object({
   section: z.string().nullable(),
   details: DetailsSchema,
   is_cooked: z.boolean(),
+  created_at: z.string().datetime().pipe(z.coerce.date()),
 });
 
 export type Meal = z.infer<typeof MealSchema>;
@@ -50,7 +51,14 @@ export function useAllMealPlans(token: string) {
         })
         .json();
 
-      return MealPlansSchema.parse(body);
+      const meals = MealPlansSchema.parse(body);
+      for (const plan of meals.meal_plans) {
+        plan.meals.sort(
+          (a, b) => a.created_at.getTime() - b.created_at.getTime(),
+        );
+      }
+
+      return meals;
     },
   });
 }

@@ -26,6 +26,7 @@ struct Meal {
     details: MealDetails,
     section: Option<String>,
     is_cooked: bool,
+    created_at: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -56,24 +57,22 @@ impl From<(meal_plans::Model, Vec<meals_in_meal_plans::Model>)> for MealPlanResp
             meals: meals
                 .into_iter()
                 .map(|m| {
-                    if let Some(recipe_id) = m.recipe_id {
-                        Meal {
-                            id: m.id,
-                            details: MealDetails::FromRecipe(Recipe { id: recipe_id }),
-                            section: m.section,
-                            is_cooked: m.is_cooked,
-                        }
+                    let details = if let Some(recipe_id) = m.recipe_id {
+                        MealDetails::FromRecipe(Recipe { id: recipe_id })
                     } else {
-                        Meal {
-                            id: m.id,
-                            details: MealDetails::Untracked(UntrackedMeal {
-                                name: m.untracked_meal_name.expect(
-                                    "meal was had no recipe_id and was meant to be untracked",
-                                ),
-                            }),
-                            section: m.section,
-                            is_cooked: m.is_cooked,
-                        }
+                        MealDetails::Untracked(UntrackedMeal {
+                            name: m
+                                .untracked_meal_name
+                                .expect("meal was had no recipe_id and was meant to be untracked"),
+                        })
+                    };
+
+                    Meal {
+                        id: m.id,
+                        details,
+                        section: m.section,
+                        is_cooked: m.is_cooked,
+                        created_at: m.created_at.format("%Y-%m-%dT%H:%M:%SZ").to_string(),
                     }
                 })
                 .collect(),
@@ -240,6 +239,7 @@ mod tests {
 
     #[test]
     fn produces_the_right_shape_of_json() {
+        let created_at = "2024-01-22 17:34:01";
         let meal_plans = MealPlansResponse {
             meal_plans: vec![
                 MealPlanResponse {
@@ -251,6 +251,7 @@ mod tests {
                             details: MealDetails::FromRecipe(Recipe { id: 10 }),
                             section: None,
                             is_cooked: true,
+                            created_at: created_at.to_string(),
                         },
                         Meal {
                             id: 91,
@@ -259,6 +260,7 @@ mod tests {
                             }),
                             section: None,
                             is_cooked: false,
+                            created_at: created_at.to_string(),
                         },
                     ],
                 },
@@ -270,6 +272,7 @@ mod tests {
                         details: MealDetails::FromRecipe(Recipe { id: 11 }),
                         section: None,
                         is_cooked: false,
+                        created_at: created_at.to_string(),
                     }],
                 },
             ],
