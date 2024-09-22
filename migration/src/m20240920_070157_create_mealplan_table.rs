@@ -1,4 +1,4 @@
-use loco_rs::schema::integer;
+use loco_rs::schema::{integer, string_null};
 use sea_orm_migration::{prelude::*, schema::*};
 
 #[derive(DeriveMigrationName)]
@@ -19,6 +19,7 @@ enum MealsInMealPlans {
     RecipeId,
     UntrackedMealName,
     IsCooked,
+    Section,
 }
 
 #[async_trait::async_trait]
@@ -48,6 +49,7 @@ impl MigrationTrait for Migration {
                     )
                     .col(integer_null(MealsInMealPlans::RecipeId))
                     .col(string_null(MealsInMealPlans::UntrackedMealName))
+                    .col(string_null(MealsInMealPlans::Section))
                     .col(boolean(MealsInMealPlans::IsCooked))
                     .to_owned(),
             )

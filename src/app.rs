@@ -53,6 +53,7 @@ impl Hooks for App {
             .add_route(controllers::shoppinglists::routes())
             .add_route(controllers::ingredients::routes())
             .add_route(controllers::tags::routes())
+            .add_route(controllers::mealplans::routes())
             .prefix("/api")
             .add_route(controllers::auth::routes())
             .add_route(controllers::user::routes())

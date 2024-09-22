@@ -8,3 +8,5 @@ pub mod shoppinglists;
 pub mod recipes;
 
 pub mod tags;
+
+pub mod mealplans;

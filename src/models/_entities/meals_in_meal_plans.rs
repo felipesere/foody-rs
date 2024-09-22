@@ -13,6 +13,7 @@ pub struct Model {
     pub meal_plan_id: i32,
     pub recipe_id: Option<i32>,
     pub untracked_meal_name: Option<String>,
+    pub section: Option<String>,
     pub is_cooked: bool,
 }
 

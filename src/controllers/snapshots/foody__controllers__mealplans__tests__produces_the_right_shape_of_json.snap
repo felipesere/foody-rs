@@ -1,0 +1,44 @@
+---
+source: src/controllers/mealplans.rs
+expression: "&meal_plans"
+---
+{
+  "meal_plans": [
+    {
+      "id": 1,
+      "name": "the first",
+      "meals": [
+        {
+          "id": 90,
+          "details": {
+            "type": "from_recipe",
+            "id": 10
+          },
+          "section": null
+        },
+        {
+          "id": 91,
+          "details": {
+            "type": "untracked",
+            "name": "FrozenBanana"
+          },
+          "section": null
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "the second",
+      "meals": [
+        {
+          "id": 91,
+          "details": {
+            "type": "from_recipe",
+            "id": 11
+          },
+          "section": null
+        }
+      ]
+    }
+  ]
+}
