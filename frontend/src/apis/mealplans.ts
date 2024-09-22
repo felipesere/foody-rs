@@ -117,3 +117,22 @@ export function useToggleMealIsCooked(
     },
   });
 }
+
+export function useDeleteMealFromMealPlan(
+  token: string,
+  meal_plan_id: MealPlan["id"],
+) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: { id: StoredMeal["id"] }) => {
+      await http.delete(`api/mealplans/${meal_plan_id}/meal/${params.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    },
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: ["mealplans"] });
+    },
+  });
+}

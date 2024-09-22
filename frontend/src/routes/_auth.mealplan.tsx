@@ -3,6 +3,7 @@ import {
   type Meal,
   useAddMealToPlan,
   useAllMealPlans,
+  useDeleteMealFromMealPlan,
   useToggleMealIsCooked,
 } from "../apis/mealplans.ts";
 import { type Recipe, useAllRecipes } from "../apis/recipes.ts";
@@ -64,6 +65,7 @@ function MealPlan(props: { token: string }) {
   const recipes = useAllRecipes(props.token);
 
   const toggleIsCooked = useToggleMealIsCooked(props.token, 1);
+  const deleteMeal = useDeleteMealFromMealPlan(props.token, 1);
 
   if (all.isPending || recipes.isPending) {
     return "Loading...";
@@ -117,12 +119,7 @@ function MealPlan(props: { token: string }) {
                 <KebabMenu>
                   <KebabMenu.Button
                     value={"Delete"}
-                    onClick={() => {
-                      // TODO: Need an API to add individual meals
-                      // setChosen((previous) =>
-                      //   previous.filter((v) => v !== recipe),
-                      // );
-                    }}
+                    onClick={() => deleteMeal.mutate({ id: meal.id })}
                     style={"dark"}
                   />
                 </KebabMenu>

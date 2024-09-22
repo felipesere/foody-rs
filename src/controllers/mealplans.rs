@@ -201,12 +201,32 @@ pub async fn mark_meal_as_cooked(
     Ok(())
 }
 
+pub async fn delete_meal_from_mealplan(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+    Path((id, meal_id)): Path<(i32, i32)>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let _plan = meal_plans::Entity::find_by_id(id)
+        .one(&ctx.db)
+        .await?
+        .ok_or_else(|| Error::NotFound)?;
+
+    meals_in_meal_plans::Entity::delete_by_id(meal_id)
+        .exec(&ctx.db)
+        .await?;
+
+    Ok(())
+}
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("mealplans")
         .add("/", get(all_mealplans))
         .add("/", post(create_meal_plan))
         .add("/:id/meal", post(add_to_meal))
+        .add("/:id/meal/:meal_id", delete(delete_meal_from_mealplan))
         .add("/:id/meal/:meal_id/cooked", post(mark_meal_as_cooked))
 }
 
