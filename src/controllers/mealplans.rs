@@ -219,6 +219,36 @@ pub async fn delete_meal_from_mealplan(
     Ok(())
 }
 
+#[derive(Deserialize, Debug)]
+pub struct SetMealOfSectionParams {
+    section: String,
+}
+
+pub async fn set_section_of_meal(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+    Path((id, meal_id)): Path<(i32, i32)>,
+    extract::Json(SetMealOfSectionParams { section }): extract::Json<SetMealOfSectionParams>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let _plan = meal_plans::Entity::find_by_id(id)
+        .one(&ctx.db)
+        .await?
+        .ok_or_else(|| Error::NotFound)?;
+
+    let meal = meals_in_meal_plans::Entity::find_by_id(meal_id)
+        .one(&ctx.db)
+        .await?
+        .ok_or_else(|| Error::NotFound)?;
+
+    let mut meal = meal.into_active_model();
+    meal.section = ActiveValue::Set(Some(section));
+    meal.save(&ctx.db).await?;
+
+    Ok(())
+}
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("mealplans")
@@ -227,6 +257,7 @@ pub fn routes() -> Routes {
         .add("/:id/meal", post(add_to_meal))
         .add("/:id/meal/:meal_id", delete(delete_meal_from_mealplan))
         .add("/:id/meal/:meal_id/cooked", post(mark_meal_as_cooked))
+        .add("/:id/meal/:meal_id/section", post(set_section_of_meal))
 }
 
 #[cfg(test)]

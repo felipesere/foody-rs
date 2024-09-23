@@ -144,3 +144,28 @@ export function useDeleteMealFromMealPlan(
     },
   });
 }
+
+export function useSetSectionOfMeal(
+  token: string,
+  meal_plan_id: MealPlan["id"],
+) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: { id: StoredMeal["id"]; section: string }) => {
+      await http.post(
+        `api/mealplans/${meal_plan_id}/meal/${params.id}/section`,
+        {
+          json: {
+            section: params.section,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+    },
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: ["mealplans"] });
+    },
+  });
+}

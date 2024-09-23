@@ -1,9 +1,12 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import {
   type Meal,
+  type StoredMeal,
   useAddMealToPlan,
   useAllMealPlans,
   useDeleteMealFromMealPlan,
+  useSetSectionOfMeal,
   useToggleMealIsCooked,
 } from "../apis/mealplans.ts";
 import { type Recipe, useAllRecipes } from "../apis/recipes.ts";
@@ -64,9 +67,6 @@ function MealPlan(props: { token: string }) {
   const all = useAllMealPlans(props.token);
   const recipes = useAllRecipes(props.token);
 
-  const toggleIsCooked = useToggleMealIsCooked(props.token, 1);
-  const deleteMeal = useDeleteMealFromMealPlan(props.token, 1);
-
   if (all.isPending || recipes.isPending) {
     return "Loading...";
   }
@@ -77,9 +77,90 @@ function MealPlan(props: { token: string }) {
 
   const fixedMealPlan = all.data.meal_plans[0];
 
+  const sections = new Set(
+    fixedMealPlan.meals.map((meal) => meal.section).filter((s) => s !== null),
+  );
+
+  const namedSection: Record<string, StoredMeal[]> = {};
+  const unnamed: StoredMeal[] = [];
+
+  for (const meal of fixedMealPlan.meals) {
+    if (meal.section) {
+      const meals = namedSection[meal.section] || [];
+      meals.push(meal);
+      namedSection[meal.section] = meals;
+    } else {
+      unnamed.push(meal);
+    }
+  }
+
   return (
     <>
       <p>Meals</p>
+
+      {unnamed.length > 0 && (
+        <SectionOfMeals
+          token={props.token}
+          mealPlanId={1}
+          meals={unnamed}
+          sections={sections}
+          recipes={recipes.data.recipes}
+        />
+      )}
+
+      {Object.entries(namedSection).map(([title, meals]) => {
+        return (
+          <SectionOfMeals
+            key={title}
+            token={props.token}
+            mealPlanId={1}
+            meals={meals}
+            sections={sections}
+            recipes={recipes.data.recipes}
+            title={title}
+          />
+        );
+      })}
+    </>
+  );
+}
+
+function NewSection(props: { onNewValue: (v: string) => void }) {
+  const [value, setValue] = useState("");
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        props.onNewValue(value);
+      }}
+    >
+      <input
+        type={"text"}
+        className={"border-2 border-solid border-black px-2"}
+        placeholder={"New section..."}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+      />
+    </form>
+  );
+}
+
+function SectionOfMeals(props: {
+  token: string;
+  title?: string;
+  mealPlanId: number;
+  meals: StoredMeal[];
+  sections: Set<string>;
+  recipes: Recipe[];
+}) {
+  const toggleIsCooked = useToggleMealIsCooked(props.token, props.mealPlanId);
+  const deleteMeal = useDeleteMealFromMealPlan(props.token, props.mealPlanId);
+  const setSection = useSetSectionOfMeal(props.token, props.mealPlanId);
+
+  return (
+    <>
+      {props.title && <p>{props.title}</p>}
       <table className={"relative border-collapse"}>
         <thead>
           <tr>
@@ -93,13 +174,10 @@ function MealPlan(props: { token: string }) {
           </tr>
         </thead>
         <tbody>
-          {fixedMealPlan.meals.map((meal) => (
+          {props.meals.map((meal) => (
             <tr key={meal.id}>
               <td className={"border-2 border-black text-left align-top pl-2"}>
-                <MealLink
-                  details={meal.details}
-                  allRecipes={recipes.data.recipes}
-                />
+                <MealLink details={meal.details} allRecipes={props.recipes} />
               </td>
               <td
                 className={"border-2 border-black text-left align-middle pl-2"}
@@ -121,6 +199,22 @@ function MealPlan(props: { token: string }) {
                     value={"Delete"}
                     onClick={() => deleteMeal.mutate({ id: meal.id })}
                     style={"dark"}
+                  />
+                  <KebabMenu.Divider />
+                  {Array.from(props.sections).map((section) => (
+                    <KebabMenu.Button
+                      key={section}
+                      value={section}
+                      style={"plain"}
+                      onClick={() =>
+                        setSection.mutate({ id: meal.id, section })
+                      }
+                    />
+                  ))}
+                  <NewSection
+                    onNewValue={(newSection) => {
+                      setSection.mutate({ id: meal.id, section: newSection });
+                    }}
                   />
                 </KebabMenu>
               </td>

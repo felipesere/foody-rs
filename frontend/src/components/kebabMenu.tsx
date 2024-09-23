@@ -85,7 +85,7 @@ export function KebabMenu(props: PropsWithChildren<KebabMenuProps>) {
             style={floatingStyles}
             {...getFloatingProps({
               className:
-                "shadow flex flex-col gap-2 bg-white p-2 border-solid border-black border-2",
+                "z-30 shadow flex flex-col gap-2 bg-white p-2 border-solid border-black border-2",
             })}
           >
             {props.children}
@@ -117,4 +117,9 @@ export function Button({ onClick, value, className, style }: ButtonProps) {
     </button>
   );
 }
+
+export function Divider() {
+  return <hr className="h-0.5 my-0.5 w-full bg-black border-0" />;
+}
 KebabMenu.Button = Button;
+KebabMenu.Divider = Divider;
