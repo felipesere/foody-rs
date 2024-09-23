@@ -152,7 +152,7 @@ export function EditRecipeFrom(props: {
                     name={"title"}
                     children={(field) => (
                       <div className={"flex flex-row gap-2"}>
-                        <label>Title</label>
+                        <label htmlFor={"bookTitle"}>Title</label>
                         <ResizingInput
                           id={"bookTitle"}
                           name={"bookTitle"}
@@ -168,7 +168,7 @@ export function EditRecipeFrom(props: {
                     name={"page"}
                     children={(field) => (
                       <div className={"flex flex-row gap-2"}>
-                        <label>Page</label>
+                        <label htmlFor={"bookPage"}>Page</label>
                         <ResizingInput
                           id={"bookPage"}
                           name={"bookPage"}
@@ -191,7 +191,7 @@ export function EditRecipeFrom(props: {
                   children={(field) => (
                     <FieldSet legend={"Website"}>
                       <div className={"flex flex-row gap-2"}>
-                        <label>URL</label>
+                        <label htmlFor={"url"}>URL</label>
                         <ResizingInput
                           id={"url"}
                           name={"websiteUrl"}
