@@ -5,6 +5,7 @@ import {
   type StoredMeal,
   useAddMealToPlan,
   useAllMealPlans,
+  useClearMealplan,
   useDeleteMealFromMealPlan,
   useSetSectionOfMeal,
   useToggleMealIsCooked,
@@ -14,6 +15,7 @@ import { Button } from "../components/button.tsx";
 import { Dropdown, type DropdownProps } from "../components/dropdown.tsx";
 import { FieldSet } from "../components/fieldset.tsx";
 import { KebabMenu } from "../components/kebabMenu.tsx";
+import classNames from "classnames";
 
 export const Route = createFileRoute("/_auth/mealplan")({
   component: MealPlanPage,
@@ -24,6 +26,7 @@ function MealPlanPage() {
 
   // TODO: figure out if I want one or many mealplans...
   const addMeal = useAddMealToPlan(token, 1);
+  const clearPlan = useClearMealplan(token, 1);
 
   return (
     <div className="content-grid space-y-4 max-w-md pb-20">
@@ -31,7 +34,13 @@ function MealPlanPage() {
         legend={"Thing"}
         className={{ fieldSet: "flex flex-col gap-2" }}
       >
-        <Button classNames={"whitespace-nowrap flex-shrink"} label={"Clear"} />
+        <Button
+          classNames={"whitespace-nowrap flex-shrink"}
+          label={"Clear"}
+          onClick={() => {
+            clearPlan.mutate();
+          }}
+        />
         <div className={"flex flex-row gap-2"}>
           <p>Add recipe or thing</p>
           <FindRecipe
@@ -175,7 +184,12 @@ function SectionOfMeals(props: {
         </thead>
         <tbody>
           {props.meals.map((meal) => (
-            <tr key={meal.id}>
+            <tr
+              key={meal.id}
+              className={classNames({
+                "bg-gray-200 text-gray-500": meal.is_cooked,
+              })}
+            >
               <td className={"border-2 border-black text-left align-top pl-2"}>
                 <MealLink details={meal.details} allRecipes={props.recipes} />
               </td>

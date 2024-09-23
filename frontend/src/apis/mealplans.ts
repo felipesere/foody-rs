@@ -169,3 +169,19 @@ export function useSetSectionOfMeal(
     },
   });
 }
+
+export function useClearMealplan(token: string, meal_plan_id: MealPlan["id"]) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      await http.post(`api/mealplans/${meal_plan_id}/clear`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    },
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: ["mealplans"] });
+    },
+  });
+}

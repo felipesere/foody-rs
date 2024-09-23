@@ -249,11 +249,33 @@ pub async fn set_section_of_meal(
     Ok(())
 }
 
+// TODO this is more of an interim thing anyway...
+pub async fn clear_meal_plan(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+    Path(id): Path<i32>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let _plan = meal_plans::Entity::find_by_id(id)
+        .one(&ctx.db)
+        .await?
+        .ok_or_else(|| Error::NotFound)?;
+
+    meals_in_meal_plans::Entity::delete_many()
+        .filter(meals_in_meal_plans::Column::MealPlanId.eq(id))
+        .exec(&ctx.db)
+        .await?;
+
+    Ok(())
+}
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("mealplans")
         .add("/", get(all_mealplans))
         .add("/", post(create_meal_plan))
+        .add("/:id/clear", post(clear_meal_plan))
         .add("/:id/meal", post(add_to_meal))
         .add("/:id/meal/:meal_id", delete(delete_meal_from_mealplan))
         .add("/:id/meal/:meal_id/cooked", post(mark_meal_as_cooked))
