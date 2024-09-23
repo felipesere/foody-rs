@@ -1,4 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import classNames from "classnames";
 import { useState } from "react";
 import {
   type Meal,
@@ -15,7 +16,6 @@ import { Button } from "../components/button.tsx";
 import { Dropdown, type DropdownProps } from "../components/dropdown.tsx";
 import { FieldSet } from "../components/fieldset.tsx";
 import { KebabMenu } from "../components/kebabMenu.tsx";
-import classNames from "classnames";
 
 export const Route = createFileRoute("/_auth/mealplan")({
   component: MealPlanPage,
