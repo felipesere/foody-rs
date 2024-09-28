@@ -219,7 +219,7 @@ function RecipeView(props: RecipeProps) {
   const client = useQueryClient();
 
   let sourceComponent;
-  let smartTottle = false;
+  let methodToggle = false;
 switch (props.recipe.source) {
   case "book":
     sourceComponent = <BookSource title={props.recipe.title} page={props.recipe.page} />;
@@ -228,7 +228,7 @@ switch (props.recipe.source) {
     sourceComponent = <WebsiteSource url={props.recipe.url} />;
     break;
   case "instructions":
-    smartTottle = true;
+    methodToggle = true;
     sourceComponent = (
       <div>
         <p className="uppercase">Method: </p>
@@ -246,7 +246,7 @@ switch (props.recipe.source) {
     <li className="p-2 border-black border-solid border-2">
       <p className="font-black uppercase tracking-wider">{props.recipe.name}</p>
       <div>
-        {smartTottle ? '' : sourceComponent}
+        {methodToggle ? '' : sourceComponent}
       </div>
       {open ? (
         <div>
@@ -262,7 +262,7 @@ switch (props.recipe.source) {
           )}
           <Divider />
 
-          {smartTottle ? sourceComponent : ''}
+          {methodToggle ? sourceComponent : ''}
 
           <p className="uppercase">Ingredients:</p>
           <ul>
