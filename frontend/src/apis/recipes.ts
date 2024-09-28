@@ -40,6 +40,14 @@ const BookSchema = z.object({
   ingredients: z.array(IngredientSchema),
 });
 
+const InstructionsSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  source: z.literal("instructions"),
+  instructions: z.string(),
+  ingredients: z.array(IngredientSchema),
+});
+
 const WebsiteSchema = z.object({
   id: z.number(),
   name: z.string(),
@@ -59,9 +67,15 @@ const WebsiteSourceSchema = z.object({
   url: z.string(),
 });
 
+const InstructionsSourceSchema = z.object({
+  source: z.literal("instructions"),
+  instructions: z.string()
+});
+
 const SourceSchema = z.discriminatedUnion("source", [
   BookSourceSchema,
   WebsiteSourceSchema,
+  InstructionsSourceSchema,
 ]);
 
 export type Source = z.infer<typeof SourceSchema>;
@@ -78,6 +92,7 @@ const RecipeSchema = z
 export type Recipe = z.infer<typeof RecipeSchema>;
 export type Website = z.infer<typeof WebsiteSchema>;
 export type Book = z.infer<typeof BookSchema>;
+export type Instructions = z.infer<typeof InstructionsSchema>;
 export type Ingredient = z.infer<typeof IngredientSchema>;
 
 export const RecipesSchema = z.object({

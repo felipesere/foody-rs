@@ -7,6 +7,7 @@ import { z } from "zod";
 import {
   type Book,
   type Ingredient,
+  Instructions,
   type Recipe,
   type Website,
   addRecipeToShoppinglist,
@@ -217,15 +218,35 @@ function RecipeView(props: RecipeProps) {
   const navigate = useNavigate({ from: "/recipes" });
   const client = useQueryClient();
 
+  let sourceComponent;
+  let smartTottle = false;
+switch (props.recipe.source) {
+  case "book":
+    sourceComponent = <BookSource title={props.recipe.title} page={props.recipe.page} />;
+    break;
+  case "website":
+    sourceComponent = <WebsiteSource url={props.recipe.url} />;
+    break;
+  case "instructions":
+    smartTottle = true;
+    sourceComponent = (
+      <div>
+        <p className="uppercase">Method: </p>
+        <div>
+          <InstructionsSource instructions={props.recipe.instructions} />
+        </div>
+      </div>
+      );
+    break;
+  default:
+    break;
+}
+
   return (
     <li className="p-2 border-black border-solid border-2">
       <p className="font-black uppercase tracking-wider">{props.recipe.name}</p>
       <div>
-        {props.recipe.source === "book" ? (
-          <BookSource title={props.recipe.title} page={props.recipe.page} />
-        ) : (
-          <WebsiteSource url={props.recipe.url} />
-        )}
+        {smartTottle ? '' : sourceComponent}
       </div>
       {open ? (
         <div>
@@ -240,6 +261,9 @@ function RecipeView(props: RecipeProps) {
             </>
           )}
           <Divider />
+
+          {smartTottle ? sourceComponent : ''}
+
           <p className="uppercase">Ingredients:</p>
           <ul>
             {props.recipe.ingredients.map((ingredient) => (
@@ -331,6 +355,15 @@ export function WebsiteSource(props: WebsiteSourceProps) {
     <a target="_blank" href={props.url} rel="noreferrer">
       {maybeHostname(props.url)}
     </a>
+  );
+}
+
+export type InstructionsSourceProps = Pick<Instructions, "instructions">;
+export function InstructionsSource(props: InstructionsSourceProps) {
+  return (
+    <div className="flex flex-row">
+      <p className="mr-4 font-light text-gray-700">{props.instructions}</p>
+    </div>
   );
 }
 

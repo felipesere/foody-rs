@@ -27,6 +27,7 @@ pub struct RecipeResponse {
     pub page: Option<i32>,
     pub ingredients: Vec<IngredientResponse>,
     pub tags: Vec<String>,
+    pub instructions: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -68,6 +69,7 @@ pub async fn all_recipes(
                     }],
                 })
                 .collect(),
+            instructions: recipe.instructions,
         })
     }
 
@@ -107,6 +109,7 @@ pub async fn recipe(
                 }],
             })
             .collect(),
+        instructions: recipe.instructions,
     })
 }
 pub async fn delete_recipe(
@@ -136,6 +139,7 @@ pub async fn delete_recipe(
 enum RecipeSource {
     Book { title: String, page: i32 },
     Website { url: String },
+    Instructions { instructions: String },
 }
 
 #[derive(Deserialize, Debug)]
@@ -195,6 +199,13 @@ pub async fn create_recipe(
             recipe.book_title = ActiveValue::set(None);
             recipe.book_page = ActiveValue::set(None);
         }
+        RecipeSource::Instructions { instructions } => {
+            recipe.source = ActiveValue::set("instructions".into());
+            recipe.instructions = ActiveValue::set(Some(instructions));
+            recipe.book_title = ActiveValue::set(None);
+            recipe.book_page = ActiveValue::set(None);
+            recipe.website_url = ActiveValue::set(None);
+        }
     };
     let recipe = recipe.save(&tx).await?;
 
@@ -236,7 +247,7 @@ pub async fn update_recipe(
     use crate::models::_entities::prelude::*;
     use crate::models::_entities::recipes::ActiveModel;
 
-    tracing::info!("updating {id} wiht {params:#?}");
+    tracing::info!("updating {id} with {params:#?}");
 
     // check auth
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
@@ -259,6 +270,13 @@ pub async fn update_recipe(
             a.website_url = ActiveValue::set(Some(url));
             a.book_title = ActiveValue::set(None);
             a.book_page = ActiveValue::set(None);
+        }
+        RecipeSource::Instructions { instructions } => {
+            a.source = ActiveValue::set("instructions".into());
+            a.instructions = ActiveValue::set(Some(instructions));
+            a.book_title = ActiveValue::set(None);
+            a.book_page = ActiveValue::set(None);
+            a.website_url = ActiveValue::set(None);
         }
     }
     a.save(&tx).await?;
@@ -340,6 +358,7 @@ pub async fn update_recipe(
                 }],
             })
             .collect(),
+        instructions: recipe.instructions,
     })
 }
 

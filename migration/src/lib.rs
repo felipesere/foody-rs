@@ -27,6 +27,7 @@ mod m20240610_182331_add_notes_to_ingredients_on_list;
 mod m20240716_111758_tags_on_recipes;
 mod m20240724_123313_rename_fk_on_tags_on_recipes;
 mod m20240920_070157_create_mealplan_table;
+mod m20240928_213533_add_recipe_instructions;
 pub struct Migrator;
 
 #[async_trait::async_trait]
@@ -57,6 +58,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20240716_111758_tags_on_recipes::Migration),
             Box::new(m20240724_123313_rename_fk_on_tags_on_recipes::Migration),
             Box::new(m20240920_070157_create_mealplan_table::Migration),
+            Box::new(m20240928_213533_add_recipe_instructions::Migration),
         ]
     }
 }

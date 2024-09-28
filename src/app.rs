@@ -96,6 +96,7 @@ impl Hooks for App {
             book_title: Option<String>,
             website_url: Option<String>,
             ingredients: HashMap<String, Quantity>,
+            instructions: Option<String>,
             tags: Option<Vec<String>>,
         }
 
@@ -139,6 +140,9 @@ impl Hooks for App {
                 .website_url
                 .map_or_else(AV::not_set, |w| AV::set(Some(w)));
             model.source = AV::set(recipe.source);
+            model.instructions = recipe
+                .instructions
+                .map_or_else(AV::not_set, |r| AV::set(Some(r)));
             let model = model.insert(db).await.unwrap();
 
             for (name, quantity) in recipe.ingredients {

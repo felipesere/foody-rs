@@ -41,6 +41,7 @@ export function EditRecipeFrom(props: {
         quantity: humanize(i.quantity[0]),
       })),
       tags: recipe.tags,
+      instructions: recipe.source === "instructions" ? recipe.instructions : null,
     },
     onSubmit: async (vals) => {
       switch (vals.value.source) {
@@ -51,6 +52,11 @@ export function EditRecipeFrom(props: {
         case "book":
           vals.value.url = null;
           break;
+        case "instructions":
+          vals.value.page = null;
+          vals.value.title = null;    
+          vals.value.url = null;
+          break
       }
       const s: SimplifiedRecipe = vals.value;
       props.onSubmit(s);
@@ -137,6 +143,17 @@ export function EditRecipeFrom(props: {
                   />
                   <label htmlFor="website">Website</label>
                 </div>
+                <div className="flex flex-row gap-1">
+                  <input
+                    type="radio"
+                    id="instructions"
+                    name="source"
+                    value={"instructions"}
+                    checked={field.state.value === "instructions"}
+                    onChange={() => field.handleChange("instructions")}
+                  />
+                  <label htmlFor="instructions">Instructions</label>
+                </div>
               </>
             )}
           />
@@ -195,6 +212,28 @@ export function EditRecipeFrom(props: {
                         <ResizingInput
                           id={"url"}
                           name={"websiteUrl"}
+                          value={field.state.value || ""}
+                          onBlur={field.handleBlur}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                        />
+                      </div>
+                    </FieldSet>
+                  )}
+                />
+              );
+            }
+
+            if (source === "instructions") {
+              return (
+                <form.Field
+                  name={"instructions"}
+                  children={(field) => (
+                    <FieldSet legend={"Instructions"}>
+                      <div className={"flex flex-row gap-2"}>
+                        <label htmlFor={"instructions"}>Instructions</label>
+                        <ResizingInput
+                          id={"instructions"}
+                          name={"instructions"}
                           value={field.state.value || ""}
                           onBlur={field.handleBlur}
                           onChange={(e) => field.handleChange(e.target.value)}
