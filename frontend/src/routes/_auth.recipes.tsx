@@ -91,6 +91,8 @@ export function RecipesPage() {
         )),
   );
 
+  recipes.sort((a, b) => a.name.localeCompare(b.name));
+
   const knownTags = Object.keys(allTags.data);
 
   return (
