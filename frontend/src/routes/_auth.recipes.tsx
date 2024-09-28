@@ -245,6 +245,16 @@ function RecipeView(props: RecipeProps) {
         </div>
       ) : null}
       <Divider />
+      {props.recipe.tags.length > 0 && (
+        <>
+          {props.recipe.tags.map((tag) => (
+            <p className={"inline-block mr-2"} key={tag}>
+              #{tag}
+            </p>
+          ))}
+          <Divider />
+        </>
+      )}
       <ButtonGroup>
         <button
           className={classnames("px-2", {
