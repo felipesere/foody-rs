@@ -10,7 +10,7 @@ import {
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { type Recipe, useCreateRecipe } from "../apis/recipes.ts";
 
-import { EditRecipeFrom } from "../components/smart/editRecipeFrom.tsx";
+import { EditRecipeForm } from "../components/smart/editRecipeForm.tsx";
 
 export const Route = createFileRoute("/_auth/recipes/new")({
   component: NewRecipePage,
@@ -62,7 +62,7 @@ function NewRecipePage() {
               "m-2 p-4 bg-white w-full h-full max-w-2xl relative border-solid border-black border-2 space-y-4",
           })}
         >
-          <EditRecipeFrom
+          <EditRecipeForm
             token={token}
             recipe={recipe}
             onSubmit={(r) => {

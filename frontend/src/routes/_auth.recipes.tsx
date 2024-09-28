@@ -78,12 +78,8 @@ export function RecipesPage() {
     return <p>Error</p>;
   }
 
-  if (isLoading) {
+  if (isLoading || !(allTags.data && data?.recipes)) {
     return <p>Loading</p>;
-  }
-
-  if (!(allTags.data && data?.recipes)) {
-    return <p>Loading...</p>;
   }
 
   const recipes = data.recipes.filter(

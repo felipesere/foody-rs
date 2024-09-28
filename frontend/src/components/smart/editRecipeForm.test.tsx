@@ -14,7 +14,7 @@ import type { ReactElement } from "react";
 import { expect, test } from "vitest";
 import type { Recipe } from "../../apis/recipes.ts";
 import { parse } from "../../quantities.ts";
-import { EditRecipeFrom } from "./editRecipeFrom.tsx";
+import { EditRecipeForm } from "./editRecipeForm.tsx";
 
 const queryClient = new QueryClient();
 
@@ -81,7 +81,7 @@ test("add an existing ingredient to a recipe", async () => {
   backendServer(handlers);
 
   customRender(
-    <EditRecipeFrom
+    <EditRecipeForm
       token={"123"}
       recipe={tartiflette}
       onSubmit={(_) => {}}
@@ -117,7 +117,7 @@ test.skip("change a recipe from book to website", async () => {
   backendServer(handlers);
 
   customRender(
-    <EditRecipeFrom
+    <EditRecipeForm
       token={"123"}
       recipe={tartiflette}
       onSubmit={(_) => {}}
