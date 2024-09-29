@@ -220,7 +220,9 @@ function RecipeView(props: RecipeProps) {
   let methodToggle = false;
   switch (props.recipe.source) {
     case "book":
-      sourceComponent = <BookSource title={props.recipe.title} page={props.recipe.page} />;
+      sourceComponent = (
+        <BookSource title={props.recipe.title} page={props.recipe.page} />
+      );
       break;
     case "website":
       sourceComponent = <WebsiteSource url={props.recipe.url} />;
@@ -234,17 +236,17 @@ function RecipeView(props: RecipeProps) {
             <InstructionsSource instructions={props.recipe.instructions} />
           </div>
         </div>
-        );
+      );
       break;
     default:
-      sourceComponent = (<div></div>)
+      sourceComponent = <div />
       break;
 }
 
   return (
     <li className="p-2 border-black border-solid border-2">
       <p className="font-black uppercase tracking-wider">{props.recipe.name}</p>
-      <div>{methodToggle ? '' : sourceComponent}</div>
+      <div>{methodToggle ? "" : sourceComponent}</div>
       {open ? (
         <div>
           {props.recipe.tags.length > 0 && (
