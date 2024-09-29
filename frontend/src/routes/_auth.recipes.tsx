@@ -239,9 +239,9 @@ function RecipeView(props: RecipeProps) {
       );
       break;
     default:
-      sourceComponent = <div />
+      sourceComponent = <div />;
       break;
-}
+  }
 
   return (
     <li className="p-2 border-black border-solid border-2">
