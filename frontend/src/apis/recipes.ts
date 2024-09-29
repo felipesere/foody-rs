@@ -69,7 +69,7 @@ const WebsiteSourceSchema = z.object({
 
 const InstructionsSourceSchema = z.object({
   source: z.literal("instructions"),
-  instructions: z.string()
+  instructions: z.string(),
 });
 
 const SourceSchema = z.discriminatedUnion("source", [

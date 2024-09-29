@@ -41,7 +41,8 @@ export function EditRecipeForm(props: {
         quantity: humanize(i.quantity[0]),
       })),
       tags: recipe.tags,
-      instructions: recipe.source === "instructions" ? recipe.instructions : null,
+      instructions:
+        recipe.source === "instructions" ? recipe.instructions : null,
     },
     onSubmit: async (vals) => {
       switch (vals.value.source) {
@@ -54,9 +55,9 @@ export function EditRecipeForm(props: {
           break;
         case "instructions":
           vals.value.page = null;
-          vals.value.title = null;    
+          vals.value.title = null;
           vals.value.url = null;
-          break
+          break;
       }
       const s: SimplifiedRecipe = vals.value;
       props.onSubmit(s);

@@ -7,7 +7,7 @@ import { z } from "zod";
 import {
   type Book,
   type Ingredient,
-  Instructions,
+  type Instructions,
   type Recipe,
   type Website,
   addRecipeToShoppinglist,
@@ -216,36 +216,35 @@ function RecipeView(props: RecipeProps) {
   const navigate = useNavigate({ from: "/recipes" });
   const client = useQueryClient();
 
-  let sourceComponent;
+  let sourceComponent: JSX.Element;
   let methodToggle = false;
-switch (props.recipe.source) {
-  case "book":
-    sourceComponent = <BookSource title={props.recipe.title} page={props.recipe.page} />;
-    break;
-  case "website":
-    sourceComponent = <WebsiteSource url={props.recipe.url} />;
-    break;
-  case "instructions":
-    methodToggle = true;
-    sourceComponent = (
-      <div>
-        <p className="uppercase">Method: </p>
+  switch (props.recipe.source) {
+    case "book":
+      sourceComponent = <BookSource title={props.recipe.title} page={props.recipe.page} />;
+      break;
+    case "website":
+      sourceComponent = <WebsiteSource url={props.recipe.url} />;
+      break;
+    case "instructions":
+      methodToggle = true;
+      sourceComponent = (
         <div>
-          <InstructionsSource instructions={props.recipe.instructions} />
+          <p className="uppercase">Method: </p>
+          <div>
+            <InstructionsSource instructions={props.recipe.instructions} />
+          </div>
         </div>
-      </div>
-      );
-    break;
-  default:
-    break;
+        );
+      break;
+    default:
+      sourceComponent = (<div></div>)
+      break;
 }
 
   return (
     <li className="p-2 border-black border-solid border-2">
       <p className="font-black uppercase tracking-wider">{props.recipe.name}</p>
-      <div>
-        {methodToggle ? '' : sourceComponent}
-      </div>
+      <div>{methodToggle ? '' : sourceComponent}</div>
       {open ? (
         <div>
           {props.recipe.tags.length > 0 && (
@@ -260,7 +259,7 @@ switch (props.recipe.source) {
           )}
           <Divider />
 
-          {methodToggle ? sourceComponent : ''}
+          {methodToggle ? sourceComponent : ""}
 
           <p className="uppercase">Ingredients:</p>
           <ul>
