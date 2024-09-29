@@ -15,7 +15,7 @@ export type SimplifiedRecipe = Omit<Recipe, "id" | "ingredients"> & {
   ingredients: { id: number; name: string; quantity: string }[];
 };
 
-export function EditRecipeFrom(props: {
+export function EditRecipeForm(props: {
   token: string;
   recipe: Recipe;
   onSubmit: (s: SimplifiedRecipe) => void;
@@ -37,7 +37,7 @@ export function EditRecipeFrom(props: {
       ingredients: recipe.ingredients.map((i) => ({
         id: i.id,
         name: i.name,
-        // TODO: I think I need fox `quantity[0]` at some point
+        // TODO: I think I need fix `quantity[0]` at some point
         quantity: humanize(i.quantity[0]),
       })),
       tags: recipe.tags,
@@ -310,34 +310,19 @@ export function EditRecipeFrom(props: {
             Close
           </button>
 
-          <form.Subscribe
-            selector={(state) => [state.canSubmit, state.isPristine]}
-            children={([canSubmit, isPristine]) => {
-              return (
-                <>
-                  <button
-                    type="submit"
-                    form={"editRecipe"}
-                    className={"px-2"}
-                    disabled={!canSubmit || isPristine}
-                  >
-                    Save
-                  </button>
+          <button type="submit" form={"editRecipe"} className={"px-2"}>
+            Save
+          </button>
 
-                  <button
-                    type="button"
-                    className={"px-2"}
-                    onClick={() => {
-                      form.reset();
-                    }}
-                    disabled={isPristine}
-                  >
-                    Reset
-                  </button>
-                </>
-              );
+          <button
+            type="button"
+            className={"px-2"}
+            onClick={() => {
+              form.reset();
             }}
-          />
+          >
+            Reset
+          </button>
         </ButtonGroup>
       </form>
     </>

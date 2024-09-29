@@ -79,12 +79,8 @@ export function RecipesPage() {
     return <p>Error</p>;
   }
 
-  if (isLoading) {
+  if (isLoading || !(allTags.data && data?.recipes)) {
     return <p>Loading</p>;
-  }
-
-  if (!(allTags.data && data?.recipes)) {
-    return <p>Loading...</p>;
   }
 
   const recipes = data.recipes.filter(
@@ -95,6 +91,8 @@ export function RecipesPage() {
           ingredient.name.includes(term || ""),
         )),
   );
+
+  recipes.sort((a, b) => a.name.localeCompare(b.name));
 
   const knownTags = Object.keys(allTags.data);
 
@@ -273,6 +271,16 @@ switch (props.recipe.source) {
         </div>
       ) : null}
       <Divider />
+      {props.recipe.tags.length > 0 && (
+        <>
+          {props.recipe.tags.map((tag) => (
+            <p className={"inline-block mr-2"} key={tag}>
+              #{tag}
+            </p>
+          ))}
+          <Divider />
+        </>
+      )}
       <ButtonGroup>
         <button
           className={classnames("px-2", {
