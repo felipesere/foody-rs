@@ -15,6 +15,7 @@ pub struct Model {
     pub book_page: Option<i32>,
     pub website_url: Option<String>,
     pub source: String,
+    pub instructions: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
