@@ -36,7 +36,7 @@
   "devDependencies": {
     "@biomejs/biome": "^1.9.2",
     "@playwright/test": "^1.42.1",
-    "@tanstack/router-vite-plugin": "^1.18.1",
+    "@tanstack/router-vite-plugin": "^1.58.12",
     "@testing-library/dom": "^10.1.0",
     "@testing-library/react": "^16.0.0",
     "@testing-library/user-event": "^14.5.2",
