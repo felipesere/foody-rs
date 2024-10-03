@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { Outlet, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import classnames from "classnames";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -8,6 +8,7 @@ import {
   type Book,
   type Ingredient,
   type Recipe,
+  type Source,
   type Website,
   addRecipeToShoppinglist,
   useAllRecipes,
@@ -61,7 +62,7 @@ function updateSearch(
 
   return previous;
 }
-export const Route = createFileRoute("/_auth/recipes")({
+export const Route = createFileRoute("/_auth/recipes/")({
   component: RecipesPage,
   validateSearch: RecipeSearchSchema,
 });
@@ -97,7 +98,7 @@ export function RecipesPage() {
 
   return (
     <>
-      <Outlet />
+      {/*<Outlet />*/}
       <div className="content-grid space-y-4">
         <FieldSet legend={"..."} className={{ fieldSet: "flex flex-col" }}>
           <ButtonGroup>
@@ -219,11 +220,7 @@ function RecipeView(props: RecipeProps) {
     <li className="p-2 border-black border-solid border-2">
       <p className="font-black uppercase tracking-wider">{props.recipe.name}</p>
       <div>
-        {props.recipe.source === "book" ? (
-          <BookSource title={props.recipe.title} page={props.recipe.page} />
-        ) : (
-          <WebsiteSource url={props.recipe.url} />
-        )}
+        <ShowSource details={props.recipe} />
       </div>
       {open ? (
         <div>
@@ -232,7 +229,7 @@ function RecipeView(props: RecipeProps) {
               <Divider />
               <ol className={"flex flex-row gap-2"}>
                 {props.recipe.tags.map((tag) => (
-                  <p key={tag}>#{tag}</p>
+                  <li key={tag}>#{tag}</li>
                 ))}
               </ol>
             </>
@@ -321,6 +318,24 @@ function IngredientView({ ingredient }: { ingredient: Ingredient }) {
       </p>
     </li>
   );
+}
+
+function ShowSource(props: { details: Source }) {
+  switch (props.details.source) {
+    case "website":
+      return (
+        <a target="_blank" href={props.details.url} rel="noreferrer">
+          {maybeHostname(props.details.url)}
+        </a>
+      );
+    case "book":
+      return (
+        <div className="flex flex-row">
+          <p className="mr-4">{props.details.title}</p>
+          <p>{`p.${props.details.page}`}</p>
+        </div>
+      );
+  }
 }
 
 export type BookSourceProps = Pick<Book, "title" | "page">;
