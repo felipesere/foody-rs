@@ -75,6 +75,7 @@ function RecipePage() {
             label={editing ? "Save" : "Edit"}
             onClick={() => navigate({ search: { editing: !editing } })}
           />
+          <Button label={"Reset"} disabled={true} />
           <Button label={"Add to Shoppinglist"} />
           <Button label={"Add to Meal plan"} />
         </ButtonGroup>
