@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { createContext, useContext, useState } from "react";
 import { z } from "zod";
 import { type Ingredient, type Source, useRecipe } from "../apis/recipes.ts";
 import { Button } from "../components/button.tsx";
@@ -17,6 +17,11 @@ const RecipeSearch = z.object({
 export const Route = createFileRoute("/_auth/recipes/$recipeId")({
   component: RecipePage,
   validateSearch: RecipeSearch,
+});
+
+const RecipeContext = createContext({
+  editing: false,
+  token: "",
 });
 
 function RecipePage() {
@@ -40,63 +45,58 @@ function RecipePage() {
   const recipe = data.data;
 
   return (
-    <div className="content-grid space-y-4 pb-20">
-      <div className={"grid gap-4 grid-cols-1 sm:grid-cols-2"}>
-        {/* left or top */}
-        <div>
-          <h1 className={"capitalize underline underline-offset-2"}>
-            {recipe.name}
-          </h1>
-          <ShowSource details={recipe} editing={editing || false} />
-          <Stars rating={rating} setRating={setRating} />
-          <Tags tags={tags} editing={editing || false} onSetTags={setTags} />
-          <Divider />
-          <Ingredients
-            token={token}
-            editing={editing || false}
-            ingredients={recipe.ingredients}
+    <RecipeContext.Provider
+      value={{
+        editing: editing || false,
+        token,
+      }}
+    >
+      <div className="content-grid space-y-4 pb-20">
+        <div className={"grid gap-4 grid-cols-1 sm:grid-cols-2"}>
+          {/* left or top */}
+          <div>
+            <h1 className={"capitalize underline underline-offset-2"}>
+              {recipe.name}
+            </h1>
+            <ShowSource details={recipe} />
+            <Stars rating={rating} setRating={setRating} />
+            <Tags tags={tags} onSetTags={setTags} />
+            <Divider />
+            <Ingredients ingredients={recipe.ingredients} />
+          </div>
+          <div>
+            <h2>Notes:</h2>
+            <textarea className={"w-full h-full"} placeholder={"Any notes?"} />
+          </div>
+        </div>
+        <Divider />
+        <ButtonGroup>
+          <Button
+            label={editing ? "Save" : "Edit"}
+            onClick={() => navigate({ search: { editing: !editing } })}
           />
-        </div>
-        <div>
-          <h2>Notes:</h2>
-          <textarea className={"w-full h-full"} placeholder={"Any notes?"} />
-        </div>
+          <Button label={"Add to Shoppinglist"} />
+          <Button label={"Add to Meal plan"} />
+        </ButtonGroup>
       </div>
-      <Divider />
-      <ButtonGroup>
-        <Button
-          label={editing ? "Save" : "Edit"}
-          onClick={() => navigate({ search: { editing: !editing } })}
-        />
-        <Button label={"Add to Shoppinglist"} />
-        <Button label={"Add to Meal plan"} />
-      </ButtonGroup>
-    </div>
+    </RecipeContext.Provider>
   );
 }
 
 function Ingredients(props: {
   ingredients: Ingredient[];
-  editing: boolean;
-  token: string;
 }) {
+  const { editing, token } = useContext(RecipeContext);
   return (
     <div className={"flex flex-col gap-2"}>
       <p className="uppercase">Ingredients:</p>
       <ul>
         {props.ingredients.map((ingredient) => (
-          <IngredientView
-            key={ingredient.name}
-            editing={props.editing}
-            ingredient={ingredient}
-          />
+          <IngredientView key={ingredient.name} ingredient={ingredient} />
         ))}
       </ul>
-      {props.editing && (
-        <SelectIngredientWithQuantity
-          token={props.token}
-          onIngredient={() => {}}
-        />
+      {editing && (
+        <SelectIngredientWithQuantity token={token} onIngredient={() => {}} />
       )}
     </div>
   );
@@ -104,15 +104,15 @@ function Ingredients(props: {
 
 function Tags(props: {
   tags: string[];
-  editing: boolean;
   onSetTags: (items: string[]) => void;
 }) {
+  const { editing } = useContext(RecipeContext);
   return (
     <ol className={"flex flex-row gap-2"}>
       {props.tags.map((tag) => (
         <li key={tag}>#{tag}</li>
       ))}
-      {props.editing && (
+      {editing && (
         <MultiSelect
           label={"Select Tags"}
           items={["these", "are", "placeholder", "tags"]}
@@ -148,18 +148,19 @@ function Stars(props: { rating: number; setRating: (n: number) => void }) {
   );
 }
 
-function IngredientView(props: { ingredient: Ingredient; editing: boolean }) {
+function IngredientView(props: { ingredient: Ingredient }) {
+  const { editing } = useContext(RecipeContext);
   const quantity = `${props.ingredient.quantity[0].value} ${props.ingredient.quantity[0].unit}`;
   return (
     <li className="flex flex-row justify-between">
-      {props.editing && (
+      {editing && (
         <DeleteButton className={"text-red-700 mr-2"} onClick={() => {}} />
       )}
       <p className="font-light text-gray-700 whitespace-nowrap overflow-hidden overflow-ellipsis">
         {props.ingredient.name}
       </p>
       <DottedLine />
-      {props.editing ? (
+      {editing ? (
         <Input type={"text"} value={quantity} />
       ) : (
         <p className="text-light" style={{ flex: "none" }}>
@@ -171,10 +172,11 @@ function IngredientView(props: { ingredient: Ingredient; editing: boolean }) {
 }
 
 // TODO: move this back into the normal show recipes
-function ShowSource(props: { details: Source; editing: boolean }) {
+function ShowSource(props: { details: Source }) {
+  const { editing } = useContext(RecipeContext);
   switch (props.details.source) {
     case "website":
-      if (props.editing) {
+      if (editing) {
         return (
           // TODO: Consider if I really want the resizable one...
           <Input type={"text"} value={props.details.url} />
@@ -186,7 +188,7 @@ function ShowSource(props: { details: Source; editing: boolean }) {
         </a>
       );
     case "book":
-      if (props.editing) {
+      if (editing) {
         return (
           <div className={"flex gap-2 flex-row"}>
             <Input type={"text"} value={props.details.title} />
