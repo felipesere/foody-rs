@@ -29,6 +29,7 @@ pub struct RecipeResponse {
     pub page: Option<i32>,
     pub ingredients: Vec<IngredientResponse>,
     pub tags: Vec<String>,
+    pub rating: i32,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -56,6 +57,7 @@ pub async fn all_recipes(
             title: recipe.book_title,
             page: recipe.book_page,
             tags: recipe.tags,
+            rating: recipe.rating,
             ingredients: ingredients
                 .into_iter()
                 .map(|(ingredient, quantity)| IngredientResponse {
@@ -95,6 +97,7 @@ pub async fn recipe(
         title: recipe.book_title,
         page: recipe.book_page,
         tags: recipe.tags,
+        rating: recipe.rating,
         ingredients: ingredients
             .into_iter()
             .map(|(ingredient, quantity)| IngredientResponse {
@@ -313,6 +316,7 @@ pub async fn update_recipe(
         title: recipe.book_title,
         page: recipe.book_page,
         tags: recipe.tags,
+        rating: recipe.rating,
         ingredients: ingredients
             .into_iter()
             .map(|(ingredient, quantity)| IngredientResponse {
@@ -385,6 +389,25 @@ pub async fn all_recipe_tags(
     format::json(TagsResponse { tags: unique_tags })
 }
 
+pub async fn set_recipe_rating(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+    Path((id, rating)): Path<(i32, i32)>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let r = recipes::Entity::find_by_id(id)
+        .one(&ctx.db)
+        .await?
+        .ok_or(Error::NotFound)?;
+
+    let mut recipe = r.into_active_model();
+    recipe.rating = ActiveValue::set(rating);
+    recipe.save(&ctx.db).await?;
+
+    Ok(())
+}
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("recipes")
@@ -395,6 +418,7 @@ pub fn routes() -> Routes {
         .add("/:id", post(update_recipe))
         .add("/:id", delete(delete_recipe))
         .add("/:id/tags", put(set_recipe_tags))
+        .add("/:id/rating/:value", post(set_recipe_rating))
 }
 
 #[cfg(test)]

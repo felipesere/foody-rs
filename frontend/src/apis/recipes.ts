@@ -72,6 +72,7 @@ const RecipeSchema = z
     name: z.string(),
     ingredients: z.array(IngredientSchema),
     tags: z.array(z.string()),
+    rating: z.number(),
   })
   .and(SourceSchema);
 
@@ -233,6 +234,23 @@ export function useRecipeTags(token: string) {
         .json();
 
       return RecipeTagsSchema.parse(body);
+    },
+  });
+}
+
+export function useSetRecipeRating(token: string, id: Recipe["id"]) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (rating: number) => {
+      return http.post(`api/recipes/${id}/rating/${rating}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    },
+    onSuccess: async () => {
+      await client.invalidateQueries({ queryKey: ["recipe", id] });
+      await client.invalidateQueries({ queryKey: ["recipes"] });
     },
   });
 }

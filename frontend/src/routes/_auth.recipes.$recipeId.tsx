@@ -1,12 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext } from "react";
 import { z } from "zod";
 import {
   type Ingredient,
   type Source,
-  useAllRecipes,
   useRecipe,
   useRecipeTags,
+  useSetRecipeRating,
   useSetRecipeTags,
 } from "../apis/recipes.ts";
 import { Button } from "../components/button.tsx";
@@ -37,8 +37,9 @@ function RecipePage() {
   const id = Number(recipeId);
   const { token } = Route.useRouteContext();
   const data = useRecipe(token, id);
-  const [rating, setRating] = useState(3);
   const navigate = useNavigate({ from: Route.fullPath });
+
+  const setRating = useSetRecipeRating(token, id);
 
   const setTags = useSetRecipeTags(token, id);
 
@@ -68,7 +69,10 @@ function RecipePage() {
               {recipe.name}
             </h1>
             <ShowSource details={recipe} />
-            <Stars rating={rating} setRating={setRating} />
+            <Stars
+              rating={recipe.rating}
+              setRating={(rating) => setRating.mutate(rating)}
+            />
             <Tags
               tags={recipe.tags}
               onSetTags={(tags) => setTags.mutate(tags)}
@@ -147,7 +151,10 @@ function Stars(props: { rating: number; setRating: (n: number) => void }) {
   function Star(props: { rating: number; idx: number; onClick: () => void }) {
     const css = props.idx <= props.rating ? "text-amber-500" : "text-gray-300";
     return (
-      <span className={css} onClick={props.onClick}>
+      <span
+        className={`cursor-pointer ${css}  hover:text-amber-600`}
+        onClick={props.onClick}
+      >
         *
       </span>
     );

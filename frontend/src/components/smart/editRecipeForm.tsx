@@ -41,6 +41,7 @@ export function EditRecipeForm(props: {
         quantity: humanize(i.quantity[0]),
       })),
       tags: recipe.tags,
+      rating: recipe.rating,
     },
     onSubmit: async (vals) => {
       switch (vals.value.source) {
