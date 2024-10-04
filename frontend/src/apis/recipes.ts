@@ -73,6 +73,7 @@ const RecipeSchema = z
     ingredients: z.array(IngredientSchema),
     tags: z.array(z.string()),
     rating: z.number(),
+    notes: z.string(),
   })
   .and(SourceSchema);
 
@@ -271,6 +272,26 @@ export function useSetRecipeTags(token: string, id: Recipe["id"]) {
     onSuccess: async () => {
       await client.invalidateQueries({ queryKey: ["recipe", id] });
       await client.invalidateQueries({ queryKey: ["recipes"] });
+    },
+  });
+}
+export function useSetRecipeNotes(token: string, id: Recipe["id"]) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (notes: Recipe["notes"]) => {
+      await http.post(`api/recipes/${id}/notes`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        json: {
+          notes,
+        },
+      });
+    },
+    onSuccess: async () => {
+      await client.invalidateQueries({ queryKey: ["recipe", id] });
+      await client.invalidateQueries({ queryKey: ["recipes"] });
+      toast.info("Saved notes.");
     },
   });
 }

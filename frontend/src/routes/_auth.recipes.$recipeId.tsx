@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { createContext, useContext } from "react";
+import { createContext, useContext, useState } from "react";
 import { z } from "zod";
 import {
   type Ingredient,
   type Source,
   useRecipe,
   useRecipeTags,
+  useSetRecipeNotes,
   useSetRecipeRating,
   useSetRecipeTags,
 } from "../apis/recipes.ts";
@@ -40,6 +41,7 @@ function RecipePage() {
   const navigate = useNavigate({ from: Route.fullPath });
 
   const setRating = useSetRecipeRating(token, id);
+  const setNotes = useSetRecipeNotes(token, id);
 
   const setTags = useSetRecipeTags(token, id);
 
@@ -81,8 +83,10 @@ function RecipePage() {
             <Ingredients ingredients={recipe.ingredients} />
           </div>
           <div>
-            <h2>Notes:</h2>
-            <textarea className={"w-full h-full"} placeholder={"Any notes?"} />
+            <Notes
+              value={recipe.notes}
+              onBlur={(notes) => setNotes.mutate(notes)}
+            />
           </div>
         </div>
         <Divider />
@@ -97,6 +101,22 @@ function RecipePage() {
         </ButtonGroup>
       </div>
     </RecipeContext.Provider>
+  );
+}
+
+function Notes(props: { value: string; onBlur: (v: string) => void }) {
+  const [notes, setNotes] = useState(props.value);
+  return (
+    <>
+      <h2>Notes:</h2>
+      <textarea
+        className={"w-full h-full"}
+        placeholder={"Any notes?"}
+        value={notes}
+        onChange={(event) => setNotes(event.target.value)}
+        onBlur={() => props.onBlur(notes)}
+      />
+    </>
   );
 }
 

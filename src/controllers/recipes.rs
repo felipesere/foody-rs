@@ -30,6 +30,7 @@ pub struct RecipeResponse {
     pub ingredients: Vec<IngredientResponse>,
     pub tags: Vec<String>,
     pub rating: i32,
+    pub notes: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -58,6 +59,7 @@ pub async fn all_recipes(
             page: recipe.book_page,
             tags: recipe.tags,
             rating: recipe.rating,
+            notes: recipe.notes,
             ingredients: ingredients
                 .into_iter()
                 .map(|(ingredient, quantity)| IngredientResponse {
@@ -98,6 +100,7 @@ pub async fn recipe(
         page: recipe.book_page,
         tags: recipe.tags,
         rating: recipe.rating,
+        notes: recipe.notes,
         ingredients: ingredients
             .into_iter()
             .map(|(ingredient, quantity)| IngredientResponse {
@@ -317,6 +320,7 @@ pub async fn update_recipe(
         page: recipe.book_page,
         tags: recipe.tags,
         rating: recipe.rating,
+        notes: recipe.notes,
         ingredients: ingredients
             .into_iter()
             .map(|(ingredient, quantity)| IngredientResponse {
@@ -353,6 +357,31 @@ pub async fn set_recipe_tags(
 
     let mut recipe = r.into_active_model();
     recipe.tags = ActiveValue::set(params.tags);
+    recipe.save(&ctx.db).await?;
+
+    Ok(())
+}
+
+#[derive(Deserialize)]
+pub struct SetRecipeNotesParams {
+    notes: String,
+}
+
+pub async fn set_recipe_notes(
+    auth: middleware::auth::JWT,
+    Path(id): Path<i32>,
+    State(ctx): State<AppContext>,
+    extract::Json(params): extract::Json<SetRecipeNotesParams>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let r = recipes::Entity::find_by_id(id)
+        .one(&ctx.db)
+        .await?
+        .ok_or(Error::NotFound)?;
+
+    let mut recipe = r.into_active_model();
+    recipe.notes = ActiveValue::set(params.notes);
     recipe.save(&ctx.db).await?;
 
     Ok(())
@@ -418,6 +447,7 @@ pub fn routes() -> Routes {
         .add("/:id", post(update_recipe))
         .add("/:id", delete(delete_recipe))
         .add("/:id/tags", put(set_recipe_tags))
+        .add("/:id/notes", post(set_recipe_notes))
         .add("/:id/rating/:value", post(set_recipe_rating))
 }
 
