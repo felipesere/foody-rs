@@ -1,7 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { createContext, useContext, useState } from "react";
 import { z } from "zod";
-import { type Ingredient, type Source, useRecipe } from "../apis/recipes.ts";
+import {
+  type Ingredient,
+  type Source,
+  useRecipe,
+  useSetRecipeTags,
+} from "../apis/recipes.ts";
 import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { DeleteButton } from "../components/deleteButton.tsx";
@@ -27,11 +32,13 @@ const RecipeContext = createContext({
 function RecipePage() {
   const { editing } = Route.useSearch();
   const { recipeId } = Route.useParams();
+  const id = Number(recipeId);
   const { token } = Route.useRouteContext();
-  const data = useRecipe(token, Number(recipeId));
+  const data = useRecipe(token, id);
   const [rating, setRating] = useState(3);
-  const [tags, setTags] = useState<string[]>([]);
   const navigate = useNavigate({ from: Route.fullPath });
+
+  const setTags = useSetRecipeTags(token, id);
 
   // TODO: needs to be lower inside of layout... but we will get there
   if (data.isLoading) {
@@ -60,7 +67,10 @@ function RecipePage() {
             </h1>
             <ShowSource details={recipe} />
             <Stars rating={rating} setRating={setRating} />
-            <Tags tags={tags} onSetTags={setTags} />
+            <Tags
+              tags={recipe.tags}
+              onSetTags={(tags) => setTags.mutate(tags)}
+            />
             <Divider />
             <Ingredients ingredients={recipe.ingredients} />
           </div>
@@ -117,7 +127,7 @@ function Tags(props: {
         <MultiSelect
           label={"Select Tags"}
           items={["these", "are", "placeholder", "tags"]}
-          selected={["these"]}
+          selected={props.tags}
           onItemsSelected={props.onSetTags}
         />
       )}

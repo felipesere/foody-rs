@@ -215,3 +215,22 @@ export function useDeleteRecipe(token: string) {
     },
   });
 }
+export function useSetRecipeTags(token: string, id: Recipe["id"]) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (tags: Recipe["tags"]) => {
+      await http.put(`api/recipes/${id}/tags`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        json: {
+          tags,
+        },
+      });
+    },
+    onSuccess: async () => {
+      await client.invalidateQueries({ queryKey: ["recipe", id] });
+      await client.invalidateQueries({ queryKey: ["recipes"] });
+    },
+  });
+}

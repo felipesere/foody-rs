@@ -30,31 +30,10 @@ impl Linked for RecipeToTags {
 }
 
 // TODO: Turn this into an actual struct with proper names
-type FullRecipe = (Recipes, Vec<(Ingredient, Quantity)>, BTreeSet<String>);
+type FullRecipe = (Recipes, Vec<(Ingredient, Quantity)>);
 
 pub(crate) async fn find_all(db: &DatabaseConnection) -> Result<Vec<FullRecipe>, ModelError> {
     let backend = db.get_database_backend();
-
-    let tags_statement = Statement::from_string(
-        backend,
-        r#"
-        SELECT
-            recipe_id,
-            t.name as t_name
-        FROM tags_on_recipes
-            JOIN tags as t on tags_on_recipes.tag_id = t.id
-    "#,
-    );
-    let rows = &db.query_all(tags_statement).await?;
-    let mut tagged_recipes = HashMap::new();
-    for row in rows {
-        let recipe_id: i32 = row.try_get("", "recipe_id")?;
-        let tag: String = row.try_get("t_", "name")?;
-        tagged_recipes
-            .entry(recipe_id)
-            .or_insert_with(BTreeSet::new)
-            .insert(tag);
-    }
 
     let ingredients_with_quantities = Statement::from_string(
         backend,
@@ -92,13 +71,12 @@ pub(crate) async fn find_all(db: &DatabaseConnection) -> Result<Vec<FullRecipe>,
 
     let mut full_recipes = Vec::new();
     for recipe in recipes {
-        let its_tags = tagged_recipes.get(&recipe.id).cloned().unwrap_or_default();
         let its_ingredients = ingredients_for_recipes
             .get(&recipe.id)
             .cloned()
             .unwrap_or_default();
 
-        full_recipes.push((recipe, its_ingredients, its_tags));
+        full_recipes.push((recipe, its_ingredients));
     }
 
     Ok(full_recipes)
@@ -113,8 +91,6 @@ pub(crate) async fn find_one(
         .one(db)
         .await?
         .ok_or_else(|| loco_rs::model::ModelError::EntityNotFound)?;
-
-    let tags = recipe.find_linked(RecipeToTags).all(db).await?;
 
     let backend = db.get_database_backend();
 
@@ -148,9 +124,5 @@ pub(crate) async fn find_one(
         ingredients.push((ingredient, quantity));
     }
 
-    Ok(Some((
-        recipe,
-        ingredients,
-        tags.into_iter().map(|t| t.name).collect(),
-    )))
+    Ok(Some((recipe, ingredients)))
 }

@@ -3,7 +3,6 @@ use loco_rs::controller::middleware::{self};
 use loco_rs::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use crate::models::_entities::tags_on_recipes;
 use crate::models::{
     _entities::{self, ingredients_in_recipes, quantities, recipes},
     quantities::Quantity,
@@ -45,8 +44,7 @@ pub async fn all_recipes(
 
     let mut recipes = Vec::new();
 
-    for (recipe, ingredients, tags) in crate::models::recipes::find_all(&ctx.db).await? {
-        tracing::info!(?tags, "Got tags like this");
+    for (recipe, ingredients) in crate::models::recipes::find_all(&ctx.db).await? {
         recipes.push(RecipeResponse {
             id: recipe.id,
             source: recipe.source,
@@ -54,7 +52,7 @@ pub async fn all_recipes(
             url: recipe.website_url,
             title: recipe.book_title,
             page: recipe.book_page,
-            tags: tags.into_iter().collect(),
+            tags: recipe.tags,
             ingredients: ingredients
                 .into_iter()
                 .map(|(ingredient, quantity)| IngredientResponse {
@@ -82,7 +80,7 @@ pub async fn recipe(
     // check auth
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
-    let (recipe, ingredients, tags) = crate::models::recipes::find_one(&ctx.db, id)
+    let (recipe, ingredients) = crate::models::recipes::find_one(&ctx.db, id)
         .await?
         .ok_or_else(|| Error::NotFound)?;
 
@@ -93,7 +91,7 @@ pub async fn recipe(
         url: recipe.website_url,
         title: recipe.book_title,
         page: recipe.book_page,
-        tags: tags.into_iter().collect(),
+        tags: recipe.tags,
         ingredients: ingredients
             .into_iter()
             .map(|(ingredient, quantity)| IngredientResponse {
@@ -261,23 +259,8 @@ pub async fn update_recipe(
             a.book_page = ActiveValue::set(None);
         }
     }
+    a.tags = ActiveValue::set(params.tags);
     a.save(&tx).await?;
-
-    let tags = Tags::batch_upsert(&tx, &params.tags).await?;
-    TagsOnRecipes::delete_many()
-        .filter(tags_on_recipes::Column::RecipeId.eq(id))
-        .exec(&tx)
-        .await?;
-
-    for tag in tags {
-        tags_on_recipes::ActiveModel {
-            recipe_id: ActiveValue::set(id),
-            tag_id: ActiveValue::set(tag.id),
-            ..Default::default()
-        }
-        .insert(&tx)
-        .await?;
-    }
 
     IngredientsInRecipes::delete_many()
         .filter(ingredients_in_recipes::Column::RecipesId.eq(id))
@@ -315,7 +298,7 @@ pub async fn update_recipe(
     }
     tx.commit().await?;
 
-    let (recipe, ingredients, tags) = crate::models::recipes::find_one(&ctx.db, id)
+    let (recipe, ingredients) = crate::models::recipes::find_one(&ctx.db, id)
         .await?
         .ok_or_else(|| Error::NotFound)?;
 
@@ -326,7 +309,7 @@ pub async fn update_recipe(
         url: recipe.website_url,
         title: recipe.book_title,
         page: recipe.book_page,
-        tags: tags.into_iter().collect(),
+        tags: recipe.tags,
         ingredients: ingredients
             .into_iter()
             .map(|(ingredient, quantity)| IngredientResponse {
@@ -343,6 +326,31 @@ pub async fn update_recipe(
     })
 }
 
+#[derive(Deserialize)]
+pub struct SetRecipeTagsParams {
+    tags: Vec<String>,
+}
+
+pub async fn set_recipe_tags(
+    auth: middleware::auth::JWT,
+    Path(id): Path<i32>,
+    State(ctx): State<AppContext>,
+    extract::Json(params): extract::Json<SetRecipeTagsParams>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let r = recipes::Entity::find_by_id(id)
+        .one(&ctx.db)
+        .await?
+        .ok_or(Error::NotFound)?;
+
+    let mut recipe = r.into_active_model();
+    recipe.tags = ActiveValue::set(params.tags);
+    recipe.save(&ctx.db).await?;
+
+    Ok(())
+}
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("recipes")
@@ -351,6 +359,7 @@ pub fn routes() -> Routes {
         .add("/:id", get(recipe))
         .add("/:id", post(update_recipe))
         .add("/:id", delete(delete_recipe))
+        .add("/:id/tags", put(set_recipe_tags))
 }
 
 #[cfg(test)]

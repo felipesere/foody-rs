@@ -169,7 +169,6 @@ export function MultiSelect(props: Props) {
                   type="submit"
                   hotkey="ctrl+s"
                   onClick={() => {
-                    console.log("here we go!");
                     void form.handleSubmit();
                   }}
                 />
