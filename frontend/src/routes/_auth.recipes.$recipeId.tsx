@@ -4,7 +4,9 @@ import { z } from "zod";
 import {
   type Ingredient,
   type Source,
+  useAllRecipes,
   useRecipe,
+  useRecipeTags,
   useSetRecipeTags,
 } from "../apis/recipes.ts";
 import { Button } from "../components/button.tsx";
@@ -117,7 +119,12 @@ function Tags(props: {
   tags: string[];
   onSetTags: (items: string[]) => void;
 }) {
-  const { editing } = useContext(RecipeContext);
+  const { editing, token } = useContext(RecipeContext);
+  const allRecipeTags = useRecipeTags(token);
+  if (!allRecipeTags.data) {
+    return null;
+  }
+
   return (
     <ol className={"flex flex-row gap-2"}>
       {props.tags.map((tag) => (
@@ -126,9 +133,10 @@ function Tags(props: {
       {editing && (
         <MultiSelect
           label={"Select Tags"}
-          items={["these", "are", "placeholder", "tags"]}
+          items={allRecipeTags.data.tags}
           selected={props.tags}
           onItemsSelected={props.onSetTags}
+          onNewItem={(newTag) => props.onSetTags([...props.tags, newTag])}
         />
       )}
     </ol>

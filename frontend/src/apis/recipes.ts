@@ -215,6 +215,28 @@ export function useDeleteRecipe(token: string) {
     },
   });
 }
+
+const RecipeTagsSchema = z.object({
+  tags: z.array(z.string()),
+});
+
+export function useRecipeTags(token: string) {
+  return useQuery({
+    queryKey: ["recipes", "tags"],
+    queryFn: async () => {
+      const body = await http
+        .get("api/recipes/tags", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .json();
+
+      return RecipeTagsSchema.parse(body);
+    },
+  });
+}
+
 export function useSetRecipeTags(token: string, id: Recipe["id"]) {
   const client = useQueryClient();
   return useMutation({

@@ -1,4 +1,4 @@
-use std::collections::{BTreeSet, HashMap};
+use std::collections::HashMap;
 
 use super::_entities;
 use super::_entities::ingredients::Model as Ingredient;
@@ -10,23 +10,6 @@ use sea_orm::{FromQueryResult, Statement};
 
 impl ActiveModelBehavior for ActiveModel {
     // extend activemodel below (keep comment for generators)
-}
-
-/// The connection between `recipes` and `tags`
-struct RecipeToTags;
-
-impl Linked for RecipeToTags {
-    type FromEntity = _entities::recipes::Entity;
-    type ToEntity = _entities::tags::Entity;
-
-    fn link(&self) -> Vec<sea_orm::LinkDef> {
-        vec![
-            super::_entities::tags_on_recipes::Relation::Recipes
-                .def()
-                .rev(),
-            super::_entities::tags_on_recipes::Relation::Tags.def(),
-        ]
-    }
 }
 
 // TODO: Turn this into an actual struct with proper names

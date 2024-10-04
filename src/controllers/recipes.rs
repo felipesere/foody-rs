@@ -1,6 +1,9 @@
+use std::collections::HashSet;
+
 use axum::{extract, http::StatusCode, response::Response};
 use loco_rs::controller::middleware::{self};
 use loco_rs::prelude::*;
+use sea_orm::Statement;
 use serde::{Deserialize, Serialize};
 
 use crate::models::{
@@ -351,9 +354,41 @@ pub async fn set_recipe_tags(
     Ok(())
 }
 
+#[derive(Serialize)]
+struct TagsResponse {
+    tags: HashSet<String>,
+}
+
+pub async fn all_recipe_tags(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+) -> Result<Response> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let db = ctx.db;
+
+    let backend = db.get_database_backend();
+
+    let tags_statement = Statement::from_string(
+        backend,
+        r#"SELECT DISTINCT(unnest("tags")) as "tags" from recipes;"#,
+    );
+
+    let results = db.query_all(tags_statement).await?;
+
+    let mut unique_tags = HashSet::default();
+    for qr in results {
+        let tag = qr.try_get("", "tags")?;
+        unique_tags.insert(tag);
+    }
+
+    format::json(TagsResponse { tags: unique_tags })
+}
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("recipes")
+        .add("/tags", get(all_recipe_tags))
         .add("/", get(all_recipes))
         .add("/", post(create_recipe))
         .add("/:id", get(recipe))
