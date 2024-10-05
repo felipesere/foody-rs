@@ -226,7 +226,9 @@ function CompactIngredientView({
           )}
         >
           {ingredient.name}{" "}
-          {ingredient.note && <p className={"bg-gray-300"}>Ⓝ</p>}
+          {ingredient.note && (
+            <span className={"font-light text-gray-600"}>Ⓝ</span>
+          )}
         </p>
         <p>{combineQuantities(ingredient.quantities)}</p>
         <ToggleButton onToggle={() => setOpen((v) => !v)} open={open} />
