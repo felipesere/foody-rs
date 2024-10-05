@@ -91,6 +91,9 @@ function MealPlan(props: { token: string }) {
   );
 
   const namedSection: Record<string, StoredMeal[]> = {};
+  const sectionNames = Object.keys(namedSection).sort((a, b) =>
+    a.localeCompare(b),
+  );
   const unnamed: StoredMeal[] = [];
 
   for (const meal of fixedMealPlan.meals) {
@@ -116,8 +119,8 @@ function MealPlan(props: { token: string }) {
           recipes={recipes.data.recipes}
         />
       )}
-
-      {Object.entries(namedSection).map(([title, meals]) => {
+      {sectionNames.map((title) => {
+        const meals = namedSection[title];
         return (
           <SectionOfMeals
             key={title}
