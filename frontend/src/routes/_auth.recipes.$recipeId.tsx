@@ -114,7 +114,11 @@ function Notes(props: { value: string; onBlur: (v: string) => void }) {
         placeholder={"Any notes?"}
         value={notes}
         onChange={(event) => setNotes(event.target.value)}
-        onBlur={() => props.onBlur(notes)}
+        onBlur={() => {
+          if (props.value !== notes) {
+            props.onBlur(notes);
+          }
+        }}
       />
     </>
   );
