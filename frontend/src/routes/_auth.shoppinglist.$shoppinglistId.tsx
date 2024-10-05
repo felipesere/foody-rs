@@ -225,7 +225,8 @@ function CompactIngredientView({
             "flex-grow inline capitalize ml-2 font-black tracking-wider",
           )}
         >
-          {ingredient.name}
+          {ingredient.name}{" "}
+          {ingredient.note && <p className={"bg-gray-300"}>Ⓝ</p>}
         </p>
         <p>{combineQuantities(ingredient.quantities)}</p>
         <ToggleButton onToggle={() => setOpen((v) => !v)} open={open} />
