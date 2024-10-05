@@ -102,6 +102,8 @@ function MealPlan(props: { token: string }) {
       unnamed.push(meal);
     }
   }
+  const names = Object.keys(namedSection);
+  names.sort();
 
   return (
     <>
@@ -117,7 +119,8 @@ function MealPlan(props: { token: string }) {
         />
       )}
 
-      {Object.entries(namedSection).map(([title, meals]) => {
+      {names.map((title) => {
+        const meals = namedSection[title];
         return (
           <SectionOfMeals
             key={title}
