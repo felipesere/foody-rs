@@ -7,7 +7,7 @@ use sea_orm::Statement;
 use serde::{Deserialize, Serialize};
 
 use crate::models::{
-    _entities::{self, ingredients_in_recipes, quantities, recipes},
+    _entities::{self, ingredients_in_recipes, ingredients_in_recipes, quantities, recipes},
     quantities::Quantity,
     users::users,
 };
@@ -437,6 +437,45 @@ pub async fn set_recipe_rating(
     Ok(())
 }
 
+#[derive(Deserialize)]
+pub struct AddIngredientParams {
+    ingredient: i32,
+    quantity: String,
+}
+
+pub async fn add_ingredient(
+    auth: middleware::auth::JWT,
+    Path(id): Path<i32>,
+    State(ctx): State<AppContext>,
+    extract::Json(params): extract::Json<AddIngredientParams>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let q = Quantity::parse(&params.quantity);
+
+    let tx = ctx.db.begin().await?;
+
+    let recipe = recipes::Entity::find_by_id(id)
+        .one(&tx)
+        .await?
+        .ok_or(Error::NotFound)?;
+
+    let stored_quantity = q.into_active_model().save(&tx).await?;
+
+    ingredients_in_recipes::ActiveModel {
+        recipes_id: ActiveValue::set(recipe.id),
+        ingredients_id: ActiveValue::set(params.ingredient),
+        quantities_id: stored_quantity.id,
+        ..Default::default()
+    }
+    .save(&tx)
+    .await?;
+
+    tx.commit().await;
+
+    Ok(())
+}
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("recipes")
@@ -449,6 +488,7 @@ pub fn routes() -> Routes {
         .add("/:id/tags", put(set_recipe_tags))
         .add("/:id/notes", post(set_recipe_notes))
         .add("/:id/rating/:value", post(set_recipe_rating))
+        .add("/:id/ingredient", post(add_ingredient))
 }
 
 #[cfg(test)]
