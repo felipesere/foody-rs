@@ -2,7 +2,6 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { createContext, useContext, useState } from "react";
 import { z } from "zod";
 import {
-  type Ingredient,
   type Source,
   useRecipe,
   useRecipeTags,
@@ -10,13 +9,18 @@ import {
   useSetRecipeRating,
   useSetRecipeTags,
 } from "../apis/recipes.ts";
+import type { Ingredient } from "../apis/recipes.ts";
 import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { DeleteButton } from "../components/deleteButton.tsx";
 import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
 import { MultiSelect } from "../components/multiselect.tsx";
-import { SelectIngredientWithQuantity } from "../components/smart/selectIngredientWithQuantity.tsx";
+import {
+  SelectIngredientWithQuantity,
+  type SelectIngredientWithQuantityProps,
+} from "../components/smart/selectIngredientWithQuantity.tsx";
+import { humanize } from "../quantities.ts";
 
 const RecipeSearch = z.object({
   editing: z.boolean().optional(),
@@ -44,6 +48,10 @@ function RecipePage() {
   const setNotes = useSetRecipeNotes(token, id);
 
   const setTags = useSetRecipeTags(token, id);
+
+  const [additionalIngredients, setAdditionalIngredients] = useState<
+    Ingredient[]
+  >([]);
 
   // TODO: needs to be lower inside of layout... but we will get there
   if (data.isLoading) {
@@ -80,7 +88,17 @@ function RecipePage() {
               onSetTags={(tags) => setTags.mutate(tags)}
             />
             <Divider />
-            <Ingredients ingredients={recipe.ingredients} />
+            <Ingredients
+              ingredients={[...recipe.ingredients, ...additionalIngredients]}
+              onIngredient={(ingredient, quantity) => {
+                const other: Ingredient = {
+                  ...ingredient,
+                  // TODO: Why do I need an ID here?
+                  quantity: [{ ...quantity, id: -1 }],
+                };
+                setAdditionalIngredients((prev) => [...prev, other]);
+              }}
+            />
           </div>
           <div>
             <Notes
@@ -126,18 +144,29 @@ function Notes(props: { value: string; onBlur: (v: string) => void }) {
 
 function Ingredients(props: {
   ingredients: Ingredient[];
+  onIngredient: SelectIngredientWithQuantityProps["onIngredient"];
 }) {
   const { editing, token } = useContext(RecipeContext);
   return (
     <div className={"flex flex-col gap-2"}>
       <p className="uppercase">Ingredients:</p>
       <ul>
-        {props.ingredients.map((ingredient) => (
-          <IngredientView key={ingredient.name} ingredient={ingredient} />
-        ))}
+        {props.ingredients.map((ingredient) => {
+          const quantity = humanize(ingredient.quantity[0]);
+          return (
+            <IngredientView
+              key={ingredient.name}
+              ingredient={ingredient}
+              quantity={quantity}
+            />
+          );
+        })}
       </ul>
       {editing && (
-        <SelectIngredientWithQuantity token={token} onIngredient={() => {}} />
+        <SelectIngredientWithQuantity
+          token={token}
+          onIngredient={props.onIngredient}
+        />
       )}
     </div>
   );
@@ -198,9 +227,13 @@ function Stars(props: { rating: number; setRating: (n: number) => void }) {
   );
 }
 
-function IngredientView(props: { ingredient: Ingredient }) {
+type IngredientViewProps = {
+  ingredient: Pick<Ingredient, "name" | "id">;
+  quantity: string;
+};
+
+function IngredientView(props: IngredientViewProps) {
   const { editing } = useContext(RecipeContext);
-  const quantity = `${props.ingredient.quantity[0].value} ${props.ingredient.quantity[0].unit}`;
   return (
     <li className="flex flex-row justify-between">
       {editing && (
@@ -211,10 +244,10 @@ function IngredientView(props: { ingredient: Ingredient }) {
       </p>
       <DottedLine />
       {editing ? (
-        <Input type={"text"} value={quantity} />
+        <Input type={"text"} value={props.quantity} />
       ) : (
         <p className="text-light" style={{ flex: "none" }}>
-          {quantity}
+          {props.quantity}
         </p>
       )}
     </li>

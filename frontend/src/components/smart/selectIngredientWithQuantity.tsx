@@ -8,7 +8,7 @@ import type { Quantity } from "../../apis/recipes.ts";
 import { parse } from "../../quantities.ts";
 import { FindIngredient } from "./findIngredient.tsx";
 
-type SelectIngredientWithQuantityProps = {
+export type SelectIngredientWithQuantityProps = {
   token: string;
   onIngredient: (i: Ingredient, q: Quantity) => void;
   className?: string;

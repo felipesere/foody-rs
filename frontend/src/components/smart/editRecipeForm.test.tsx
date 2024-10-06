@@ -67,6 +67,7 @@ const tartiflette: Recipe = {
   source: "book",
   title: "Simplissime",
   rating: 3,
+  notes: "",
   tags: [],
 };
 

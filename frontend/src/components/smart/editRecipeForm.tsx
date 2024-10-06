@@ -42,6 +42,7 @@ export function EditRecipeForm(props: {
       })),
       tags: recipe.tags,
       rating: recipe.rating,
+      notes: recipe.notes,
     },
     onSubmit: async (vals) => {
       switch (vals.value.source) {
