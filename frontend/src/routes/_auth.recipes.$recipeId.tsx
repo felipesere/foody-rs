@@ -1,8 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { createContext, useContext, useState } from "react";
+import { toast } from "sonner";
 import { z } from "zod";
+import type { Ingredient as OnlyIngredient } from "../apis/ingredients.ts";
+import { useAddMealToPlan } from "../apis/mealplans.ts";
 import {
   type Source,
+  addRecipeToShoppinglist,
+  useAddIngredient,
+  useDeleteIngredient,
   useRecipe,
   useRecipeTags,
   useSetRecipeNotes,
@@ -16,10 +22,8 @@ import { DeleteButton } from "../components/deleteButton.tsx";
 import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
 import { MultiSelect } from "../components/multiselect.tsx";
-import {
-  SelectIngredientWithQuantity,
-  type SelectIngredientWithQuantityProps,
-} from "../components/smart/selectIngredientWithQuantity.tsx";
+import { AddToShoppinglist } from "../components/smart/addToShoppinglist.tsx";
+import { SelectIngredientWithQuantity } from "../components/smart/selectIngredientWithQuantity.tsx";
 import { humanize } from "../quantities.ts";
 
 const RecipeSearch = z.object({
@@ -44,14 +48,17 @@ function RecipePage() {
   const data = useRecipe(token, id);
   const navigate = useNavigate({ from: Route.fullPath });
 
+  const addRecipe = addRecipeToShoppinglist(token);
+
   const setRating = useSetRecipeRating(token, id);
   const setNotes = useSetRecipeNotes(token, id);
+  const addIngredient = useAddIngredient(token, id);
+  const removeIngredient = useDeleteIngredient(token, id);
+
+  // TODO: get rid of the 1
+  const addMealToPlan = useAddMealToPlan(token, 1);
 
   const setTags = useSetRecipeTags(token, id);
-
-  const [additionalIngredients, setAdditionalIngredients] = useState<
-    Ingredient[]
-  >([]);
 
   // TODO: needs to be lower inside of layout... but we will get there
   if (data.isLoading) {
@@ -89,15 +96,11 @@ function RecipePage() {
             />
             <Divider />
             <Ingredients
-              ingredients={[...recipe.ingredients, ...additionalIngredients]}
+              ingredients={recipe.ingredients}
               onIngredient={(ingredient, quantity) => {
-                const other: Ingredient = {
-                  ...ingredient,
-                  // TODO: Why do I need an ID here?
-                  quantity: [{ ...quantity, id: -1 }],
-                };
-                setAdditionalIngredients((prev) => [...prev, other]);
+                addIngredient.mutate({ ingredient: ingredient.id, quantity });
               }}
+              onRemove={(id) => removeIngredient.mutate({ ingredient: id })}
             />
           </div>
           <div>
@@ -113,9 +116,28 @@ function RecipePage() {
             label={editing ? "Save" : "Edit"}
             onClick={() => navigate({ search: { editing: !editing } })}
           />
-          <Button label={"Reset"} disabled={true} />
-          <Button label={"Add to Shoppinglist"} />
-          <Button label={"Add to Meal plan"} />
+          <AddToShoppinglist
+            label={"Add to Shoppinglist"}
+            token={token}
+            onSelect={(shoppinglist) => {
+              addRecipe.mutate({
+                shoppinglistId: shoppinglist.id,
+                recipeId: id,
+              });
+              toast(
+                `Added "${recipe.name}" to shoppinglist "${shoppinglist.name}"`,
+              );
+            }}
+          />
+          <Button
+            label={"Add to Meal plan"}
+            onClick={() => {
+              addMealToPlan.mutate({
+                details: { type: "from_recipe", id: id },
+                section: null,
+              });
+            }}
+          />
         </ButtonGroup>
       </div>
     </RecipeContext.Provider>
@@ -144,7 +166,8 @@ function Notes(props: { value: string; onBlur: (v: string) => void }) {
 
 function Ingredients(props: {
   ingredients: Ingredient[];
-  onIngredient: SelectIngredientWithQuantityProps["onIngredient"];
+  onIngredient: (i: OnlyIngredient, quantity: string) => void;
+  onRemove: (id: number) => void;
 }) {
   const { editing, token } = useContext(RecipeContext);
   return (
@@ -158,6 +181,7 @@ function Ingredients(props: {
               key={ingredient.name}
               ingredient={ingredient}
               quantity={quantity}
+              onRemove={() => props.onRemove(ingredient.id)}
             />
           );
         })}
@@ -165,7 +189,9 @@ function Ingredients(props: {
       {editing && (
         <SelectIngredientWithQuantity
           token={token}
-          onIngredient={props.onIngredient}
+          onIngredient={(ingredient, quantity) => {
+            props.onIngredient(ingredient, humanize(quantity));
+          }}
         />
       )}
     </div>
@@ -230,6 +256,7 @@ function Stars(props: { rating: number; setRating: (n: number) => void }) {
 type IngredientViewProps = {
   ingredient: Pick<Ingredient, "name" | "id">;
   quantity: string;
+  onRemove: () => void;
 };
 
 function IngredientView(props: IngredientViewProps) {
@@ -237,7 +264,10 @@ function IngredientView(props: IngredientViewProps) {
   return (
     <li className="flex flex-row justify-between">
       {editing && (
-        <DeleteButton className={"text-red-700 mr-2"} onClick={() => {}} />
+        <DeleteButton
+          className={"text-red-700 mr-2"}
+          onClick={props.onRemove}
+        />
       )}
       <p className="font-light text-gray-700 whitespace-nowrap overflow-hidden overflow-ellipsis">
         {props.ingredient.name}

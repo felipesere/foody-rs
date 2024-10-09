@@ -1,19 +1,15 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import classnames from "classnames";
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import {
-  type Book,
   type Ingredient,
   type Recipe,
   type Source,
-  type Website,
   addRecipeToShoppinglist,
   useAllRecipes,
   useDeleteRecipe,
-  useRecipeOptions,
 } from "../apis/recipes.ts";
 import { useAllTags } from "../apis/tags.ts";
 import searchIcon from "../assets/search.png";
@@ -214,7 +210,6 @@ function RecipeView(props: RecipeProps) {
   const deleteRecipe = useDeleteRecipe(token);
   const recipeId = props.recipe.id;
   const navigate = useNavigate({ from: "/recipes" });
-  const client = useQueryClient();
 
   return (
     <li className="p-2 border-black border-solid border-2">
@@ -262,10 +257,13 @@ function RecipeView(props: RecipeProps) {
           })}
           type={"submit"}
           onClick={() => {
-            setOpen((o) => !o);
+            navigate({
+              to: "/recipes/$recipeId",
+              params: { recipeId: props.recipe.id.toString() },
+            });
           }}
         >
-          Details
+          View
         </button>
         <button
           className={classnames("px-2", {
@@ -273,17 +271,11 @@ function RecipeView(props: RecipeProps) {
             shadow: !open,
           })}
           type={"submit"}
-          onMouseEnter={(_) => {
-            client.prefetchQuery(useRecipeOptions(token, recipeId));
+          onClick={() => {
+            setOpen((o) => !o);
           }}
-          onClick={() =>
-            navigate({
-              to: "/recipes/$recipeId/edit",
-              params: { recipeId: props.recipe.id.toString() },
-            })
-          }
         >
-          Edit
+          Details
         </button>
         <AddToShoppinglist
           token={token}
@@ -337,26 +329,6 @@ function ShowSource(props: { details: Source }) {
       );
   }
 }
-
-export type BookSourceProps = Pick<Book, "title" | "page">;
-export function BookSource(props: BookSourceProps) {
-  return (
-    <div className="flex flex-row">
-      <p className="mr-4">{props.title}</p>
-      <p>{`p.${props.page}`}</p>
-    </div>
-  );
-}
-
-export type WebsiteSourceProps = Pick<Website, "url">;
-export function WebsiteSource(props: WebsiteSourceProps) {
-  return (
-    <a target="_blank" href={props.url} rel="noreferrer">
-      {maybeHostname(props.url)}
-    </a>
-  );
-}
-
 function maybeHostname(v: string): string {
   try {
     return new URL(v).hostname;

@@ -295,3 +295,40 @@ export function useSetRecipeNotes(token: string, id: Recipe["id"]) {
     },
   });
 }
+export function useAddIngredient(token: string, id: Recipe["id"]) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: { ingredient: number; quantity: string }) => {
+      await http.post(`api/recipes/${id}/ingredients`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        json: {
+          ingredient: vars.ingredient,
+          quantity: vars.quantity,
+        },
+      });
+    },
+    onSuccess: async () => {
+      await client.invalidateQueries({ queryKey: ["recipe", id] });
+      await client.invalidateQueries({ queryKey: ["recipes"] });
+    },
+  });
+}
+
+export function useDeleteIngredient(token: string, id: Recipe["id"]) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: { ingredient: number }) => {
+      await http.delete(`api/recipes/${id}/ingredients/${vars.ingredient}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    },
+    onSuccess: async () => {
+      await client.invalidateQueries({ queryKey: ["recipe", id] });
+      await client.invalidateQueries({ queryKey: ["recipes"] });
+    },
+  });
+}

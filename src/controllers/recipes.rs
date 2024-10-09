@@ -7,7 +7,7 @@ use sea_orm::Statement;
 use serde::{Deserialize, Serialize};
 
 use crate::models::{
-    _entities::{self, ingredients_in_recipes, ingredients_in_recipes, quantities, recipes},
+    _entities::{self, ingredients_in_recipes, quantities, recipes},
     quantities::Quantity,
     users::users,
 };
@@ -471,7 +471,23 @@ pub async fn add_ingredient(
     .save(&tx)
     .await?;
 
-    tx.commit().await;
+    tx.commit().await?;
+
+    Ok(())
+}
+
+pub async fn delete_ingredient(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+    Path((id, ingredient)): Path<(i32, i32)>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    ingredients_in_recipes::Entity::delete_many()
+        .filter(ingredients_in_recipes::Column::RecipesId.eq(id))
+        .filter(ingredients_in_recipes::Column::IngredientsId.eq(ingredient))
+        .exec(&ctx.db)
+        .await?;
 
     Ok(())
 }
@@ -488,7 +504,8 @@ pub fn routes() -> Routes {
         .add("/:id/tags", put(set_recipe_tags))
         .add("/:id/notes", post(set_recipe_notes))
         .add("/:id/rating/:value", post(set_recipe_rating))
-        .add("/:id/ingredient", post(add_ingredient))
+        .add("/:id/ingredients", post(add_ingredient))
+        .add("/:id/ingredients/:ingredient", delete(delete_ingredient))
 }
 
 #[cfg(test)]

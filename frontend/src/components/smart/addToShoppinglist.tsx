@@ -19,10 +19,12 @@ type ShoppinglistIdentifier = Pick<Shoppinglist, "id" | "name">;
 type Props = {
   token: string;
   onSelect: (id: ShoppinglistIdentifier) => void;
+  label?: string;
 };
 
 export function AddToShoppinglist(props: Props) {
   const [isOpen, setIsOpen] = useState(false);
+  const label = props.label || "Add";
 
   const { refs, floatingStyles, context } = useFloating({
     open: isOpen,
@@ -50,7 +52,7 @@ export function AddToShoppinglist(props: Props) {
         type="submit"
         className="px-2 text-black bg-gray-300 shadow"
       >
-        Add
+        {label}
       </button>
       {isOpen && (
         <FloatingFocusManager context={context} modal={false}>
