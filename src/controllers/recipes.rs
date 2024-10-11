@@ -161,9 +161,31 @@ where
 }
 
 #[derive(Deserialize, Debug)]
-struct IngredientX {
+struct UnstoredQuantity {
+    unit: String,
+    value: Option<f32>,
+    text: Option<String>,
+}
+
+impl From<UnstoredQuantity> for Quantity {
+    fn from(value: UnstoredQuantity) -> Self {
+        let unit = value.unit;
+
+        match (value.value, value.text) {
+            (Some(value), None) if unit == "count" => Self::Count(value),
+            (Some(value), None) => Self::WithUnit { value, unit },
+            (None, Some(arbitrary)) => Self::Arbitrary(arbitrary),
+            (Some(_), Some(_)) | (None, None) => {
+                unimplemented!("Shouldn't have a value and a text")
+            }
+        }
+    }
+}
+
+#[derive(Deserialize, Debug)]
+struct UnstoredIngredient {
     id: i32,
-    quantity: String,
+    quantity: Vec<UnstoredQuantity>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -171,7 +193,10 @@ pub struct CreateRecipe {
     name: String,
     #[serde(flatten)]
     source: RecipeSource,
-    ingredients: Vec<IngredientX>,
+    tags: Vec<String>,
+    rating: i32,
+    notes: String,
+    ingredients: Vec<UnstoredIngredient>,
 }
 
 pub async fn create_recipe(
@@ -186,6 +211,9 @@ pub async fn create_recipe(
 
     let mut recipe = _entities::recipes::ActiveModel {
         name: ActiveValue::set(params.name),
+        rating: ActiveValue::set(params.rating),
+        notes: ActiveValue::set(params.notes),
+        tags: ActiveValue::set(params.tags),
         ..Default::default()
     };
 
@@ -206,8 +234,8 @@ pub async fn create_recipe(
     let recipe = recipe.save(&tx).await?;
 
     tracing::info!("The recipe is {:?}", recipe.name);
-    for i in params.ingredients {
-        let q = Quantity::parse(&i.quantity);
+    for mut i in params.ingredients {
+        let q = Quantity::from(i.quantity.remove(0));
         let quantity = q.into_active_model().save(&tx).await?;
 
         ingredients_in_recipes::ActiveModel {

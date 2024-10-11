@@ -6,7 +6,6 @@ import {
 } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { z } from "zod";
-import type { SimplifiedRecipe } from "../components/smart/editRecipeForm.tsx";
 import { http } from "./http.ts";
 import type { Shoppinglist } from "./shoppinglists.ts";
 
@@ -29,23 +28,6 @@ const IngredientSchema = z.object({
   id: z.number(),
   name: z.string(),
   quantity: z.array(StoredQuantitySchema),
-});
-
-const BookSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  source: z.literal("book"),
-  title: z.string(),
-  page: z.number(),
-  ingredients: z.array(IngredientSchema),
-});
-
-const WebsiteSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  source: z.literal("website"),
-  url: z.string(),
-  ingredients: z.array(IngredientSchema),
 });
 
 const BookSourceSchema = z.object({
@@ -78,9 +60,16 @@ const RecipeSchema = z
   .and(SourceSchema);
 
 export type Recipe = z.infer<typeof RecipeSchema>;
-export type Website = z.infer<typeof WebsiteSchema>;
-export type Book = z.infer<typeof BookSchema>;
+export type Website = z.infer<typeof WebsiteSourceSchema>;
+export type Book = z.infer<typeof BookSourceSchema>;
 export type Ingredient = z.infer<typeof IngredientSchema>;
+
+export type UnstoredIngredient = Omit<Ingredient, "id" | "quantity"> & {
+  quantity: Quantity[];
+};
+export type UnstoredRecipe = Omit<Recipe, "id" | "ingredients"> & {
+  ingredients: UnstoredIngredient[];
+};
 
 export const RecipesSchema = z.object({
   recipes: z.array(RecipeSchema),
@@ -182,7 +171,7 @@ export function useUpdateRecipe(token: string, recipeId: Recipe["id"]) {
 export function useCreateRecipe(token: string) {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: async (variables: SimplifiedRecipe) => {
+    mutationFn: async (variables: UnstoredRecipe) => {
       await http
         .post("api/recipes", {
           method: "POST",

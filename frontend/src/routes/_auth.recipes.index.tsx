@@ -70,7 +70,6 @@ export function RecipesPage() {
   const navigate = useNavigate({ from: Route.path });
 
   const allTags = useAllTags(token);
-
   if (isError) {
     return <p>Error</p>;
   }

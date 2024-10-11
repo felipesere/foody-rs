@@ -41,14 +41,14 @@ const RecipeContext = createContext({
 });
 
 function RecipePage() {
+  const { token } = Route.useRouteContext();
+  const navigate = useNavigate({ from: Route.fullPath });
+
   const { editing } = Route.useSearch();
   const { recipeId } = Route.useParams();
   const id = Number(recipeId);
-  const { token } = Route.useRouteContext();
-  const data = useRecipe(token, id);
-  const navigate = useNavigate({ from: Route.fullPath });
 
-  const addRecipe = addRecipeToShoppinglist(token);
+  const data = useRecipe(token, id);
 
   const setRating = useSetRecipeRating(token, id);
   const setNotes = useSetRecipeNotes(token, id);
@@ -57,6 +57,7 @@ function RecipePage() {
 
   // TODO: get rid of the 1
   const addMealToPlan = useAddMealToPlan(token, 1);
+  const addRecipe = addRecipeToShoppinglist(token);
 
   const setTags = useSetRecipeTags(token, id);
 
