@@ -10,6 +10,7 @@ import {
   addRecipeToShoppinglist,
   useAllRecipes,
   useDeleteRecipe,
+  useSetRecipeRating,
 } from "../apis/recipes.ts";
 import { useAllTags } from "../apis/tags.ts";
 import searchIcon from "../assets/search.png";
@@ -21,6 +22,7 @@ import { FieldSet } from "../components/fieldset.tsx";
 import { MultiSelect } from "../components/multiselect.tsx";
 import { Pill } from "../components/pill.tsx";
 import { AddToShoppinglist } from "../components/smart/addToShoppinglist.tsx";
+import { Stars } from "../components/smart/recipeView.tsx";
 
 const RecipeSearchSchema = z.object({
   tags: z.array(z.string()).optional(),
@@ -209,13 +211,17 @@ function RecipeView(props: RecipeProps) {
   const deleteRecipe = useDeleteRecipe(token);
   const recipeId = props.recipe.id;
   const navigate = useNavigate({ from: "/recipes" });
+  const setRating = useSetRecipeRating(token, recipeId);
 
   return (
     <li className="p-2 border-black border-solid border-2">
       <p className="font-black uppercase tracking-wider">{props.recipe.name}</p>
-      <div>
-        <ShowSource details={props.recipe} />
-      </div>
+      <ShowSource details={props.recipe} />
+      <Stars
+        rating={props.recipe.rating}
+        setRating={(n) => setRating.mutate(n)}
+      />
+
       {open ? (
         <div>
           {props.recipe.tags.length > 0 && (

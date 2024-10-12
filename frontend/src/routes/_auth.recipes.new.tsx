@@ -16,20 +16,6 @@ export const Route = createFileRoute("/_auth/recipes/new")({
 function NewRecipePage() {
   const { token } = Route.useRouteContext();
 
-  // const createRecipe = useCreateRecipe(token);
-  // const navigate = useNavigate({ from: "/recipes/new" });
-
-  // const setRating = useSetRecipeRating(token, id);
-  // const setNotes = useSetRecipeNotes(token, id);
-  // const addIngredient = useAddIngredient(token, id);
-  // const removeIngredient = useDeleteIngredient(token, id);
-
-  // // TODO: get rid of the 1
-  // const addMealToPlan = useAddMealToPlan(token, 1);
-  // const addRecipe = addRecipeToShoppinglist(token);
-
-  // const setTags = useSetRecipeTags(token, id);
-
   const [recipe, setRecipe] = useState<UnstoredRecipe>({
     ingredients: [],
     name: "",
@@ -41,8 +27,6 @@ function NewRecipePage() {
     tags: [],
     notes: "",
   });
-
-  console.log(recipe);
 
   const n = useCreateRecipe(token);
 
@@ -88,7 +72,6 @@ function NewRecipePage() {
               },
             ],
           }));
-          console.log("...");
         }}
         onRemoveIngredient={(name) => {
           setRecipe((prev) => ({

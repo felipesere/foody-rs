@@ -3,6 +3,7 @@ use std::collections::HashSet;
 use axum::{extract, http::StatusCode, response::Response};
 use loco_rs::controller::middleware::{self};
 use loco_rs::prelude::*;
+use migration::Expr;
 use sea_orm::Statement;
 use serde::{Deserialize, Serialize};
 
@@ -504,6 +505,67 @@ pub async fn add_ingredient(
     Ok(())
 }
 
+#[derive(Deserialize)]
+pub struct SetRecipeNameParams {
+    name: String,
+}
+
+pub async fn set_recipe_name(
+    auth: middleware::auth::JWT,
+    Path(id): Path<i32>,
+    State(ctx): State<AppContext>,
+    extract::Json(params): extract::Json<SetRecipeNameParams>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    recipes::Entity::update_many()
+        .col_expr(recipes::Column::Name, Expr::value(params.name))
+        .filter(recipes::Column::Id.eq(id))
+        .exec(&ctx.db)
+        .await?;
+
+    Ok(())
+}
+
+#[derive(Deserialize)]
+pub struct SetRecipeSourceParams {
+    #[serde(flatten)]
+    source: RecipeSource,
+}
+
+pub async fn set_recipe_source(
+    auth: middleware::auth::JWT,
+    Path(id): Path<i32>,
+    State(ctx): State<AppContext>,
+    extract::Json(params): extract::Json<SetRecipeSourceParams>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let mut a = recipes::Entity::find_by_id(id)
+        .one(&ctx.db)
+        .await?
+        .ok_or_else(|| Error::NotFound)?
+        .into_active_model();
+
+    match params.source {
+        RecipeSource::Book { title, page } => {
+            a.source = ActiveValue::set("book".into());
+            a.book_title = ActiveValue::set(Some(title));
+            a.book_page = ActiveValue::set(Some(page));
+            a.website_url = ActiveValue::set(None);
+        }
+        RecipeSource::Website { url } => {
+            a.source = ActiveValue::set("website".into());
+            a.website_url = ActiveValue::set(Some(url));
+            a.book_title = ActiveValue::set(None);
+            a.book_page = ActiveValue::set(None);
+        }
+    }
+    a.save(&ctx.db).await?;
+
+    Ok(())
+}
+
 pub async fn delete_ingredient(
     auth: middleware::auth::JWT,
     State(ctx): State<AppContext>,
@@ -529,8 +591,10 @@ pub fn routes() -> Routes {
         .add("/:id", get(recipe))
         .add("/:id", post(update_recipe))
         .add("/:id", delete(delete_recipe))
+        .add("/:id/name", put(set_recipe_name))
         .add("/:id/tags", put(set_recipe_tags))
         .add("/:id/notes", post(set_recipe_notes))
+        .add("/:id/source", put(set_recipe_source))
         .add("/:id/rating/:value", post(set_recipe_rating))
         .add("/:id/ingredients", post(add_ingredient))
         .add("/:id/ingredients/:ingredient", delete(delete_ingredient))

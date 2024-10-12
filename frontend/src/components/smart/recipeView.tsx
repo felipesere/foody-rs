@@ -206,7 +206,10 @@ function Tags(props: {
   );
 }
 
-function Stars(props: { rating: number; setRating: (n: number) => void }) {
+export function Stars(props: {
+  rating: number;
+  setRating: (n: number) => void;
+}) {
   function Star(props: { rating: number; idx: number; onClick: () => void }) {
     const css = props.idx <= props.rating ? "text-amber-500" : "text-gray-300";
     return (
