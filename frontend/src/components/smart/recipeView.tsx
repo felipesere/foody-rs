@@ -1,11 +1,9 @@
 import { createContext, useContext, useState } from "react";
 import type { Ingredient as OnlyIngredient } from "../../apis/ingredients.ts";
 import {
-  type Book,
   type Source,
   type UnstoredIngredient,
   type UnstoredRecipe,
-  type Website,
   useRecipeTags,
 } from "../../apis/recipes.ts";
 import type { Ingredient } from "../../apis/recipes.ts";
@@ -279,10 +277,14 @@ function ShowSource(props: {
   const { editing } = useContext(RecipeContext);
   const [sourceChoice, setSourceChoice] = useState(props.recipe.source);
 
-  const [source, setSource] = useState(props.recipe as unknown as Source);
+  const [source, setSource] = useState({
+    url: props.recipe.url,
+    page: props.recipe.page,
+    title: props.recipe.title,
+  });
 
   const propagate = () => {
-    props.onBlur(source);
+    props.onBlur({ ...source, source: sourceChoice });
   };
 
   if (editing) {
@@ -313,7 +315,7 @@ function ShowSource(props: {
           <Input
             type={"text"}
             placeholder={"The URL"}
-            value={(source as Website).url || ""}
+            value={source.url || ""}
             onChange={(url) => setSource((prev) => ({ ...prev, url }))}
             onBlur={propagate}
           />
@@ -323,7 +325,7 @@ function ShowSource(props: {
             <Input
               type={"text"}
               placeholder={"The book title"}
-              value={(source as Book).title}
+              value={source.title || ""}
               onChange={(title) => setSource((prev) => ({ ...prev, title }))}
               onBlur={propagate}
             />
@@ -332,7 +334,7 @@ function ShowSource(props: {
               <Input
                 type={"number"}
                 placeholder={"...page..."}
-                value={(source as Book).page}
+                value={source.page || 0}
                 onChange={(page) =>
                   setSource((prev) => ({
                     ...prev,
@@ -349,7 +351,7 @@ function ShowSource(props: {
   }
   switch (sourceChoice) {
     case "website": {
-      const url = (source as Website).url;
+      const url = source.url || "";
       return (
         <a target="_blank" href={url} rel="noreferrer">
           {maybeHostname(url)}
@@ -357,11 +359,10 @@ function ShowSource(props: {
       );
     }
     case "book": {
-      const book = source as Book;
       return (
         <div className="flex gap-2 flex-row">
-          <p className="mr-4">{book.title}</p>
-          <p>{`p.${book.page}`}</p>
+          <p className="mr-4">{source.title}</p>
+          <p>{`p.${source.page}`}</p>
         </div>
       );
     }

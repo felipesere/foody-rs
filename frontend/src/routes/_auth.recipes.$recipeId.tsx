@@ -293,22 +293,22 @@ function ShowSource(props: { details: Source }) {
       if (editing) {
         return (
           // TODO: Consider if I really want the resizable one...
-          <Input type={"text"} value={props.details.url} />
+          <Input type={"text"} value={props.details.url || ""} />
         );
       }
       return (
-        <a target="_blank" href={props.details.url} rel="noreferrer">
-          {maybeHostname(props.details.url)}
+        <a target="_blank" href={props.details.url || ""} rel="noreferrer">
+          {maybeHostname(props.details.url || "")}
         </a>
       );
     case "book":
       if (editing) {
         return (
           <div className={"flex gap-2 flex-row"}>
-            <Input type={"text"} value={props.details.title} />
+            <Input type={"text"} value={props.details.title || ""} />
             <span>
               p.
-              <Input type={"number"} value={props.details.page} />
+              <Input type={"number"} value={props.details.page || 0} />
             </span>
           </div>
         );

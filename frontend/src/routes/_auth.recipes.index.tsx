@@ -315,8 +315,8 @@ function ShowSource(props: { details: Source }) {
   switch (props.details.source) {
     case "website":
       return (
-        <a target="_blank" href={props.details.url} rel="noreferrer">
-          {maybeHostname(props.details.url)}
+        <a target="_blank" href={props.details.url || ""} rel="noreferrer">
+          {maybeHostname(props.details.url || "")}
         </a>
       );
     case "book":

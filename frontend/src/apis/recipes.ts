@@ -30,38 +30,23 @@ const IngredientSchema = z.object({
   quantity: z.array(StoredQuantitySchema),
 });
 
-const BookSourceSchema = z.object({
-  source: z.literal("book"),
-  title: z.string(),
-  page: z.number(),
+const RecipeSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  ingredients: z.array(IngredientSchema),
+  tags: z.array(z.string()),
+  rating: z.number(),
+  notes: z.string(),
+  source: z.literal("website").or(z.literal("book")),
+  title: z.string().nullable(),
+  page: z.number().nullable(),
+  url: z.string().nullable(),
 });
-
-const WebsiteSourceSchema = z.object({
-  source: z.literal("website"),
-  url: z.string(),
-});
-
-const SourceSchema = z.discriminatedUnion("source", [
-  BookSourceSchema,
-  WebsiteSourceSchema,
-]);
-
-export type Source = z.infer<typeof SourceSchema>;
-
-const RecipeSchema = z
-  .object({
-    id: z.number(),
-    name: z.string(),
-    ingredients: z.array(IngredientSchema),
-    tags: z.array(z.string()),
-    rating: z.number(),
-    notes: z.string(),
-  })
-  .and(SourceSchema);
 
 export type Recipe = z.infer<typeof RecipeSchema>;
-export type Website = z.infer<typeof WebsiteSourceSchema>;
-export type Book = z.infer<typeof BookSourceSchema>;
+
+export type Source = Pick<Recipe, "source" | "title" | "page" | "url">;
+
 export type Ingredient = z.infer<typeof IngredientSchema>;
 
 export type UnstoredIngredient = Omit<Ingredient, "id" | "quantity"> & {
