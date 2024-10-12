@@ -34,23 +34,38 @@ async fn can_create_and_update_a_recipe() {
         let something_recipe = serde_json::json!({
             "name": "something something",
             "title": "simplissime",
+            "tags": ["a", "b"],
             "page": 12,
+            "notes": "a b c...",
+            "rating": 1,
+            "source": "book",
             "ingredients": [{
               "id": bacon.id,
-              "quantity": "100g"
+              "quantity": [{
+                "unit": "grams",
+                "value": 100,
+              }]
             },
             {
               "id": apples.id,
-              "quantity": "140g"
+              "quantity": [{
+                "unit": "grams",
+                "value": 140,
+              }]
             },
             {
               "id": plums.id,
-              "quantity": "0.5x"
+              "quantity": [{
+                    "unit": "count",
+                    "value": 0.5,
+              }]
             }
             ]
         });
 
         let res = request.post("/api/recipes").json(&something_recipe).await;
+        let t = res.text();
+        dbg!(&t);
         assert_eq!(res.status_code(), 200);
 
         let res = request.get("/api/recipes").await;
@@ -65,7 +80,7 @@ async fn can_create_and_update_a_recipe() {
 
         let id = something_something.id;
         assert_eq!(something_something.ingredients.len(), 3);
-        assert_eq!(something_something.tags.len(), 0);
+        assert_eq!(something_something.tags.len(), 2);
 
         let res = request
             .post(&format!("/api/recipes/{id}"))
