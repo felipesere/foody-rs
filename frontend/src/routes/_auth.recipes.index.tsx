@@ -11,8 +11,8 @@ import {
   useAllRecipes,
   useDeleteRecipe,
   useSetRecipeRating,
+  useRecipeTags,
 } from "../apis/recipes.ts";
-import { useAllTags } from "../apis/tags.ts";
 import searchIcon from "../assets/search.png";
 import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
@@ -71,7 +71,7 @@ export function RecipesPage() {
   const { data, isLoading, isError } = useAllRecipes(token);
   const navigate = useNavigate({ from: Route.path });
 
-  const allTags = useAllTags(token);
+  const allTags = useRecipeTags(token);
   if (isError) {
     return <p>Error</p>;
   }
