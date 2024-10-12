@@ -1,9 +1,12 @@
+use std::collections::HashSet;
+
 use axum::{extract, http::StatusCode, response::Response};
 use loco_rs::controller::middleware::{self};
 use loco_rs::prelude::*;
+use migration::Expr;
+use sea_orm::Statement;
 use serde::{Deserialize, Serialize};
 
-use crate::models::_entities::tags_on_recipes;
 use crate::models::{
     _entities::{self, ingredients_in_recipes, quantities, recipes},
     quantities::Quantity,
@@ -27,6 +30,8 @@ pub struct RecipeResponse {
     pub page: Option<i32>,
     pub ingredients: Vec<IngredientResponse>,
     pub tags: Vec<String>,
+    pub rating: i32,
+    pub notes: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -45,8 +50,7 @@ pub async fn all_recipes(
 
     let mut recipes = Vec::new();
 
-    for (recipe, ingredients, tags) in crate::models::recipes::find_all(&ctx.db).await? {
-        tracing::info!(?tags, "Got tags like this");
+    for (recipe, ingredients) in crate::models::recipes::find_all(&ctx.db).await? {
         recipes.push(RecipeResponse {
             id: recipe.id,
             source: recipe.source,
@@ -54,7 +58,9 @@ pub async fn all_recipes(
             url: recipe.website_url,
             title: recipe.book_title,
             page: recipe.book_page,
-            tags: tags.into_iter().collect(),
+            tags: recipe.tags,
+            rating: recipe.rating,
+            notes: recipe.notes,
             ingredients: ingredients
                 .into_iter()
                 .map(|(ingredient, quantity)| IngredientResponse {
@@ -82,7 +88,7 @@ pub async fn recipe(
     // check auth
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
-    let (recipe, ingredients, tags) = crate::models::recipes::find_one(&ctx.db, id)
+    let (recipe, ingredients) = crate::models::recipes::find_one(&ctx.db, id)
         .await?
         .ok_or_else(|| Error::NotFound)?;
 
@@ -93,7 +99,9 @@ pub async fn recipe(
         url: recipe.website_url,
         title: recipe.book_title,
         page: recipe.book_page,
-        tags: tags.into_iter().collect(),
+        tags: recipe.tags,
+        rating: recipe.rating,
+        notes: recipe.notes,
         ingredients: ingredients
             .into_iter()
             .map(|(ingredient, quantity)| IngredientResponse {
@@ -154,9 +162,31 @@ where
 }
 
 #[derive(Deserialize, Debug)]
-struct IngredientX {
+struct UnstoredQuantity {
+    unit: String,
+    value: Option<f32>,
+    text: Option<String>,
+}
+
+impl From<UnstoredQuantity> for Quantity {
+    fn from(value: UnstoredQuantity) -> Self {
+        let unit = value.unit;
+
+        match (value.value, value.text) {
+            (Some(value), None) if unit == "count" => Self::Count(value),
+            (Some(value), None) => Self::WithUnit { value, unit },
+            (None, Some(arbitrary)) => Self::Arbitrary(arbitrary),
+            (Some(_), Some(_)) | (None, None) => {
+                unimplemented!("Shouldn't have a value and a text")
+            }
+        }
+    }
+}
+
+#[derive(Deserialize, Debug)]
+struct UnstoredIngredient {
     id: i32,
-    quantity: String,
+    quantity: Vec<UnstoredQuantity>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -164,7 +194,10 @@ pub struct CreateRecipe {
     name: String,
     #[serde(flatten)]
     source: RecipeSource,
-    ingredients: Vec<IngredientX>,
+    tags: Vec<String>,
+    rating: i32,
+    notes: String,
+    ingredients: Vec<UnstoredIngredient>,
 }
 
 pub async fn create_recipe(
@@ -179,6 +212,9 @@ pub async fn create_recipe(
 
     let mut recipe = _entities::recipes::ActiveModel {
         name: ActiveValue::set(params.name),
+        rating: ActiveValue::set(params.rating),
+        notes: ActiveValue::set(params.notes),
+        tags: ActiveValue::set(params.tags),
         ..Default::default()
     };
 
@@ -199,8 +235,8 @@ pub async fn create_recipe(
     let recipe = recipe.save(&tx).await?;
 
     tracing::info!("The recipe is {:?}", recipe.name);
-    for i in params.ingredients {
-        let q = Quantity::parse(&i.quantity);
+    for mut i in params.ingredients {
+        let q = Quantity::from(i.quantity.remove(0));
         let quantity = q.into_active_model().save(&tx).await?;
 
         ingredients_in_recipes::ActiveModel {
@@ -261,23 +297,8 @@ pub async fn update_recipe(
             a.book_page = ActiveValue::set(None);
         }
     }
+    a.tags = ActiveValue::set(params.tags);
     a.save(&tx).await?;
-
-    let tags = Tags::batch_upsert(&tx, &params.tags).await?;
-    TagsOnRecipes::delete_many()
-        .filter(tags_on_recipes::Column::RecipeId.eq(id))
-        .exec(&tx)
-        .await?;
-
-    for tag in tags {
-        tags_on_recipes::ActiveModel {
-            recipe_id: ActiveValue::set(id),
-            tag_id: ActiveValue::set(tag.id),
-            ..Default::default()
-        }
-        .insert(&tx)
-        .await?;
-    }
 
     IngredientsInRecipes::delete_many()
         .filter(ingredients_in_recipes::Column::RecipesId.eq(id))
@@ -315,7 +336,7 @@ pub async fn update_recipe(
     }
     tx.commit().await?;
 
-    let (recipe, ingredients, tags) = crate::models::recipes::find_one(&ctx.db, id)
+    let (recipe, ingredients) = crate::models::recipes::find_one(&ctx.db, id)
         .await?
         .ok_or_else(|| Error::NotFound)?;
 
@@ -326,7 +347,9 @@ pub async fn update_recipe(
         url: recipe.website_url,
         title: recipe.book_title,
         page: recipe.book_page,
-        tags: tags.into_iter().collect(),
+        tags: recipe.tags,
+        rating: recipe.rating,
+        notes: recipe.notes,
         ingredients: ingredients
             .into_iter()
             .map(|(ingredient, quantity)| IngredientResponse {
@@ -343,14 +366,238 @@ pub async fn update_recipe(
     })
 }
 
+#[derive(Deserialize)]
+pub struct SetRecipeTagsParams {
+    tags: Vec<String>,
+}
+
+pub async fn set_recipe_tags(
+    auth: middleware::auth::JWT,
+    Path(id): Path<i32>,
+    State(ctx): State<AppContext>,
+    extract::Json(params): extract::Json<SetRecipeTagsParams>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let r = recipes::Entity::find_by_id(id)
+        .one(&ctx.db)
+        .await?
+        .ok_or(Error::NotFound)?;
+
+    let mut recipe = r.into_active_model();
+    recipe.tags = ActiveValue::set(params.tags);
+    recipe.save(&ctx.db).await?;
+
+    Ok(())
+}
+
+#[derive(Deserialize)]
+pub struct SetRecipeNotesParams {
+    notes: String,
+}
+
+pub async fn set_recipe_notes(
+    auth: middleware::auth::JWT,
+    Path(id): Path<i32>,
+    State(ctx): State<AppContext>,
+    extract::Json(params): extract::Json<SetRecipeNotesParams>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let r = recipes::Entity::find_by_id(id)
+        .one(&ctx.db)
+        .await?
+        .ok_or(Error::NotFound)?;
+
+    let mut recipe = r.into_active_model();
+    recipe.notes = ActiveValue::set(params.notes);
+    recipe.save(&ctx.db).await?;
+
+    Ok(())
+}
+
+#[derive(Serialize)]
+struct TagsResponse {
+    tags: HashSet<String>,
+}
+
+pub async fn all_recipe_tags(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+) -> Result<Response> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let db = ctx.db;
+
+    let backend = db.get_database_backend();
+
+    let tags_statement = Statement::from_string(
+        backend,
+        r#"SELECT DISTINCT(unnest("tags")) as "tags" from recipes;"#,
+    );
+
+    let results = db.query_all(tags_statement).await?;
+
+    let mut unique_tags = HashSet::default();
+    for qr in results {
+        let tag = qr.try_get("", "tags")?;
+        unique_tags.insert(tag);
+    }
+
+    format::json(TagsResponse { tags: unique_tags })
+}
+
+pub async fn set_recipe_rating(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+    Path((id, rating)): Path<(i32, i32)>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let r = recipes::Entity::find_by_id(id)
+        .one(&ctx.db)
+        .await?
+        .ok_or(Error::NotFound)?;
+
+    let mut recipe = r.into_active_model();
+    recipe.rating = ActiveValue::set(rating);
+    recipe.save(&ctx.db).await?;
+
+    Ok(())
+}
+
+#[derive(Deserialize)]
+pub struct AddIngredientParams {
+    ingredient: i32,
+    quantity: String,
+}
+
+pub async fn add_ingredient(
+    auth: middleware::auth::JWT,
+    Path(id): Path<i32>,
+    State(ctx): State<AppContext>,
+    extract::Json(params): extract::Json<AddIngredientParams>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let q = Quantity::parse(&params.quantity);
+
+    let tx = ctx.db.begin().await?;
+
+    let recipe = recipes::Entity::find_by_id(id)
+        .one(&tx)
+        .await?
+        .ok_or(Error::NotFound)?;
+
+    let stored_quantity = q.into_active_model().save(&tx).await?;
+
+    ingredients_in_recipes::ActiveModel {
+        recipes_id: ActiveValue::set(recipe.id),
+        ingredients_id: ActiveValue::set(params.ingredient),
+        quantities_id: stored_quantity.id,
+        ..Default::default()
+    }
+    .save(&tx)
+    .await?;
+
+    tx.commit().await?;
+
+    Ok(())
+}
+
+#[derive(Deserialize)]
+pub struct SetRecipeNameParams {
+    name: String,
+}
+
+pub async fn set_recipe_name(
+    auth: middleware::auth::JWT,
+    Path(id): Path<i32>,
+    State(ctx): State<AppContext>,
+    extract::Json(params): extract::Json<SetRecipeNameParams>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    recipes::Entity::update_many()
+        .col_expr(recipes::Column::Name, Expr::value(params.name))
+        .filter(recipes::Column::Id.eq(id))
+        .exec(&ctx.db)
+        .await?;
+
+    Ok(())
+}
+
+#[derive(Deserialize)]
+pub struct SetRecipeSourceParams {
+    #[serde(flatten)]
+    source: RecipeSource,
+}
+
+pub async fn set_recipe_source(
+    auth: middleware::auth::JWT,
+    Path(id): Path<i32>,
+    State(ctx): State<AppContext>,
+    extract::Json(params): extract::Json<SetRecipeSourceParams>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let mut a = recipes::Entity::find_by_id(id)
+        .one(&ctx.db)
+        .await?
+        .ok_or_else(|| Error::NotFound)?
+        .into_active_model();
+
+    match params.source {
+        RecipeSource::Book { title, page } => {
+            a.source = ActiveValue::set("book".into());
+            a.book_title = ActiveValue::set(Some(title));
+            a.book_page = ActiveValue::set(Some(page));
+            a.website_url = ActiveValue::set(None);
+        }
+        RecipeSource::Website { url } => {
+            a.source = ActiveValue::set("website".into());
+            a.website_url = ActiveValue::set(Some(url));
+            a.book_title = ActiveValue::set(None);
+            a.book_page = ActiveValue::set(None);
+        }
+    }
+    a.save(&ctx.db).await?;
+
+    Ok(())
+}
+
+pub async fn delete_ingredient(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+    Path((id, ingredient)): Path<(i32, i32)>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    ingredients_in_recipes::Entity::delete_many()
+        .filter(ingredients_in_recipes::Column::RecipesId.eq(id))
+        .filter(ingredients_in_recipes::Column::IngredientsId.eq(ingredient))
+        .exec(&ctx.db)
+        .await?;
+
+    Ok(())
+}
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("recipes")
+        .add("/tags", get(all_recipe_tags))
         .add("/", get(all_recipes))
         .add("/", post(create_recipe))
         .add("/:id", get(recipe))
         .add("/:id", post(update_recipe))
         .add("/:id", delete(delete_recipe))
+        .add("/:id/name", put(set_recipe_name))
+        .add("/:id/tags", put(set_recipe_tags))
+        .add("/:id/notes", post(set_recipe_notes))
+        .add("/:id/source", put(set_recipe_source))
+        .add("/:id/rating/:value", post(set_recipe_rating))
+        .add("/:id/ingredients", post(add_ingredient))
+        .add("/:id/ingredients/:ingredient", delete(delete_ingredient))
 }
 
 #[cfg(test)]

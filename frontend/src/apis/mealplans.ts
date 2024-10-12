@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { z } from "zod";
 import { http } from "./http.ts";
 import { WithIdSchema } from "./recipes.ts";
@@ -93,8 +94,13 @@ export function useAddMealToPlan(token: string, id: MealPlan["id"]) {
         },
       });
     },
-    onSuccess: () => {
-      client.invalidateQueries({ queryKey: ["mealplans"] });
+    onSuccess: async (_, vars) => {
+      await client.invalidateQueries({ queryKey: ["mealplans"] });
+      if (vars.details.type === "from_recipe") {
+        toast.info(`Added ${vars.details.id} to ${id}`);
+      } else {
+        toast.info(`Added ${vars.details.name} to ${id}`);
+      }
     },
   });
 }

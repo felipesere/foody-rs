@@ -15,6 +15,10 @@ pub struct Model {
     pub book_page: Option<i32>,
     pub website_url: Option<String>,
     pub source: String,
+    pub tags: Vec<String>,
+    pub rating: i32,
+    #[sea_orm(column_type = "Text")]
+    pub notes: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

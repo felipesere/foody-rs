@@ -1,16 +1,13 @@
-import {
-  FloatingFocusManager,
-  FloatingOverlay,
-  useClick,
-  useDismiss,
-  useFloating,
-  useInteractions,
-  useRole,
-} from "@floating-ui/react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { type Recipe, useCreateRecipe } from "../apis/recipes.ts";
+import { createFileRoute } from "@tanstack/react-router";
 
-import { EditRecipeForm } from "../components/smart/editRecipeForm.tsx";
+import { useState } from "react";
+import {
+  type Source,
+  type UnstoredRecipe,
+  useCreateRecipe,
+} from "../apis/recipes.ts";
+import { RecipeContext, RecipeView } from "../components/smart/recipeView.tsx";
+import { parse } from "../quantities.ts";
 
 export const Route = createFileRoute("/_auth/recipes/new")({
   component: NewRecipePage,
@@ -19,61 +16,70 @@ export const Route = createFileRoute("/_auth/recipes/new")({
 function NewRecipePage() {
   const { token } = Route.useRouteContext();
 
-  const createRecipe = useCreateRecipe(token);
-  const navigate = useNavigate({ from: "/recipes/new" });
-
-  const { refs, context } = useFloating({
-    open: true,
-    onOpenChange: () => navigate({ to: "/recipes" }),
-  });
-
-  const click = useClick(context);
-  const dismiss = useDismiss(context, {
-    outsidePressEvent: "mousedown",
-  });
-  const role = useRole(context);
-
-  // Merge all the interactions into prop getters
-  const { getFloatingProps } = useInteractions([click, dismiss, role]);
-
-  const recipe: Recipe = {
+  const [recipe, setRecipe] = useState<UnstoredRecipe>({
     ingredients: [],
     name: "",
-    page: 0,
     source: "book",
     title: "",
-    id: 0,
+    page: 0,
+    url: null,
+    rating: 0,
     tags: [],
-  };
+    notes: "",
+  });
+
+  const n = useCreateRecipe(token);
 
   return (
-    <FloatingOverlay
-      lockScroll
-      className={
-        "the-overlay-backdrop py-4 bg-black/25 overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-20 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full flex"
-      }
-      style={{ margin: 0 }}
-    >
-      <FloatingFocusManager context={context}>
-        <div
-          ref={refs.setFloating}
-          {...getFloatingProps({
-            className:
-              "m-2 p-4 bg-white w-full h-full max-w-2xl relative border-solid border-black border-2 space-y-4",
-          })}
-        >
-          <EditRecipeForm
-            token={token}
-            recipe={recipe}
-            onSubmit={(r) => {
-              createRecipe.mutate(r);
-            }}
-            onClose={() => {
-              return navigate({ to: "/recipes" });
-            }}
-          />
-        </div>
-      </FloatingFocusManager>
-    </FloatingOverlay>
+    <RecipeContext.Provider value={{ editing: true, token }}>
+      <RecipeView
+        onSave={() => {
+          n.mutate(recipe);
+        }}
+        recipe={recipe}
+        onSetName={(name) => setRecipe((prev) => ({ ...prev, name }))}
+        onSetSource={(source: Source) => {
+          if (source.source === "book") {
+            setRecipe((prev) => ({
+              ...prev,
+              source: "book",
+              page: source.page,
+              title: source.title,
+              url: null,
+            }));
+          }
+          if (source.source === "website") {
+            setRecipe((prev) => ({
+              ...prev,
+              source: "website",
+              page: null,
+              title: null,
+              url: source.url,
+            }));
+          }
+        }}
+        onSetTags={(tags) => setRecipe((prev) => ({ ...prev, tags }))}
+        onSetRating={(rating) => setRecipe((prev) => ({ ...prev, rating }))}
+        onSetNote={(notes) => setRecipe((prev) => ({ ...prev, notes }))}
+        onAddedIngredient={(ingredient, quantity) => {
+          setRecipe((prev) => ({
+            ...prev,
+            ingredients: [
+              ...prev.ingredients,
+              {
+                ...ingredient,
+                quantity: [parse(quantity)],
+              },
+            ],
+          }));
+        }}
+        onRemoveIngredient={(name) => {
+          setRecipe((prev) => ({
+            ...prev,
+            ingredients: prev.ingredients.filter((i) => i.name !== name),
+          }));
+        }}
+      />
+    </RecipeContext.Provider>
   );
 }

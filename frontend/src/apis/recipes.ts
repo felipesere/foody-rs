@@ -6,7 +6,6 @@ import {
 } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { z } from "zod";
-import type { SimplifiedRecipe } from "../components/smart/editRecipeForm.tsx";
 import { http } from "./http.ts";
 import type { Shoppinglist } from "./shoppinglists.ts";
 
@@ -31,54 +30,31 @@ const IngredientSchema = z.object({
   quantity: z.array(StoredQuantitySchema),
 });
 
-const BookSchema = z.object({
+const RecipeSchema = z.object({
   id: z.number(),
   name: z.string(),
-  source: z.literal("book"),
-  title: z.string(),
-  page: z.number(),
   ingredients: z.array(IngredientSchema),
+  tags: z.array(z.string()),
+  rating: z.number(),
+  notes: z.string(),
+  source: z.literal("website").or(z.literal("book")),
+  title: z.string().nullable(),
+  page: z.number().nullable(),
+  url: z.string().nullable(),
 });
-
-const WebsiteSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  source: z.literal("website"),
-  url: z.string(),
-  ingredients: z.array(IngredientSchema),
-});
-
-const BookSourceSchema = z.object({
-  source: z.literal("book"),
-  title: z.string(),
-  page: z.number(),
-});
-
-const WebsiteSourceSchema = z.object({
-  source: z.literal("website"),
-  url: z.string(),
-});
-
-const SourceSchema = z.discriminatedUnion("source", [
-  BookSourceSchema,
-  WebsiteSourceSchema,
-]);
-
-export type Source = z.infer<typeof SourceSchema>;
-
-const RecipeSchema = z
-  .object({
-    id: z.number(),
-    name: z.string(),
-    ingredients: z.array(IngredientSchema),
-    tags: z.array(z.string()),
-  })
-  .and(SourceSchema);
 
 export type Recipe = z.infer<typeof RecipeSchema>;
-export type Website = z.infer<typeof WebsiteSchema>;
-export type Book = z.infer<typeof BookSchema>;
+
+export type Source = Pick<Recipe, "source" | "title" | "page" | "url">;
+
 export type Ingredient = z.infer<typeof IngredientSchema>;
+
+export type UnstoredIngredient = Omit<Ingredient, "id" | "quantity"> & {
+  quantity: Quantity[];
+};
+export type UnstoredRecipe = Omit<Recipe, "id" | "ingredients"> & {
+  ingredients: UnstoredIngredient[];
+};
 
 export const RecipesSchema = z.object({
   recipes: z.array(RecipeSchema),
@@ -180,7 +156,7 @@ export function useUpdateRecipe(token: string, recipeId: Recipe["id"]) {
 export function useCreateRecipe(token: string) {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: async (variables: SimplifiedRecipe) => {
+    mutationFn: async (variables: UnstoredRecipe) => {
       await http
         .post("api/recipes", {
           method: "POST",
@@ -212,6 +188,159 @@ export function useDeleteRecipe(token: string) {
       await client.invalidateQueries({ queryKey: ["recipe", vars] });
       await client.invalidateQueries({ queryKey: ["recipes"] });
       toast(`Deleted "${vars}"`);
+    },
+  });
+}
+
+const RecipeTagsSchema = z.object({
+  tags: z.array(z.string()),
+});
+
+export function useRecipeTags(token: string) {
+  return useQuery({
+    queryKey: ["recipes", "tags"],
+    queryFn: async () => {
+      const body = await http
+        .get("api/recipes/tags", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .json();
+
+      return RecipeTagsSchema.parse(body);
+    },
+  });
+}
+
+export function useSetRecipeRating(token: string, id: Recipe["id"]) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (rating: number) => {
+      return http.post(`api/recipes/${id}/rating/${rating}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    },
+    onSuccess: async () => {
+      await client.invalidateQueries({ queryKey: ["recipe", id] });
+      await client.invalidateQueries({ queryKey: ["recipes"] });
+    },
+  });
+}
+
+export function useSetRecipeTags(token: string, id: Recipe["id"]) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (tags: Recipe["tags"]) => {
+      await http.put(`api/recipes/${id}/tags`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        json: {
+          tags,
+        },
+      });
+    },
+    onSuccess: async () => {
+      await client.invalidateQueries({ queryKey: ["recipe", id] });
+      await client.invalidateQueries({ queryKey: ["recipes"] });
+    },
+  });
+}
+export function useSetRecipeNotes(token: string, id: Recipe["id"]) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (notes: Recipe["notes"]) => {
+      await http.post(`api/recipes/${id}/notes`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        json: {
+          notes,
+        },
+      });
+    },
+    onSuccess: async () => {
+      await client.invalidateQueries({ queryKey: ["recipe", id] });
+      await client.invalidateQueries({ queryKey: ["recipes"] });
+      toast.info("Saved notes.");
+    },
+  });
+}
+export function useAddIngredient(token: string, id: Recipe["id"]) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: { ingredient: number; quantity: string }) => {
+      await http.post(`api/recipes/${id}/ingredients`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        json: {
+          ingredient: vars.ingredient,
+          quantity: vars.quantity,
+        },
+      });
+    },
+    onSuccess: async () => {
+      await client.invalidateQueries({ queryKey: ["recipe", id] });
+      await client.invalidateQueries({ queryKey: ["recipes"] });
+    },
+  });
+}
+
+export function useDeleteIngredient(token: string, id: Recipe["id"]) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: { ingredient: number }) => {
+      await http.delete(`api/recipes/${id}/ingredients/${vars.ingredient}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    },
+    onSuccess: async () => {
+      await client.invalidateQueries({ queryKey: ["recipe", id] });
+      await client.invalidateQueries({ queryKey: ["recipes"] });
+    },
+  });
+}
+
+export function useSetRecipeName(token: string, id: Recipe["id"]) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (name: Recipe["name"]) => {
+      await http.put(`api/recipes/${id}/name`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        json: {
+          name,
+        },
+      });
+    },
+    onSuccess: async () => {
+      await client.invalidateQueries({ queryKey: ["recipe", id] });
+      await client.invalidateQueries({ queryKey: ["recipes"] });
+    },
+  });
+}
+
+export function useSetRecipeSource(token: string, id: Recipe["id"]) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (source: Source) => {
+      await http.put(`api/recipes/${id}/source`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        json: source,
+      });
+    },
+    onSuccess: async () => {
+      await client.invalidateQueries({ queryKey: ["recipe", id] });
+      await client.invalidateQueries({ queryKey: ["recipes"] });
     },
   });
 }

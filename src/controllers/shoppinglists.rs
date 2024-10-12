@@ -370,7 +370,7 @@ pub async fn add_recipe_to_shoppinglist(
         .one(&ctx.db)
         .await?;
 
-    let (recipe, ingredients, _recipe_tags) = crate::models::recipes::find_one(&ctx.db, recipe_id)
+    let (recipe, ingredients) = crate::models::recipes::find_one(&ctx.db, recipe_id)
         .await?
         .ok_or_else(|| Error::NotFound)?;
 

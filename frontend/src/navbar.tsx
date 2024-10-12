@@ -7,7 +7,7 @@ export function Navbar() {
 
   return (
     <nav className="content-grid pt-4 border-solid border-black border-b-2 dotted-bg">
-      <ul className="mb-4 flex flex-row justify-between">
+      <ul className="mb-4 flex flex-wrap gap-5 justify-start items-center">
         <li>
           <NavLink name={"Meal plan"} to={"/mealplan"} />
         </li>

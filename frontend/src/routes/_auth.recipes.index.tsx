@@ -1,18 +1,16 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { Outlet, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import classnames from "classnames";
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import {
-  type Book,
   type Ingredient,
   type Recipe,
-  type Website,
+  type Source,
   addRecipeToShoppinglist,
   useAllRecipes,
   useDeleteRecipe,
-  useRecipeOptions,
+  useSetRecipeRating,
 } from "../apis/recipes.ts";
 import { useAllTags } from "../apis/tags.ts";
 import searchIcon from "../assets/search.png";
@@ -24,6 +22,7 @@ import { FieldSet } from "../components/fieldset.tsx";
 import { MultiSelect } from "../components/multiselect.tsx";
 import { Pill } from "../components/pill.tsx";
 import { AddToShoppinglist } from "../components/smart/addToShoppinglist.tsx";
+import { Stars } from "../components/smart/recipeView.tsx";
 
 const RecipeSearchSchema = z.object({
   tags: z.array(z.string()).optional(),
@@ -61,7 +60,7 @@ function updateSearch(
 
   return previous;
 }
-export const Route = createFileRoute("/_auth/recipes")({
+export const Route = createFileRoute("/_auth/recipes/")({
   component: RecipesPage,
   validateSearch: RecipeSearchSchema,
 });
@@ -73,7 +72,6 @@ export function RecipesPage() {
   const navigate = useNavigate({ from: Route.path });
 
   const allTags = useAllTags(token);
-
   if (isError) {
     return <p>Error</p>;
   }
@@ -97,7 +95,7 @@ export function RecipesPage() {
 
   return (
     <>
-      <Outlet />
+      {/*<Outlet />*/}
       <div className="content-grid space-y-4">
         <FieldSet legend={"..."} className={{ fieldSet: "flex flex-col" }}>
           <ButtonGroup>
@@ -213,18 +211,17 @@ function RecipeView(props: RecipeProps) {
   const deleteRecipe = useDeleteRecipe(token);
   const recipeId = props.recipe.id;
   const navigate = useNavigate({ from: "/recipes" });
-  const client = useQueryClient();
+  const setRating = useSetRecipeRating(token, recipeId);
 
   return (
     <li className="p-2 border-black border-solid border-2">
       <p className="font-black uppercase tracking-wider">{props.recipe.name}</p>
-      <div>
-        {props.recipe.source === "book" ? (
-          <BookSource title={props.recipe.title} page={props.recipe.page} />
-        ) : (
-          <WebsiteSource url={props.recipe.url} />
-        )}
-      </div>
+      <ShowSource details={props.recipe} />
+      <Stars
+        rating={props.recipe.rating}
+        setRating={(n) => setRating.mutate(n)}
+      />
+
       {open ? (
         <div>
           {props.recipe.tags.length > 0 && (
@@ -232,7 +229,7 @@ function RecipeView(props: RecipeProps) {
               <Divider />
               <ol className={"flex flex-row gap-2"}>
                 {props.recipe.tags.map((tag) => (
-                  <p key={tag}>#{tag}</p>
+                  <li key={tag}>#{tag}</li>
                 ))}
               </ol>
             </>
@@ -265,10 +262,13 @@ function RecipeView(props: RecipeProps) {
           })}
           type={"submit"}
           onClick={() => {
-            setOpen((o) => !o);
+            navigate({
+              to: "/recipes/$recipeId",
+              params: { recipeId: props.recipe.id.toString() },
+            });
           }}
         >
-          Details
+          View
         </button>
         <button
           className={classnames("px-2", {
@@ -276,17 +276,11 @@ function RecipeView(props: RecipeProps) {
             shadow: !open,
           })}
           type={"submit"}
-          onMouseEnter={(_) => {
-            client.prefetchQuery(useRecipeOptions(token, recipeId));
+          onClick={() => {
+            setOpen((o) => !o);
           }}
-          onClick={() =>
-            navigate({
-              to: "/recipes/$recipeId/edit",
-              params: { recipeId: props.recipe.id.toString() },
-            })
-          }
         >
-          Edit
+          Details
         </button>
         <AddToShoppinglist
           token={token}
@@ -323,25 +317,23 @@ function IngredientView({ ingredient }: { ingredient: Ingredient }) {
   );
 }
 
-export type BookSourceProps = Pick<Book, "title" | "page">;
-export function BookSource(props: BookSourceProps) {
-  return (
-    <div className="flex flex-row">
-      <p className="mr-4">{props.title}</p>
-      <p>{`p.${props.page}`}</p>
-    </div>
-  );
+function ShowSource(props: { details: Source }) {
+  switch (props.details.source) {
+    case "website":
+      return (
+        <a target="_blank" href={props.details.url || ""} rel="noreferrer">
+          {maybeHostname(props.details.url || "")}
+        </a>
+      );
+    case "book":
+      return (
+        <div className="flex flex-row">
+          <p className="mr-4">{props.details.title}</p>
+          <p>{`p.${props.details.page}`}</p>
+        </div>
+      );
+  }
 }
-
-export type WebsiteSourceProps = Pick<Website, "url">;
-export function WebsiteSource(props: WebsiteSourceProps) {
-  return (
-    <a target="_blank" href={props.url} rel="noreferrer">
-      {maybeHostname(props.url)}
-    </a>
-  );
-}
-
 function maybeHostname(v: string): string {
   try {
     return new URL(v).hostname;

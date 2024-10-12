@@ -14,12 +14,12 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as LoginImport } from './routes/login'
 import { Route as AuthImport } from './routes/_auth'
 import { Route as AuthIndexImport } from './routes/_auth.index'
-import { Route as AuthRecipesImport } from './routes/_auth.recipes'
 import { Route as AuthMealplanImport } from './routes/_auth.mealplan'
 import { Route as AuthIngredientsImport } from './routes/_auth.ingredients'
+import { Route as AuthRecipesIndexImport } from './routes/_auth.recipes.index'
 import { Route as AuthShoppinglistShoppinglistIdImport } from './routes/_auth.shoppinglist.$shoppinglistId'
 import { Route as AuthRecipesNewImport } from './routes/_auth.recipes.new'
-import { Route as AuthRecipesRecipeIdEditImport } from './routes/_auth.recipes.$recipeId.edit'
+import { Route as AuthRecipesRecipeIdImport } from './routes/_auth.recipes.$recipeId'
 
 // Create/Update Routes
 
@@ -38,11 +38,6 @@ const AuthIndexRoute = AuthIndexImport.update({
   getParentRoute: () => AuthRoute,
 } as any)
 
-const AuthRecipesRoute = AuthRecipesImport.update({
-  path: '/recipes',
-  getParentRoute: () => AuthRoute,
-} as any)
-
 const AuthMealplanRoute = AuthMealplanImport.update({
   path: '/mealplan',
   getParentRoute: () => AuthRoute,
@@ -53,6 +48,11 @@ const AuthIngredientsRoute = AuthIngredientsImport.update({
   getParentRoute: () => AuthRoute,
 } as any)
 
+const AuthRecipesIndexRoute = AuthRecipesIndexImport.update({
+  path: '/recipes/',
+  getParentRoute: () => AuthRoute,
+} as any)
+
 const AuthShoppinglistShoppinglistIdRoute =
   AuthShoppinglistShoppinglistIdImport.update({
     path: '/shoppinglist/$shoppinglistId',
@@ -60,13 +60,13 @@ const AuthShoppinglistShoppinglistIdRoute =
   } as any)
 
 const AuthRecipesNewRoute = AuthRecipesNewImport.update({
-  path: '/new',
-  getParentRoute: () => AuthRecipesRoute,
+  path: '/recipes/new',
+  getParentRoute: () => AuthRoute,
 } as any)
 
-const AuthRecipesRecipeIdEditRoute = AuthRecipesRecipeIdEditImport.update({
-  path: '/$recipeId/edit',
-  getParentRoute: () => AuthRecipesRoute,
+const AuthRecipesRecipeIdRoute = AuthRecipesRecipeIdImport.update({
+  path: '/recipes/$recipeId',
+  getParentRoute: () => AuthRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
@@ -101,13 +101,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthMealplanImport
       parentRoute: typeof AuthImport
     }
-    '/_auth/recipes': {
-      id: '/_auth/recipes'
-      path: '/recipes'
-      fullPath: '/recipes'
-      preLoaderRoute: typeof AuthRecipesImport
-      parentRoute: typeof AuthImport
-    }
     '/_auth/': {
       id: '/_auth/'
       path: '/'
@@ -115,12 +108,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthIndexImport
       parentRoute: typeof AuthImport
     }
+    '/_auth/recipes/$recipeId': {
+      id: '/_auth/recipes/$recipeId'
+      path: '/recipes/$recipeId'
+      fullPath: '/recipes/$recipeId'
+      preLoaderRoute: typeof AuthRecipesRecipeIdImport
+      parentRoute: typeof AuthImport
+    }
     '/_auth/recipes/new': {
       id: '/_auth/recipes/new'
-      path: '/new'
+      path: '/recipes/new'
       fullPath: '/recipes/new'
       preLoaderRoute: typeof AuthRecipesNewImport
-      parentRoute: typeof AuthRecipesImport
+      parentRoute: typeof AuthImport
     }
     '/_auth/shoppinglist/$shoppinglistId': {
       id: '/_auth/shoppinglist/$shoppinglistId'
@@ -129,12 +129,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthShoppinglistShoppinglistIdImport
       parentRoute: typeof AuthImport
     }
-    '/_auth/recipes/$recipeId/edit': {
-      id: '/_auth/recipes/$recipeId/edit'
-      path: '/$recipeId/edit'
-      fullPath: '/recipes/$recipeId/edit'
-      preLoaderRoute: typeof AuthRecipesRecipeIdEditImport
-      parentRoute: typeof AuthRecipesImport
+    '/_auth/recipes/': {
+      id: '/_auth/recipes/'
+      path: '/recipes'
+      fullPath: '/recipes'
+      preLoaderRoute: typeof AuthRecipesIndexImport
+      parentRoute: typeof AuthImport
     }
   }
 }
@@ -145,12 +145,11 @@ export const routeTree = rootRoute.addChildren({
   AuthRoute: AuthRoute.addChildren({
     AuthIngredientsRoute,
     AuthMealplanRoute,
-    AuthRecipesRoute: AuthRecipesRoute.addChildren({
-      AuthRecipesNewRoute,
-      AuthRecipesRecipeIdEditRoute,
-    }),
     AuthIndexRoute,
+    AuthRecipesRecipeIdRoute,
+    AuthRecipesNewRoute,
     AuthShoppinglistShoppinglistIdRoute,
+    AuthRecipesIndexRoute,
   }),
   LoginRoute,
 })
@@ -172,9 +171,11 @@ export const routeTree = rootRoute.addChildren({
       "children": [
         "/_auth/ingredients",
         "/_auth/mealplan",
-        "/_auth/recipes",
         "/_auth/",
-        "/_auth/shoppinglist/$shoppinglistId"
+        "/_auth/recipes/$recipeId",
+        "/_auth/recipes/new",
+        "/_auth/shoppinglist/$shoppinglistId",
+        "/_auth/recipes/"
       ]
     },
     "/login": {
@@ -188,29 +189,25 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "_auth.mealplan.tsx",
       "parent": "/_auth"
     },
-    "/_auth/recipes": {
-      "filePath": "_auth.recipes.tsx",
-      "parent": "/_auth",
-      "children": [
-        "/_auth/recipes/new",
-        "/_auth/recipes/$recipeId/edit"
-      ]
-    },
     "/_auth/": {
       "filePath": "_auth.index.tsx",
       "parent": "/_auth"
     },
+    "/_auth/recipes/$recipeId": {
+      "filePath": "_auth.recipes.$recipeId.tsx",
+      "parent": "/_auth"
+    },
     "/_auth/recipes/new": {
       "filePath": "_auth.recipes.new.tsx",
-      "parent": "/_auth/recipes"
+      "parent": "/_auth"
     },
     "/_auth/shoppinglist/$shoppinglistId": {
       "filePath": "_auth.shoppinglist.$shoppinglistId.tsx",
       "parent": "/_auth"
     },
-    "/_auth/recipes/$recipeId/edit": {
-      "filePath": "_auth.recipes.$recipeId.edit.tsx",
-      "parent": "/_auth/recipes"
+    "/_auth/recipes/": {
+      "filePath": "_auth.recipes.index.tsx",
+      "parent": "/_auth"
     }
   }
 }
