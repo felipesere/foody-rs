@@ -91,79 +91,76 @@ export function RecipesPage() {
 
   recipes.sort((a, b) => a.name.localeCompare(b.name));
 
-  const knownTags = Object.keys(allTags.data);
+  const knownTags = allTags.data.tags;
 
   return (
-    <>
-      {/*<Outlet />*/}
-      <div className="content-grid space-y-4">
-        <FieldSet legend={"..."} className={{ fieldSet: "flex flex-col" }}>
-          <ButtonGroup>
-            <Button
-              onClick={() => navigate({ to: "/recipes/new" })}
-              label={"New Recipe"}
-            />
-          </ButtonGroup>
-          <FieldSet legend={"Filter"}>
-            <MultiSelect
-              key={(tags || []).toString()} // force to re-render when tags change...
-              label={"Select tags"}
-              selected={tags || []}
-              items={knownTags}
-              onItemsSelected={(items) => {
-                navigate({
-                  search: (params) =>
-                    updateSearch(params, { tags: { set: items } }),
-                });
-              }}
-              hotkey={"ctrl+t"}
-            />
-            <ul className={"flex flex-row gap-2"}>
-              {(tags || []).map((tag) => (
-                <Pill
-                  key={"tag"}
-                  value={tag}
-                  onClose={() => {
-                    navigate({
-                      search: (params) =>
-                        updateSearch(params, { tags: { remove: tag } }),
-                    });
-                  }}
-                />
-              ))}
-            </ul>
-          </FieldSet>
-          <FieldSet legend={"Word Search"}>
-            <Search
-              onSubmit={(term) => {
-                navigate({
-                  search: (params) =>
-                    updateSearch(params, {
-                      term: { set: term.toLowerCase() },
-                    }),
-                });
-              }}
-            />
-            {term && (
+    <div className="content-grid space-y-4">
+      <FieldSet legend={"..."} className={{ fieldSet: "flex flex-col" }}>
+        <ButtonGroup>
+          <Button
+            onClick={() => navigate({ to: "/recipes/new" })}
+            label={"New Recipe"}
+          />
+        </ButtonGroup>
+        <FieldSet legend={"Filter"}>
+          <MultiSelect
+            key={(tags || []).toString()} // force to re-render when tags change...
+            label={"Select tags"}
+            selected={tags || []}
+            items={knownTags}
+            onItemsSelected={(items) => {
+              navigate({
+                search: (params) =>
+                  updateSearch(params, { tags: { set: items } }),
+              });
+            }}
+            hotkey={"ctrl+t"}
+          />
+          <ul className={"flex flex-row gap-2"}>
+            {(tags || []).map((tag) => (
               <Pill
-                value={term}
+                key={"tag"}
+                value={tag}
                 onClose={() => {
                   navigate({
                     search: (params) =>
-                      updateSearch(params, { term: { set: undefined } }),
+                      updateSearch(params, { tags: { remove: tag } }),
                   });
                 }}
               />
-            )}
-          </FieldSet>
+            ))}
+          </ul>
         </FieldSet>
-        <ul className="grid gap-4">
-          {recipes.map((recipe) => (
-            <RecipeView key={recipe.id} recipe={recipe} />
-          ))}
-        </ul>
-      </div>
-    </>
+        <FieldSet legend={"Word Search"}>
+          <Search
+            onSubmit={(term) => {
+              navigate({
+                search: (params) =>
+                  updateSearch(params, {
+                    term: { set: term.toLowerCase() },
+                  }),
+              });
+            }}
+          />
+          {term && (
+            <Pill
+              value={term}
+              onClose={() => {
+                navigate({
+                  search: (params) =>
+                    updateSearch(params, { term: { set: undefined } }),
+                });
+              }}
+            />
+          )}
+        </FieldSet>
+      </FieldSet>
+      <ul className="grid gap-4">
+        {recipes.map((recipe) => (
+          <RecipeView key={recipe.id} recipe={recipe} />
+        ))}
+      </ul>
+    </div>
   );
 }
 

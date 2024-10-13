@@ -246,6 +246,7 @@ export function useSetRecipeTags(token: string, id: Recipe["id"]) {
     onSuccess: async () => {
       await client.invalidateQueries({ queryKey: ["recipe", id] });
       await client.invalidateQueries({ queryKey: ["recipes"] });
+      await client.invalidateQueries({ queryKey: ["recipes", "tags"] });
     },
   });
 }
