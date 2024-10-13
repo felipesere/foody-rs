@@ -10,8 +10,8 @@ import {
   addRecipeToShoppinglist,
   useAllRecipes,
   useDeleteRecipe,
-  useSetRecipeRating,
   useRecipeTags,
+  useSetRecipeRating,
 } from "../apis/recipes.ts";
 import searchIcon from "../assets/search.png";
 import { Button } from "../components/button.tsx";
