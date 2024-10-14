@@ -8,7 +8,6 @@ use loco_rs::{
     db::{self, truncate_table},
     environment::Environment,
     task::Tasks,
-    worker::Processor,
     Result,
 };
 use migration::Migrator;
@@ -59,7 +58,9 @@ impl Hooks for App {
             .add_route(controllers::user::routes())
     }
 
-    fn connect_workers<'a>(_p: &'a mut Processor, _ctx: &'a AppContext) {}
+    async fn connect_workers(_ctx: &AppContext, _queue: &loco_rs::prelude::Queue) -> Result<()> {
+        Ok(())
+    }
 
     fn register_tasks(tasks: &mut Tasks) {
         tasks.register(tasks::tagger::Tagger);
