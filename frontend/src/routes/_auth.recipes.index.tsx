@@ -80,12 +80,13 @@ export function RecipesPage() {
     return <p>Loading</p>;
   }
 
+  const lowerTerm = term?.toLowerCase();
   const recipes = data.recipes.filter(
     (recipe) =>
       (tags || []).every((t) => recipe.tags.includes(t)) &&
-      (recipe.name.includes(term || "") ||
+      (recipe.name.toLowerCase().includes(lowerTerm || "") ||
         recipe.ingredients.some((ingredient) =>
-          ingredient.name.includes(term || ""),
+          ingredient.name.toLowerCase().includes(lowerTerm || ""),
         )),
   );
 
