@@ -1,10 +1,6 @@
 use std::borrow::BorrowMut;
 
-use loco_rs::schema::*;
-use sea_orm::EnumIter;
-use sea_orm_migration::prelude::ColumnDef;
-use sea_orm_migration::prelude::*;
-use sea_orm_migration::sea_query::extension::postgres::Type;
+use sea_orm_migration::{prelude::*, schema::*};
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -13,15 +9,6 @@ pub struct Migration;
 impl MigrationTrait for Migration {
     async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .create_type(
-                Type::create()
-                    .as_enum(Source::Source)
-                    .values([Source::Book, Source::Website])
-                    .to_owned(),
-            )
-            .await?;
-
-        manager
             .create_table(
                 table_auto(Recipes::Table)
                     .col(pk_auto(Recipes::Id).borrow_mut())
@@ -29,11 +16,7 @@ impl MigrationTrait for Migration {
                     .col(string_null(Recipes::BookTitle).borrow_mut())
                     .col(integer_null(Recipes::BookPage).borrow_mut())
                     .col(string_null(Recipes::WebsiteUrl).borrow_mut())
-                    .col(
-                        ColumnDef::new(Recipes::Source)
-                            .enumeration(Source::Source, [Source::Book, Source::Website])
-                            .not_null(),
-                    )
+                    .col(string(Recipes::Source).borrow_mut())
                     .to_owned(),
             )
             .await
@@ -44,20 +27,8 @@ impl MigrationTrait for Migration {
             .drop_table(Table::drop().table(Recipes::Table).to_owned())
             .await?;
 
-        manager
-            .drop_type(Type::drop().name(Source::Source).to_owned())
-            .await
+        Ok(())
     }
-}
-
-#[allow(clippy::enum_variant_names)]
-#[derive(Iden, EnumIter)]
-pub enum Source {
-    Source,
-    #[iden = "book"]
-    Book,
-    #[iden = "website"]
-    Website,
 }
 
 #[derive(DeriveIden)]

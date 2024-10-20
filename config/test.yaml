@@ -10,7 +10,7 @@ logger:
   format: compact
   # By default the logger has filtering only logs that came from your code or logs that came from `loco` framework. to see all third party libraries
   # Uncomment the line below to override to see all third party libraries you can enable this config and override the logger filters.
-  # override_filter: trace
+  override_filter: trace
 
 # Web server configuration
 server:
@@ -91,7 +91,7 @@ mailer:
 # Database Configuration
 database:
   # Database connection URI
-  uri: {{ get_env(name="DATABASE_URL", default="postgres://loco:loco@localhost:5433/foody_test") }}
+  uri: {{ get_env(name="DATABASE_URL", default="sqlite://first_attempt.sqlite") }}
   # When enabled, the sql query will be logged.
   enable_logging: true
   # Set the timeout duration when acquiring a connection.
