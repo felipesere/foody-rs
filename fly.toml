@@ -9,7 +9,7 @@ kill_signal = 'SIGINT'
 kill_timeout = '5s'
 
 [experimental]
-entrypoint = ['/usr/app/foody-cli', 'start', '--binding', '0.0.0.0']
+entrypoint = ['/usr/app/foody-cli', 'start']
 
 [env]
 LOCO_ENV = 'production'
