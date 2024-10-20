@@ -9,14 +9,14 @@ kill_signal = 'SIGINT'
 kill_timeout = '5s'
 
 [experimental]
-  entrypoint = ['/usr/app/foody-cli', 'start', '--binding', '0.0.0.0']
+entrypoint = ['/usr/app/foody-cli', 'start', '--binding', '0.0.0.0']
 
 [env]
-  LOCO_ENV = 'production'
+LOCO_ENV = 'production'
 
 [http_service]
-  internal_port = 5150
-  auto_stop_machines = 'stop'
-  auto_start_machines = true
-  min_machines_running = 1
-  processes = ['app']
+internal_port = 5150
+auto_stop_machines = true
+auto_start_machines = true
+min_machines_running = 1
+processes = ['app']
