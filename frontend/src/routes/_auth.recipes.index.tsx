@@ -2,7 +2,6 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import classnames from "classnames";
 import { useState } from "react";
 import { toast } from "sonner";
-import { z } from "zod";
 import {
   type Ingredient,
   type Recipe,
@@ -23,46 +22,15 @@ import { MultiSelect } from "../components/multiselect.tsx";
 import { Pill } from "../components/pill.tsx";
 import { AddToShoppinglist } from "../components/smart/addToShoppinglist.tsx";
 import { Stars } from "../components/smart/recipeView.tsx";
+import {
+  RecipeSearchSchemaParams,
+  filterRecipes,
+  updateSearchParams,
+} from "../domain/search.ts";
 
-const RecipeSearchSchema = z.object({
-  tags: z.array(z.string()).optional(),
-  term: z.string().optional(),
-});
-type RecipeSearch = z.infer<typeof RecipeSearchSchema>;
-
-function updateSearch(
-  previous: RecipeSearch,
-  changes: {
-    tags?: { set?: string[]; add?: string; remove?: string };
-    term?: { set?: string };
-  },
-): RecipeSearch {
-  if (changes.tags?.set) {
-    previous.tags = changes.tags.set;
-  }
-
-  if (changes.tags?.add) {
-    previous.tags = [...(previous.tags || []), changes.tags.add];
-  }
-
-  if (changes.tags?.remove) {
-    previous.tags = (previous.tags || []).filter(
-      (t) => t !== changes.tags?.remove,
-    );
-    if (previous.tags.length === 0) {
-      previous.tags = undefined;
-    }
-  }
-
-  if (changes.term) {
-    previous.term = changes.term.set;
-  }
-
-  return previous;
-}
 export const Route = createFileRoute("/_auth/recipes/")({
   component: RecipesPage,
-  validateSearch: RecipeSearchSchema,
+  validateSearch: RecipeSearchSchemaParams,
 });
 
 export function RecipesPage() {
@@ -80,16 +48,7 @@ export function RecipesPage() {
     return <p>Loading</p>;
   }
 
-  const lowerTerm = term?.toLowerCase();
-  const recipes = data.recipes.filter(
-    (recipe) =>
-      (tags || []).every((t) => recipe.tags.includes(t)) &&
-      (recipe.name.toLowerCase().includes(lowerTerm || "") ||
-        recipe.ingredients.some((ingredient) =>
-          ingredient.name.toLowerCase().includes(lowerTerm || ""),
-        )),
-  );
-
+  const recipes = filterRecipes(data.recipes, { tags, term });
   recipes.sort((a, b) => a.name.localeCompare(b.name));
 
   const knownTags = allTags.data.tags;
@@ -112,7 +71,7 @@ export function RecipesPage() {
             onItemsSelected={(items) => {
               navigate({
                 search: (params) =>
-                  updateSearch(params, { tags: { set: items } }),
+                  updateSearchParams(params, { tags: { set: items } }),
               });
             }}
             hotkey={"ctrl+t"}
@@ -125,7 +84,7 @@ export function RecipesPage() {
                 onClose={() => {
                   navigate({
                     search: (params) =>
-                      updateSearch(params, { tags: { remove: tag } }),
+                      updateSearchParams(params, { tags: { remove: tag } }),
                   });
                 }}
               />
@@ -137,7 +96,7 @@ export function RecipesPage() {
             onSubmit={(term) => {
               navigate({
                 search: (params) =>
-                  updateSearch(params, {
+                  updateSearchParams(params, {
                     term: { set: term.toLowerCase() },
                   }),
               });
@@ -149,7 +108,7 @@ export function RecipesPage() {
               onClose={() => {
                 navigate({
                   search: (params) =>
-                    updateSearch(params, { term: { set: undefined } }),
+                    updateSearchParams(params, { term: { set: undefined } }),
                 });
               }}
             />
