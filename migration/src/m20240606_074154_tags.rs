@@ -11,7 +11,7 @@ impl MigrationTrait for Migration {
                 table_auto(Tags::Table)
                     .col(pk_auto(Tags::Id))
                     .col(string_uniq(Tags::Name))
-                    .col(integer_uniq(Tags::Order))
+                    .col(integer(Tags::Order).null())
                     .col(boolean(Tags::IsAisle))
                     .to_owned(),
             )

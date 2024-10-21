@@ -19,7 +19,8 @@ impl MigrationTrait for Migration {
                     .drop_column(Ingredients::Tags)
                     .to_owned(),
             )
-            .await
+            .await;
+        Ok(())
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
