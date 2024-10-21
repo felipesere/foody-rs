@@ -38,9 +38,9 @@ const RecipeSchema = z.object({
   rating: z.number(),
   notes: z.string(),
   source: z.literal("website").or(z.literal("book")),
-  title: z.string().nullable(),
-  page: z.number().nullable(),
-  url: z.string().nullable(),
+  title: z.string().nullable(), // <-- TODO: this should be undefined!
+  page: z.number().nullable(), // <-- TODO: this should be undefined!
+  url: z.string().nullable(), // <-- TODO: this should be undefined!
 });
 
 export type Recipe = z.infer<typeof RecipeSchema>;
