@@ -16,13 +16,13 @@
   "dependencies": {
     "@floating-ui/react": "^0.26.10",
     "@tanstack/query-sync-storage-persister": "^5.24.8",
-    "@tanstack/react-form": "^0.33.0",
+    "@tanstack/react-form": "^0.24.0",
     "@tanstack/react-query": "^5.24.1",
     "@tanstack/react-query-devtools": "^5.28.4",
     "@tanstack/react-query-persist-client": "^5.24.8",
     "@tanstack/react-router": "^1.20.1",
     "@tanstack/router-devtools": "^1.20.5",
-    "@tanstack/zod-form-adapter": "^0.33.0",
+    "@tanstack/zod-form-adapter": "^0.24.0",
     "classnames": "^2.5.1",
     "fuse.js": "^7.0.0",
     "ky": "^1.2.3",
@@ -40,17 +40,17 @@
     "@testing-library/dom": "^10.1.0",
     "@testing-library/react": "^16.0.0",
     "@testing-library/user-event": "^14.5.2",
-    "@types/node": "^22.7.5",
+    "@types/node": "^20.11.27",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.18",
-    "jsdom": "^25.0.0",
+    "jsdom": "^24.1.0",
     "msw": "^2.3.1",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
-    "typescript": "5.6.3",
+    "typescript": "5.6.2",
     "vite": "^5",
-    "vitest": "2.1.3"
+    "vitest": "^1.4.0"
   }
 }
