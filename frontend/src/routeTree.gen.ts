@@ -141,113 +141,18 @@ declare module '@tanstack/react-router' {
 
 // Create and export the route tree
 
-interface AuthRouteChildren {
-  AuthIngredientsRoute: typeof AuthIngredientsRoute
-  AuthMealplanRoute: typeof AuthMealplanRoute
-  AuthIndexRoute: typeof AuthIndexRoute
-  AuthRecipesRecipeIdRoute: typeof AuthRecipesRecipeIdRoute
-  AuthRecipesNewRoute: typeof AuthRecipesNewRoute
-  AuthShoppinglistShoppinglistIdRoute: typeof AuthShoppinglistShoppinglistIdRoute
-  AuthRecipesIndexRoute: typeof AuthRecipesIndexRoute
-}
-
-const AuthRouteChildren: AuthRouteChildren = {
-  AuthIngredientsRoute: AuthIngredientsRoute,
-  AuthMealplanRoute: AuthMealplanRoute,
-  AuthIndexRoute: AuthIndexRoute,
-  AuthRecipesRecipeIdRoute: AuthRecipesRecipeIdRoute,
-  AuthRecipesNewRoute: AuthRecipesNewRoute,
-  AuthShoppinglistShoppinglistIdRoute: AuthShoppinglistShoppinglistIdRoute,
-  AuthRecipesIndexRoute: AuthRecipesIndexRoute,
-}
-
-const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
-
-export interface FileRoutesByFullPath {
-  '': typeof AuthRouteWithChildren
-  '/login': typeof LoginRoute
-  '/ingredients': typeof AuthIngredientsRoute
-  '/mealplan': typeof AuthMealplanRoute
-  '/': typeof AuthIndexRoute
-  '/recipes/$recipeId': typeof AuthRecipesRecipeIdRoute
-  '/recipes/new': typeof AuthRecipesNewRoute
-  '/shoppinglist/$shoppinglistId': typeof AuthShoppinglistShoppinglistIdRoute
-  '/recipes': typeof AuthRecipesIndexRoute
-}
-
-export interface FileRoutesByTo {
-  '/login': typeof LoginRoute
-  '/ingredients': typeof AuthIngredientsRoute
-  '/mealplan': typeof AuthMealplanRoute
-  '/': typeof AuthIndexRoute
-  '/recipes/$recipeId': typeof AuthRecipesRecipeIdRoute
-  '/recipes/new': typeof AuthRecipesNewRoute
-  '/shoppinglist/$shoppinglistId': typeof AuthShoppinglistShoppinglistIdRoute
-  '/recipes': typeof AuthRecipesIndexRoute
-}
-
-export interface FileRoutesById {
-  __root__: typeof rootRoute
-  '/_auth': typeof AuthRouteWithChildren
-  '/login': typeof LoginRoute
-  '/_auth/ingredients': typeof AuthIngredientsRoute
-  '/_auth/mealplan': typeof AuthMealplanRoute
-  '/_auth/': typeof AuthIndexRoute
-  '/_auth/recipes/$recipeId': typeof AuthRecipesRecipeIdRoute
-  '/_auth/recipes/new': typeof AuthRecipesNewRoute
-  '/_auth/shoppinglist/$shoppinglistId': typeof AuthShoppinglistShoppinglistIdRoute
-  '/_auth/recipes/': typeof AuthRecipesIndexRoute
-}
-
-export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | ''
-    | '/login'
-    | '/ingredients'
-    | '/mealplan'
-    | '/'
-    | '/recipes/$recipeId'
-    | '/recipes/new'
-    | '/shoppinglist/$shoppinglistId'
-    | '/recipes'
-  fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/login'
-    | '/ingredients'
-    | '/mealplan'
-    | '/'
-    | '/recipes/$recipeId'
-    | '/recipes/new'
-    | '/shoppinglist/$shoppinglistId'
-    | '/recipes'
-  id:
-    | '__root__'
-    | '/_auth'
-    | '/login'
-    | '/_auth/ingredients'
-    | '/_auth/mealplan'
-    | '/_auth/'
-    | '/_auth/recipes/$recipeId'
-    | '/_auth/recipes/new'
-    | '/_auth/shoppinglist/$shoppinglistId'
-    | '/_auth/recipes/'
-  fileRoutesById: FileRoutesById
-}
-
-export interface RootRouteChildren {
-  AuthRoute: typeof AuthRouteWithChildren
-  LoginRoute: typeof LoginRoute
-}
-
-const rootRouteChildren: RootRouteChildren = {
-  AuthRoute: AuthRouteWithChildren,
-  LoginRoute: LoginRoute,
-}
-
-export const routeTree = rootRoute
-  ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+export const routeTree = rootRoute.addChildren({
+  AuthRoute: AuthRoute.addChildren({
+    AuthIngredientsRoute,
+    AuthMealplanRoute,
+    AuthIndexRoute,
+    AuthRecipesRecipeIdRoute,
+    AuthRecipesNewRoute,
+    AuthShoppinglistShoppinglistIdRoute,
+    AuthRecipesIndexRoute,
+  }),
+  LoginRoute,
+})
 
 /* prettier-ignore-end */
 
