@@ -79,6 +79,18 @@ function NewRecipePage() {
             ingredients: prev.ingredients.filter((i) => i.name !== name),
           }));
         }}
+        onChangeQuantity={(name, quantity) => {
+          setRecipe((prev) => ({
+            ...prev,
+            ingredients: prev.ingredients.map((i) => {
+              if (i.name === name) {
+                const q = parse(quantity);
+                return { ...i, quantity: [q] };
+              }
+              return i;
+            }),
+          }));
+        }}
       />
     </RecipeContext.Provider>
   );

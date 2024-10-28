@@ -33,25 +33,14 @@ type RecipeViewProps = {
   onSetTags: (tags: string[]) => void;
   // TODO: string here sucks...
   onAddedIngredient: (ingredient: OnlyIngredient, quantity: string) => void;
-  onRemoveIngredient: (id: Ingredient["name"]) => void;
+  onRemoveIngredient: (name: Ingredient["name"]) => void;
+  onChangeQuantity: (name: Ingredient["name"], quantity: string) => void;
   onSetNote: (notes: string) => void;
   onAddToShoppinglist?: (shoppinglistId: Shoppinglist["id"]) => void;
-  onAddtoMealPlan?: () => void;
+  onAddToMealPlan?: () => void;
 };
 export function RecipeView(props: RecipeViewProps) {
   const { editing, token } = useContext(RecipeContext);
-  // const id = props.recipe.id;
-
-  // const setRating = useSetRecipeRating(token, id);
-  // const setNotes = useSetRecipeNotes(token, id);
-  // const addIngredient = useAddIngredient(token, id);
-  // const removeIngredient = useDeleteIngredient(token, id);
-
-  // // TODO: get rid of the 1
-  // const addMealToPlan = useAddMealToPlan(token, 1);
-  // const addRecipe = addRecipeToShoppinglist(token);
-
-  // const setTags = useSetRecipeTags(token, id);
 
   const recipe = props.recipe;
 
@@ -69,6 +58,7 @@ export function RecipeView(props: RecipeViewProps) {
             ingredients={recipe.ingredients}
             onIngredient={props.onAddedIngredient}
             onRemove={props.onRemoveIngredient}
+            onChangeQuantity={props.onChangeQuantity}
           />
         </div>
         <div>
@@ -90,10 +80,10 @@ export function RecipeView(props: RecipeViewProps) {
             }}
           />
         )}
-        {props.onAddtoMealPlan && (
+        {props.onAddToMealPlan && (
           <Button
             label={"Add to Meal plan"}
-            onClick={() => props.onAddtoMealPlan?.()}
+            onClick={() => props.onAddToMealPlan?.()}
           />
         )}
       </ButtonGroup>
@@ -148,6 +138,10 @@ function Ingredients(props: {
   ingredients: UnstoredIngredient[];
   onIngredient: (i: OnlyIngredient, quantity: string) => void;
   onRemove: (name: UnstoredIngredient["name"]) => void;
+  onChangeQuantity: (
+    name: UnstoredIngredient["name"],
+    quantity: string,
+  ) => void;
 }) {
   const { editing, token } = useContext(RecipeContext);
   return (
@@ -162,6 +156,9 @@ function Ingredients(props: {
               ingredient={ingredient}
               quantity={quantity}
               onRemove={() => props.onRemove(ingredient.name)}
+              onChangeQuantity={(q) =>
+                props.onChangeQuantity(ingredient.name, q)
+              }
             />
           );
         })}
@@ -240,6 +237,7 @@ type IngredientViewProps = {
   ingredient: Pick<UnstoredIngredient, "name">;
   quantity: string;
   onRemove: () => void;
+  onChangeQuantity: (quantity: string) => void;
 };
 
 function IngredientView(props: IngredientViewProps) {
@@ -261,7 +259,7 @@ function IngredientView(props: IngredientViewProps) {
           type={"text"}
           value={props.quantity}
           onChange={() => {}}
-          onBlur={() => {}}
+          onBlur={props.onChangeQuantity}
         />
       ) : (
         <p className="text-light" style={{ flex: "none" }}>
@@ -383,18 +381,29 @@ function maybeHostname(v: string): string {
 type InputProps = {
   placeholder?: string;
   onChange: (v: string) => void;
-  onBlur?: () => void;
-} & ({ type: "text"; value: string } | { type: "number"; value: number });
+} & (
+  | { type: "text"; value: string; onBlur: (v: string) => void }
+  | { type: "number"; value: number; onBlur: (v: number) => void }
+);
 
 function Input(props: InputProps) {
+  const [value, setValue] = useState(props.value);
   return (
     <input
-      onChange={(e) => props.onChange(e.target.value)}
-      onBlur={() => props.onBlur?.()}
+      onChange={(e) => {
+        const v = e.target.value;
+        setValue(v);
+        props.onChange(v);
+      }}
+      onBlur={() =>
+        props.type === "text"
+          ? props.onBlur(value as string)
+          : props.onBlur(value as number)
+      }
       autoComplete={"off"}
       placeholder={props.placeholder}
       type={props.type}
-      value={props.value}
+      value={value}
       className={
         "border-none bg-transparent outline-2 -outline-offset-2 outline-dashed outline-amber-400 focus:outline"
       }

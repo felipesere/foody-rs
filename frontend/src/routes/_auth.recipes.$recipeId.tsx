@@ -92,7 +92,7 @@ function RecipePage() {
             removeIngredient.mutate({ ingredient: ing.id });
           }
         }}
-        onAddtoMealPlan={() => {
+        onAddToMealPlan={() => {
           addMealToPlan.mutate({
             section: null,
             details: {
@@ -103,6 +103,13 @@ function RecipePage() {
         }}
         onAddToShoppinglist={(list) => {
           addRecipe.mutate({ recipeId: recipe.id, shoppinglistId: list });
+        }}
+        onChangeQuantity={(name, quantity) => {
+          const ing = recipe.ingredients.find((i) => i.name === name);
+          if (ing) {
+            removeIngredient.mutate({ ingredient: ing.id });
+            addIngredient.mutate({ ingredient: ing.id, quantity });
+          }
         }}
       />
     </RecipeContext.Provider>
