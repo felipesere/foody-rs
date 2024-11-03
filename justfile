@@ -45,7 +45,8 @@ pg-migrate environment direction:
     PORT=5433
   fi
   cd migration
-  DATABASE_URL=postgres://loco:loco@localhost:${PORT}/foody_{{environment}} cargo run -- {{direction}}
+  DATABASE_URL="sqlite://../first_attempt.sqlite" cargo run -- {{direction}}
+  #DATABASE_URL=postgres://loco:loco@localhost:${PORT}/foody_{{environment}} cargo run -- {{direction}}
 
 pg-reseed environment: (pg-reset environment) (pg-seed environment)
 
