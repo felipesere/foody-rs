@@ -11,16 +11,14 @@ use loco_rs::{
     Result,
 };
 use migration::Migrator;
-use sea_orm::{
-    ActiveModelBehavior, ActiveModelTrait, ConnectionTrait, DatabaseConnection, DbBackend,
-    Statement,
-};
+use sea_orm::{ActiveModelBehavior, ActiveModelTrait, DatabaseConnection};
 
 use crate::{
     controllers,
     models::_entities::{
-        self, ingredients, ingredients_in_recipes, ingredients_in_shoppinglists, quantities,
-        recipes, shoppinglists, users,
+        ingredients, ingredients_in_recipes, ingredients_in_shoppinglists, quantities,
+        recipes::{self},
+        shoppinglists, users,
     },
     tasks,
 };
@@ -140,6 +138,7 @@ impl Hooks for App {
                 .website_url
                 .map_or_else(AV::not_set, |w| AV::set(Some(w)));
             model.source = AV::set(recipe.source);
+            model.tags = AV::set(recipe.tags.unwrap_or_default().into());
             let model = model.insert(db).await.unwrap();
 
             for (name, quantity) in recipe.ingredients {
@@ -156,20 +155,6 @@ impl Hooks for App {
                 in_recipe.quantities_id = AV::set(quantity.id);
                 in_recipe.recipes_id = AV::set(model.id);
                 in_recipe.insert(db).await.unwrap();
-            }
-
-            for tag in recipe.tags.unwrap_or_default() {
-                println!("about to create tag {tag}");
-
-                let upsert_tag = _entities::tags::Entity::upsert(db, tag).await?;
-
-                _entities::tags_on_recipes::ActiveModel {
-                    tag_id: AV::set(upsert_tag.id),
-                    recipe_id: AV::set(model.id),
-                    ..Default::default()
-                }
-                .insert(db)
-                .await?;
             }
         }
 
@@ -202,13 +187,15 @@ impl Hooks for App {
         }
 
         db::seed::<users::ActiveModel>(db, &base.join("users.yaml").display().to_string()).await?;
-        for table in ["users"] {
-            db.query_one(Statement::from_string(
-                DbBackend::Postgres,
-                format!("SELECT setval('{table}_id_seq', (SELECT MAX(id) FROM {table}))"),
-            ))
-            .await?;
-        }
+
+        // This needs to be done differently in SQLite
+        // for table in ["users"] {
+        //     db.query_one(Statement::from_string(
+        //         DbBackend::Postgres,
+        //         format!("SELECT setval('{table}_id_seq', (SELECT MAX(id) FROM {table}))"),
+        //     ))
+        //     .await?;
+        // }
 
         Ok(())
     }

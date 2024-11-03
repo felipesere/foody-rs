@@ -58,9 +58,9 @@ pub async fn all_recipes(
             url: recipe.website_url,
             title: recipe.book_title,
             page: recipe.book_page,
-            tags: recipe.tags,
+            tags: recipe.tags.inner(),
             rating: recipe.rating,
-            notes: recipe.notes,
+            notes: recipe.notes.unwrap_or_default(),
             ingredients: ingredients
                 .into_iter()
                 .map(|(ingredient, quantity)| IngredientResponse {
@@ -99,9 +99,9 @@ pub async fn recipe(
         url: recipe.website_url,
         title: recipe.book_title,
         page: recipe.book_page,
-        tags: recipe.tags,
+        tags: recipe.tags.inner(),
         rating: recipe.rating,
-        notes: recipe.notes,
+        notes: recipe.notes.unwrap_or_default(),
         ingredients: ingredients
             .into_iter()
             .map(|(ingredient, quantity)| IngredientResponse {
@@ -213,8 +213,8 @@ pub async fn create_recipe(
     let mut recipe = _entities::recipes::ActiveModel {
         name: ActiveValue::set(params.name),
         rating: ActiveValue::set(params.rating),
-        notes: ActiveValue::set(params.notes),
-        tags: ActiveValue::set(params.tags),
+        notes: ActiveValue::set(Some(params.notes)),
+        tags: ActiveValue::set(params.tags.into()),
         ..Default::default()
     };
 
@@ -297,7 +297,7 @@ pub async fn update_recipe(
             a.book_page = ActiveValue::set(None);
         }
     }
-    a.tags = ActiveValue::set(params.tags);
+    a.tags = ActiveValue::set(params.tags.into());
     a.save(&tx).await?;
 
     IngredientsInRecipes::delete_many()
@@ -347,9 +347,9 @@ pub async fn update_recipe(
         url: recipe.website_url,
         title: recipe.book_title,
         page: recipe.book_page,
-        tags: recipe.tags,
+        tags: recipe.tags.inner(),
         rating: recipe.rating,
-        notes: recipe.notes,
+        notes: recipe.notes.unwrap_or_default(),
         ingredients: ingredients
             .into_iter()
             .map(|(ingredient, quantity)| IngredientResponse {
@@ -385,7 +385,7 @@ pub async fn set_recipe_tags(
         .ok_or(Error::NotFound)?;
 
     let mut recipe = r.into_active_model();
-    recipe.tags = ActiveValue::set(params.tags);
+    recipe.tags = ActiveValue::set(params.tags.into());
     recipe.save(&ctx.db).await?;
 
     Ok(())
@@ -410,7 +410,7 @@ pub async fn set_recipe_notes(
         .ok_or(Error::NotFound)?;
 
     let mut recipe = r.into_active_model();
-    recipe.notes = ActiveValue::set(params.notes);
+    recipe.notes = ActiveValue::set(Some(params.notes));
     recipe.save(&ctx.db).await?;
 
     Ok(())

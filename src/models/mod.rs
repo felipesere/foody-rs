@@ -9,5 +9,4 @@ pub mod recipes;
 pub mod shoppinglists;
 pub mod tags;
 pub mod tags_on_ingredients;
-pub mod tags_on_recipes;
 pub mod users;
