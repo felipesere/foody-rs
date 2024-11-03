@@ -408,6 +408,26 @@ pub async fn add_recipe_to_shoppinglist(
     Ok(())
 }
 
+pub async fn remove_recipe_from_shoppinglist(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+    Path((shoppinglist_id, recipe_id)): Path<(i32, i32)>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+    // check that it exists
+    let _ = shoppinglists::Entity::find_by_id(shoppinglist_id)
+        .one(&ctx.db)
+        .await?;
+
+    ingredients_in_shoppinglists::Entity::delete_many()
+        .filter(ingredients_in_shoppinglists::Column::ShoppinglistsId.eq(shoppinglist_id))
+        .filter(ingredients_in_shoppinglists::Column::RecipeId.eq(recipe_id))
+        .exec(&ctx.db)
+        .await?;
+
+    Ok(())
+}
+
 #[derive(Deserialize, Debug)]
 pub struct RawQuantity {
     quantity: String,
@@ -535,6 +555,10 @@ pub fn routes() -> Routes {
             post(add_note_to_item),
         )
         .add("/:id/recipe/:recipe_id", post(add_recipe_to_shoppinglist))
+        .add(
+            "/:id/recipe/:recipe_id",
+            delete(remove_recipe_from_shoppinglist),
+        )
         .add(
             "/:id/ingredient/:ingredient_id/quantity",
             post(add_quantity_to_ingredient),

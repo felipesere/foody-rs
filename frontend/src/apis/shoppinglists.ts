@@ -2,7 +2,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { z } from "zod";
 import { http } from "./http.ts";
-import { type StoredQuantity, StoredQuantitySchema } from "./recipes.ts";
+import {
+  type Recipe,
+  type StoredQuantity,
+  StoredQuantitySchema,
+} from "./recipes.ts";
 
 const MinimalShoppinglistSchema = z.object({
   id: z.number(),
@@ -422,6 +426,44 @@ export function useSetNoteOnIngredient(
         )}`,
       );
       toast.error("Failed to update quantity on shoppinglist");
+    },
+  });
+}
+export function useRemoveRecipeFromShoppinglist(
+  token: string,
+  shoppinglistId: Shoppinglist["id"],
+) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: { recipeId: Recipe["id"] }) => {
+      await http
+        .delete(
+          `api/shoppinglists/${shoppinglistId}/recipe/${params.recipeId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        )
+        .json();
+    },
+    onSettled: () => {
+      return client.invalidateQueries({
+        queryKey: ["shoppinglist", shoppinglistId],
+      });
+    },
+    onError: (err) => {
+      console.log(
+        `Failed to remove recipe from ${shoppinglistId}: ${JSON.stringify(
+          err,
+          null,
+          2,
+        )}`,
+      );
+      toast.error("Failed to update quantity on shoppinglist");
+    },
+    onSuccess: (_, vars) => {
+      toast(`Remove "${vars.recipeId}" from ${shoppinglistId}`);
     },
   });
 }

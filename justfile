@@ -31,7 +31,7 @@ run-backend:
   cargo loco start
 
 pg-start:
- docker-compose up -d
+ docker compose up -d
 
 # Run migration:
 # environment is one of `dev` or `test`

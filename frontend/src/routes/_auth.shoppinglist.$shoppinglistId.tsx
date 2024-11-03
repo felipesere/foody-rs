@@ -12,12 +12,14 @@ import {
   type Shoppinglist,
   useRemoveIngredientFromShoppinglist,
   useRemoveQuantityFromShoppinglist,
+  useRemoveRecipeFromShoppinglist,
   useSetNoteOnIngredient,
   useToggleIngredientInShoppinglist,
   useUpdateQuantityOnShoppinglist,
 } from "../apis/shoppinglists.ts";
 import { useShoppinglist } from "../apis/shoppinglists.ts";
 import { useAllTags } from "../apis/tags.ts";
+import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { DeleteButton } from "../components/deleteButton.tsx";
 import { Divider } from "../components/divider.tsx";
@@ -66,6 +68,8 @@ export function ShoppingPage() {
   const [grouping, setGrouping] = useState<Grouping>(Grouping.None);
   const [showProgressBar, setShowProgressBar] = useState(false);
 
+  const deleteRecipe = useRemoveRecipeFromShoppinglist(token, shoppinglistId);
+
   const tags = useAllTags(token);
 
   if (shoppinglist.isLoading || !recipes.data || !tags.data) {
@@ -97,6 +101,15 @@ export function ShoppingPage() {
     case "byRecipe":
       sections = orderByRecipe(ingredients, allRecipes);
       break;
+  }
+
+  const presentRecipes: Record<number, string> = {};
+  for (const i of ingredients) {
+    for (const q of i.quantities) {
+      if (q.recipe_id) {
+        presentRecipes[q.recipe_id] = allRecipes[q.recipe_id];
+      }
+    }
   }
 
   const inBasket =
@@ -158,6 +171,28 @@ export function ShoppingPage() {
             Show progress bar
           </label>
         </div>
+        <FieldSet legend={"Recipes"}>
+          <ul>
+            {Object.entries(presentRecipes).map(([id, name]) => (
+              <li key={id} className={"flex flex-row gap-4"}>
+                <Link
+                  className={"block flex-grow"}
+                  to={"/recipes/$recipeId"}
+                  params={{ recipeId: id }}
+                >
+                  {name}
+                </Link>
+                <Button
+                  label={"Delete"}
+                  onClick={() => {
+                    // TODO/WARN: Annoying when the ID types don't line up!
+                    deleteRecipe.mutate({ recipeId: Number(id) });
+                  }}
+                />
+              </li>
+            ))}
+          </ul>
+        </FieldSet>
       </Toggle>
       {showProgressBar && <Progressbar fraction={fraction} sticky={true} />}
       <ul className="grid max-w-md gap-4">
