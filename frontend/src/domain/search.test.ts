@@ -69,9 +69,9 @@ const recipes: Recipe[] = [
     tags: ["winter", "weird"],
     rating: 4,
     notes: "",
-    source: "website",
-    url: "https://somewhere.com",
-    title: null,
+    source: "book",
+    url: null,
+    title: "simplissime",
     page: null,
     duration: null,
   },
@@ -109,5 +109,10 @@ test("terms can match in name", () => {
 
 test("terms can match in ingredient name", () => {
   const remaining = filterRecipes(recipes, { term: "sweet" });
+  expect(remaining.map((r) => r.name)).toEqual(["blurb"]);
+});
+
+test("books match", () => {
+  const remaining = filterRecipes(recipes, { books: ["simplissime"] });
   expect(remaining.map((r) => r.name)).toEqual(["blurb"]);
 });

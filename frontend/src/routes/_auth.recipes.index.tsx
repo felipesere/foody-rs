@@ -35,7 +35,7 @@ export const Route = createFileRoute("/_auth/recipes/")({
 
 export function RecipesPage() {
   const { token } = Route.useRouteContext();
-  const { tags, term } = Route.useSearch();
+  const { tags, term, books } = Route.useSearch();
   const { data, isLoading, isError } = useAllRecipes(token);
   const navigate = useNavigate({ from: Route.path });
 
@@ -48,8 +48,14 @@ export function RecipesPage() {
     return <p>Loading</p>;
   }
 
-  const recipes = filterRecipes(data.recipes, { tags, term });
+  const recipes = filterRecipes(data.recipes, { tags, term, books });
   recipes.sort((a, b) => a.name.localeCompare(b.name));
+
+  const recipeBooks = data.recipes
+    .filter((r) => r.source === "book")
+    .map((r) => {
+      return r.title as string;
+    });
 
   const knownTags = allTags.data.tags;
 
@@ -85,6 +91,35 @@ export function RecipesPage() {
                   navigate({
                     search: (params) =>
                       updateSearchParams(params, { tags: { remove: tag } }),
+                  });
+                }}
+              />
+            ))}
+          </ul>
+
+          <MultiSelect
+            key={(books || []).toString()} // force to re-render when tags change...
+            label={"By book title"}
+            selected={books}
+            items={recipeBooks}
+            onItemsSelected={(items) => {
+              navigate({
+                search: (params) =>
+                  updateSearchParams(params, { books: { set: items } }),
+              });
+            }}
+            hotkey={"ctrl+b"}
+          />
+
+          <ul className={"flex flex-row gap-2"}>
+            {(books || []).map((book) => (
+              <Pill
+                key={book}
+                value={book}
+                onClose={() => {
+                  navigate({
+                    search: (params) =>
+                      updateSearchParams(params, { books: { remove: book } }),
                   });
                 }}
               />
