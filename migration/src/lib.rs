@@ -28,12 +28,14 @@ mod m20240716_111758_tags_on_recipes;
 mod m20240724_123313_rename_fk_on_tags_on_recipes;
 mod m20240920_070157_create_mealplan_table;
 mod m20241002_201921_recipe_holds_tags;
+mod m20241104_205226_add_times_to_recipes;
 pub struct Migrator;
 
 #[async_trait::async_trait]
 impl MigratorTrait for Migrator {
     fn migrations() -> Vec<Box<dyn MigrationTrait>> {
         vec![
+            // inject-below (do not remove this comment)
             Box::new(m20220101_000001_users::Migration),
             Box::new(m20231103_114510_notes::Migration),
             Box::new(m20231225_211837_ingredients::Migration),
@@ -59,6 +61,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20240724_123313_rename_fk_on_tags_on_recipes::Migration),
             Box::new(m20240920_070157_create_mealplan_table::Migration),
             Box::new(m20241002_201921_recipe_holds_tags::Migration),
+            Box::new(m20241104_205226_add_times_to_recipes::Migration),
         ]
     }
 }

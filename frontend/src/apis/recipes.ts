@@ -41,6 +41,7 @@ const RecipeSchema = z.object({
   title: z.string().nullable(), // <-- TODO: this should be undefined!
   page: z.number().nullable(), // <-- TODO: this should be undefined!
   url: z.string().nullable(), // <-- TODO: this should be undefined!
+  duration: z.string().nullable(),
 });
 
 export type Recipe = z.infer<typeof RecipeSchema>;
@@ -337,6 +338,25 @@ export function useSetRecipeSource(token: string, id: Recipe["id"]) {
           Authorization: `Bearer ${token}`,
         },
         json: source,
+      });
+    },
+    onSuccess: async () => {
+      await client.invalidateQueries({ queryKey: ["recipe", id] });
+      await client.invalidateQueries({ queryKey: ["recipes"] });
+    },
+  });
+}
+export function useSetRecipeDuration(token: string, id: Recipe["id"]) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (duration: string) => {
+      await http.put(`api/recipes/${id}/duration`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        json: {
+          duration,
+        },
       });
     },
     onSuccess: async () => {

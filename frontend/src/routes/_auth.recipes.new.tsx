@@ -26,6 +26,7 @@ function NewRecipePage() {
     rating: 0,
     tags: [],
     notes: "",
+    duration: null,
   });
 
   const n = useCreateRecipe(token);
@@ -60,6 +61,9 @@ function NewRecipePage() {
         }}
         onSetTags={(tags) => setRecipe((prev) => ({ ...prev, tags }))}
         onSetRating={(rating) => setRecipe((prev) => ({ ...prev, rating }))}
+        onSetDuration={(duration) =>
+          setRecipe((prev) => ({ ...prev, duration }))
+        }
         onSetNote={(notes) => setRecipe((prev) => ({ ...prev, notes }))}
         onAddedIngredient={(ingredient, quantity) => {
           setRecipe((prev) => ({

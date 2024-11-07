@@ -7,6 +7,7 @@ import {
   useAddIngredient,
   useDeleteIngredient,
   useRecipe,
+  useSetRecipeDuration,
   useSetRecipeName,
   useSetRecipeNotes,
   useSetRecipeRating,
@@ -41,6 +42,7 @@ function RecipePage() {
   const setTags = useSetRecipeTags(token, id);
   const setName = useSetRecipeName(token, id);
   const setSource = useSetRecipeSource(token, id);
+  const setDuration = useSetRecipeDuration(token, id);
 
   // TODO: get rid of the 1
   const addMealToPlan = useAddMealToPlan(token, 1);
@@ -82,6 +84,7 @@ function RecipePage() {
         }}
         onSetTags={(tags) => setTags.mutate(tags)}
         onSetRating={(rating) => setRating.mutate(rating)}
+        onSetDuration={(duration) => setDuration.mutate(duration)}
         onSetNote={(notes) => setNotes.mutate(notes)}
         onAddedIngredient={(ingredient, quantity) => {
           addIngredient.mutate({ ingredient: ingredient.id, quantity });

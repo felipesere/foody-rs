@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import { createContext, useContext, useState } from "react";
 import type { Ingredient as OnlyIngredient } from "../../apis/ingredients.ts";
 import {
@@ -29,13 +30,13 @@ type RecipeViewProps = {
   onSetName: (name: string) => void;
   onSetSource: (source: Source) => void;
   onSetRating: (rating: number) => void;
-  // TODO: string here sucks...
   onSetTags: (tags: string[]) => void;
   // TODO: string here sucks...
   onAddedIngredient: (ingredient: OnlyIngredient, quantity: string) => void;
   onRemoveIngredient: (name: Ingredient["name"]) => void;
   onChangeQuantity: (name: Ingredient["name"], quantity: string) => void;
   onSetNote: (notes: string) => void;
+  onSetDuration: (duration: string) => void;
   onAddToShoppinglist?: (shoppinglistId: Shoppinglist["id"]) => void;
   onAddToMealPlan?: () => void;
 };
@@ -53,6 +54,10 @@ export function RecipeView(props: RecipeViewProps) {
           <ShowSource recipe={recipe} onBlur={props.onSetSource} />
           <Stars rating={recipe.rating} setRating={props.onSetRating} />
           <Tags tags={recipe.tags} onSetTags={props.onSetTags} />
+          <Duration
+            duration={recipe.duration}
+            onSetDuration={props.onSetDuration}
+          />
           <Divider />
           <Ingredients
             ingredients={recipe.ingredients}
@@ -173,6 +178,32 @@ function Ingredients(props: {
       )}
     </div>
   );
+}
+
+function Duration(props: {
+  duration: string | null;
+  onSetDuration: (v: string) => void;
+}) {
+  const { editing } = useContext(RecipeContext);
+  const [duration, setDuration] = useState(props.duration);
+  if (editing) {
+    return (
+      <>
+        <p>Duration: </p>
+        <Input
+          className={"inline"}
+          onChange={setDuration}
+          type={"text"}
+          value={duration || "..."}
+          onBlur={() => (duration ? props.onSetDuration(duration) : {})}
+        />
+      </>
+    );
+  }
+  if (props.duration) {
+    return <p>Duration: {props.duration}</p>;
+  }
+  return null;
 }
 
 function Tags(props: {
@@ -381,6 +412,7 @@ function maybeHostname(v: string): string {
 type InputProps = {
   placeholder?: string;
   onChange: (v: string) => void;
+  className?: string;
 } & (
   | { type: "text"; value: string; onBlur: (v: string) => void }
   | { type: "number"; value: number; onBlur: (v: number) => void }
@@ -404,9 +436,10 @@ function Input(props: InputProps) {
       placeholder={props.placeholder}
       type={props.type}
       value={value}
-      className={
-        "border-none bg-transparent outline-2 -outline-offset-2 outline-dashed outline-amber-400 focus:outline"
-      }
+      className={classNames(
+        props.className,
+        "border-none bg-transparent outline-2 -outline-offset-2 outline-dashed outline-amber-400 focus:outline",
+      )}
     />
   );
 }

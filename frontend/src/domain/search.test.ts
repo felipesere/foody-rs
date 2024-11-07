@@ -37,6 +37,7 @@ const recipes: Recipe[] = [
     url: "https://somewhere.com",
     title: null,
     page: null,
+    duration: null,
   },
   {
     id: 2,
@@ -72,6 +73,7 @@ const recipes: Recipe[] = [
     url: "https://somewhere.com",
     title: null,
     page: null,
+    duration: null,
   },
 ];
 

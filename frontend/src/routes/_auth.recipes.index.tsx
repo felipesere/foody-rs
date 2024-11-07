@@ -178,6 +178,7 @@ function RecipeView(props: RecipeProps) {
         rating={props.recipe.rating}
         setRating={(n) => setRating.mutate(n)}
       />
+      {props.recipe.duration && <p>⏲ {props.recipe.duration}</p>}
 
       {open ? (
         <div>
