@@ -71,7 +71,7 @@ export function RecipesPage() {
         </ButtonGroup>
         <FieldSet legend={"Filter"}>
           <MultiSelect
-            key={(tags || []).toString()} // force to re-render when tags change...
+            key={(tags || ["tag"]).toString()} // force to re-render when tags change...
             label={"Select tags"}
             selected={tags || []}
             items={knownTags}
@@ -99,7 +99,7 @@ export function RecipesPage() {
           </ul>
 
           <MultiSelect
-            key={(books || []).toString()} // force to re-render when tags change...
+            key={(books || ["book"]).toString()} // force to re-render when tags change...
             label={"By book title"}
             selected={books}
             items={Array.from(knownBookTitles)}

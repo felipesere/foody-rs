@@ -32,7 +32,7 @@ function MealPlanPage() {
     <div className="content-grid space-y-4 max-w-md pb-20">
       <FieldSet
         legend={"Thing"}
-        className={{ fieldSet: "flex flex-col gap-2" }}
+        className={{ fieldSet: "flex flex-col items-start gap-2" }}
       >
         <Button
           classNames={"whitespace-nowrap flex-shrink"}
