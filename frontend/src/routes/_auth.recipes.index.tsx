@@ -51,11 +51,12 @@ export function RecipesPage() {
   const recipes = filterRecipes(data.recipes, { tags, term, books });
   recipes.sort((a, b) => a.name.localeCompare(b.name));
 
-  const recipeBooks = data.recipes
-    .filter((r) => r.source === "book")
-    .map((r) => {
-      return r.title as string;
-    });
+  const knownBookTitles = new Set();
+  for (const r of data.recipes) {
+    if (r.source === "book") {
+      knownBookTitles.add(r.title as string);
+    }
+  }
 
   const knownTags = allTags.data.tags;
 
@@ -101,7 +102,7 @@ export function RecipesPage() {
             key={(books || []).toString()} // force to re-render when tags change...
             label={"By book title"}
             selected={books}
-            items={recipeBooks}
+            items={Object.values(knownBookTitles)}
             onItemsSelected={(items) => {
               navigate({
                 search: (params) =>
