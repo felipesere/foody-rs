@@ -51,7 +51,7 @@ export function RecipesPage() {
   const recipes = filterRecipes(data.recipes, { tags, term, books });
   recipes.sort((a, b) => a.name.localeCompare(b.name));
 
-  const knownBookTitles = new Set();
+  const knownBookTitles = new Set<string>();
   for (const r of data.recipes) {
     if (r.source === "book") {
       knownBookTitles.add(r.title as string);
@@ -102,7 +102,7 @@ export function RecipesPage() {
             key={(books || []).toString()} // force to re-render when tags change...
             label={"By book title"}
             selected={books}
-            items={Object.values(knownBookTitles)}
+            items={Array.from(knownBookTitles)}
             onItemsSelected={(items) => {
               navigate({
                 search: (params) =>
