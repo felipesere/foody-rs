@@ -6,6 +6,7 @@ import { useState } from "react";
 import { z } from "zod";
 import {
   type Meal,
+  type MealPlan,
   type StoredMeal,
   useAddMealToPlan,
   useAllMealPlans,
@@ -28,9 +29,22 @@ export const Route = createFileRoute("/_auth/mealplan")({
 function MealPlanPage() {
   const { token } = Route.useRouteContext();
 
+  const all = useAllMealPlans(token);
+  const recipes = useAllRecipes(token);
+
   // TODO: figure out if I want one or many mealplans...
   const addMeal = useAddMealToPlan(token, 1);
   const clearPlan = useClearMealplan(token, 1);
+
+  if (all.isPending || recipes.isPending) {
+    return "Loading...";
+  }
+
+  if (!all.data || !recipes.data) {
+    return "No data?";
+  }
+
+  const fixedMealPlan = all.data.meal_plans[0];
 
   return (
     <div className="content-grid space-y-4 max-w-md pb-20">
@@ -71,24 +85,21 @@ function MealPlanPage() {
           />
         </div>
       </FieldSet>
-      <MealPlan token={token} />
+      <ViewMealPlan
+        token={token}
+        mealPlan={fixedMealPlan}
+        recipes={recipes.data.recipes}
+      />
     </div>
   );
 }
 
-function MealPlan(props: { token: string }) {
-  const all = useAllMealPlans(props.token);
-  const recipes = useAllRecipes(props.token);
-
-  if (all.isPending || recipes.isPending) {
-    return "Loading...";
-  }
-
-  if (!all.data || !recipes.data) {
-    return "No data?";
-  }
-
-  const fixedMealPlan = all.data.meal_plans[0];
+function ViewMealPlan(props: {
+  token: string;
+  mealPlan: MealPlan;
+  recipes: Recipe[];
+}) {
+  const fixedMealPlan = props.mealPlan;
 
   const sections = new Set(
     fixedMealPlan.meals.map((meal) => meal.section).filter((s) => s !== null),
@@ -119,7 +130,7 @@ function MealPlan(props: { token: string }) {
           mealPlanId={1}
           meals={unnamed}
           sections={sections}
-          recipes={recipes.data.recipes}
+          recipes={props.recipes}
         />
       )}
 
@@ -132,7 +143,7 @@ function MealPlan(props: { token: string }) {
             mealPlanId={1}
             meals={meals}
             sections={sections}
-            recipes={recipes.data.recipes}
+            recipes={props.recipes}
             title={title}
           />
         );

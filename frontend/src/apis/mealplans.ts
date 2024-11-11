@@ -34,7 +34,7 @@ const MealPlanSchema = z.object({
   meals: z.array(StoredMealSchema),
 });
 
-type MealPlan = z.infer<typeof MealPlanSchema>;
+export type MealPlan = z.infer<typeof MealPlanSchema>;
 
 const MealPlansSchema = z.object({
   meal_plans: z.array(MealPlanSchema),
