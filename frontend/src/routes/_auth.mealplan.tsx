@@ -44,52 +44,67 @@ function MealPlanPage() {
     return "No data?";
   }
 
+  console.log(all.data.meal_plans);
+
   const fixedMealPlan = all.data.meal_plans[0];
 
   return (
-    <div className="content-grid space-y-4 max-w-md pb-20">
-      <FieldSet
-        legend={"Thing"}
-        className={{ fieldSet: "flex flex-col items-start gap-2" }}
-      >
-        <Button
-          classNames={"whitespace-nowrap flex-shrink"}
-          label={"Clear"}
-          onClick={() => {
-            clearPlan.mutate();
-          }}
-        />
-        <div className={"flex flex-row gap-2"}>
-          <p>Add recipe or thing</p>
-          <FindRecipe
+    <div className="content-grid   pb-20">
+      <div className={"grid gap-4 grid-cols-1 sm:grid-cols-2"}>
+        {/* left or top */}
+        <div className={"space-y-4"}>
+          <FieldSet
+            legend={"Meal Plan"}
+            className={{ fieldSet: "flex flex-col items-start gap-2" }}
+          >
+            <Button
+              classNames={"whitespace-nowrap flex-shrink"}
+              label={"Clear"}
+              onClick={() => {
+                clearPlan.mutate();
+              }}
+            />
+            <div className={"flex flex-row gap-2"}>
+              <p>Add recipe or thing</p>
+              <FindRecipe
+                token={token}
+                placeholder={"Recipe..."}
+                onRecipe={(r) => {
+                  addMeal.mutate({
+                    section: null,
+                    details: {
+                      type: "from_recipe",
+                      id: r.id,
+                    },
+                  });
+                }}
+                onNonRecipe={(name) => {
+                  addMeal.mutate({
+                    section: null,
+                    details: {
+                      type: "untracked",
+                      name,
+                    },
+                  });
+                }}
+              />
+            </div>
+          </FieldSet>
+          <ViewMealPlan
             token={token}
-            placeholder={"Recipe..."}
-            onRecipe={(r) => {
-              addMeal.mutate({
-                section: null,
-                details: {
-                  type: "from_recipe",
-                  id: r.id,
-                },
-              });
-            }}
-            onNonRecipe={(name) => {
-              addMeal.mutate({
-                section: null,
-                details: {
-                  type: "untracked",
-                  name,
-                },
-              });
-            }}
+            mealPlan={fixedMealPlan}
+            recipes={recipes.data.recipes}
           />
         </div>
-      </FieldSet>
-      <ViewMealPlan
-        token={token}
-        mealPlan={fixedMealPlan}
-        recipes={recipes.data.recipes}
-      />
+        {/* right or bottom */}
+        <div className={"divider"}>
+          <ol>
+            {all.data.meal_plans.map((mealPlan: MealPlan) => (
+                <li key={mealPlan.id}>{mealPlan.name}</li>
+            ))}
+          </ol>
+        </div>
+      </div>
     </div>
   );
 }

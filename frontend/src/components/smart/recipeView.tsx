@@ -66,7 +66,7 @@ export function RecipeView(props: RecipeViewProps) {
             onChangeQuantity={props.onChangeQuantity}
           />
         </div>
-        <div>
+        <div className={"divider"}>
           <Notes value={recipe.notes} onBlur={props.onSetNote} />
         </div>
       </div>
