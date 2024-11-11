@@ -1,12 +1,16 @@
+import { type FieldApi, useForm } from "@tanstack/react-form";
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { zodValidator } from "@tanstack/zod-form-adapter";
 import classNames from "classnames";
 import { useState } from "react";
+import { z } from "zod";
 import {
   type Meal,
   type StoredMeal,
   useAddMealToPlan,
   useAllMealPlans,
   useClearMealplan,
+  useCreateMealPlan,
   useDeleteMealFromMealPlan,
   useSetSectionOfMeal,
   useToggleMealIsCooked,
@@ -274,5 +278,81 @@ export function FindRecipe(props: FindRecipeProps) {
       onSelectedItem={props.onRecipe}
       onNewItem={props.onNonRecipe}
     />
+  );
+}
+
+// WARN: Stolen from `NewShoppinglist`
+// @ts-ignore We are bringingin this back in just a minute!
+function NewMealPlan(props: { token: string }) {
+  const createNewShoppinglist = useCreateMealPlan(props.token);
+
+  const defaultName = new Date().toISOString().split("T")[0];
+  const form = useForm({
+    defaultValues: {
+      name: defaultName,
+    },
+    onSubmit: async ({ value }) => {
+      await createNewShoppinglist.mutateAsync(value);
+      void form.reset();
+    },
+    validatorAdapter: zodValidator(),
+  });
+  return (
+    <form
+      className={"flex flex-row"}
+      onSubmit={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        void form.handleSubmit();
+      }}
+    >
+      <form.Field
+        name={"name"}
+        validators={{
+          onBlur: z.string().min(1),
+        }}
+        children={(field) => (
+          <>
+            <input
+              placeholder={"New meal plan"}
+              type={"text"}
+              className={"p-2 outline-0 border-black border-2 border-solid"}
+              name={field.name}
+              id={field.name}
+              value={field.state.value}
+              onBlur={field.handleBlur}
+              onChange={(e) => field.handleChange(e.target.value)}
+            />
+            <FieldInfo field={field} />
+          </>
+        )}
+      />
+
+      <form.Subscribe
+        selector={(state) => [state.canSubmit]}
+        children={([canSubmit]) => (
+          <button
+            className={"px-2 ml-2 bg-gray-300 shadow"}
+            type={"submit"}
+            id={"submit"}
+            disabled={!canSubmit}
+          >
+            New
+          </button>
+        )}
+      />
+    </form>
+  );
+}
+
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+function FieldInfo({ field }: { field: FieldApi<any, any, any, any> }) {
+  return (
+    <>
+      {field.state.meta.isTouched && field.state.meta.errors.length ? (
+        <em>{field.state.meta.errors}</em>
+      ) : null}
+      {field.state.meta.isValidating ? "Validating..." : null}
+    </>
   );
 }
