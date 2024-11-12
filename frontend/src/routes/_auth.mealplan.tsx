@@ -22,12 +22,18 @@ import { Dropdown, type DropdownProps } from "../components/dropdown.tsx";
 import { FieldSet } from "../components/fieldset.tsx";
 import { KebabMenu } from "../components/kebabMenu.tsx";
 
+const SelectedMealPlanSchema = z.object({
+  mealPlan: z.number().optional(),
+});
+
 export const Route = createFileRoute("/_auth/mealplan")({
   component: MealPlanPage,
+  validateSearch: SelectedMealPlanSchema,
 });
 
 function MealPlanPage() {
   const { token } = Route.useRouteContext();
+  const search = Route.useSearch();
 
   const all = useAllMealPlans(token);
   const recipes = useAllRecipes(token);
@@ -44,9 +50,11 @@ function MealPlanPage() {
     return "No data?";
   }
 
-  console.log(all.data.meal_plans);
-
-  const fixedMealPlan = all.data.meal_plans[0];
+  const selected = search.mealPlan
+    ? (all.data.meal_plans.find(
+        (plan) => plan.id === search.mealPlan,
+      ) as MealPlan)
+    : all.data.meal_plans[0];
 
   return (
     <div className="content-grid   pb-20">
@@ -92,7 +100,7 @@ function MealPlanPage() {
           </FieldSet>
           <ViewMealPlan
             token={token}
-            mealPlan={fixedMealPlan}
+            mealPlan={selected}
             recipes={recipes.data.recipes}
           />
         </div>
@@ -100,7 +108,17 @@ function MealPlanPage() {
         <div className={"divider"}>
           <ol>
             {all.data.meal_plans.map((mealPlan: MealPlan) => (
-                <li key={mealPlan.id}>{mealPlan.name}</li>
+              <li key={mealPlan.id}>
+                {selected.id === mealPlan.id && <span>✴</span>}
+                <Link
+                  to={"/mealplan"}
+                  search={{
+                    mealPlan: mealPlan.id,
+                  }}
+                >
+                  {mealPlan.name}
+                </Link>
+              </li>
             ))}
           </ol>
         </div>
