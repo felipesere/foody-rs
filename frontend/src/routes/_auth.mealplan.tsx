@@ -38,10 +38,6 @@ function MealPlanPage() {
   const all = useAllMealPlans(token);
   const recipes = useAllRecipes(token);
 
-  // TODO: figure out if I want one or many mealplans...
-  const addMeal = useAddMealToPlan(token, 1);
-  const clearPlan = useClearMealplan(token, 1);
-
   if (all.isPending || recipes.isPending) {
     return "Loading...";
   }
@@ -61,43 +57,6 @@ function MealPlanPage() {
       <div className={"grid gap-4 grid-cols-1 sm:grid-cols-2"}>
         {/* left or top */}
         <div className={"space-y-4"}>
-          <FieldSet
-            legend={"Meal Plan"}
-            className={{ fieldSet: "flex flex-col items-start gap-2" }}
-          >
-            <Button
-              classNames={"whitespace-nowrap flex-shrink"}
-              label={"Clear"}
-              onClick={() => {
-                clearPlan.mutate();
-              }}
-            />
-            <div className={"flex flex-row gap-2"}>
-              <p>Add recipe or thing</p>
-              <FindRecipe
-                token={token}
-                placeholder={"Recipe..."}
-                onRecipe={(r) => {
-                  addMeal.mutate({
-                    section: null,
-                    details: {
-                      type: "from_recipe",
-                      id: r.id,
-                    },
-                  });
-                }}
-                onNonRecipe={(name) => {
-                  addMeal.mutate({
-                    section: null,
-                    details: {
-                      type: "untracked",
-                      name,
-                    },
-                  });
-                }}
-              />
-            </div>
-          </FieldSet>
           <ViewMealPlan
             token={token}
             mealPlan={selected}
@@ -132,16 +91,19 @@ function ViewMealPlan(props: {
   mealPlan: MealPlan;
   recipes: Recipe[];
 }) {
-  const fixedMealPlan = props.mealPlan;
+  const { mealPlan, token, recipes } = props;
+
+  const addMeal = useAddMealToPlan(token, mealPlan.id);
+  const clearPlan = useClearMealplan(token, mealPlan.id);
 
   const sections = new Set(
-    fixedMealPlan.meals.map((meal) => meal.section).filter((s) => s !== null),
+    mealPlan.meals.map((meal) => meal.section).filter((s) => s !== null),
   );
 
   const namedSection: Record<string, StoredMeal[]> = {};
   const unnamed: StoredMeal[] = [];
 
-  for (const meal of fixedMealPlan.meals) {
+  for (const meal of mealPlan.meals) {
     if (meal.section) {
       const meals = namedSection[meal.section] || [];
       meals.push(meal);
@@ -155,15 +117,52 @@ function ViewMealPlan(props: {
 
   return (
     <>
+      <FieldSet
+        legend={"Meal Plan"}
+        className={{ fieldSet: "flex flex-col items-start gap-2" }}
+      >
+        <Button
+          classNames={"whitespace-nowrap flex-shrink"}
+          label={"Clear"}
+          onClick={() => {
+            clearPlan.mutate();
+          }}
+        />
+        <div className={"flex flex-row gap-2"}>
+          <p>Add recipe or thing</p>
+          <FindRecipe
+            token={props.token}
+            placeholder={"Recipe..."}
+            onRecipe={(r) => {
+              addMeal.mutate({
+                section: null,
+                details: {
+                  type: "from_recipe",
+                  id: r.id,
+                },
+              });
+            }}
+            onNonRecipe={(name) => {
+              addMeal.mutate({
+                section: null,
+                details: {
+                  type: "untracked",
+                  name,
+                },
+              });
+            }}
+          />
+        </div>
+      </FieldSet>
       <p>Meals</p>
 
       {unnamed.length > 0 && (
         <SectionOfMeals
-          token={props.token}
-          mealPlanId={1}
+          token={token}
+          mealPlanId={mealPlan.id}
           meals={unnamed}
           sections={sections}
-          recipes={props.recipes}
+          recipes={recipes}
         />
       )}
 
@@ -172,11 +171,11 @@ function ViewMealPlan(props: {
         return (
           <SectionOfMeals
             key={title}
-            token={props.token}
-            mealPlanId={1}
+            token={token}
+            mealPlanId={mealPlan.id}
             meals={meals}
             sections={sections}
-            recipes={props.recipes}
+            recipes={recipes}
             title={title}
           />
         );
