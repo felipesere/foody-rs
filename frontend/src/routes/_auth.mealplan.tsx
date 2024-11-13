@@ -109,7 +109,7 @@ function MealPlanPage() {
           <ol>
             {all.data.meal_plans.map((mealPlan: MealPlan) => (
               <li key={mealPlan.id}>
-                {selected.id === mealPlan.id && <span>✴</span>}
+                {selected.id === mealPlan.id && <span>*</span>}
                 <Link
                   to={"/mealplan"}
                   search={{
