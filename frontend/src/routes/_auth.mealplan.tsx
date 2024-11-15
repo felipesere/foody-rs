@@ -13,6 +13,7 @@ import {
   useClearMealplan,
   useCreateMealPlan,
   useDeleteMealFromMealPlan,
+  useRemoveMealplan,
   useSetSectionOfMeal,
   useToggleMealIsCooked,
 } from "../apis/mealplans.ts";
@@ -38,6 +39,7 @@ function MealPlanPage() {
 
   const all = useAllMealPlans(token);
   const recipes = useAllRecipes(token);
+  const remove = useRemoveMealplan(token);
 
   if (all.isPending || recipes.isPending) {
     return "Loading...";
@@ -72,15 +74,25 @@ function MealPlanPage() {
           <ol>
             {all.data.meal_plans.map((mealPlan: MealPlan) => (
               <li key={mealPlan.id}>
-                {selected.id === mealPlan.id && <span>*</span>}
-                <Link
-                  to={"/mealplan"}
-                  search={{
-                    mealPlan: mealPlan.id,
-                  }}
-                >
-                  {mealPlan.name}
-                </Link>
+                <div className={"flex flex-row justify-between"}>
+                  <Link
+                    to={"/mealplan"}
+                    search={{
+                      mealPlan: mealPlan.id,
+                    }}
+                  >
+                    {selected && selected.id === mealPlan.id && "* "}
+                    {mealPlan.name}
+                  </Link>
+                  <Button
+                    label={"Remove"}
+                    onClick={(ev) => {
+                      ev.preventDefault();
+                      ev.stopPropagation();
+                      remove.mutate({ id: mealPlan.id });
+                    }}
+                  />
+                </div>
               </li>
             ))}
           </ol>

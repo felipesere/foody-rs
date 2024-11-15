@@ -67,9 +67,12 @@ export function useAllMealPlans(token: string) {
 export function useCreateMealPlan(token: string) {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: async (params: { name: string }) => {
+    mutationFn: async (params: { name: string; keepUncooked: boolean }) => {
       await http.post("api/mealplans", {
-        json: params,
+        json: {
+          name: params.name,
+          keep_uncooked: params.keepUncooked,
+        },
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -181,6 +184,22 @@ export function useClearMealplan(token: string, meal_plan_id: MealPlan["id"]) {
   return useMutation({
     mutationFn: async () => {
       await http.post(`api/mealplans/${meal_plan_id}/clear`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    },
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: ["mealplans"] });
+    },
+  });
+}
+
+export function useRemoveMealplan(token: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: { id: MealPlan["id"] }) => {
+      await http.delete(`api/mealplans/${params.id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

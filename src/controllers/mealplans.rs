@@ -108,6 +108,7 @@ pub async fn all_mealplans(
 #[derive(Deserialize)]
 pub struct NewMealPlan {
     name: String,
+    keep_uncooked: bool,
 }
 
 pub async fn create_meal_plan(
@@ -115,14 +116,52 @@ pub async fn create_meal_plan(
     State(ctx): State<AppContext>,
     extract::Json(params): extract::Json<NewMealPlan>,
 ) -> Result<()> {
+    use sea_orm::{QueryOrder, QuerySelect};
+
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
-    meal_plans::ActiveModel {
+    let id = if params.keep_uncooked {
+        let previous_plan_id: Option<i32> = meal_plans::Entity::find()
+            .select_only()
+            .column(meal_plans::Column::Id)
+            .order_by_desc(meal_plans::Column::CreatedAt)
+            .into_tuple()
+            .one(&ctx.db)
+            .await?;
+
+        previous_plan_id
+    } else {
+        None
+    };
+
+    let plan = meal_plans::ActiveModel {
         name: ActiveValue::Set(params.name),
         ..Default::default()
+    };
+    let plan = plan.insert(&ctx.db).await?;
+
+    if let Some(id) = id {
+        // Can be done faster on the DB side with a UDPATE + sub-SELECT
+        let meals: Vec<_> = meals_in_meal_plans::Entity::find()
+            .filter(meals_in_meal_plans::Column::MealPlanId.eq(id))
+            .filter(meals_in_meal_plans::Column::IsCooked.eq(false))
+            .all(&ctx.db)
+            .await?
+            .into_iter()
+            .map(|meal| meals_in_meal_plans::ActiveModel {
+                meal_plan_id: ActiveValue::Set(plan.id),
+                recipe_id: ActiveValue::Set(meal.recipe_id),
+                untracked_meal_name: ActiveValue::Set(meal.untracked_meal_name),
+                section: ActiveValue::Set(meal.section),
+                is_cooked: ActiveValue::Set(false),
+                ..Default::default()
+            })
+            .collect();
+
+        meals_in_meal_plans::Entity::insert_many(meals)
+            .exec(&ctx.db)
+            .await?;
     }
-    .insert(&ctx.db)
-    .await?;
 
     Ok(())
 }
@@ -270,11 +309,32 @@ pub async fn clear_meal_plan(
     Ok(())
 }
 
+// TODO this is more of an interim thing anyway...
+pub async fn remove_meal_plan(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+    Path(id): Path<i32>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    // should do a tx here
+
+    meals_in_meal_plans::Entity::delete_many()
+        .filter(meals_in_meal_plans::Column::MealPlanId.eq(id))
+        .exec(&ctx.db)
+        .await?;
+
+    meal_plans::Entity::delete_by_id(id).exec(&ctx.db).await?;
+
+    Ok(())
+}
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("mealplans")
         .add("/", get(all_mealplans))
         .add("/", post(create_meal_plan))
+        .add("/:id", delete(remove_meal_plan))
         .add("/:id/clear", post(clear_meal_plan))
         .add("/:id/meal", post(add_to_meal))
         .add("/:id/meal/:meal_id", delete(delete_meal_from_mealplan))
