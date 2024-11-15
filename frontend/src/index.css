@@ -113,7 +113,7 @@ input[type="button"].borderless {
 
 button:disabled,
 input[type="button"]:disabled {
-  color: white;
+  color: #a1a1a1;
   background-color: #495057;
   cursor: not-allowed;
 }

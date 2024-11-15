@@ -21,6 +21,7 @@ import { Button } from "../components/button.tsx";
 import { Dropdown, type DropdownProps } from "../components/dropdown.tsx";
 import { FieldSet } from "../components/fieldset.tsx";
 import { KebabMenu } from "../components/kebabMenu.tsx";
+import { Toggle } from "../components/toggle.tsx";
 
 const SelectedMealPlanSchema = z.object({
   mealPlan: z.number().optional(),
@@ -53,10 +54,13 @@ function MealPlanPage() {
     : all.data.meal_plans[0];
 
   return (
-    <div className="content-grid   pb-20">
+    <div className="content-grid gap-2 pb-20">
       <div className={"grid gap-4 grid-cols-1 sm:grid-cols-2"}>
         {/* left or top */}
         <div className={"space-y-4"}>
+          <Toggle buttonLabel={"New Meal Plan"}>
+            <NewMealPlan token={token} />
+          </Toggle>
           <ViewMealPlan
             token={token}
             mealPlan={selected}
@@ -118,16 +122,26 @@ function ViewMealPlan(props: {
   return (
     <>
       <FieldSet
-        legend={"Meal Plan"}
+        legend={mealPlan.name}
         className={{ fieldSet: "flex flex-col items-start gap-2" }}
       >
-        <Button
-          classNames={"whitespace-nowrap flex-shrink"}
-          label={"Clear"}
-          onClick={() => {
-            clearPlan.mutate();
-          }}
-        />
+        <div className={"flex flex-row gap-2"}>
+          <Button
+            classNames={"whitespace-nowrap flex-shrink"}
+            label={"Clear"}
+            onClick={() => {
+              clearPlan.mutate();
+            }}
+          />
+          <Button
+            classNames={"whitespace-nowrap flex-shrink"}
+            label={"Add To Shoppinglist"}
+            disabled={true}
+            onClick={() => {
+              clearPlan.mutate();
+            }}
+          />
+        </div>
         <div className={"flex flex-row gap-2"}>
           <p>Add recipe or thing</p>
           <FindRecipe
@@ -333,6 +347,7 @@ function NewMealPlan(props: { token: string }) {
   const form = useForm({
     defaultValues: {
       name: defaultName,
+      keepUncooked: true,
     },
     onSubmit: async ({ value }) => {
       await createNewShoppinglist.mutateAsync(value);
@@ -342,46 +357,66 @@ function NewMealPlan(props: { token: string }) {
   });
   return (
     <form
-      className={"flex flex-row"}
+      className={"space-y-2"}
       onSubmit={(e) => {
         e.preventDefault();
         e.stopPropagation();
         void form.handleSubmit();
       }}
     >
-      <form.Field
-        name={"name"}
-        validators={{
-          onBlur: z.string().min(1),
-        }}
-        children={(field) => (
-          <>
-            <input
-              placeholder={"New meal plan"}
-              type={"text"}
-              className={"p-2 outline-0 border-black border-2 border-solid"}
-              name={field.name}
-              id={field.name}
-              value={field.state.value}
-              onBlur={field.handleBlur}
-              onChange={(e) => field.handleChange(e.target.value)}
-            />
-            <FieldInfo field={field} />
-          </>
-        )}
-      />
+      <div className={"flex flex-row"}>
+        <form.Field
+          name={"name"}
+          validators={{
+            onBlur: z.string().min(1),
+          }}
+          children={(field) => (
+            <>
+              <input
+                type={"text"}
+                className={"p-2 outline-0 border-black border-2 border-solid"}
+                name={field.name}
+                id={field.name}
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+              />
+              <FieldInfo field={field} />
+            </>
+          )}
+        />
 
-      <form.Subscribe
-        selector={(state) => [state.canSubmit]}
-        children={([canSubmit]) => (
-          <button
-            className={"px-2 ml-2 bg-gray-300 shadow"}
-            type={"submit"}
-            id={"submit"}
-            disabled={!canSubmit}
-          >
-            New
-          </button>
+        <form.Subscribe
+          selector={(state) => [state.canSubmit]}
+          children={([canSubmit]) => (
+            <button
+              className={"px-2 ml-2 bg-gray-300 shadow"}
+              type={"submit"}
+              id={"submit"}
+              disabled={!canSubmit}
+            >
+              Create
+            </button>
+          )}
+        />
+      </div>
+
+      <form.Field
+        name={"keepUncooked"}
+        children={(field) => (
+          <div className={"flex flex-row"}>
+            <input
+              id={"keepUncooked"}
+              type={"checkbox"}
+              className={"px-2 bg-white shadow"}
+              checked={field.state.value}
+              onChange={() => field.handleChange(!field.state.value)}
+            />
+            <label className={"no-colon ml-2"} htmlFor={"groupByAisle"}>
+              Keep previous uncooked items
+            </label>
+            <FieldInfo field={field} />
+          </div>
         )}
       />
     </form>
