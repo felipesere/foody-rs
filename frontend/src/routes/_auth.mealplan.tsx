@@ -246,16 +246,18 @@ function SectionOfMeals(props: {
   return (
     <>
       {props.title && <p>{props.title}</p>}
-      <table className={"relative border-collapse"}>
+      <table className={"table-fixed w-full border-collapse"}>
         <thead>
           <tr>
             <th className={"border-2 border-black text-left align-top pl-2"}>
               Meal
             </th>
-            <th className={"border-2 border-black text-left align-top pl-2"}>
+            <th
+              className={"border-2 border-black w-24 text-left align-top pl-2"}
+            >
               Cooked?
             </th>
-            <th className="border-2 border-black text-left align-top pl-2" />
+            <th className="border-2 border-black w-8 text-left align-top pl-2" />
           </tr>
         </thead>
         <tbody>
