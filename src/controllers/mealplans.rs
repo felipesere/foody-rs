@@ -39,6 +39,7 @@ enum MealDetails {
 #[derive(Serialize, Deserialize, Debug)]
 struct MealPlanResponse {
     id: i32,
+    created_at: String,
     name: String,
     meals: Vec<Meal>,
 }
@@ -53,6 +54,7 @@ impl From<(meal_plans::Model, Vec<meals_in_meal_plans::Model>)> for MealPlanResp
         let (mealplan, meals) = value;
         Self {
             id: mealplan.id,
+            created_at: mealplan.created_at.format("%Y-%m-%dT%H:%M:%SZ").to_string(),
             name: mealplan.name,
             meals: meals
                 .into_iter()
@@ -115,7 +117,7 @@ pub async fn create_meal_plan(
     auth: middleware::auth::JWT,
     State(ctx): State<AppContext>,
     extract::Json(params): extract::Json<NewMealPlan>,
-) -> Result<()> {
+) -> Result<Response> {
     use sea_orm::{QueryOrder, QuerySelect};
 
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
@@ -140,7 +142,7 @@ pub async fn create_meal_plan(
     };
     let plan = plan.insert(&ctx.db).await?;
 
-    if let Some(id) = id {
+    let meals = if let Some(id) = id {
         // Can be done faster on the DB side with a UDPATE + sub-SELECT
         let meals: Vec<_> = meals_in_meal_plans::Entity::find()
             .filter(meals_in_meal_plans::Column::MealPlanId.eq(id))
@@ -158,12 +160,19 @@ pub async fn create_meal_plan(
             })
             .collect();
 
-        meals_in_meal_plans::Entity::insert_many(meals)
+        meals_in_meal_plans::Entity::insert_many(meals.clone())
             .exec(&ctx.db)
             .await?;
-    }
 
-    Ok(())
+        meals_in_meal_plans::Entity::find()
+            .filter(meals_in_meal_plans::Column::MealPlanId.eq(plan.id))
+            .all(&ctx.db)
+            .await?
+    } else {
+        Vec::new()
+    };
+
+    format::json(MealPlanResponse::from((plan, meals)))
 }
 
 #[derive(Deserialize)]
@@ -357,6 +366,7 @@ mod tests {
             meal_plans: vec![
                 MealPlanResponse {
                     id: 1,
+                    created_at: created_at.to_string(),
                     name: "the first".to_string(),
                     meals: vec![
                         Meal {
@@ -379,6 +389,7 @@ mod tests {
                 },
                 MealPlanResponse {
                     id: 2,
+                    created_at: created_at.to_string(),
                     name: "the second".to_string(),
                     meals: vec![Meal {
                         id: 91,

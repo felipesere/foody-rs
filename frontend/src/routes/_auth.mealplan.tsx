@@ -1,5 +1,5 @@
 import { type FieldApi, useForm } from "@tanstack/react-form";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-form-adapter";
 import classNames from "classnames";
 import { useState } from "react";
@@ -49,11 +49,9 @@ function MealPlanPage() {
     return "No data?";
   }
 
-  const selected = search.mealPlan
-    ? (all.data.meal_plans.find(
-        (plan) => plan.id === search.mealPlan,
-      ) as MealPlan)
-    : all.data.meal_plans[0];
+  const selected =
+    all.data.meal_plans.find((plan) => plan.id === search.mealPlan) ||
+    all.data.meal_plans[0];
 
   return (
     <div className="content-grid gap-2 pb-20">
@@ -356,6 +354,7 @@ export function FindRecipe(props: FindRecipeProps) {
 // @ts-ignore We are bringingin this back in just a minute!
 function NewMealPlan(props: { token: string }) {
   const createNewShoppinglist = useCreateMealPlan(props.token);
+  const navigate = useNavigate({ from: "/mealplan" });
 
   const defaultName = new Date().toISOString().split("T")[0];
   const form = useForm({
@@ -364,8 +363,9 @@ function NewMealPlan(props: { token: string }) {
       keepUncooked: true,
     },
     onSubmit: async ({ value }) => {
-      await createNewShoppinglist.mutateAsync(value);
+      const newMeal = await createNewShoppinglist.mutateAsync(value);
       void form.reset();
+      await navigate({ to: "/mealplan", search: { mealPlan: newMeal.id } });
     },
     validatorAdapter: zodValidator(),
   });

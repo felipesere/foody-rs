@@ -30,6 +30,7 @@ export type StoredMeal = z.infer<typeof StoredMealSchema>;
 
 const MealPlanSchema = z.object({
   id: z.number(),
+  created_at: z.string().datetime().pipe(z.coerce.date()),
   name: z.string(),
   meals: z.array(StoredMealSchema),
 });
@@ -52,11 +53,16 @@ export function useAllMealPlans(token: string) {
         })
         .json();
 
+      const newToOld = (a: { created_at: Date }, b: { created_at: Date }) =>
+        a.created_at.getTime() - b.created_at.getTime();
+
+      const oldToNew = (a: { created_at: Date }, b: { created_at: Date }) =>
+        b.created_at.getTime() - a.created_at.getTime();
+
       const meals = MealPlansSchema.parse(body);
+      meals.meal_plans.sort(oldToNew);
       for (const plan of meals.meal_plans) {
-        plan.meals.sort(
-          (a, b) => a.created_at.getTime() - b.created_at.getTime(),
-        );
+        plan.meals.sort(newToOld);
       }
 
       return meals;
@@ -68,15 +74,19 @@ export function useCreateMealPlan(token: string) {
   const client = useQueryClient();
   return useMutation({
     mutationFn: async (params: { name: string; keepUncooked: boolean }) => {
-      await http.post("api/mealplans", {
-        json: {
-          name: params.name,
-          keep_uncooked: params.keepUncooked,
-        },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const body = await http
+        .post("api/mealplans", {
+          json: {
+            name: params.name,
+            keep_uncooked: params.keepUncooked,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .json();
+
+      return MealPlanSchema.parse(body);
     },
     onSuccess: () => {
       client.invalidateQueries({ queryKey: ["mealplans"] });
