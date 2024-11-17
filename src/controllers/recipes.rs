@@ -6,6 +6,7 @@ use loco_rs::prelude::*;
 use migration::Expr;
 use sea_orm::Statement;
 use serde::{Deserialize, Serialize};
+use tokio::io::duplex;
 
 use crate::models::{
     _entities::{self, ingredients_in_recipes, quantities, recipes},
@@ -596,6 +597,75 @@ pub async fn set_recipe_duration(
     Ok(())
 }
 
+#[derive(Deserialize)]
+#[serde(tag = "type", content = "value")]
+#[serde(rename_all = "lowercase")]
+enum RecipeChange {
+    Name(String),
+    Tags(Vec<String>),
+    Notes(String),
+    Source(RecipeSource),
+    Duration(String),
+    Rating(i32),
+    Ingredients(ChangeIngredient),
+}
+
+#[derive(Deserialize)]
+#[serde(tag = "type")]
+#[serde(rename_all = "lowercase")]
+enum ChangeIngredient {
+    Add { ingredient: i32, quantity: String },
+    Remove { ingredient: i32 },
+}
+
+#[derive(Deserialize)]
+pub struct EditRecipeParameters {
+    changes: Vec<RecipeChange>,
+}
+
+pub async fn edit_recipe(
+    auth: middleware::auth::JWT,
+    Path(id): Path<i32>,
+    State(ctx): State<AppContext>,
+    extract::Json(params): extract::Json<EditRecipeParameters>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let mut recipe = recipes::Entity::find_by_id(id)
+        .one(&ctx.db)
+        .await?
+        .ok_or_else(|| Error::NotFound)?
+        .into_active_model();
+
+    for change in params.changes {
+        match change {
+            RecipeChange::Name(name) => recipe.name = ActiveValue::set(name),
+            RecipeChange::Tags(tags) => recipe.tags = ActiveValue::set(tags),
+            RecipeChange::Notes(notes) => recipe.notes = ActiveValue::set(notes),
+            RecipeChange::Source(RecipeSource::Book { title, page }) => {
+                recipe.source = ActiveValue::set("book".to_string());
+                recipe.book_title = ActiveValue::set(Some(title));
+                recipe.book_page = ActiveValue::set(Some(page));
+                recipe.website_url = ActiveValue::set(None);
+            }
+            RecipeChange::Source(RecipeSource::Website { url }) => {
+                recipe.source = ActiveValue::set("website".to_string());
+                recipe.book_title = ActiveValue::set(None);
+                recipe.book_page = ActiveValue::set(None);
+                recipe.website_url = ActiveValue::set(Some(url));
+            }
+            RecipeChange::Duration(d) => recipe.duration = ActiveValue::set(Some(d)),
+            RecipeChange::Rating(r) => recipe.rating = ActiveValue::set(r),
+            RecipeChange::Ingredients(ChangeIngredient::Add { .. }) => todo!(),
+            RecipeChange::Ingredients(ChangeIngredient::Remove { .. }) => todo!(),
+        }
+    }
+
+    recipe.save(&ctx.db).await?;
+
+    Ok(())
+}
+
 pub async fn delete_ingredient(
     auth: middleware::auth::JWT,
     State(ctx): State<AppContext>,
@@ -629,11 +699,12 @@ pub fn routes() -> Routes {
         .add("/:id/rating/:value", post(set_recipe_rating))
         .add("/:id/ingredients", post(add_ingredient))
         .add("/:id/ingredients/:ingredient", delete(delete_ingredient))
+        .add("/:id/edit", post(edit_recipe))
 }
 
 #[cfg(test)]
 mod tests {
-    use super::UpdateRecipe;
+    use super::{EditRecipeParameters, UpdateRecipe};
 
     #[test]
     fn can_extract_data_from_edit_recipe_form() {
@@ -654,5 +725,25 @@ mod tests {
             "#;
 
         let _actual: UpdateRecipe = serde_json::from_str(raw_json).unwrap();
+    }
+
+    #[test]
+    fn can_extract_changes_to_recipes() {
+        let raw_json = r#"
+            {
+              "changes": [
+                {"type": "name", "value": "Tartiflette" }, 
+                {"type": "tags", "value": ["a", "b"] }, 
+                {"type": "notes", "value": "bla bla" }, 
+                {"type": "source", "value": { "title": "bla", "page": 3} }, 
+                {"type": "duration", "value": "34m" }, 
+                {"type": "rating", "value": 3 }, 
+                {"type": "ingredients", "value": { "type": "add", "ingredient": 1, "quantity": "3tbsp"  }}, 
+                {"type": "ingredients", "value": { "type": "remove", "ingredient": 1 }}
+              ]
+            }
+            "#;
+
+        let _actual: EditRecipeParameters = serde_json::from_str(raw_json).unwrap();
     }
 }

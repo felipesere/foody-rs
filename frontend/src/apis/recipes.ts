@@ -61,6 +61,18 @@ export const RecipesSchema = z.object({
   recipes: z.array(RecipeSchema),
 });
 
+type IngredientChange =
+  | { type: "add"; ingredient: number; quantity: string }
+  | { type: "remove"; ingredient: number };
+
+type Change =
+  | { type: "name"; value: string }
+  | { type: "tags"; value: string[] }
+  | { type: "notes"; value: string }
+  | { type: "source"; value: { title: string; page: number } | { url: string } }
+  | { type: "rating"; value: number }
+  | { type: "ingredients"; value: IngredientChange };
+
 export type AddRecipeParams = {
   recipeId: Recipe["id"];
   shoppinglistId: Shoppinglist["id"];
@@ -346,6 +358,7 @@ export function useSetRecipeSource(token: string, id: Recipe["id"]) {
     },
   });
 }
+
 export function useSetRecipeDuration(token: string, id: Recipe["id"]) {
   const client = useQueryClient();
   return useMutation({
@@ -356,6 +369,26 @@ export function useSetRecipeDuration(token: string, id: Recipe["id"]) {
         },
         json: {
           duration,
+        },
+      });
+    },
+    onSuccess: async () => {
+      await client.invalidateQueries({ queryKey: ["recipe", id] });
+      await client.invalidateQueries({ queryKey: ["recipes"] });
+    },
+  });
+}
+
+export function useChangeRecipe(token: string, id: Recipe["id"]) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (changes: Change[]) => {
+      await http.put(`api/recipes/${id}/duration`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        json: {
+          changes,
         },
       });
     },
