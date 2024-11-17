@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { http } from "./http.ts";
 import { WithIdSchema } from "./recipes.ts";
+import type { Shoppinglist } from "./shoppinglists.ts";
 
 const DetailsSchema = z.discriminatedUnion("type", [
   z.object({
@@ -30,11 +31,12 @@ export type StoredMeal = z.infer<typeof StoredMealSchema>;
 
 const MealPlanSchema = z.object({
   id: z.number(),
+  created_at: z.string().datetime().pipe(z.coerce.date()),
   name: z.string(),
   meals: z.array(StoredMealSchema),
 });
 
-type MealPlan = z.infer<typeof MealPlanSchema>;
+export type MealPlan = z.infer<typeof MealPlanSchema>;
 
 const MealPlansSchema = z.object({
   meal_plans: z.array(MealPlanSchema),
@@ -52,11 +54,16 @@ export function useAllMealPlans(token: string) {
         })
         .json();
 
+      const newToOld = (a: { created_at: Date }, b: { created_at: Date }) =>
+        a.created_at.getTime() - b.created_at.getTime();
+
+      const oldToNew = (a: { created_at: Date }, b: { created_at: Date }) =>
+        b.created_at.getTime() - a.created_at.getTime();
+
       const meals = MealPlansSchema.parse(body);
+      meals.meal_plans.sort(oldToNew);
       for (const plan of meals.meal_plans) {
-        plan.meals.sort(
-          (a, b) => a.created_at.getTime() - b.created_at.getTime(),
-        );
+        plan.meals.sort(newToOld);
       }
 
       return meals;
@@ -67,13 +74,20 @@ export function useAllMealPlans(token: string) {
 export function useCreateMealPlan(token: string) {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: async (params: { name: string }) => {
-      await http.post("api/mealplans", {
-        json: params,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+    mutationFn: async (params: { name: string; keepUncooked: boolean }) => {
+      const body = await http
+        .post("api/mealplans", {
+          json: {
+            name: params.name,
+            keep_uncooked: params.keepUncooked,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .json();
+
+      return MealPlanSchema.parse(body);
     },
     onSuccess: () => {
       client.invalidateQueries({ queryKey: ["mealplans"] });
@@ -188,6 +202,43 @@ export function useClearMealplan(token: string, meal_plan_id: MealPlan["id"]) {
     },
     onSuccess: () => {
       client.invalidateQueries({ queryKey: ["mealplans"] });
+    },
+  });
+}
+
+export function useRemoveMealplan(token: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: { id: MealPlan["id"] }) => {
+      await http.delete(`api/mealplans/${params.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    },
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: ["mealplans"] });
+    },
+  });
+}
+
+export function useAddPlanToShoppinglist(token: string, id: MealPlan["id"]) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: { shoppinglist: Shoppinglist["id"] }) => {
+      await http.post(`api/mealplans/${id}/shoppinglist`, {
+        json: {
+          shoppinglist: params.shoppinglist,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    },
+    onSuccess: (_, vars) => {
+      toast.info(`Added ${id} to ${vars.shoppinglist}`);
+      client.invalidateQueries({ queryKey: ["mealplans"] });
+      client.invalidateQueries({ queryKey: ["shoppinglist"] });
     },
   });
 }

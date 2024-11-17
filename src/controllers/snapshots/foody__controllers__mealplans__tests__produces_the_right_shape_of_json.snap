@@ -6,6 +6,7 @@ expression: "&meal_plans"
   "meal_plans": [
     {
       "id": 1,
+      "created_at": "2024-01-22 17:34:01",
       "name": "the first",
       "meals": [
         {
@@ -32,6 +33,7 @@ expression: "&meal_plans"
     },
     {
       "id": 2,
+      "created_at": "2024-01-22 17:34:01",
       "name": "the second",
       "meals": [
         {

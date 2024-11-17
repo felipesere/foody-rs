@@ -28,6 +28,27 @@
 }
 
 /*
+ A divider that is mostly vertical and goes horizontal under a breakpoint
+ */
+
+.divider {
+  border-style: solid;
+  border-color: black;
+  border-left-width: 0;
+  border-top-width: 2px;
+  padding-top: .5rem;
+  padding-left: 0;
+
+  @media (min-width: 768px) {
+    border-left-width: 2px;
+    border-top-width: 0;
+
+    padding-top: 0;
+    padding-left: .5rem;
+  }
+}
+
+/*
   Fancy "block-like" shadow.
   The ones from Tailwind are soft and don't fit the ascii-art theme
  */
@@ -92,7 +113,7 @@ input[type="button"].borderless {
 
 button:disabled,
 input[type="button"]:disabled {
-  color: white;
+  color: #a1a1a1;
   background-color: #495057;
   cursor: not-allowed;
 }
