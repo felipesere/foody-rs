@@ -6,7 +6,9 @@ use loco_rs::{controller::middleware, prelude::*};
 use serde::{Deserialize, Serialize};
 
 use crate::models::{
-    _entities::{meal_plans, meals_in_meal_plans},
+    _entities::{
+        ingredients_in_recipes, ingredients_in_shoppinglists, meal_plans, meals_in_meal_plans,
+    },
     users,
 };
 
@@ -338,12 +340,89 @@ pub async fn remove_meal_plan(
     Ok(())
 }
 
+#[derive(Deserialize, Debug)]
+pub struct AddMealPlanToShoppinglistsParams {
+    shoppinglist: i32,
+}
+
+pub async fn add_meal_plan_to_shoppinglist(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+    Path(id): Path<i32>,
+    extract::Json(AddMealPlanToShoppinglistsParams {
+        shoppinglist: shoppdinglist,
+    }): extract::Json<AddMealPlanToShoppinglistsParams>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let recipes_in_shoppinglist: Vec<_> = ingredients_in_shoppinglists::Entity::find()
+        .filter(ingredients_in_shoppinglists::Column::ShoppinglistsId.eq(shoppdinglist))
+        .filter(ingredients_in_shoppinglists::Column::RecipeId.is_not_null())
+        .all(&ctx.db)
+        .await?
+        .into_iter()
+        // NOT NULL condition is part of query
+        .map(|item| item.recipe_id.unwrap())
+        .collect();
+
+    tracing::error!("The current recipes in the shoppinglist are: {recipes_in_shoppinglist:?}");
+
+    let uncooked_recipes = meals_in_meal_plans::Entity::find()
+        .filter(
+            meals_in_meal_plans::Column::MealPlanId
+                .eq(id)
+                .and(meals_in_meal_plans::Column::IsCooked.eq(false))
+                .and(meals_in_meal_plans::Column::RecipeId.is_not_null()),
+        )
+        .all(&ctx.db)
+        .await?;
+
+    tracing::error!("The uncooked recipes are: {uncooked_recipes:?}");
+
+    let missing_recipes = uncooked_recipes
+        .into_iter()
+        .filter_map(|ur| ur.recipe_id)
+        // Remove all recipes where at least some ingredient is already on the list
+        .filter(|uc| !recipes_in_shoppinglist.contains(uc))
+        .collect::<Vec<_>>();
+
+    tracing::error!("The ones we should add: {missing_recipes:?}");
+
+    let ingredients = ingredients_in_recipes::Entity::find()
+        .filter(ingredients_in_recipes::Column::RecipesId.is_in(missing_recipes))
+        .all(&ctx.db)
+        .await?;
+
+    tracing::error!("Their ingredients: {ingredients:?}");
+
+    let to_be_added: Vec<_> = ingredients
+        .into_iter()
+        .map(|i| ingredients_in_shoppinglists::ActiveModel {
+            in_basket: ActiveValue::set(false),
+            shoppinglists_id: ActiveValue::set(shoppdinglist),
+            ingredients_id: ActiveValue::set(i.ingredients_id),
+            quantities_id: ActiveValue::set(i.quantities_id),
+            recipe_id: ActiveValue::set(Some(i.recipes_id)),
+            ..Default::default()
+        })
+        .collect();
+
+    if !to_be_added.is_empty() {
+        ingredients_in_shoppinglists::Entity::insert_many(to_be_added)
+            .exec(&ctx.db)
+            .await?;
+    }
+
+    Ok(())
+}
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("mealplans")
         .add("/", get(all_mealplans))
         .add("/", post(create_meal_plan))
         .add("/:id", delete(remove_meal_plan))
+        .add("/:id/shoppinglist", post(add_meal_plan_to_shoppinglist))
         .add("/:id/clear", post(clear_meal_plan))
         .add("/:id/meal", post(add_to_meal))
         .add("/:id/meal/:meal_id", delete(delete_meal_from_mealplan))

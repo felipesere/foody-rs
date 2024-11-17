@@ -9,6 +9,7 @@ import {
   type MealPlan,
   type StoredMeal,
   useAddMealToPlan,
+  useAddPlanToShoppinglist,
   useAllMealPlans,
   useClearMealplan,
   useCreateMealPlan,
@@ -22,6 +23,7 @@ import { Button } from "../components/button.tsx";
 import { Dropdown, type DropdownProps } from "../components/dropdown.tsx";
 import { FieldSet } from "../components/fieldset.tsx";
 import { KebabMenu } from "../components/kebabMenu.tsx";
+import { AddToShoppinglist } from "../components/smart/addToShoppinglist.tsx";
 import { Toggle } from "../components/toggle.tsx";
 
 const SelectedMealPlanSchema = z.object({
@@ -109,6 +111,7 @@ function ViewMealPlan(props: {
 
   const addMeal = useAddMealToPlan(token, mealPlan.id);
   const clearPlan = useClearMealplan(token, mealPlan.id);
+  const addToShoppinglist = useAddPlanToShoppinglist(token, mealPlan.id);
 
   const sections = new Set(
     mealPlan.meals.map((meal) => meal.section).filter((s) => s !== null),
@@ -143,12 +146,11 @@ function ViewMealPlan(props: {
               clearPlan.mutate();
             }}
           />
-          <Button
-            classNames={"whitespace-nowrap flex-shrink"}
-            label={"Add To Shoppinglist"}
-            disabled={true}
-            onClick={() => {
-              clearPlan.mutate();
+          <AddToShoppinglist
+            label={"Add to Shoppinglist"}
+            token={props.token}
+            onSelect={(list) => {
+              addToShoppinglist.mutate({ shoppinglist: list.id });
             }}
           />
         </div>

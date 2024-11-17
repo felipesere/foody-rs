@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { http } from "./http.ts";
 import { WithIdSchema } from "./recipes.ts";
+import type { Shoppinglist } from "./shoppinglists.ts";
 
 const DetailsSchema = z.discriminatedUnion("type", [
   z.object({
@@ -217,6 +218,27 @@ export function useRemoveMealplan(token: string) {
     },
     onSuccess: () => {
       client.invalidateQueries({ queryKey: ["mealplans"] });
+    },
+  });
+}
+
+export function useAddPlanToShoppinglist(token: string, id: MealPlan["id"]) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: { shoppinglist: Shoppinglist["id"] }) => {
+      await http.post(`api/mealplans/${id}/shoppinglist`, {
+        json: {
+          shoppinglist: params.shoppinglist,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    },
+    onSuccess: (_, vars) => {
+      toast.info(`Added ${id} to ${vars.shoppinglist}`);
+      client.invalidateQueries({ queryKey: ["mealplans"] });
+      client.invalidateQueries({ queryKey: ["shoppinglist"] });
     },
   });
 }
