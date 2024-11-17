@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
-import { useAddMealToPlan } from "../apis/mealplans.ts";
+import { useAddRecipeToMealplan } from "../apis/mealplans.ts";
 import {
   type Source,
   addRecipeToShoppinglist,
@@ -43,9 +43,7 @@ function RecipePage() {
   const setName = useSetRecipeName(token, id);
   const setSource = useSetRecipeSource(token, id);
   const setDuration = useSetRecipeDuration(token, id);
-
-  // TODO: get rid of the 1
-  const addMealToPlan = useAddMealToPlan(token, 1);
+  const addMealToPlan = useAddRecipeToMealplan(token);
   const addRecipe = addRecipeToShoppinglist(token);
 
   // TODO: needs to be lower inside of layout... but we will get there
@@ -95,17 +93,17 @@ function RecipePage() {
             removeIngredient.mutate({ ingredient: ing.id });
           }
         }}
-        onAddToMealPlan={() => {
+        onAddToMealPlan={(id) => {
           addMealToPlan.mutate({
-            section: null,
+            mealPlan: id,
             details: {
               type: "from_recipe",
               id: recipe.id,
             },
           });
         }}
-        onAddToShoppinglist={(list) => {
-          addRecipe.mutate({ recipeId: recipe.id, shoppinglistId: list });
+        onAddToShoppinglist={(id) => {
+          addRecipe.mutate({ recipeId: recipe.id, shoppinglistId: id });
         }}
         onChangeQuantity={(name, quantity) => {
           const ing = recipe.ingredients.find((i) => i.name === name);

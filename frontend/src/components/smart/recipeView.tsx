@@ -1,6 +1,7 @@
 import classNames from "classnames";
 import { createContext, useContext, useState } from "react";
 import type { Ingredient as OnlyIngredient } from "../../apis/ingredients.ts";
+import type { MealPlan } from "../../apis/mealplans.ts";
 import {
   type Source,
   type UnstoredIngredient,
@@ -16,6 +17,7 @@ import { DeleteButton } from "../deleteButton.tsx";
 import { Divider } from "../divider.tsx";
 import { DottedLine } from "../dottedLine.tsx";
 import { MultiSelect } from "../multiselect.tsx";
+import { AddToMealPlan } from "./addToMealplan.tsx";
 import { AddToShoppinglist } from "./addToShoppinglist.tsx";
 import { SelectIngredientWithQuantity } from "./selectIngredientWithQuantity.tsx";
 
@@ -38,7 +40,7 @@ type RecipeViewProps = {
   onSetNote: (notes: string) => void;
   onSetDuration: (duration: string) => void;
   onAddToShoppinglist?: (shoppinglistId: Shoppinglist["id"]) => void;
-  onAddToMealPlan?: () => void;
+  onAddToMealPlan?: (mealplanId: MealPlan["id"]) => void;
 };
 export function RecipeView(props: RecipeViewProps) {
   const { editing, token } = useContext(RecipeContext);
@@ -86,9 +88,12 @@ export function RecipeView(props: RecipeViewProps) {
           />
         )}
         {props.onAddToMealPlan && (
-          <Button
-            label={"Add to Meal plan"}
-            onClick={() => props.onAddToMealPlan?.()}
+          <AddToMealPlan
+            label={"Add to Mealplan"}
+            token={token}
+            onSelect={(plan) => {
+              props.onAddToMealPlan?.(plan.id);
+            }}
           />
         )}
       </ButtonGroup>

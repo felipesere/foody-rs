@@ -8,8 +8,8 @@ import {
   type Meal,
   type MealPlan,
   type StoredMeal,
-  useAddMealToPlan,
   useAddPlanToShoppinglist,
+  useAddRecipeToMealplan,
   useAllMealPlans,
   useClearMealplan,
   useCreateMealPlan,
@@ -109,7 +109,7 @@ function ViewMealPlan(props: {
 }) {
   const { mealPlan, token, recipes } = props;
 
-  const addMeal = useAddMealToPlan(token, mealPlan.id);
+  const addMeal = useAddRecipeToMealplan(token);
   const clearPlan = useClearMealplan(token, mealPlan.id);
   const addToShoppinglist = useAddPlanToShoppinglist(token, mealPlan.id);
 
@@ -161,7 +161,7 @@ function ViewMealPlan(props: {
             placeholder={"Recipe..."}
             onRecipe={(r) => {
               addMeal.mutate({
-                section: null,
+                mealPlan: mealPlan.id,
                 details: {
                   type: "from_recipe",
                   id: r.id,
@@ -170,7 +170,7 @@ function ViewMealPlan(props: {
             }}
             onNonRecipe={(name) => {
               addMeal.mutate({
-                section: null,
+                mealPlan: mealPlan.id,
                 details: {
                   type: "untracked",
                   name,

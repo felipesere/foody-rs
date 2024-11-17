@@ -95,14 +95,16 @@ export function useCreateMealPlan(token: string) {
   });
 }
 
-type AddMealParams = Pick<Meal, "details" | "section">;
+type AddMealParams = { mealPlan: MealPlan["id"]; details: Meal["details"] };
 
-export function useAddMealToPlan(token: string, id: MealPlan["id"]) {
+export function useAddRecipeToMealplan(token: string) {
   const client = useQueryClient();
   return useMutation({
     mutationFn: async (params: AddMealParams) => {
-      await http.post(`api/mealplans/${id}/meal`, {
-        json: params,
+      await http.post(`api/mealplans/${params.mealPlan}/meal`, {
+        json: {
+          details: params.details,
+        },
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -111,9 +113,9 @@ export function useAddMealToPlan(token: string, id: MealPlan["id"]) {
     onSuccess: async (_, vars) => {
       await client.invalidateQueries({ queryKey: ["mealplans"] });
       if (vars.details.type === "from_recipe") {
-        toast.info(`Added ${vars.details.id} to ${id}`);
+        toast.info(`Added ${vars.details.id} to ${vars.mealPlan}`);
       } else {
-        toast.info(`Added ${vars.details.name} to ${id}`);
+        toast.info(`Added ${vars.details.name} to ${vars.mealPlan}`);
       }
     },
   });
