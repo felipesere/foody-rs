@@ -29,6 +29,7 @@ export const RecipeContext = createContext({
 type RecipeViewProps = {
   recipe: UnstoredRecipe;
   onSave: (isEditing: boolean) => void;
+  onCancel: () => void;
   onSetName: (name: string) => void;
   onSetSource: (source: Source) => void;
   onSetRating: (rating: number) => void;
@@ -78,6 +79,9 @@ export function RecipeView(props: RecipeViewProps) {
           label={editing ? "Save" : "Edit"}
           onClick={() => props.onSave(editing)}
         />
+        {editing && (
+          <Button label={"Cancel"} onClick={() => props.onCancel()} />
+        )}
         {props.onAddToShoppinglist && (
           <AddToShoppinglist
             label={"Add to Shoppinglist"}

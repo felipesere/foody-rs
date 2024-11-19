@@ -8,9 +8,9 @@ import {
   type Source,
   addRecipeToShoppinglist,
   useAllRecipes,
+  useChangeRecipe,
   useDeleteRecipe,
   useRecipeTags,
-  useSetRecipeRating,
 } from "../apis/recipes.ts";
 import searchIcon from "../assets/search.png";
 import { Button } from "../components/button.tsx";
@@ -203,8 +203,8 @@ function RecipeView(props: RecipeProps) {
   const addRecipe = addRecipeToShoppinglist(token);
   const deleteRecipe = useDeleteRecipe(token);
   const recipeId = props.recipe.id;
+  const changeRecipe = useChangeRecipe(token, recipeId);
   const navigate = useNavigate({ from: "/recipes" });
-  const setRating = useSetRecipeRating(token, recipeId);
 
   return (
     <li className="p-2 border-black border-solid border-2">
@@ -212,7 +212,7 @@ function RecipeView(props: RecipeProps) {
       <ShowSource details={props.recipe} />
       <Stars
         rating={props.recipe.rating}
-        setRating={(n) => setRating.mutate(n)}
+        setRating={(n) => changeRecipe.mutate([{ type: "rating", value: n }])}
       />
       {props.recipe.duration && <p>⏲ {props.recipe.duration}</p>}
 

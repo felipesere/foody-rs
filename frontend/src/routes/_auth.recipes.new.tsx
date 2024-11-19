@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { useState } from "react";
 import {
@@ -28,6 +28,7 @@ function NewRecipePage() {
     notes: "",
     duration: null,
   });
+  const navigate = useNavigate({ from: "/recipes/new" });
 
   const n = useCreateRecipe(token);
 
@@ -37,6 +38,7 @@ function NewRecipePage() {
         onSave={() => {
           n.mutate(recipe);
         }}
+        onCancel={() => navigate({ to: "/recipes" })}
         recipe={recipe}
         onSetName={(name) => setRecipe((prev) => ({ ...prev, name }))}
         onSetSource={(source: Source) => {

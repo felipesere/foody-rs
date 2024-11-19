@@ -33,12 +33,10 @@ async fn can_create_and_update_a_recipe() {
 
         let something_recipe = serde_json::json!({
             "name": "something something",
-            "title": "simplissime",
             "tags": ["a", "b"],
-            "page": 12,
             "notes": "a b c...",
             "rating": 1,
-            "source": "book",
+            "source": { "type": "book", "page": 12, "title": "simplissie" },
             "ingredients": [{
               "id": bacon.id,
               "quantity": [{
@@ -82,29 +80,42 @@ async fn can_create_and_update_a_recipe() {
         assert_eq!(something_something.ingredients.len(), 3);
         assert_eq!(something_something.tags.len(), 2);
 
+        // TODO: this has radically changed!
         let res = request
-            .post(&format!("/api/recipes/{id}"))
+            .post(&format!("/api/recipes/{id}/edit"))
             .json(&serde_json::json!({
-                "name": "something something",
-                "title": "simplissime",
-                "page": 12,
-                "ingredients": [{
-                  "id": bacon.id,
-                  "quantity": "100g"
+                "changes": [
+                {
+                    "type": "name",
+                    "value": "something something"
                 },
                 {
-                  "id": apples.id,
-                  "quantity": "140g"
+                    "type": "source",
+                    "value": {
+                        "type": "book",
+                        "title": "simplissime",
+                        "page": 12
+                    }
                 },
                 {
-                  "id": plums.id,
-                  "quantity": "0.5x"
+                    "type": "tags",
+                    "value": ["alpha", "bravo", "charlie"]
+                },
+                {
+                    "type": "ingredients",
+                    "value": { "type": "set", "ingredients": [
+                        {"id": bacon.id, "quantity": "100g"},
+                        {"id": apples.id, "quantity": "140g"},
+                        {"id": plums.id, "quantity": "0.5x"},
+                        ]
+                    }
                 }
                 ],
-                "tags": ["alpha", "bravo", "charlie"]
             }))
             .await;
         assert_eq!(res.status_code(), 200);
+
+        dbg!(&res.text());
 
         let something_something = res.json::<RecipeResponse>();
         assert_eq!(something_something.ingredients.len(), 3);

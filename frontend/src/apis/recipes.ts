@@ -61,17 +61,25 @@ export const RecipesSchema = z.object({
   recipes: z.array(RecipeSchema),
 });
 
-type IngredientChange =
-  | { type: "add"; ingredient: number; quantity: string }
-  | { type: "remove"; ingredient: number };
-
-type Change =
+export type Change =
   | { type: "name"; value: string }
   | { type: "tags"; value: string[] }
   | { type: "notes"; value: string }
-  | { type: "source"; value: { title: string; page: number } | { url: string } }
+  | {
+      type: "source";
+      value:
+        | { type: "book"; title: string; page: number }
+        | { type: "website"; url: string };
+    }
   | { type: "rating"; value: number }
-  | { type: "ingredients"; value: IngredientChange };
+  | { type: "duration"; value: string }
+  | {
+      type: "ingredients";
+      value:
+        | { type: "add"; id: number; quantity: string }
+        | { type: "remove"; ingredient: number }
+        | { type: "set"; ingredients: { id: number; quantity: string }[] };
+    };
 
 export type AddRecipeParams = {
   recipeId: Recipe["id"];
@@ -137,35 +145,6 @@ export function useRecipe(token: string, id: Recipe["id"]) {
   return useQuery(useRecipeOptions(token, id));
 }
 
-export type EditRecipeFormParams = Omit<Recipe, "ingredients" | "id"> & {
-  id?: Recipe["id"];
-  ingredients: { quantity: string; id: Ingredient["id"] }[];
-};
-
-export function useUpdateRecipe(token: string, recipeId: Recipe["id"]) {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: async (variables: EditRecipeFormParams) => {
-      const body = await http
-        .post(`api/recipes/${recipeId}`, {
-          method: "POST",
-          json: variables,
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .json();
-
-      return RecipeSchema.parse(body);
-    },
-    onSuccess: async (_, vars) => {
-      await client.invalidateQueries({ queryKey: ["recipe", recipeId] });
-      await client.invalidateQueries({ queryKey: ["recipes"] });
-      toast(`Updated "${vars.name}"`);
-    },
-  });
-}
-
 export function useCreateRecipe(token: string) {
   const client = useQueryClient();
   return useMutation({
@@ -225,165 +204,11 @@ export function useRecipeTags(token: string) {
     },
   });
 }
-
-export function useSetRecipeRating(token: string, id: Recipe["id"]) {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: async (rating: number) => {
-      return http.post(`api/recipes/${id}/rating/${rating}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-    },
-    onSuccess: async () => {
-      await client.invalidateQueries({ queryKey: ["recipe", id] });
-      await client.invalidateQueries({ queryKey: ["recipes"] });
-    },
-  });
-}
-
-export function useSetRecipeTags(token: string, id: Recipe["id"]) {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: async (tags: Recipe["tags"]) => {
-      await http.put(`api/recipes/${id}/tags`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        json: {
-          tags,
-        },
-      });
-    },
-    onSuccess: async () => {
-      await client.invalidateQueries({ queryKey: ["recipe", id] });
-      await client.invalidateQueries({ queryKey: ["recipes"] });
-      await client.invalidateQueries({ queryKey: ["recipes", "tags"] });
-    },
-  });
-}
-export function useSetRecipeNotes(token: string, id: Recipe["id"]) {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: async (notes: Recipe["notes"]) => {
-      await http.post(`api/recipes/${id}/notes`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        json: {
-          notes,
-        },
-      });
-    },
-    onSuccess: async () => {
-      await client.invalidateQueries({ queryKey: ["recipe", id] });
-      await client.invalidateQueries({ queryKey: ["recipes"] });
-      toast.info("Saved notes.");
-    },
-  });
-}
-export function useAddIngredient(token: string, id: Recipe["id"]) {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: async (vars: { ingredient: number; quantity: string }) => {
-      await http.post(`api/recipes/${id}/ingredients`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        json: {
-          ingredient: vars.ingredient,
-          quantity: vars.quantity,
-        },
-      });
-    },
-    onSuccess: async () => {
-      await client.invalidateQueries({ queryKey: ["recipe", id] });
-      await client.invalidateQueries({ queryKey: ["recipes"] });
-    },
-  });
-}
-
-export function useDeleteIngredient(token: string, id: Recipe["id"]) {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: async (vars: { ingredient: number }) => {
-      await http.delete(`api/recipes/${id}/ingredients/${vars.ingredient}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-    },
-    onSuccess: async () => {
-      await client.invalidateQueries({ queryKey: ["recipe", id] });
-      await client.invalidateQueries({ queryKey: ["recipes"] });
-    },
-  });
-}
-
-export function useSetRecipeName(token: string, id: Recipe["id"]) {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: async (name: Recipe["name"]) => {
-      await http.put(`api/recipes/${id}/name`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        json: {
-          name,
-        },
-      });
-    },
-    onSuccess: async () => {
-      await client.invalidateQueries({ queryKey: ["recipe", id] });
-      await client.invalidateQueries({ queryKey: ["recipes"] });
-    },
-  });
-}
-
-export function useSetRecipeSource(token: string, id: Recipe["id"]) {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: async (source: Source) => {
-      await http.put(`api/recipes/${id}/source`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        json: source,
-      });
-    },
-    onSuccess: async () => {
-      await client.invalidateQueries({ queryKey: ["recipe", id] });
-      await client.invalidateQueries({ queryKey: ["recipes"] });
-    },
-  });
-}
-
-export function useSetRecipeDuration(token: string, id: Recipe["id"]) {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: async (duration: string) => {
-      await http.put(`api/recipes/${id}/duration`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        json: {
-          duration,
-        },
-      });
-    },
-    onSuccess: async () => {
-      await client.invalidateQueries({ queryKey: ["recipe", id] });
-      await client.invalidateQueries({ queryKey: ["recipes"] });
-    },
-  });
-}
-
 export function useChangeRecipe(token: string, id: Recipe["id"]) {
   const client = useQueryClient();
   return useMutation({
     mutationFn: async (changes: Change[]) => {
-      await http.put(`api/recipes/${id}/duration`, {
+      await http.post(`api/recipes/${id}/edit`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -395,6 +220,8 @@ export function useChangeRecipe(token: string, id: Recipe["id"]) {
     onSuccess: async () => {
       await client.invalidateQueries({ queryKey: ["recipe", id] });
       await client.invalidateQueries({ queryKey: ["recipes"] });
+      await client.invalidateQueries({ queryKey: ["recipes", "tags"] });
+      toast(`Updated "${id}"`);
     },
   });
 }

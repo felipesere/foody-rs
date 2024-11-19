@@ -3,13 +3,12 @@ use std::collections::HashSet;
 use axum::{extract, http::StatusCode, response::Response};
 use loco_rs::controller::middleware::{self};
 use loco_rs::prelude::*;
-use migration::Expr;
 use sea_orm::Statement;
 use serde::{Deserialize, Serialize};
-use tokio::io::duplex;
 
+use crate::models::_entities::quantities;
 use crate::models::{
-    _entities::{self, ingredients_in_recipes, quantities, recipes},
+    _entities::{self, ingredients_in_recipes, recipes},
     quantities::Quantity,
     users::users,
 };
@@ -144,25 +143,11 @@ pub async fn delete_recipe(
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(untagged)]
+#[serde(tag = "type")]
+#[serde(rename_all = "lowercase")]
 enum RecipeSource {
     Book { title: String, page: i32 },
     Website { url: String },
-}
-
-#[derive(Deserialize, Debug)]
-struct Ingredient {
-    id: i32,
-    #[serde(deserialize_with = "deserialize_raw_quanitty")]
-    quantity: Quantity,
-}
-fn deserialize_raw_quanitty<'de, D>(deser: D) -> Result<Quantity, D::Error>
-where
-    D: serde::Deserializer<'de>,
-{
-    let raw = String::deserialize(deser)?;
-
-    Ok(Quantity::parse(&raw))
 }
 
 #[derive(Deserialize, Debug)]
@@ -196,7 +181,6 @@ struct UnstoredIngredient {
 #[derive(Deserialize, Debug)]
 pub struct CreateRecipe {
     name: String,
-    #[serde(flatten)]
     source: RecipeSource,
     tags: Vec<String>,
     rating: i32,
@@ -258,169 +242,6 @@ pub async fn create_recipe(
     Ok(StatusCode::OK)
 }
 
-#[derive(Deserialize, Debug)]
-pub struct UpdateRecipe {
-    name: String,
-    #[serde(flatten)]
-    source: RecipeSource,
-    ingredients: Vec<Ingredient>,
-    tags: Vec<String>,
-}
-
-pub async fn update_recipe(
-    auth: middleware::auth::JWT,
-    Path(id): Path<i32>,
-    State(ctx): State<AppContext>,
-    extract::Json(params): extract::Json<UpdateRecipe>,
-) -> Result<Response> {
-    use crate::models::_entities::prelude::*;
-    use crate::models::_entities::recipes::ActiveModel;
-
-    tracing::info!("updating {id} wiht {params:#?}");
-
-    // check auth
-    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
-
-    let tx = ctx.db.begin().await.unwrap();
-
-    let r = Recipes::find_by_id(id).one(&tx).await.unwrap().unwrap();
-
-    let mut a: ActiveModel = r.into();
-    a.name = ActiveValue::set(params.name);
-    match params.source {
-        RecipeSource::Book { title, page } => {
-            a.source = ActiveValue::set("book".into());
-            a.book_title = ActiveValue::set(Some(title));
-            a.book_page = ActiveValue::set(Some(page));
-            a.website_url = ActiveValue::set(None);
-        }
-        RecipeSource::Website { url } => {
-            a.source = ActiveValue::set("website".into());
-            a.website_url = ActiveValue::set(Some(url));
-            a.book_title = ActiveValue::set(None);
-            a.book_page = ActiveValue::set(None);
-        }
-    }
-    a.tags = ActiveValue::set(params.tags);
-    a.save(&tx).await?;
-
-    IngredientsInRecipes::delete_many()
-        .filter(ingredients_in_recipes::Column::RecipesId.eq(id))
-        .exec(&tx)
-        .await?;
-
-    for i in params.ingredients {
-        let mut quantity = quantities::ActiveModel::new();
-        match i.quantity {
-            Quantity::Count(n) => {
-                quantity.unit = ActiveValue::set("count".to_string());
-                quantity.value = ActiveValue::set(Some(n));
-                quantity.text = ActiveValue::not_set();
-            }
-            Quantity::WithUnit { value, unit } => {
-                quantity.unit = ActiveValue::set(unit);
-                quantity.value = ActiveValue::set(Some(value));
-                quantity.text = ActiveValue::not_set();
-            }
-            Quantity::Arbitrary(text) => {
-                quantity.unit = ActiveValue::set("arbitrary".to_string());
-                quantity.value = ActiveValue::not_set();
-                quantity.text = ActiveValue::set(Some(text));
-            }
-        };
-        let quantity = quantity.insert(&tx).await?;
-        ingredients_in_recipes::ActiveModel {
-            recipes_id: ActiveValue::set(id),
-            ingredients_id: ActiveValue::set(i.id),
-            quantities_id: ActiveValue::set(quantity.id),
-            ..Default::default()
-        }
-        .insert(&tx)
-        .await?;
-    }
-    tx.commit().await?;
-
-    let (recipe, ingredients) = crate::models::recipes::find_one(&ctx.db, id)
-        .await?
-        .ok_or_else(|| Error::NotFound)?;
-
-    format::json(RecipeResponse {
-        id: recipe.id,
-        source: recipe.source,
-        name: recipe.name,
-        url: recipe.website_url,
-        title: recipe.book_title,
-        page: recipe.book_page,
-        tags: recipe.tags,
-        rating: recipe.rating,
-        notes: recipe.notes,
-        duration: recipe.duration,
-        ingredients: ingredients
-            .into_iter()
-            .map(|(ingredient, quantity)| IngredientResponse {
-                id: ingredient.id,
-                name: ingredient.name,
-                quantity: vec![QuantityResponse {
-                    id: quantity.id,
-                    unit: quantity.unit,
-                    value: quantity.value,
-                    text: quantity.text,
-                }],
-            })
-            .collect(),
-    })
-}
-
-#[derive(Deserialize)]
-pub struct SetRecipeTagsParams {
-    tags: Vec<String>,
-}
-
-pub async fn set_recipe_tags(
-    auth: middleware::auth::JWT,
-    Path(id): Path<i32>,
-    State(ctx): State<AppContext>,
-    extract::Json(params): extract::Json<SetRecipeTagsParams>,
-) -> Result<()> {
-    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
-
-    let r = recipes::Entity::find_by_id(id)
-        .one(&ctx.db)
-        .await?
-        .ok_or(Error::NotFound)?;
-
-    let mut recipe = r.into_active_model();
-    recipe.tags = ActiveValue::set(params.tags);
-    recipe.save(&ctx.db).await?;
-
-    Ok(())
-}
-
-#[derive(Deserialize)]
-pub struct SetRecipeNotesParams {
-    notes: String,
-}
-
-pub async fn set_recipe_notes(
-    auth: middleware::auth::JWT,
-    Path(id): Path<i32>,
-    State(ctx): State<AppContext>,
-    extract::Json(params): extract::Json<SetRecipeNotesParams>,
-) -> Result<()> {
-    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
-
-    let r = recipes::Entity::find_by_id(id)
-        .one(&ctx.db)
-        .await?
-        .ok_or(Error::NotFound)?;
-
-    let mut recipe = r.into_active_model();
-    recipe.notes = ActiveValue::set(params.notes);
-    recipe.save(&ctx.db).await?;
-
-    Ok(())
-}
-
 #[derive(Serialize)]
 struct TagsResponse {
     tags: HashSet<String>,
@@ -450,25 +271,6 @@ pub async fn all_recipe_tags(
     }
 
     format::json(TagsResponse { tags: unique_tags })
-}
-
-pub async fn set_recipe_rating(
-    auth: middleware::auth::JWT,
-    State(ctx): State<AppContext>,
-    Path((id, rating)): Path<(i32, i32)>,
-) -> Result<()> {
-    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
-
-    let r = recipes::Entity::find_by_id(id)
-        .one(&ctx.db)
-        .await?
-        .ok_or(Error::NotFound)?;
-
-    let mut recipe = r.into_active_model();
-    recipe.rating = ActiveValue::set(rating);
-    recipe.save(&ctx.db).await?;
-
-    Ok(())
 }
 
 #[derive(Deserialize)]
@@ -510,94 +312,7 @@ pub async fn add_ingredient(
     Ok(())
 }
 
-#[derive(Deserialize)]
-pub struct SetRecipeNameParams {
-    name: String,
-}
-
-pub async fn set_recipe_name(
-    auth: middleware::auth::JWT,
-    Path(id): Path<i32>,
-    State(ctx): State<AppContext>,
-    extract::Json(params): extract::Json<SetRecipeNameParams>,
-) -> Result<()> {
-    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
-
-    recipes::Entity::update_many()
-        .col_expr(recipes::Column::Name, Expr::value(params.name))
-        .filter(recipes::Column::Id.eq(id))
-        .exec(&ctx.db)
-        .await?;
-
-    Ok(())
-}
-
-#[derive(Deserialize)]
-pub struct SetRecipeSourceParams {
-    #[serde(flatten)]
-    source: RecipeSource,
-}
-
-pub async fn set_recipe_source(
-    auth: middleware::auth::JWT,
-    Path(id): Path<i32>,
-    State(ctx): State<AppContext>,
-    extract::Json(params): extract::Json<SetRecipeSourceParams>,
-) -> Result<()> {
-    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
-
-    let mut a = recipes::Entity::find_by_id(id)
-        .one(&ctx.db)
-        .await?
-        .ok_or_else(|| Error::NotFound)?
-        .into_active_model();
-
-    match params.source {
-        RecipeSource::Book { title, page } => {
-            a.source = ActiveValue::set("book".into());
-            a.book_title = ActiveValue::set(Some(title));
-            a.book_page = ActiveValue::set(Some(page));
-            a.website_url = ActiveValue::set(None);
-        }
-        RecipeSource::Website { url } => {
-            a.source = ActiveValue::set("website".into());
-            a.website_url = ActiveValue::set(Some(url));
-            a.book_title = ActiveValue::set(None);
-            a.book_page = ActiveValue::set(None);
-        }
-    }
-    a.save(&ctx.db).await?;
-
-    Ok(())
-}
-
-#[derive(Deserialize)]
-pub struct SetRecipeDurationParams {
-    duration: String,
-}
-
-pub async fn set_recipe_duration(
-    auth: middleware::auth::JWT,
-    Path(id): Path<i32>,
-    State(ctx): State<AppContext>,
-    extract::Json(params): extract::Json<SetRecipeDurationParams>,
-) -> Result<()> {
-    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
-
-    let mut a = recipes::Entity::find_by_id(id)
-        .one(&ctx.db)
-        .await?
-        .ok_or_else(|| Error::NotFound)?
-        .into_active_model();
-
-    a.duration = ActiveValue::set(Some(params.duration));
-
-    a.save(&ctx.db).await?;
-
-    Ok(())
-}
-
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 #[serde(tag = "type", content = "value")]
 #[serde(rename_all = "lowercase")]
 enum RecipeChange {
@@ -610,12 +325,20 @@ enum RecipeChange {
     Ingredients(ChangeIngredient),
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 #[serde(tag = "type")]
 #[serde(rename_all = "lowercase")]
 enum ChangeIngredient {
-    Add { ingredient: i32, quantity: String },
+    Add(Ingredient),
     Remove { ingredient: i32 },
+    Set { ingredients: Vec<Ingredient> },
+}
+
+#[derive(Deserialize, Debug)]
+struct Ingredient {
+    id: i32,
+    // TODO: Conider an enum that can take `String` (i.e. "raw") and `Parsed`...
+    quantity: String,
 }
 
 #[derive(Deserialize)]
@@ -628,7 +351,7 @@ pub async fn edit_recipe(
     Path(id): Path<i32>,
     State(ctx): State<AppContext>,
     extract::Json(params): extract::Json<EditRecipeParameters>,
-) -> Result<()> {
+) -> Result<Response> {
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
     let mut recipe = recipes::Entity::find_by_id(id)
@@ -656,14 +379,87 @@ pub async fn edit_recipe(
             }
             RecipeChange::Duration(d) => recipe.duration = ActiveValue::set(Some(d)),
             RecipeChange::Rating(r) => recipe.rating = ActiveValue::set(r),
-            RecipeChange::Ingredients(ChangeIngredient::Add { .. }) => todo!(),
-            RecipeChange::Ingredients(ChangeIngredient::Remove { .. }) => todo!(),
+            RecipeChange::Ingredients(ChangeIngredient::Add(i)) => {
+                let q = Quantity::parse(&i.quantity).into_active_model();
+                let q = q.save(&ctx.db).await?;
+                ingredients_in_recipes::ActiveModel {
+                    recipes_id: ActiveValue::set(id),
+                    ingredients_id: ActiveValue::set(i.id),
+                    quantities_id: q.id,
+                    ..Default::default()
+                }
+                .save(&ctx.db)
+                .await?;
+            }
+            RecipeChange::Ingredients(ChangeIngredient::Remove { ingredient }) => {
+                let entity = ingredients_in_recipes::Entity::find()
+                    .filter(
+                        ingredients_in_recipes::Column::RecipesId
+                            .eq(id)
+                            .and(ingredients_in_recipes::Column::IngredientsId.eq(ingredient)),
+                    )
+                    .one(&ctx.db)
+                    .await?;
+                if let Some(ingredient) = entity {
+                    quantities::Entity::delete_by_id(ingredient.quantities_id)
+                        .exec(&ctx.db)
+                        .await?;
+                    ingredient.delete(&ctx.db).await?;
+                }
+            }
+            RecipeChange::Ingredients(ChangeIngredient::Set { ingredients }) => {
+                ingredients_in_recipes::Entity::delete_many()
+                    .filter(ingredients_in_recipes::Column::RecipesId.eq(id))
+                    .exec(&ctx.db)
+                    .await?;
+
+                for i in ingredients {
+                    let q = Quantity::parse(&i.quantity).into_active_model();
+                    let q = q.save(&ctx.db).await?;
+                    ingredients_in_recipes::ActiveModel {
+                        recipes_id: ActiveValue::set(id),
+                        ingredients_id: ActiveValue::set(i.id),
+                        quantities_id: q.id,
+                        ..Default::default()
+                    }
+                    .save(&ctx.db)
+                    .await?;
+                }
+            }
         }
     }
 
     recipe.save(&ctx.db).await?;
 
-    Ok(())
+    let (recipe, ingredients) = crate::models::recipes::find_one(&ctx.db, id)
+        .await?
+        .ok_or_else(|| Error::NotFound)?;
+
+    format::json(RecipeResponse {
+        id: recipe.id,
+        source: recipe.source,
+        name: recipe.name,
+        url: recipe.website_url,
+        title: recipe.book_title,
+        page: recipe.book_page,
+        tags: recipe.tags,
+        rating: recipe.rating,
+        notes: recipe.notes,
+        duration: recipe.duration,
+        ingredients: ingredients
+            .into_iter()
+            .map(|(ingredient, quantity)| IngredientResponse {
+                id: ingredient.id,
+                name: ingredient.name,
+                quantity: vec![QuantityResponse {
+                    id: quantity.id,
+                    unit: quantity.unit,
+                    value: quantity.value,
+                    text: quantity.text,
+                }],
+            })
+            .collect(),
+    })
 }
 
 pub async fn delete_ingredient(
@@ -689,14 +485,7 @@ pub fn routes() -> Routes {
         .add("/", get(all_recipes))
         .add("/", post(create_recipe))
         .add("/:id", get(recipe))
-        .add("/:id", post(update_recipe))
         .add("/:id", delete(delete_recipe))
-        .add("/:id/name", put(set_recipe_name))
-        .add("/:id/tags", put(set_recipe_tags))
-        .add("/:id/notes", post(set_recipe_notes))
-        .add("/:id/source", put(set_recipe_source))
-        .add("/:id/duration", put(set_recipe_duration))
-        .add("/:id/rating/:value", post(set_recipe_rating))
         .add("/:id/ingredients", post(add_ingredient))
         .add("/:id/ingredients/:ingredient", delete(delete_ingredient))
         .add("/:id/edit", post(edit_recipe))
@@ -704,42 +493,22 @@ pub fn routes() -> Routes {
 
 #[cfg(test)]
 mod tests {
-    use super::{EditRecipeParameters, UpdateRecipe};
-
-    #[test]
-    fn can_extract_data_from_edit_recipe_form() {
-        let raw_json = r#"
-            {
-              "id": 6,
-              "name": "kartoffellaibchen",
-              "source": "website",
-              "url": "https://www.gutekueche.at/kartoffellaibchen-rezept-5577",
-              "ingredients": [
-                {
-                  "id": 46,
-                  "quantity": "0.5 tsp"
-                }
-              ],
-              "tags": ["vegetarian"]
-            }
-            "#;
-
-        let _actual: UpdateRecipe = serde_json::from_str(raw_json).unwrap();
-    }
+    use super::EditRecipeParameters;
 
     #[test]
     fn can_extract_changes_to_recipes() {
         let raw_json = r#"
             {
               "changes": [
-                {"type": "name", "value": "Tartiflette" }, 
-                {"type": "tags", "value": ["a", "b"] }, 
-                {"type": "notes", "value": "bla bla" }, 
-                {"type": "source", "value": { "title": "bla", "page": 3} }, 
-                {"type": "duration", "value": "34m" }, 
-                {"type": "rating", "value": 3 }, 
-                {"type": "ingredients", "value": { "type": "add", "ingredient": 1, "quantity": "3tbsp"  }}, 
-                {"type": "ingredients", "value": { "type": "remove", "ingredient": 1 }}
+                {"type": "name", "value": "Tartiflette" },
+                {"type": "tags", "value": ["a", "b"] },
+                {"type": "notes", "value": "bla bla" },
+                {"type": "source", "value": { "type": "book", "title": "bla", "page": 3} },
+                {"type": "duration", "value": "34m" },
+                {"type": "rating", "value": 3 },
+                {"type": "ingredients", "value": { "type": "add", "id": 1, "quantity": "3tbsp"  }},
+                {"type": "ingredients", "value": { "type": "remove", "ingredient": 1 }},
+                {"type": "ingredients", "value": { "type": "set", "ingredients": [{"id": 1, "quantity": "3tbsp"}, {"id": 5, "quantity": "3x"}] }}
               ]
             }
             "#;
