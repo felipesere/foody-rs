@@ -144,7 +144,7 @@ pub async fn delete_recipe(
 
 #[derive(Deserialize, Debug)]
 #[serde(untagged)]
-#[deprecated = "Need to figure out how to move to the other variant without smashing the frontend"]
+// TODO: Get rid of this down the line
 enum OldRecipeSource {
     Book { title: String, page: i32 },
     Website { url: String },
