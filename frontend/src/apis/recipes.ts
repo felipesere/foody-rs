@@ -145,11 +145,11 @@ export function useRecipe(token: string, id: Recipe["id"]) {
   return useQuery(useRecipeOptions(token, id));
 }
 
-export function useCreateRecipe(token: string) {
+export function useCreateRecipe(token: string, navigate: (id: number) => void) {
   const client = useQueryClient();
   return useMutation({
     mutationFn: async (variables: UnstoredRecipe) => {
-      await http
+      const body = await http
         .post("api/recipes", {
           method: "POST",
           json: variables,
@@ -158,10 +158,13 @@ export function useCreateRecipe(token: string) {
           },
         })
         .json();
+      return RecipeSchema.parse(body);
     },
-    onSuccess: async (_, vars) => {
+    onSuccess: async (data, vars) => {
       await client.invalidateQueries({ queryKey: ["recipes"] });
+      client.setQueryData(["recipe", data.id], data);
       toast(`Created "${vars.name}"`);
+      navigate(data.id);
     },
   });
 }

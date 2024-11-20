@@ -30,13 +30,15 @@ function NewRecipePage() {
   });
   const navigate = useNavigate({ from: "/recipes/new" });
 
-  const n = useCreateRecipe(token);
+  const newRecipe = useCreateRecipe(token, (id) =>
+    navigate({ to: "/recipes/$recipeId", params: { recipeId: `${id}` } }),
+  );
 
   return (
     <RecipeContext.Provider value={{ editing: true, token }}>
       <RecipeView
         onSave={() => {
-          n.mutate(recipe);
+          newRecipe.mutate(recipe);
         }}
         onCancel={() => navigate({ to: "/recipes" })}
         recipe={recipe}

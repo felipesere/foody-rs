@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use axum::{extract, http::StatusCode, response::Response};
+use axum::{extract, response::Response};
 use loco_rs::controller::middleware::{self};
 use loco_rs::prelude::*;
 use sea_orm::Statement;
@@ -23,9 +23,9 @@ pub struct RecipesResponse {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RecipeResponse {
     pub id: i32,
-    pub source: String,
     pub name: String,
     pub url: Option<String>,
+    pub source: String,
     pub title: Option<String>,
     pub page: Option<i32>,
     pub ingredients: Vec<IngredientResponse>,
@@ -143,6 +143,14 @@ pub async fn delete_recipe(
 }
 
 #[derive(Deserialize, Debug)]
+#[serde(untagged)]
+#[deprecated = "Need to figure out how to move to the other variant without smashing the frontend"]
+enum OldRecipeSource {
+    Book { title: String, page: i32 },
+    Website { url: String },
+}
+
+#[derive(Deserialize, Debug)]
 #[serde(tag = "type")]
 #[serde(rename_all = "lowercase")]
 enum RecipeSource {
@@ -181,7 +189,8 @@ struct UnstoredIngredient {
 #[derive(Deserialize, Debug)]
 pub struct CreateRecipe {
     name: String,
-    source: RecipeSource,
+    #[serde(flatten)]
+    source: OldRecipeSource,
     tags: Vec<String>,
     rating: i32,
     notes: String,
@@ -192,7 +201,7 @@ pub async fn create_recipe(
     auth: middleware::auth::JWT,
     State(ctx): State<AppContext>,
     extract::Json(params): extract::Json<CreateRecipe>,
-) -> Result<StatusCode> {
+) -> Result<Response> {
     // check auth
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
@@ -207,13 +216,13 @@ pub async fn create_recipe(
     };
 
     match params.source {
-        RecipeSource::Book { title, page } => {
+        OldRecipeSource::Book { title, page } => {
             recipe.source = ActiveValue::set("book".into());
             recipe.book_title = ActiveValue::set(Some(title));
             recipe.book_page = ActiveValue::set(Some(page));
             recipe.website_url = ActiveValue::set(None);
         }
-        RecipeSource::Website { url } => {
+        OldRecipeSource::Website { url } => {
             recipe.source = ActiveValue::set("website".into());
             recipe.website_url = ActiveValue::set(Some(url));
             recipe.book_title = ActiveValue::set(None);
@@ -239,7 +248,37 @@ pub async fn create_recipe(
 
     tx.commit().await?;
 
-    Ok(StatusCode::OK)
+    let id = recipe.id.unwrap();
+
+    let (recipe, ingredients) = crate::models::recipes::find_one(&ctx.db, id)
+        .await?
+        .ok_or_else(|| Error::NotFound)?;
+
+    format::json(RecipeResponse {
+        id: recipe.id,
+        source: recipe.source,
+        name: recipe.name,
+        url: recipe.website_url,
+        title: recipe.book_title,
+        page: recipe.book_page,
+        tags: recipe.tags,
+        rating: recipe.rating,
+        notes: recipe.notes,
+        duration: recipe.duration,
+        ingredients: ingredients
+            .into_iter()
+            .map(|(ingredient, quantity)| IngredientResponse {
+                id: ingredient.id,
+                name: ingredient.name,
+                quantity: vec![QuantityResponse {
+                    id: quantity.id,
+                    unit: quantity.unit,
+                    value: quantity.value,
+                    text: quantity.text,
+                }],
+            })
+            .collect(),
+    })
 }
 
 #[derive(Serialize)]

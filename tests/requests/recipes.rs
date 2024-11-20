@@ -36,7 +36,9 @@ async fn can_create_and_update_a_recipe() {
             "tags": ["a", "b"],
             "notes": "a b c...",
             "rating": 1,
-            "source": { "type": "book", "page": 12, "title": "simplissie" },
+            "source": "book",
+            "page": 12,
+            "title": "simplissie",
             "ingredients": [{
               "id": bacon.id,
               "quantity": [{
