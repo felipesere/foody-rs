@@ -467,3 +467,32 @@ export function useRemoveRecipeFromShoppinglist(
     },
   });
 }
+
+export function useRemoveInBasketItemsFromShoppinglist(
+  token: string,
+  shoppinglistId: Shoppinglist["id"],
+) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      await http
+        .post(`api/shoppinglists/${shoppinglistId}/clear`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .json();
+    },
+    onSettled: () => {
+      return client.invalidateQueries({
+        queryKey: ["shoppinglist", shoppinglistId],
+      });
+    },
+    onError: (err) => {
+      console.log(
+        `Failed to clear ${shoppinglistId}: ${JSON.stringify(err, null, 2)}`,
+      );
+      toast.error("Failed to update quantity on shoppinglist");
+    },
+  });
+}

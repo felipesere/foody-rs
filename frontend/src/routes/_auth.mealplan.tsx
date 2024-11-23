@@ -268,7 +268,11 @@ function SectionOfMeals(props: {
                 "bg-gray-200 text-gray-500": meal.is_cooked,
               })}
             >
-              <td className={"border-2 border-black text-left align-top pl-2 capitalize"}>
+              <td
+                className={
+                  "border-2 border-black text-left align-top pl-2 capitalize"
+                }
+              >
                 <MealLink details={meal.details} allRecipes={props.recipes} />
               </td>
               <td

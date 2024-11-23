@@ -10,6 +10,7 @@ import {
 import {
   type Ingredient,
   type Shoppinglist,
+  useRemoveInBasketItemsFromShoppinglist,
   useRemoveIngredientFromShoppinglist,
   useRemoveQuantityFromShoppinglist,
   useRemoveRecipeFromShoppinglist,
@@ -67,6 +68,10 @@ export function ShoppingPage() {
   const addIngredient = addIngredientToShoppinglist(token);
   const [grouping, setGrouping] = useState<Grouping>(Grouping.None);
   const [showProgressBar, setShowProgressBar] = useState(false);
+  const removeCheckedItems = useRemoveInBasketItemsFromShoppinglist(
+    token,
+    shoppinglistId,
+  );
 
   const deleteRecipe = useRemoveRecipeFromShoppinglist(token, shoppinglistId);
 
@@ -170,6 +175,12 @@ export function ShoppingPage() {
           <label className={"no-colon"} htmlFor={"groupByAisle"}>
             Show progress bar
           </label>
+        </div>
+        <div className={"p-2 flex flex-row gap-2"}>
+          <Button
+            label={"Clear checked items"}
+            onClick={() => removeCheckedItems.mutate()}
+          />
         </div>
         <FieldSet legend={"Recipes"}>
           <ul>

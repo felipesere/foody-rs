@@ -537,13 +537,36 @@ pub async fn update_quantity_on_shoppinglist(
     Ok(())
 }
 
+pub async fn clear_checked_shoppinglist_items(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+    Path(id): Path<i32>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+    let _ = shoppinglists::Entity::find_by_id(id).one(&ctx.db).await?;
+
+    use ingredients_in_shoppinglists::Column;
+
+    ingredients_in_shoppinglists::Entity::delete_many()
+        .filter(
+            Column::ShoppinglistsId
+                .eq(id)
+                .and(Column::InBasket.eq(true)),
+        )
+        .exec(&ctx.db)
+        .await?;
+
+    Ok(())
+}
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("shoppinglists")
         .add("/", get(all_shoppinglists))
+        .add("/", post(create_shoppinglist))
         .add("/:id", get(shoppinglist))
         .add("/:id", delete(remove_shoppinglist))
-        .add("/", post(create_shoppinglist))
+        .add("/:id/clear", post(clear_checked_shoppinglist_items))
         .add("/:id/ingredient", post(add_ingredient))
         .add("/:id/ingredient", delete(remove_ingredient))
         .add(
