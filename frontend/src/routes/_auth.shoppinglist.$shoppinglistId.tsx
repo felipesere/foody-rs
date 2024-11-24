@@ -353,7 +353,6 @@ function EditIngredient({
       <Link
         to={"/recipes/$recipeId"}
         params={{ recipeId: props.recipeId.toString() }}
-        search={{ editing: true }}
       >
         {props.name}
       </Link>
