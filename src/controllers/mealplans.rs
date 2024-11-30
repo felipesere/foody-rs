@@ -418,7 +418,7 @@ pub async fn add_meal_plan_to_shoppinglist(
 
 pub fn routes() -> Routes {
     Routes::new()
-        .prefix("mealplans")
+        .prefix("api/mealplans")
         .add("/", get(all_mealplans))
         .add("/", post(create_meal_plan))
         .add("/:id", delete(remove_meal_plan))

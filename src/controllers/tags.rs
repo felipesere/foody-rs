@@ -54,7 +54,7 @@ pub async fn create_tag(
 
 pub fn routes() -> Routes {
     Routes::new()
-        .prefix("tags")
+        .prefix("api/tags")
         .add("/", get(all_tags))
         .add("/", post(create_tag))
 }

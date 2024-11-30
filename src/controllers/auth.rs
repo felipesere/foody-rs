@@ -41,5 +41,5 @@ async fn login(State(ctx): State<AppContext>, Json(params): Json<LoginParams>) -
 }
 
 pub fn routes() -> Routes {
-    Routes::new().prefix("auth").add("/login", post(login))
+    Routes::new().prefix("api/auth").add("/login", post(login))
 }

@@ -19,8 +19,8 @@ use sea_orm::{
 use crate::{
     controllers,
     models::_entities::{
-        self, ingredients, ingredients_in_recipes, ingredients_in_shoppinglists, quantities,
-        recipes, shoppinglists, users,
+        ingredients, ingredients_in_recipes, ingredients_in_shoppinglists, quantities, recipes,
+        shoppinglists, users,
     },
     tasks,
 };
@@ -53,7 +53,6 @@ impl Hooks for App {
             .add_route(controllers::ingredients::routes())
             .add_route(controllers::tags::routes())
             .add_route(controllers::mealplans::routes())
-            .prefix("/api")
             .add_route(controllers::auth::routes())
             .add_route(controllers::user::routes())
     }
@@ -68,6 +67,7 @@ impl Hooks for App {
         tasks.register(tasks::change_password::ChangePassword);
         tasks.register(tasks::create_user::CreateUser);
         tasks.register(tasks::seed::SeedData);
+        // tasks-inject (do not remove)
     }
 
     async fn truncate(db: &DatabaseConnection) -> Result<()> {
@@ -140,6 +140,7 @@ impl Hooks for App {
                 .website_url
                 .map_or_else(AV::not_set, |w| AV::set(Some(w)));
             model.source = AV::set(recipe.source);
+            model.tags = AV::set(recipe.tags.unwrap_or_default());
             let model = model.insert(db).await.unwrap();
 
             for (name, quantity) in recipe.ingredients {
@@ -156,20 +157,6 @@ impl Hooks for App {
                 in_recipe.quantities_id = AV::set(quantity.id);
                 in_recipe.recipes_id = AV::set(model.id);
                 in_recipe.insert(db).await.unwrap();
-            }
-
-            for tag in recipe.tags.unwrap_or_default() {
-                println!("about to create tag {tag}");
-
-                let upsert_tag = _entities::tags::Entity::upsert(db, tag).await?;
-
-                _entities::tags_on_recipes::ActiveModel {
-                    tag_id: AV::set(upsert_tag.id),
-                    recipe_id: AV::set(model.id),
-                    ..Default::default()
-                }
-                .insert(db)
-                .await?;
             }
         }
 

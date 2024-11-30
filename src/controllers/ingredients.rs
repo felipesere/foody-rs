@@ -218,7 +218,7 @@ async fn merge_ingredients(
 
 pub fn routes() -> Routes {
     Routes::new()
-        .prefix("ingredients")
+        .prefix("api/ingredients")
         .add("/", get(all_ingredients))
         .add("/", post(add_ingredient))
         .add("/:id/tags", post(set_tags_in_ingredient))

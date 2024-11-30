@@ -519,7 +519,7 @@ pub async fn delete_ingredient(
 
 pub fn routes() -> Routes {
     Routes::new()
-        .prefix("recipes")
+        .prefix("api/recipes")
         .add("/tags", get(all_recipe_tags))
         .add("/", get(all_recipes))
         .add("/", post(create_recipe))
