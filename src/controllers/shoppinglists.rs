@@ -561,7 +561,7 @@ pub async fn clear_checked_shoppinglist_items(
 
 pub fn routes() -> Routes {
     Routes::new()
-        .prefix("shoppinglists")
+        .prefix("api/shoppinglists")
         .add("/", get(all_shoppinglists))
         .add("/", post(create_shoppinglist))
         .add("/:id", get(shoppinglist))

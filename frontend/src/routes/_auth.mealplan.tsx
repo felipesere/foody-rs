@@ -63,11 +63,13 @@ function MealPlanPage() {
           <Toggle buttonLabel={"New Meal Plan"}>
             <NewMealPlan token={token} />
           </Toggle>
-          <ViewMealPlan
-            token={token}
-            mealPlan={selected}
-            recipes={recipes.data.recipes}
-          />
+          {selected && (
+            <ViewMealPlan
+              token={token}
+              mealPlan={selected}
+              recipes={recipes.data.recipes}
+            />
+          )}
         </div>
         {/* right or bottom */}
         <div className={"divider"}>

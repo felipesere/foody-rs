@@ -35,7 +35,6 @@ pub struct Migrator;
 impl MigratorTrait for Migrator {
     fn migrations() -> Vec<Box<dyn MigrationTrait>> {
         vec![
-            // inject-below (do not remove this comment)
             Box::new(m20220101_000001_users::Migration),
             Box::new(m20231103_114510_notes::Migration),
             Box::new(m20231225_211837_ingredients::Migration),
@@ -62,6 +61,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20240920_070157_create_mealplan_table::Migration),
             Box::new(m20241002_201921_recipe_holds_tags::Migration),
             Box::new(m20241104_205226_add_times_to_recipes::Migration),
+            // inject-above (do not remove this comment)
         ]
     }
 }
