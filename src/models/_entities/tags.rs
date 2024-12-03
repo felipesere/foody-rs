@@ -21,18 +21,10 @@ pub struct Model {
 pub enum Relation {
     #[sea_orm(has_many = "super::tags_on_ingredients::Entity")]
     TagsOnIngredients,
-    #[sea_orm(has_many = "super::tags_on_recipes::Entity")]
-    TagsOnRecipes,
 }
 
 impl Related<super::tags_on_ingredients::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::TagsOnIngredients.def()
-    }
-}
-
-impl Related<super::tags_on_recipes::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::TagsOnRecipes.def()
     }
 }
