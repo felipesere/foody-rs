@@ -29,6 +29,7 @@ mod m20240724_123313_rename_fk_on_tags_on_recipes;
 mod m20240920_070157_create_mealplan_table;
 mod m20241002_201921_recipe_holds_tags;
 mod m20241104_205226_add_times_to_recipes;
+mod m20241203_214722_remove_tags_on_recipes_tables;
 pub struct Migrator;
 
 #[async_trait::async_trait]
@@ -61,6 +62,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20240920_070157_create_mealplan_table::Migration),
             Box::new(m20241002_201921_recipe_holds_tags::Migration),
             Box::new(m20241104_205226_add_times_to_recipes::Migration),
+            Box::new(m20241203_214722_remove_tags_on_recipes_tables::Migration),
             // inject-above (do not remove this comment)
         ]
     }
