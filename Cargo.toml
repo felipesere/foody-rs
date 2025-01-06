@@ -28,7 +28,7 @@ sea-orm = { version = "1.0.1", features = [
   "macros",
 ] }
 
-axum = "^0.7"
+axum = "^0.8"
 include_dir = "^0.7"
 uuid = { version = "1.6.0", features = ["v4"] }
 tracing-subscriber = { version = "0.3.17", features = ["env-filter", "json"] }
