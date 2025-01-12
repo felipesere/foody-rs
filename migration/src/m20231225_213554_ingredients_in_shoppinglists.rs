@@ -13,7 +13,7 @@ impl MigrationTrait for Migration {
             .create_table(
                 table_auto(IngredientsInShoppinglists::Table)
                     .col(pk_auto(IngredientsInShoppinglists::Id).borrow_mut())
-                    .col(bool(IngredientsInShoppinglists::InBasket).borrow_mut())
+                    .col(boolean(IngredientsInShoppinglists::InBasket).borrow_mut())
                     .col(integer(IngredientsInShoppinglists::ShoppinglistsId).borrow_mut())
                     .col(integer(IngredientsInShoppinglists::IngredientsId).borrow_mut())
                     .col(integer(IngredientsInShoppinglists::QuantitiesId).borrow_mut())

@@ -21,8 +21,8 @@ fn replace_value_with(replacement: &'static str) -> Redaction {
 #[tokio::test]
 #[serial]
 async fn can_list_current_shoppinglists() {
-    testing::request::<App, _, _>(|mut request, ctx| async move {
-        testing::seed::<App>(&ctx.db).await.unwrap();
+    testing::request::request::<App, _, _>(|mut request, ctx| async move {
+        testing::db::seed::<App>(&ctx).await.unwrap();
 
         prepare_data::authenticated(&mut request, &ctx).await;
 
@@ -59,8 +59,8 @@ async fn can_list_current_shoppinglists() {
 #[tokio::test]
 #[serial]
 async fn create_a_shoppinglist_and_add_ingredients() {
-    testing::request::<App, _, _>(|mut request, ctx| async move {
-        testing::seed::<App>(&ctx.db).await.unwrap();
+    testing::request::request::<App, _, _>(|mut request, ctx| async move {
+        testing::db::seed::<App>(&ctx).await.unwrap();
 
         prepare_data::authenticated(&mut request, &ctx).await;
 

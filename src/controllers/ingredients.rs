@@ -221,6 +221,6 @@ pub fn routes() -> Routes {
         .prefix("api/ingredients")
         .add("/", get(all_ingredients))
         .add("/", post(add_ingredient))
-        .add("/:id/tags", post(set_tags_in_ingredient))
+        .add("/{id}/tags", post(set_tags_in_ingredient))
         .add("/merge", post(merge_ingredients))
 }

@@ -523,11 +523,11 @@ pub fn routes() -> Routes {
         .add("/tags", get(all_recipe_tags))
         .add("/", get(all_recipes))
         .add("/", post(create_recipe))
-        .add("/:id", get(recipe))
-        .add("/:id", delete(delete_recipe))
-        .add("/:id/ingredients", post(add_ingredient))
-        .add("/:id/ingredients/:ingredient", delete(delete_ingredient))
-        .add("/:id/edit", post(edit_recipe))
+        .add("/{id}", get(recipe))
+        .add("/{id}", delete(delete_recipe))
+        .add("/{id}/ingredients", post(add_ingredient))
+        .add("/{id}/ingredients/{ingredient}", delete(delete_ingredient))
+        .add("/{id}/edit", post(edit_recipe))
 }
 
 #[cfg(test)]

@@ -20,7 +20,7 @@ tokio = { version = "^1", default-features = false }
 async-trait = "0.1.81"
 tracing = "0.1.40"
 chrono = "0.4"
-validator = { version = "0.18" }
+validator = { version = "0.19" }
 sea-orm = { version = "1.0.1", features = [
   "sqlx-sqlite",
   "sqlx-postgres",
@@ -28,7 +28,7 @@ sea-orm = { version = "1.0.1", features = [
   "macros",
 ] }
 
-axum = "^0.7"
+axum = "^0.8"
 include_dir = "^0.7"
 uuid = { version = "1.6.0", features = ["v4"] }
 tracing-subscriber = { version = "0.3.17", features = ["env-filter", "json"] }
@@ -44,7 +44,7 @@ required-features = []
 [dev-dependencies]
 serial_test = "3.0.0"
 rstest = "0.23"
-loco-rs = { version = "0.13.2", features = ["testing"] }
+loco-rs = { workspace = true, features = ["testing"] }
 insta = { version = "1.34.0", features = [
   "redactions",
   "yaml",
@@ -53,4 +53,4 @@ insta = { version = "1.34.0", features = [
 ] }
 
 [workspace.dependencies]
-loco-rs = { version = "0.13.2" }
+loco-rs = { version = "0.14.0" }
