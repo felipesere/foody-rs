@@ -8,8 +8,8 @@ impl ActiveModelBehavior for ActiveModel {
 }
 
 // TODO: Why are you here?!
-pub async fn batch_insert_if_not_exists<'a, C: ConnectionTrait>(
-    db: &'a C,
+pub async fn batch_insert_if_not_exists<C: ConnectionTrait>(
+    db: &C,
     values: &[String],
 ) -> Result<Vec<i32>, loco_rs::Error> {
     let tags = tags::Entity::find()

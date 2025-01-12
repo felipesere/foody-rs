@@ -4,6 +4,7 @@ use async_trait::async_trait;
 use loco_rs::{
     app::{AppContext, Hooks},
     boot::{create_app, BootResult, StartMode},
+    config::Config,
     controller::AppRoutes,
     db::{self, truncate_table},
     environment::Environment,
@@ -11,10 +12,7 @@ use loco_rs::{
     Result,
 };
 use migration::Migrator;
-use sea_orm::{
-    ActiveModelBehavior, ActiveModelTrait, ConnectionTrait, DatabaseConnection, DbBackend,
-    Statement,
-};
+use sea_orm::{ActiveModelBehavior, ActiveModelTrait, ConnectionTrait, DbBackend, Statement};
 
 use crate::{
     controllers,
@@ -42,8 +40,12 @@ impl Hooks for App {
         )
     }
 
-    async fn boot(mode: StartMode, environment: &Environment) -> Result<BootResult> {
-        create_app::<Self, Migrator>(mode, environment).await
+    async fn boot(
+        mode: StartMode,
+        environment: &Environment,
+        config: Config,
+    ) -> Result<BootResult> {
+        create_app::<Self, Migrator>(mode, environment, config).await
     }
 
     fn routes(_ctx: &AppContext) -> AppRoutes {
@@ -70,7 +72,8 @@ impl Hooks for App {
         // tasks-inject (do not remove)
     }
 
-    async fn truncate(db: &DatabaseConnection) -> Result<()> {
+    async fn truncate(ctx: &AppContext) -> Result<()> {
+        let db = &ctx.db;
         truncate_table(db, users::Entity).await?;
         truncate_table(db, ingredients_in_shoppinglists::Entity).await?;
         truncate_table(db, ingredients_in_recipes::Entity).await?;
@@ -81,7 +84,7 @@ impl Hooks for App {
         Ok(())
     }
 
-    async fn seed(db: &DatabaseConnection, base: &Path) -> Result<()> {
+    async fn seed(ctx: &AppContext, base: &Path) -> Result<()> {
         #[derive(serde::Deserialize)]
         struct Quantity {
             unit: String,
@@ -114,6 +117,8 @@ impl Hooks for App {
             ingredients: Vec<String>,
             shoppinglists: HashMap<String, HashMap<String, ListItem>>,
         }
+
+        let db = &ctx.db;
 
         let data_yaml = File::open(base.join("data.yaml"))?;
         let data: Data = serde_yaml::from_reader(data_yaml)?;

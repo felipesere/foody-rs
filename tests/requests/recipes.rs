@@ -22,8 +22,8 @@ async fn named_ingredient(db: &DatabaseConnection, name: &str) -> _entities::ing
 #[tokio::test]
 #[serial]
 async fn can_create_and_update_a_recipe() {
-    testing::request::<App, _, _>(|mut request, ctx| async move {
-        testing::seed::<App>(&ctx.db).await.unwrap();
+    testing::request::request::<App, _, _>(|mut request, ctx| async move {
+        testing::db::seed::<App>(&ctx).await.unwrap();
 
         prepare_data::authenticated(&mut request, &ctx).await;
 

@@ -564,34 +564,34 @@ pub fn routes() -> Routes {
         .prefix("api/shoppinglists")
         .add("/", get(all_shoppinglists))
         .add("/", post(create_shoppinglist))
-        .add("/:id", get(shoppinglist))
-        .add("/:id", delete(remove_shoppinglist))
-        .add("/:id/clear", post(clear_checked_shoppinglist_items))
-        .add("/:id/ingredient", post(add_ingredient))
-        .add("/:id/ingredient", delete(remove_ingredient))
+        .add("/{id}", get(shoppinglist))
+        .add("/{id}", delete(remove_shoppinglist))
+        .add("/{id}/clear", post(clear_checked_shoppinglist_items))
+        .add("/{id}/ingredient", post(add_ingredient))
+        .add("/{id}/ingredient", delete(remove_ingredient))
         .add(
-            "/:id/ingredient/:ingredient_id/in_basket",
+            "/{id}/ingredient/{ingredient_id}/in_basket",
             post(toggle_in_basket_for_item),
         )
         .add(
-            "/:id/ingredient/:ingredient_id/note",
+            "/{id}/ingredient/{ingredient_id}/note",
             post(add_note_to_item),
         )
-        .add("/:id/recipe/:recipe_id", post(add_recipe_to_shoppinglist))
+        .add("/{id}/recipe/{recipe_id}", post(add_recipe_to_shoppinglist))
         .add(
-            "/:id/recipe/:recipe_id",
+            "/{id}/recipe/{recipe_id}",
             delete(remove_recipe_from_shoppinglist),
         )
         .add(
-            "/:id/ingredient/:ingredient_id/quantity",
+            "/{id}/ingredient/{ingredient_id}/quantity",
             post(add_quantity_to_ingredient),
         )
         .add(
-            "/:id/quantity/:quantity_id",
+            "/{id}/quantity/{quantity_id}",
             delete(remove_quantity_from_shoppinglist),
         )
         .add(
-            "/:id/quantity/:quantity_id",
+            "/{id}/quantity/{quantity_id}",
             post(update_quantity_on_shoppinglist),
         )
 }

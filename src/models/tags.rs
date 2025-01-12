@@ -30,8 +30,8 @@ impl Entity {
             .await
     }
 
-    pub async fn batch_upsert<'a, C: ConnectionTrait>(
-        db: &'a C,
+    pub async fn batch_upsert<C: ConnectionTrait>(
+        db: &C,
         values: &[String],
     ) -> Result<Vec<super::_entities::tags::Model>, sea_orm::DbErr> {
         let mut tags = Self::find()

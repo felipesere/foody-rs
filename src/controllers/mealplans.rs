@@ -421,13 +421,13 @@ pub fn routes() -> Routes {
         .prefix("api/mealplans")
         .add("/", get(all_mealplans))
         .add("/", post(create_meal_plan))
-        .add("/:id", delete(remove_meal_plan))
-        .add("/:id/shoppinglist", post(add_meal_plan_to_shoppinglist))
-        .add("/:id/clear", post(clear_meal_plan))
-        .add("/:id/meal", post(add_to_meal))
-        .add("/:id/meal/:meal_id", delete(delete_meal_from_mealplan))
-        .add("/:id/meal/:meal_id/cooked", post(mark_meal_as_cooked))
-        .add("/:id/meal/:meal_id/section", post(set_section_of_meal))
+        .add("/{id}", delete(remove_meal_plan))
+        .add("/{id}/shoppinglist", post(add_meal_plan_to_shoppinglist))
+        .add("/{id}/clear", post(clear_meal_plan))
+        .add("/{id}/meal", post(add_to_meal))
+        .add("/{id}/meal/{meal_id}", delete(delete_meal_from_mealplan))
+        .add("/{id}/meal/{meal_id}/cooked", post(mark_meal_as_cooked))
+        .add("/{id}/meal/{meal_id}/section", post(set_section_of_meal))
 }
 
 #[cfg(test)]
