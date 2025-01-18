@@ -6,11 +6,8 @@ use sea_orm::{ActiveValue, SqlErr, TransactionTrait};
 use serde::{Deserialize, Serialize};
 
 use crate::models::{
-    _entities::{
-        ingredients, ingredients_in_recipes, ingredients_in_shoppinglists,
-        tags::{self, Model as Tag},
-    },
-    ingredients::{IngredientToTags, Model as Ingredient},
+    _entities::{ingredients, ingredients_in_recipes, ingredients_in_shoppinglists},
+    ingredients::Model as Ingredient,
     users,
 };
 
@@ -21,12 +18,12 @@ pub struct IngredientResponse {
     tags: Vec<String>,
 }
 
-impl From<(Ingredient, Vec<Tag>)> for IngredientResponse {
-    fn from((value, tags): (Ingredient, Vec<Tag>)) -> Self {
+impl From<Ingredient> for IngredientResponse {
+    fn from(value: Ingredient) -> Self {
         Self {
             id: value.id,
             name: value.name,
-            tags: tags.into_iter().map(|t| t.name).collect(),
+            tags: value.tags,
         }
     }
 }
@@ -38,10 +35,7 @@ pub async fn all_ingredients(
     // check auth
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
-    let igs: Vec<(Ingredient, Vec<tags::Model>)> = ingredients::Entity::find()
-        .find_with_linked(IngredientToTags)
-        .all(&ctx.db)
-        .await?;
+    let igs: Vec<Ingredient> = ingredients::Entity::find().all(&ctx.db).await?;
 
     format::json(
         igs.into_iter()
@@ -77,7 +71,7 @@ pub async fn add_ingredient(
     match ingredient_outcome {
         Ok(ingredient) => {
             tx.commit().await?;
-            format::json(IngredientResponse::from((ingredient, vec![])))
+            format::json(IngredientResponse::from(ingredient))
         }
         Err(other_err) => {
             if let Some(SqlErr::UniqueConstraintViolation(_)) = other_err.sql_err() {
@@ -89,7 +83,7 @@ pub async fn add_ingredient(
                     .await?
                     .ok_or(Error::NotFound)?;
 
-                return format::json(IngredientResponse::from((ingredient, vec![])));
+                return format::json(IngredientResponse::from(ingredient));
             }
             tx.rollback().await?;
             Err(loco_rs::Error::DB(other_err))
