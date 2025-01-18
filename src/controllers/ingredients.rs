@@ -9,10 +9,8 @@ use crate::models::{
     _entities::{
         ingredients, ingredients_in_recipes, ingredients_in_shoppinglists,
         tags::{self, Model as Tag},
-        tags_on_ingredients,
     },
     ingredients::{IngredientToTags, Model as Ingredient},
-    ingredients_in_shoppinglists::batch_insert_if_not_exists,
     users,
 };
 
@@ -68,14 +66,9 @@ pub async fn add_ingredient(
 
     let tx = ctx.db.begin().await?;
 
-    let tags = if !params.tags.is_empty() {
-        batch_insert_if_not_exists(&tx, &params.tags).await?
-    } else {
-        vec![]
-    };
-
     let ingredient_outcome = ingredients::ActiveModel {
         name: ActiveValue::Set(params.name.clone()),
+        tags: ActiveValue::Set(params.tags),
         ..Default::default()
     }
     .insert(&tx)
@@ -83,21 +76,6 @@ pub async fn add_ingredient(
 
     match ingredient_outcome {
         Ok(ingredient) => {
-            if !params.tags.is_empty() {
-                let mut tags_on_ingredient = Vec::new();
-                for tag_id in tags {
-                    tags_on_ingredient.push(tags_on_ingredients::ActiveModel {
-                        tag_id: ActiveValue::Set(tag_id),
-                        ingredient_id: ActiveValue::Set(ingredient.id),
-                        ..Default::default()
-                    })
-                }
-
-                tags_on_ingredients::Entity::insert_many(tags_on_ingredient)
-                    .exec(&tx)
-                    .await?;
-            }
-
             tx.commit().await?;
             format::json(IngredientResponse::from((ingredient, vec![])))
         }
@@ -132,33 +110,11 @@ async fn set_tags_in_ingredient(
 ) -> Result<()> {
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
-    let tx = ctx.db.begin().await?;
-    let ingredient = ingredients::Entity::find_by_id(id)
-        .one(&tx)
-        .await?
-        .ok_or_else(|| Error::NotFound)?;
-
-    let tag_ids = batch_insert_if_not_exists(&tx, &params.tags).await?;
-
-    let tags: Vec<_> = tag_ids
-        .into_iter()
-        .map(|tag_id| tags_on_ingredients::ActiveModel {
-            tag_id: ActiveValue::Set(tag_id),
-            ingredient_id: ActiveValue::Set(ingredient.id),
-            ..Default::default()
-        })
-        .collect();
-
-    tags_on_ingredients::Entity::delete_many()
-        .filter(tags_on_ingredients::Column::IngredientId.eq(id))
-        .exec(&tx)
+    ingredients::Entity::update_many()
+        .col_expr(ingredients::Column::Tags, Expr::value(params.tags))
+        .filter(ingredients::Column::Id.eq(id))
+        .exec(&ctx.db)
         .await?;
-
-    tags_on_ingredients::Entity::insert_many(tags)
-        .exec(&tx)
-        .await?;
-
-    tx.commit().await?;
 
     Ok(())
 }
@@ -196,12 +152,6 @@ async fn merge_ingredients(
             Expr::value(params.target),
         )
         .filter(ingredients_in_shoppinglists::Column::IngredientsId.is_in(params.replace.clone()))
-        .exec(&tx)
-        .await?;
-
-    // ...tags
-    tags_on_ingredients::Entity::delete_many()
-        .filter(tags_on_ingredients::Column::IngredientId.is_in(params.replace.clone()))
         .exec(&tx)
         .await?;
 
