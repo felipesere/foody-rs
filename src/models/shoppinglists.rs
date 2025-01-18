@@ -54,6 +54,7 @@ impl Shoppinglist {
                 "r1"."updated_at" as "i_updated_at",
                 "r1"."id" as "i_id",
                 "r1"."name" as "i_name",
+                "r1"."tags" as "i_tags",
                 "r0"."in_basket" as "iis_in_basket",
                 "r0"."recipe_id" as "iis_recipe_id",
                 "r0"."note" as "iis_note",

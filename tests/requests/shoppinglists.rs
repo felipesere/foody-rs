@@ -110,7 +110,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
         let bananas = list
             .get("ingredients")
             .and_then(|v| v.as_array())
-            .and_then(|ingredients| ingredients.get(0))
+            .and_then(|ingredients| ingredients.first())
             .and_then(|bananas| bananas.get("id"))
             .and_then(|id| id.as_i64())
             .unwrap();
