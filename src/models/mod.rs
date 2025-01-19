@@ -10,3 +10,4 @@ pub mod shoppinglists;
 pub mod tags;
 pub mod tags_on_ingredients;
 pub mod users;
+pub mod aisles;

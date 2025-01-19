@@ -13,16 +13,31 @@ pub struct Model {
     #[sea_orm(unique)]
     pub name: String,
     pub tags: Vec<String>,
+    pub aisle: Option<i32>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
+    #[sea_orm(
+        belongs_to = "super::aisles::Entity",
+        from = "Column::Aisle",
+        to = "super::aisles::Column::Id",
+        on_update = "NoAction",
+        on_delete = "NoAction"
+    )]
+    Aisles,
     #[sea_orm(has_many = "super::ingredients_in_recipes::Entity")]
     IngredientsInRecipes,
     #[sea_orm(has_many = "super::ingredients_in_shoppinglists::Entity")]
     IngredientsInShoppinglists,
     #[sea_orm(has_many = "super::tags_on_ingredients::Entity")]
     TagsOnIngredients,
+}
+
+impl Related<super::aisles::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Aisles.def()
+    }
 }
 
 impl Related<super::ingredients_in_recipes::Entity> for Entity {

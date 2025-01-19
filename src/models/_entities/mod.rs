@@ -2,6 +2,7 @@
 
 pub mod prelude;
 
+pub mod aisles;
 pub mod ingredients;
 pub mod ingredients_in_recipes;
 pub mod ingredients_in_shoppinglists;
