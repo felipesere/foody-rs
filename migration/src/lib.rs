@@ -31,6 +31,9 @@ mod m20241002_201921_recipe_holds_tags;
 mod m20241104_205226_add_times_to_recipes;
 mod m20241203_214722_remove_tags_on_recipes_tables;
 mod m20250115_211611_add_tags_directly_to_ingredients;
+mod m20250118_212554_aisles;
+mod m20250118_213814_add_aisle_ref_to_ingredients;
+mod m20250119_144448_copy_tags_data_to_new_columns_and_table;
 pub struct Migrator;
 
 #[async_trait::async_trait]
@@ -65,6 +68,9 @@ impl MigratorTrait for Migrator {
             Box::new(m20241104_205226_add_times_to_recipes::Migration),
             Box::new(m20241203_214722_remove_tags_on_recipes_tables::Migration),
             Box::new(m20250115_211611_add_tags_directly_to_ingredients::Migration),
+            Box::new(m20250118_212554_aisles::Migration),
+            Box::new(m20250118_213814_add_aisle_ref_to_ingredients::Migration),
+            Box::new(m20250119_144448_copy_tags_data_to_new_columns_and_table::Migration),
             // inject-above (do not remove this comment)
         ]
     }
