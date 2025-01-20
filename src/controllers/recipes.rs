@@ -14,6 +14,7 @@ use crate::models::{
 };
 
 use super::shoppinglists::QuantityResponse;
+use super::TagsResponse;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RecipesResponse {
@@ -279,11 +280,6 @@ pub async fn create_recipe(
             })
             .collect(),
     })
-}
-
-#[derive(Serialize)]
-struct TagsResponse {
-    tags: HashSet<String>,
 }
 
 pub async fn all_recipe_tags(

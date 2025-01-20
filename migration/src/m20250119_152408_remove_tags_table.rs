@@ -1,6 +1,6 @@
-use loco_rs::schema::{drop_table, remove_reference};
+use loco_rs::schema::drop_table;
 use sea_orm::Statement;
-use sea_orm_migration::{prelude::*, schema::*};
+use sea_orm_migration::prelude::*;
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
