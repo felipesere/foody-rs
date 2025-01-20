@@ -9,6 +9,4 @@ pub use super::meals_in_meal_plans::Entity as MealsInMealPlans;
 pub use super::quantities::Entity as Quantities;
 pub use super::recipes::Entity as Recipes;
 pub use super::shoppinglists::Entity as Shoppinglists;
-pub use super::tags::Entity as Tags;
-pub use super::tags_on_ingredients::Entity as TagsOnIngredients;
 pub use super::users::Entity as Users;

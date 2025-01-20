@@ -11,6 +11,4 @@ pub mod meals_in_meal_plans;
 pub mod quantities;
 pub mod recipes;
 pub mod shoppinglists;
-pub mod tags;
-pub mod tags_on_ingredients;
 pub mod users;

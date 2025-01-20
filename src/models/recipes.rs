@@ -66,7 +66,6 @@ pub(crate) async fn find_all(db: &DatabaseConnection) -> Result<Vec<FullRecipe>,
     Ok(full_recipes)
 }
 
-// TODO: actually join in on the tags!
 pub(crate) async fn find_one(
     db: &DatabaseConnection,
     id: i32,

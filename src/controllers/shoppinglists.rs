@@ -273,12 +273,11 @@ pub async fn shoppinglist(
                 |Item {
                      ingredient,
                      quantities,
-                     tags,
                      note,
                  }| ListItem {
                     id: ingredient.id,
                     name: ingredient.name,
-                    tags: tags.into_iter().collect(),
+                    tags: ingredient.tags,
                     note,
                     quantities: quantities
                         .into_iter()
