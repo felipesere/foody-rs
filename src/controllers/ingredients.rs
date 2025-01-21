@@ -7,7 +7,8 @@ use sea_orm::{ActiveValue, SqlErr, Statement, TransactionTrait};
 use serde::{Deserialize, Serialize};
 
 use crate::models::{
-    _entities::{ingredients, ingredients_in_recipes, ingredients_in_shoppinglists},
+    _entities::{aisles, ingredients, ingredients_in_recipes, ingredients_in_shoppinglists},
+    aisles::Model as Aisle,
     ingredients::Model as Ingredient,
     users,
 };
@@ -15,18 +16,29 @@ use crate::models::{
 use super::TagsResponse;
 
 #[derive(Serialize, Debug)]
+pub struct AisleResponse {
+    name: String,
+    order: i16,
+}
+
+#[derive(Serialize, Debug)]
 pub struct IngredientResponse {
     id: i32,
     name: String,
+    aisle: Option<AisleResponse>,
     tags: Vec<String>,
 }
 
-impl From<Ingredient> for IngredientResponse {
-    fn from(value: Ingredient) -> Self {
+impl From<(Ingredient, Option<Aisle>)> for IngredientResponse {
+    fn from((value, aisle): (Ingredient, Option<Aisle>)) -> Self {
         Self {
             id: value.id,
             name: value.name,
             tags: value.tags,
+            aisle: aisle.map(|a| AisleResponse {
+                name: a.name,
+                order: a.order,
+            }),
         }
     }
 }
@@ -38,7 +50,10 @@ pub async fn all_ingredients(
     // check auth
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
-    let igs: Vec<Ingredient> = ingredients::Entity::find().all(&ctx.db).await?;
+    let igs: Vec<(Ingredient, Option<Aisle>)> = ingredients::Entity::find()
+        .find_also_related(aisles::Entity)
+        .all(&ctx.db)
+        .await?;
 
     format::json(
         igs.into_iter()
@@ -74,7 +89,7 @@ pub async fn add_ingredient(
     match ingredient_outcome {
         Ok(ingredient) => {
             tx.commit().await?;
-            format::json(IngredientResponse::from(ingredient))
+            format::json(IngredientResponse::from((ingredient, None)))
         }
         Err(other_err) => {
             if let Some(SqlErr::UniqueConstraintViolation(_)) = other_err.sql_err() {
@@ -86,7 +101,7 @@ pub async fn add_ingredient(
                     .await?
                     .ok_or(Error::NotFound)?;
 
-                return format::json(IngredientResponse::from(ingredient));
+                return format::json(IngredientResponse::from((ingredient, None)));
             }
             tx.rollback().await?;
             Err(loco_rs::Error::DB(other_err))
