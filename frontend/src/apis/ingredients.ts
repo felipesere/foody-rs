@@ -4,11 +4,19 @@ import { http } from "./http.ts";
 import type { Quantity } from "./recipes.ts";
 import type { Shoppinglist } from "./shoppinglists.ts";
 
+const AisleSchema = z.object({
+  name: z.string(),
+  order: z.number(),
+})
+export type Aisle = z.infer<typeof AisleSchema>;
+
 export const IngredientSchema = z.object({
   id: z.number(),
   name: z.string(),
   tags: z.array(z.string()),
+  aisle: z.nullable(AisleSchema)
 });
+
 export type Ingredient = z.infer<typeof IngredientSchema>;
 const IngredientsSchema = z.array(IngredientSchema);
 
@@ -128,6 +136,27 @@ export function useSetIngredientTags(
         });
       }
       return client.invalidateQueries({ queryKey: ["ingredients"] });
+    },
+  });
+}
+
+const IngredientTagsSchema = z.object({
+  tags: z.array(z.string()),
+});
+
+export function useAllIngredientTags(token: string) {
+  return useQuery({
+    queryKey: ["ingredients", "tags"],
+    queryFn: async () => {
+      const body = await http
+        .get("api/ingredients/tags", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .json();
+
+      return IngredientTagsSchema.parse(body);
     },
   });
 }

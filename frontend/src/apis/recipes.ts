@@ -207,6 +207,7 @@ export function useRecipeTags(token: string) {
     },
   });
 }
+
 export function useChangeRecipe(token: string, id: Recipe["id"]) {
   const client = useQueryClient();
   return useMutation({

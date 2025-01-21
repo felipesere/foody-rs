@@ -34,13 +34,14 @@ import { Toggle, ToggleButton } from "../components/toggle.tsx";
 import { orderByRecipe } from "../domain/orderByRecipe.ts";
 import { type Section, orderByTags } from "../domain/tags.tsx";
 import { combineQuantities, humanize, parse } from "../quantities.ts";
+import {orderByAisles} from "../domain/orderByAisle.ts";
 export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId")({
   component: ShoppingPage,
 });
 
 enum Grouping {
   None = "none",
-  ByTag = "byTag",
+  ByAisle = "byAisle",
   ByRecipe = "byRecipe",
 }
 
@@ -75,9 +76,7 @@ export function ShoppingPage() {
 
   const deleteRecipe = useRemoveRecipeFromShoppinglist(token, shoppinglistId);
 
-  const tags = useAllTags(token);
-
-  if (shoppinglist.isLoading || !recipes.data || !tags.data) {
+  if (shoppinglist.isLoading || !recipes.data) {
     return <p>Loading</p>;
   }
 
@@ -100,8 +99,8 @@ export function ShoppingPage() {
     case "none":
       sections = [{ name: "Items", ingredients }];
       break;
-    case "byTag":
-      sections = orderByTags(ingredients, tags.data);
+    case "byAisle":
+      sections = orderByAisles(ingredients)
       break;
     case "byRecipe":
       sections = orderByRecipe(ingredients, allRecipes);
