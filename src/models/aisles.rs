@@ -1,5 +1,5 @@
+pub use super::_entities::aisles::{ActiveModel, Entity, Model};
 use sea_orm::entity::prelude::*;
-pub use super::_entities::aisles::{ActiveModel, Model, Entity};
 pub type Aisles = Entity;
 
 #[async_trait::async_trait]

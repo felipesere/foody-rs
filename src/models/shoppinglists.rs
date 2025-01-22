@@ -3,6 +3,7 @@ use sea_orm::{
     ActiveModelBehavior, ConnectionTrait, DatabaseConnection, DbBackend, FromQueryResult, Statement,
 };
 
+use crate::models::aisles::Model as Aisle;
 use crate::models::ingredients::Model as Ingredient;
 use crate::models::quantities::Model as Quantity;
 
@@ -26,6 +27,7 @@ pub struct Item {
     pub ingredient: Ingredient,
     pub quantities: Vec<ItemQuantity>,
     pub note: Option<String>,
+    pub aisle: Option<Aisle>,
 }
 
 #[derive(Debug)]
@@ -60,13 +62,16 @@ impl Shoppinglist {
                 "q"."updated_at" as "q_updated_at",
                 "q"."unit" as "q_unit",
                 "q"."value" as "q_value",
-                "q"."text" as "q_text"
+                "q"."text" as "q_text",
+                "a"."name" as "a_name",
+                "a"."order" as "a_order"
             from "shoppinglists"
             left join
                 "ingredients_in_shoppinglists" as "r0"
                 on "r0"."shoppinglists_id" = "shoppinglists"."id"
             left join "ingredients" as "r1" on "r0"."ingredients_id" = "r1"."id"
             left join "quantities" as "q" on "r0"."quantities_id" = "q".id
+            left join "aisles" as "a" on "r1"."aisle" = "a".id
             where "shoppinglists"."id" = $1
             order by "shoppinglists"."id" asc, "r1"."id" asc, "q"."id" asc
                 "#,
@@ -78,6 +83,7 @@ impl Shoppinglist {
         for row in rows {
             let list = Self::from_query_result(row, "s_")?;
             let ingredient = Ingredient::from_query_result_optional(row, "i_")?;
+            let aisle = Aisle::from_query_result_optional(row, "i_")?;
             let quantity = Quantity::from_query_result_optional(row, "q_")?;
             let in_basket = row.try_get::<Option<bool>>("iis_", "in_basket")?;
 
@@ -123,6 +129,7 @@ impl Shoppinglist {
                     ingredient,
                     quantities: vec![item_quantity],
                     note,
+                    aisle,
                 });
             };
         }
@@ -154,13 +161,16 @@ impl Shoppinglist {
                 "q"."updated_at" as "q_updated_at",
                 "q"."unit" as "q_unit",
                 "q"."value" as "q_value",
-                "q"."text" as "q_text"
+                "q"."text" as "q_text",
+                "a"."name" as "a_name",
+                "a"."order" as "a_order"
             from "shoppinglists"
             left join
                 "ingredients_in_shoppinglists" as "r0"
                 on "r0"."shoppinglists_id" = "shoppinglists"."id"
             left join "ingredients" as "r1" on "r0"."ingredients_id" = "r1"."id"
             left join "quantities" as "q" on "r0"."quantities_id" = "q".id
+            left join "aisles" as "a" on "r1"."aisle" = "a"."id"
             order by "shoppinglists"."id" asc, "r1"."id" asc, "q"."id" asc
             "#,
         );
@@ -172,6 +182,7 @@ impl Shoppinglist {
             let list = Self::from_query_result(row, "s_")?;
             let ingredient = Ingredient::from_query_result_optional(row, "i_")?;
             let quantity = Quantity::from_query_result_optional(row, "q_")?;
+            let aisle = Aisle::from_query_result_optional(row, "a_")?;
             let in_basket = row.try_get::<Option<bool>>("iis_", "in_basket")?;
             let recipe_id = row.try_get::<Option<i32>>("iis_", "recipe_id")?;
 
@@ -203,6 +214,7 @@ impl Shoppinglist {
                     ingredient,
                     quantities: vec![item_quantity],
                     note: None,
+                    aisle,
                 })
             };
         }

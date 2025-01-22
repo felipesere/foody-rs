@@ -7,14 +7,14 @@ import type { Shoppinglist } from "./shoppinglists.ts";
 const AisleSchema = z.object({
   name: z.string(),
   order: z.number(),
-})
+});
 export type Aisle = z.infer<typeof AisleSchema>;
 
 export const IngredientSchema = z.object({
   id: z.number(),
   name: z.string(),
   tags: z.array(z.string()),
-  aisle: z.nullable(AisleSchema)
+  aisle: z.nullable(AisleSchema),
 });
 
 export type Ingredient = z.infer<typeof IngredientSchema>;

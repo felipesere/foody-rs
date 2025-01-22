@@ -15,18 +15,27 @@ use crate::models::{
 
 use super::TagsResponse;
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct AisleResponse {
-    name: String,
-    order: i16,
+    pub name: String,
+    pub order: i16,
 }
 
-#[derive(Serialize, Debug)]
+impl From<Aisle> for AisleResponse {
+    fn from(value: Aisle) -> Self {
+        Self {
+            name: value.name,
+            order: value.order,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct IngredientResponse {
-    id: i32,
-    name: String,
-    aisle: Option<AisleResponse>,
-    tags: Vec<String>,
+    pub id: i32,
+    pub name: String,
+    pub aisle: Option<AisleResponse>,
+    pub tags: Vec<String>,
 }
 
 impl From<(Ingredient, Option<Aisle>)> for IngredientResponse {

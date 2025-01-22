@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { z } from "zod";
 import { http } from "./http.ts";
+import { type Ingredient, IngredientSchema } from "./ingredients.ts";
 import {
   type Recipe,
   type StoredQuantity,
@@ -40,20 +41,26 @@ const ItemQuantitySchema = StoredQuantitySchema.extend({
 });
 export type Quantity = z.infer<typeof ItemQuantitySchema>;
 
-const IngredientSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  note: z.string().nullable(),
-  tags: z.array(z.string()),
-  quantities: z.array(ItemQuantitySchema),
+const ShoppinglistItemQuantitySchema = z.object({
+  quantity: StoredQuantitySchema,
+  in_basket: z.boolean(),
+  recipe_id: z.number().nullable(),
 });
-export type Ingredient = z.infer<typeof IngredientSchema>;
+const ShoppinglistItem = z.object({
+  ingredient: IngredientSchema,
+  note: z.string().nullable(),
+  quantities: z.array(ShoppinglistItemQuantitySchema),
+});
+export type ShoppinglistItem = z.infer<typeof ShoppinglistItem>;
+export type ShoppinglistQuantity = z.infer<
+  typeof ShoppinglistItemQuantitySchema
+>;
 
 const ShoppinglistSchema = z.object({
   id: z.number(),
   name: z.string(),
   last_updated: z.string().datetime(),
-  ingredients: z.array(IngredientSchema),
+  ingredients: z.array(ShoppinglistItem),
 });
 
 export type Shoppinglist = z.infer<typeof ShoppinglistSchema>;
@@ -153,10 +160,10 @@ export function useToggleIngredientInShoppinglist(
         const updatedList = updateItemInShoppingList(
           previousShoppinglist,
           params.ingredientId,
-          (ingredient) => {
+          (item) => {
             return {
-              ...ingredient,
-              quantities: ingredient.quantities.map((q) => {
+              ...item,
+              quantities: item.quantities.map((q) => {
                 return { ...q, in_basket: params.inBasket };
               }),
             };
@@ -196,12 +203,12 @@ export function useToggleIngredientInShoppinglist(
 function updateItemInShoppingList(
   shoppinglist: Shoppinglist,
   ingredientId: number,
-  f: (i: Ingredient) => Ingredient,
+  f: (i: ShoppinglistItem) => ShoppinglistItem,
 ) {
   return {
     ...shoppinglist,
-    ingredients: shoppinglist.ingredients.map((ingredient) => {
-      return ingredient.id !== ingredientId ? ingredient : f(ingredient);
+    ingredients: shoppinglist.ingredients.map((item) => {
+      return item.ingredient.id !== ingredientId ? item : f(item);
     }),
   };
 }

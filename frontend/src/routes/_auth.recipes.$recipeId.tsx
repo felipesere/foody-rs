@@ -52,7 +52,7 @@ function RecipePage() {
     changes: Change[],
     recipe: Recipe,
     knownIngredients: Ingredient[],
-  ) {
+  ): Recipe {
     const copy = structuredClone(recipe);
     for (const change of changes) {
       switch (change.type) {
@@ -89,7 +89,9 @@ function RecipePage() {
             case "remove":
               {
                 const id = change.value.ingredient;
-                copy.ingredients = copy.ingredients.filter((i) => i.id !== id);
+                copy.ingredients = copy.ingredients.filter(
+                  (i) => i.ingredient.id !== id,
+                );
               }
               break;
             case "add":
@@ -101,8 +103,7 @@ function RecipePage() {
                   copy.ingredients = [
                     ...copy.ingredients,
                     {
-                      id: id,
-                      name: ingredient.name,
+                      ingredient,
                       quantity: [{ ...parse(quantity), id: 1 }], // TODO: meh... non-stored quantity?
                     },
                   ];
@@ -119,8 +120,7 @@ function RecipePage() {
                     copy.ingredients = [
                       ...copy.ingredients,
                       {
-                        id,
-                        name: ingredient.name,
+                        ingredient,
                         quantity: [{ ...parse(quantity), id: 1 }], // TODO: meh... non-stored quantity?
                       },
                     ];
@@ -214,7 +214,9 @@ function RecipePage() {
           ]);
         }}
         onRemoveIngredient={(name) => {
-          const ing = recipe.ingredients.find((i) => i.name === name);
+          const ing = recipe.ingredients.find(
+            (i) => i.ingredient.name === name,
+          );
           if (ing) {
             setChanges((prev) => [
               ...prev,
@@ -222,7 +224,7 @@ function RecipePage() {
                 type: "ingredients",
                 value: {
                   type: "remove",
-                  ingredient: ing.id,
+                  ingredient: ing.ingredient.id,
                 },
               },
             ]);
@@ -241,7 +243,9 @@ function RecipePage() {
           addRecipe.mutate({ recipeId: recipe.id, shoppinglistId: id });
         }}
         onChangeQuantity={(name, quantity) => {
-          const ing = recipe.ingredients.find((i) => i.name === name);
+          const ing = recipe.ingredients.find(
+            (i) => i.ingredient.name === name,
+          );
           if (ing) {
             setChanges((prev) => [
               ...prev,
@@ -249,14 +253,14 @@ function RecipePage() {
                 type: "ingredients",
                 value: {
                   type: "remove",
-                  ingredient: ing.id,
+                  ingredient: ing.ingredient.id,
                 },
               },
               {
                 type: "ingredients",
                 value: {
                   type: "add",
-                  id: ing.id,
+                  id: ing.ingredient.id,
                   quantity: quantity,
                 },
               },

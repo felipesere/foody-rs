@@ -8,8 +8,12 @@ const recipes: Recipe[] = [
     name: "tartiflette",
     ingredients: [
       {
-        id: 1,
-        name: "potatoes",
+        ingredient: {
+          id: 1,
+          name: "potatoes",
+          tags: [],
+          aisle: null,
+        },
         quantity: [
           {
             id: 1,
@@ -19,8 +23,12 @@ const recipes: Recipe[] = [
         ],
       },
       {
-        id: 2,
-        name: "cheese",
+        ingredient: {
+          id: 2,
+          name: "cheese",
+          tags: [],
+          aisle: null,
+        },
         quantity: [
           {
             id: 2,
@@ -44,8 +52,12 @@ const recipes: Recipe[] = [
     name: "blurb",
     ingredients: [
       {
-        id: 3,
-        name: "Strawberry",
+        ingredient: {
+          id: 3,
+          name: "Strawberry",
+          tags: [],
+          aisle: null,
+        },
         quantity: [
           {
             id: 3,
@@ -55,8 +67,12 @@ const recipes: Recipe[] = [
         ],
       },
       {
-        id: 4,
-        name: "Sweet potato",
+        ingredient: {
+          id: 4,
+          name: "Sweet potato",
+          tags: [],
+          aisle: null,
+        },
         quantity: [
           {
             id: 1,

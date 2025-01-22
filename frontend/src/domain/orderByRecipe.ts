@@ -1,25 +1,33 @@
+import type { Ingredient } from "../apis/ingredients.ts";
 import type { Recipe } from "../apis/recipes.ts";
-import type { Ingredient, Quantity } from "../apis/shoppinglists.ts";
+import type {
+  Quantity,
+  ShoppinglistItem,
+  ShoppinglistQuantity,
+} from "../apis/shoppinglists.ts";
 import type { Section } from "./tags.tsx";
 
 export function orderByRecipe(
-  ingredients: Ingredient[],
-  recipeNames: Record<NonNullable<Quantity["recipe_id"]>, Recipe["name"]>,
+  items: ShoppinglistItem[],
+  recipeNames: Record<
+    NonNullable<ShoppinglistQuantity["recipe_id"]>,
+    Recipe["name"]
+  >,
 ): Section[] {
   const ingredientsByRecipe: Record<
     NonNullable<Quantity["id"]>,
-    Ingredient[]
+    ShoppinglistItem[]
   > = {};
-  const noRecipe: Ingredient[] = [];
-  for (const ingredient of ingredients) {
-    for (const quantity of ingredient.quantities) {
+  const noRecipe: ShoppinglistItem[] = [];
+  for (const item of items) {
+    for (const quantity of item.quantities) {
       if (quantity.recipe_id) {
         const ingredientInRecipe =
           ingredientsByRecipe[quantity.recipe_id] || [];
-        ingredientInRecipe.push(ingredient);
+        ingredientInRecipe.push(item);
         ingredientsByRecipe[quantity.recipe_id] = ingredientInRecipe;
       } else {
-        noRecipe.push(ingredient);
+        noRecipe.push(item);
       }
     }
   }
@@ -28,14 +36,14 @@ export function orderByRecipe(
       const actualId = Number.parseInt(id, 10); // Iterating over properties yields strings, even tho the value was originally a number
       return {
         name: recipeNames[actualId] || "Unknown",
-        ingredients,
+        items: ingredients,
       };
     },
   );
   if (noRecipe.length > 0) {
     sections.push({
       name: "Manual",
-      ingredients: noRecipe,
+      items: noRecipe,
     });
   }
   return sections;

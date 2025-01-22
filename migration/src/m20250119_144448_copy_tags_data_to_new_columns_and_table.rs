@@ -7,13 +7,12 @@ pub struct Migration;
 impl MigrationTrait for Migration {
     async fn up(&self, m: &SchemaManager) -> Result<(), DbErr> {
         // add all the relevant aisles
-        run_sql(m.get_connection(), 
-        r#"INSERT INTO aisles(id, name, "order") SELECT id, name, "order" from tags where is_aisle is true;"#,
-        ).await?;
+        run_sql(m.get_connection(), r#"INSERT INTO aisles(id, name, "order") SELECT id, name, "order" from tags where is_aisle is true;"#,).await?;
 
-        // Set all the right aisles absed on the old "tags" that were really aisles 
+        // Set all the right aisles absed on the old "tags" that were really aisles
 
-        run_sql(m.get_connection(), 
+        run_sql(
+            m.get_connection(),
             r#"
         UPDATE ingredients
             set aisle = a.id
@@ -23,11 +22,13 @@ impl MigrationTrait for Migration {
             where t.is_aisle = true
                 and ingredients.id = t_o_i.ingredient_id;
                 "#,
-        ).await?;
-       
+        )
+        .await?;
+
         // transfer all tags as an array onto the right ingredient
-        run_sql(m.get_connection(), 
-        r#"
+        run_sql(
+            m.get_connection(),
+            r#"
                 UPDATE ingredients SET tags=sub.tags
                   FROM (
                     SELECT i.id as id, array_agg(t.name) as tags
@@ -37,23 +38,29 @@ impl MigrationTrait for Migration {
                     GROUP BY i.id
                   ) AS sub
                 WHERE ingredients.id = sub.id;
-        "#,).await?;
+        "#,
+        )
+        .await?;
 
         Ok(())
     }
 
     async fn down(&self, m: &SchemaManager) -> Result<(), DbErr> {
-        run_sql(m.get_connection(), 
+        run_sql(
+            m.get_connection(),
             r#"
             UPDATE ingredients SET tags = ARRAY []::varchar[], aile = null;
             "#,
-        ).await?;
+        )
+        .await?;
 
-        run_sql(m.get_connection(), 
+        run_sql(
+            m.get_connection(),
             r#"
             DELETE FROM ailes;
             "#,
-        ).await?;
+        )
+        .await?;
 
         Ok(())
     }
@@ -61,7 +68,7 @@ impl MigrationTrait for Migration {
 
 async fn run_sql(conn: &impl ConnectionTrait, sql: &'static str) -> Result<(), DbErr> {
     let backend = conn.get_database_backend();
-    let statement = Statement::from_string( backend, sql);
+    let statement = Statement::from_string(backend, sql);
     conn.execute(statement).await?;
 
     Ok(())

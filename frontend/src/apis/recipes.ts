@@ -7,6 +7,7 @@ import {
 import { toast } from "sonner";
 import { z } from "zod";
 import { http } from "./http.ts";
+import { IngredientSchema } from "./ingredients.ts";
 import type { Shoppinglist } from "./shoppinglists.ts";
 
 export const WithIdSchema = z.object({
@@ -24,16 +25,15 @@ export const StoredQuantitySchema = WithIdSchema.merge(QuantitySchema);
 
 export type StoredQuantity = z.infer<typeof StoredQuantitySchema>;
 
-const IngredientSchema = z.object({
-  id: z.number(),
-  name: z.string(),
+const IngredientWithQuantitySchema = z.object({
+  ingredient: IngredientSchema,
   quantity: z.array(StoredQuantitySchema),
 });
 
 const RecipeSchema = z.object({
   id: z.number(),
   name: z.string(),
-  ingredients: z.array(IngredientSchema),
+  ingredients: z.array(IngredientWithQuantitySchema),
   tags: z.array(z.string()),
   rating: z.number(),
   notes: z.string(),
@@ -48,9 +48,15 @@ export type Recipe = z.infer<typeof RecipeSchema>;
 
 export type Source = Pick<Recipe, "source" | "title" | "page" | "url">;
 
-export type Ingredient = z.infer<typeof IngredientSchema>;
+export type IngredientWithQuantity = z.infer<
+  typeof IngredientWithQuantitySchema
+>;
 
-export type UnstoredIngredient = Omit<Ingredient, "id" | "quantity"> & {
+// TODO! this needs to be very different!
+export type UnstoredIngredient = {
+  ingredient: {
+    name: string;
+  };
   quantity: Quantity[];
 };
 export type UnstoredRecipe = Omit<Recipe, "id" | "ingredients"> & {

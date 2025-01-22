@@ -1,9 +1,10 @@
 use std::collections::HashMap;
 
-use super::_entities;
+use super::_entities::aisles::Model as Aisle;
 use super::_entities::ingredients::Model as Ingredient;
 use super::_entities::quantities::Model as Quantity;
 use super::_entities::recipes::{ActiveModel, Model as Recipes};
+use super::_entities::{self};
 use loco_rs::model::ModelError;
 use sea_orm::entity::prelude::*;
 use sea_orm::{FromQueryResult, Statement};
@@ -13,7 +14,7 @@ impl ActiveModelBehavior for ActiveModel {
 }
 
 // TODO: Turn this into an actual struct with proper names
-type FullRecipe = (Recipes, Vec<(Ingredient, Quantity)>);
+type FullRecipe = (Recipes, Vec<(Ingredient, Quantity, Option<Aisle>)>);
 
 pub(crate) async fn find_all(db: &DatabaseConnection) -> Result<Vec<FullRecipe>, ModelError> {
     let backend = db.get_database_backend();
@@ -32,10 +33,13 @@ pub(crate) async fn find_all(db: &DatabaseConnection) -> Result<Vec<FullRecipe>,
                q.id as q_id,
                q.text as q_text,
                q.unit as q_unit,
-               q.value as q_value
+               q.value as q_value,
+               a.name as a_name,
+               a.order as a_order
         FROM ingredients_in_recipes
                  JOIN ingredients i ON ingredients_in_recipes.ingredients_id = i.id
                  JOIN quantities q ON q.id = ingredients_in_recipes.quantities_id
+                 LEFT JOIN aisles a ON a.id = i.aisle
     "#,
     );
 
@@ -45,10 +49,11 @@ pub(crate) async fn find_all(db: &DatabaseConnection) -> Result<Vec<FullRecipe>,
         let recipe_id: i32 = row.try_get("", "recipes_id")?;
         let ingredient = _entities::ingredients::Model::from_query_result(row, "i_")?;
         let quantity = _entities::quantities::Model::from_query_result(row, "q_")?;
+        let aisle = _entities::aisles::Model::from_query_result_optional(row, "a_")?;
         ingredients_for_recipes
             .entry(recipe_id)
             .or_insert_with(Vec::new)
-            .push((ingredient, quantity));
+            .push((ingredient, quantity, aisle));
     }
 
     let recipes = _entities::recipes::Entity::find().all(db).await?;
@@ -91,21 +96,25 @@ pub(crate) async fn find_one(
                        "q"."id"         AS "Q_id",
                        "q"."unit"       AS "Q_unit",
                        "q"."value"      AS "Q_value",
-                       "q"."text"       AS "Q_text"
+                       "q"."text"       AS "Q_text",
+                       "a"."name"       AS "a_name",
+                       "a"."order"      AS "a_order"
                     FROM "ingredients_in_recipes"
                         JOIN "ingredients" i on i.id = ingredients_in_recipes.ingredients_id
                         JOIN "quantities"  q on q.id = ingredients_in_recipes.quantities_id
+                        LEFT JOIN aisles a ON a.id = i.aisle
                 WHERE "ingredients_in_recipes"."recipes_id" = $1
         "#,
         vec![id.into()],
     );
     let rows = &db.query_all(ingredients_with_quantities).await?;
-    let mut ingredients: Vec<(Ingredient, Quantity)> = Vec::new();
+    let mut ingredients = Vec::new();
 
     for row in rows {
         let ingredient = Ingredient::from_query_result(row, "I_")?;
         let quantity = Quantity::from_query_result(row, "Q_")?;
-        ingredients.push((ingredient, quantity));
+        let aisle = Aisle::from_query_result_optional(row, "a_")?;
+        ingredients.push((ingredient, quantity, aisle));
     }
 
     Ok(Some((recipe, ingredients)))
