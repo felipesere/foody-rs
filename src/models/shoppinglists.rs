@@ -3,7 +3,7 @@ use sea_orm::{
     ActiveModelBehavior, ConnectionTrait, DatabaseConnection, DbBackend, FromQueryResult, Statement,
 };
 
-use crate::models::aisles::Model as Aisle;
+use crate::models::aisles::AisleRef;
 use crate::models::ingredients::Model as Ingredient;
 use crate::models::quantities::Model as Quantity;
 
@@ -27,7 +27,7 @@ pub struct Item {
     pub ingredient: Ingredient,
     pub quantities: Vec<ItemQuantity>,
     pub note: Option<String>,
-    pub aisle: Option<Aisle>,
+    pub aisle: Option<AisleRef>,
 }
 
 #[derive(Debug)]
@@ -83,7 +83,7 @@ impl Shoppinglist {
         for row in rows {
             let list = Self::from_query_result(row, "s_")?;
             let ingredient = Ingredient::from_query_result_optional(row, "i_")?;
-            let aisle = Aisle::from_query_result_optional(row, "i_")?;
+            let aisle = AisleRef::from_query_result_optional(row, "a_")?;
             let quantity = Quantity::from_query_result_optional(row, "q_")?;
             let in_basket = row.try_get::<Option<bool>>("iis_", "in_basket")?;
 
@@ -182,7 +182,7 @@ impl Shoppinglist {
             let list = Self::from_query_result(row, "s_")?;
             let ingredient = Ingredient::from_query_result_optional(row, "i_")?;
             let quantity = Quantity::from_query_result_optional(row, "q_")?;
-            let aisle = Aisle::from_query_result_optional(row, "a_")?;
+            let aisle = AisleRef::from_query_result_optional(row, "a_")?;
             let in_basket = row.try_get::<Option<bool>>("iis_", "in_basket")?;
             let recipe_id = row.try_get::<Option<i32>>("iis_", "recipe_id")?;
 

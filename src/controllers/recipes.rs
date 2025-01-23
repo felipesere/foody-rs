@@ -194,8 +194,13 @@ impl From<UnstoredQuantity> for Quantity {
 }
 
 #[derive(Deserialize, Debug)]
-struct UnstoredIngredient {
+struct IngredientRef {
     id: i32,
+}
+
+#[derive(Deserialize, Debug)]
+struct UnstoredIngredient {
+    ingredient: IngredientRef,
     quantity: Vec<UnstoredQuantity>,
 }
 
@@ -252,7 +257,7 @@ pub async fn create_recipe(
         ingredients_in_recipes::ActiveModel {
             recipes_id: recipe.id.clone(),
             quantities_id: quantity.id,
-            ingredients_id: ActiveValue::set(i.id),
+            ingredients_id: ActiveValue::set(i.ingredient.id),
             ..Default::default()
         }
         .save(&tx)

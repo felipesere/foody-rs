@@ -1,4 +1,3 @@
-import type { Ingredient } from "../apis/ingredients.ts";
 import type { Recipe } from "../apis/recipes.ts";
 import type {
   Quantity,

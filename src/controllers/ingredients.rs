@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::{
     _entities::{aisles, ingredients, ingredients_in_recipes, ingredients_in_shoppinglists},
-    aisles::Model as Aisle,
+    aisles::{AisleRef, Model as Aisle},
     ingredients::Model as Ingredient,
     users,
 };
@@ -38,8 +38,8 @@ pub struct IngredientResponse {
     pub tags: Vec<String>,
 }
 
-impl From<(Ingredient, Option<Aisle>)> for IngredientResponse {
-    fn from((value, aisle): (Ingredient, Option<Aisle>)) -> Self {
+impl From<(Ingredient, Option<AisleRef>)> for IngredientResponse {
+    fn from((value, aisle): (Ingredient, Option<AisleRef>)) -> Self {
         Self {
             id: value.id,
             name: value.name,
@@ -66,7 +66,9 @@ pub async fn all_ingredients(
 
     format::json(
         igs.into_iter()
-            .map(IngredientResponse::from)
+            .map(|(ingreient, aisle)| {
+                IngredientResponse::from((ingreient, aisle.map(AisleRef::from)))
+            })
             .collect::<Vec<_>>(),
     )
 }

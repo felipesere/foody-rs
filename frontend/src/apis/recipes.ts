@@ -55,6 +55,7 @@ export type IngredientWithQuantity = z.infer<
 // TODO! this needs to be very different!
 export type UnstoredIngredient = {
   ingredient: {
+    id: number;
     name: string;
   };
   quantity: Quantity[];

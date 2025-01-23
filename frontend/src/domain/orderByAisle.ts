@@ -1,23 +1,24 @@
-import type { Aisle, Ingredient } from "../apis/ingredients.ts";
+import type { Aisle } from "../apis/ingredients.ts";
 import type { ShoppinglistItem } from "../apis/shoppinglists.ts";
 import type { Section } from "./tags.tsx";
 
 export function orderByAisles(items: ShoppinglistItem[]): Section[] {
   const ingredientsByAisle: Record<
     NonNullable<Aisle["name"]>,
-    { aisle: Aisle; ingredients: Ingredient[] }
+    { aisle: Aisle; ingredients: ShoppinglistItem[] }
   > = {};
 
-  const noAisle: Ingredient[] = [];
-  for (const { ingredient } of items) {
+  const noAisle: ShoppinglistItem[] = [];
+  for (const item of items) {
+    const ingredient = item.ingredient;
     if (!ingredient.aisle) {
-      noAisle.push(ingredient);
+      noAisle.push(item);
     } else {
       const inAisle = ingredientsByAisle[ingredient.aisle.name] || {
         aisle: ingredient.aisle,
         ingredients: [],
       };
-      inAisle.ingredients.push(ingredient);
+      inAisle.ingredients.push(item);
       ingredientsByAisle[ingredient.aisle.name] = inAisle;
     }
   }
@@ -27,14 +28,15 @@ export function orderByAisles(items: ShoppinglistItem[]): Section[] {
     .map((n) => {
       return {
         name: n.aisle.name,
-        ingredients: n.ingredients,
+        items: n.ingredients,
       };
     });
 
-  return []; // TODO
-
-  // return [...sections, {
-  //     name: "No Aisle",
-  //     items: noAisle,
-  // }]
+  return [
+    ...sections,
+    {
+      name: "No Aisle",
+      items: noAisle,
+    },
+  ];
 }

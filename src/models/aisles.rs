@@ -1,6 +1,21 @@
 pub use super::_entities::aisles::{ActiveModel, Entity, Model};
-use sea_orm::entity::prelude::*;
+use sea_orm::{entity::prelude::*, FromQueryResult};
 pub type Aisles = Entity;
+
+#[derive(Debug, FromQueryResult)]
+pub struct AisleRef {
+    pub name: String,
+    pub order: i16,
+}
+
+impl From<Model> for AisleRef {
+    fn from(value: Model) -> Self {
+        Self {
+            name: value.name,
+            order: value.order,
+        }
+    }
+}
 
 #[async_trait::async_trait]
 impl ActiveModelBehavior for ActiveModel {
