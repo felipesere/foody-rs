@@ -233,7 +233,7 @@ function Tags(props: {
       ))}
       {editing && (
         <MultiSelect
-          label={"Select Tags"}
+          label={"Select Aisles"}
           items={allRecipeTags.data.tags}
           selected={props.tags}
           onItemsSelected={props.onSetTags}

@@ -3,8 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { zodValidator } from "@tanstack/zod-form-adapter";
 import { toast } from "sonner";
 import { z } from "zod";
+import { type Aisle, useAllAisles } from "../apis/aisles.ts";
 import { type Ingredient, useMergeIngredients } from "../apis/ingredients.ts";
-import { type Tags, useAllTags } from "../apis/tags.ts";
 import { useLogin, useLogout, useUser } from "../apis/user.ts";
 import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
@@ -61,6 +61,7 @@ function UserDetails(props: { token: string }) {
     </div>
   );
 }
+
 function Login() {
   const { redirect } = Route.useSearch();
 
@@ -155,38 +156,38 @@ function Login() {
 }
 
 function AdminPanel(props: { token: string }) {
-  const tags = useAllTags(props.token);
+  const aisles = useAllAisles(props.token);
 
-  if (!tags.data) {
-    return <p>Loading tags...</p>;
+  if (!aisles.data) {
+    return <p>Loading aisles...</p>;
   }
 
   return (
     <div className={"flex flex-col gap-4"}>
       <Divider />
-      <EditTagsForm token={props.token} tags={tags.data} />
+      <EditAislesForm token={props.token} aisles={aisles.data} />
       <Divider />
       <MergeIngredients token={props.token} />
     </div>
   );
 }
 
-function EditTagsForm(props: { token: string; tags: Tags }) {
+function EditAislesForm(props: { token: string; aisles: Aisle[] }) {
   const form = useForm({
     defaultValues: {
-      tags: Object.values(props.tags),
+      aisles: Object.values(props.aisles),
     },
-    onSubmit: ({ value: { tags } }) => {
-      console.log(`About to submit ${JSON.stringify(tags, null, 2)}`);
+    onSubmit: ({ value: { aisles } }) => {
+      console.log(`About to submit ${JSON.stringify(aisles, null, 2)}`);
     },
   });
 
   return (
     <div>
-      <h2>Tags</h2>
+      <h2>Aisles</h2>
 
       <form
-        id="tags"
+        id="aisles"
         className={"grid gap-4"}
         onSubmit={(e) => {
           e.preventDefault();
@@ -198,68 +199,33 @@ function EditTagsForm(props: { token: string; tags: Tags }) {
           <thead>
             <tr>
               <th className={"pr-4 text-left border-black border-r-2"}>Name</th>
-              <th className={"px-4 text-left border-black border-r-2"}>
-                Is aisle
-              </th>
               <th className={"px-4 text-left"}>Order</th>
             </tr>
           </thead>
           <tbody>
             <form.Field
-              name={"tags"}
+              name={"aisles"}
               mode={"array"}
-              children={(tagsField) => {
-                return tagsField.state.value.map((t, idx) => {
+              children={(aislesField) => {
+                return aislesField.state.value.map((aisle, idx) => {
                   return (
-                    <tr key={t.name}>
+                    <tr key={aisle.name}>
                       <td className={"pr-4 border-black border-r-2"}>
-                        {t.name}
-                      </td>
-                      <td className={"px-4 border-black border-r-2"}>
-                        <div>
-                          <form.Field
-                            name={`tags[${idx}].is_aisle`}
-                            children={(isAisleField) => {
-                              return (
-                                <input
-                                  name={isAisleField.name}
-                                  type={"checkbox"}
-                                  className={"px-2 bg-white shadow"}
-                                  checked={isAisleField.state.value}
-                                  readOnly={true}
-                                  onClick={() =>
-                                    isAisleField.handleChange((p) => !p)
-                                  }
-                                />
-                              );
-                            }}
-                          />
-                        </div>
+                        {aisle.name}
                       </td>
                       <td className={"px-4"}>
-                        <form.Subscribe
-                          selector={(state) => [
-                            state.values.tags[idx].is_aisle,
-                          ]}
-                          children={([is_aisle]) =>
-                            is_aisle ? (
-                              <form.Field
-                                name={`tags[${idx}].order`}
-                                children={(orderField) => (
-                                  <input
-                                    type={"number"}
-                                    value={orderField.state.value as number}
-                                    readOnly={true}
-                                    onChange={(e) => {
-                                      orderField.handleChange(+e.target.value);
-                                    }}
-                                  />
-                                )}
-                              />
-                            ) : (
-                              <></>
-                            )
-                          }
+                        <form.Field
+                          name={`aisles[${idx}].order`}
+                          children={(orderField) => (
+                            <input
+                              type={"number"}
+                              value={orderField.state.value as number}
+                              readOnly={true}
+                              onChange={(e) => {
+                                orderField.handleChange(+e.target.value);
+                              }}
+                            />
+                          )}
                         />
                       </td>
                     </tr>
@@ -274,9 +240,10 @@ function EditTagsForm(props: { token: string; tags: Tags }) {
           <Button
             label={"Add row"}
             onClick={() =>
-              form.pushFieldValue("tags", {
+              form.pushFieldValue("aisles", {
+                id: 1,
                 name: "",
-                is_aisle: false,
+                order: 7,
               })
             }
           />

@@ -13,6 +13,8 @@ pub mod recipes;
 
 pub mod mealplans;
 
+pub mod ailes;
+
 #[derive(Serialize)]
 pub struct TagsResponse {
     tags: HashSet<String>,
