@@ -1,6 +1,7 @@
 import type { Aisle } from "../apis/ingredients.ts";
 import type { ShoppinglistItem } from "../apis/shoppinglists.ts";
-import type { Section } from "./tags.tsx";
+
+import type { Section } from "./orderByRecipe.ts";
 
 export function orderByAisles(items: ShoppinglistItem[]): Section[] {
   const ingredientsByAisle: Record<

@@ -34,8 +34,7 @@ import { SelectIngredientWithQuantity } from "../components/smart/selectIngredie
 import { SelectTags } from "../components/smart/selectTags.tsx";
 import { Toggle, ToggleButton } from "../components/toggle.tsx";
 import { orderByAisles } from "../domain/orderByAisle.ts";
-import { orderByRecipe } from "../domain/orderByRecipe.ts";
-import type { Section } from "../domain/tags.tsx";
+import { type Section, orderByRecipe } from "../domain/orderByRecipe.ts";
 import { combineQuantities, humanize, parse } from "../quantities.ts";
 export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId")({
   component: ShoppingPage,

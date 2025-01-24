@@ -4,7 +4,11 @@ import type {
   ShoppinglistItem,
   ShoppinglistQuantity,
 } from "../apis/shoppinglists.ts";
-import type { Section } from "./tags.tsx";
+
+export type Section = {
+  name: string;
+  items: ShoppinglistItem[];
+};
 
 export function orderByRecipe(
   items: ShoppinglistItem[],
