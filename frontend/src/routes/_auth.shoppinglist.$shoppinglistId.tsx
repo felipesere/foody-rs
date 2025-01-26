@@ -36,6 +36,8 @@ import { Toggle, ToggleButton } from "../components/toggle.tsx";
 import { orderByAisles } from "../domain/orderByAisle.ts";
 import { type Section, orderByRecipe } from "../domain/orderByRecipe.ts";
 import { combineQuantities, humanize, parse } from "../quantities.ts";
+import { SelectAisle } from "../components/smart/selectAisle.tsx";
+
 export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId")({
   component: ShoppingPage,
 });
@@ -518,11 +520,14 @@ function Tags(props: {
         </p>
       ))}
       {props.isEditing && (
-        <SelectTags
-          token={props.token}
-          ingredientId={props.ingredientId}
-          currentTags={props.tags}
-        />
+        <>
+          <SelectTags
+            token={props.token}
+            ingredientId={props.ingredientId}
+            currentTags={props.tags}
+          />
+          <SelectAisle token={props.token} />
+        </>
       )}
     </div>
   );

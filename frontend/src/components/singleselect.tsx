@@ -12,7 +12,6 @@ import {
 } from "@floating-ui/react";
 import { useForm } from "@tanstack/react-form";
 import { useState } from "react";
-import { useHotkeys } from "react-hotkeys-hook";
 import { Button } from "./button.tsx";
 import { ButtonGroup } from "./buttonGroup.tsx";
 import { Divider } from "./divider.tsx";
@@ -23,14 +22,12 @@ type Props = {
   label: string;
   className?: string;
   items: string[];
-  selected?: string[];
-  onItemsSelected: (items: string[]) => void;
-  onNewItem?: (value: string) => void;
-  newItemPlaceholder?: string;
+  selected: string | null;
+  onItemsSelected: (item: string) => void;
   hotkey?: string;
 };
 
-export function MultiSelect(props: Props) {
+export function SingleSelect(props: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
   const { refs, floatingStyles, context } = useFloating({
@@ -51,23 +48,22 @@ export function MultiSelect(props: Props) {
     role,
   ]);
 
-  const items = props.items.map((i) => ({
-    name: i,
-    value: props.selected?.includes(i) || false,
-  }));
-
   const form = useForm({
     defaultValues: {
-      items,
+      items: props.items,
+      selected: props.selected,
     },
-    onSubmit: (values) => {
-      const selected = values.value.items
-        .filter((i) => i.value)
-        .map((i) => i.name);
-      props.onItemsSelected(selected);
+    onSubmit: (value) => {
+      console.log(value);
+      // const selected = value.value.items
+      //   .filter((i) => i.value)
+      //   .map((i) => i.name);
+      // props.onItemsSelected(selected);
       setIsOpen(false);
     },
   });
+
+  console.log(form.getFieldValue("selected"));
 
   return (
     <>
@@ -97,33 +93,41 @@ export function MultiSelect(props: Props) {
                   children={(itemsField) => {
                     return itemsField.state.value.map((item, idx) => (
                       <form.Field
-                        key={item.name}
-                        name={`items[${idx}].value`}
+                        key={item}
+                        name={`items[${idx}]`}
                         children={(itemField) => {
-                          const [first, ...remaining] = item.name;
-                          useHotkeys([first], () =>
-                            itemField.handleChange((p) => !p),
-                          );
-
+                          const [first, ...remaining] = item;
                           return (
-                            <div
-                              className={"flex flex-row gap-2"}
-                              key={item.name}
-                            >
+                            <div className={"flex flex-row gap-2"} key={item}>
                               <input
-                                type={"checkbox"}
+                                type={"radio"}
+                                name={`${props.label}-selection`}
                                 className={"px-2 bg-white shadow"}
-                                id={item.name}
-                                key={item.name}
-                                checked={itemField.state.value}
-                                readOnly={true}
+                                id={item}
+                                key={item}
+                                checked={
+                                  itemField.state.value ===
+                                  itemField.form.state.values.selected
+                                }
                                 onClick={() => {
-                                  itemField.handleChange(
-                                    !itemField.state.value,
+                                  form.setFieldValue(
+                                    "selected",
+                                    (value) => {
+                                      console.log(
+                                        `Updating the form from ${item}...`,
+                                      );
+                                      console.log({ value });
+                                      if (value) {
+                                        return null;
+                                      }
+                                      return item;
+                                    },
+                                    { dontUpdateMeta: false },
                                   );
                                 }}
+                                readOnly={true}
                               />
-                              <label className={"no-colon"} htmlFor={item.name}>
+                              <label className={"no-colon"} htmlFor={item}>
                                 <span className={"font-bold"}>{first}</span>
                                 {remaining.join("")}
                               </label>
@@ -134,21 +138,6 @@ export function MultiSelect(props: Props) {
                     ));
                   }}
                 />
-                {props.onNewItem && (
-                  <div className={"flex flex-row gap-2"} key={"new-item"}>
-                    <input
-                      type={"text"}
-                      className={"border-2 border-solid border-black px-2"}
-                      id={"new-item"}
-                      placeholder={props.newItemPlaceholder || "New..."}
-                      onBlur={(e) => {
-                        if (e.target.value) {
-                          props.onNewItem?.(e.target.value);
-                        }
-                      }}
-                    />
-                  </div>
-                )}
               </ol>
               <Divider />
               <ButtonGroup>

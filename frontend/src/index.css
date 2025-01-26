@@ -59,7 +59,8 @@
 }
 
 /* Fancy black and white Checkbox */
-input[type="checkbox"] {
+input[type="checkbox"],
+input[type="radio"] {
   /* Add if not using autoprefixer */
   -webkit-appearance: none;
   appearance: none;
@@ -80,7 +81,8 @@ input[type="checkbox"] {
 }
 
 /*  This is the unchecked state, so its scaled down to 0... */
-input[type="checkbox"]::before {
+input[type="checkbox"]::before,
+input[type="radio"]::before {
   content: "";
   width: 0.65em;
   height: 0.65em;
@@ -93,7 +95,8 @@ input[type="checkbox"]::before {
 /*}*/
 
 /* And this is the checked version which resets the scale back to 1 */
-input[type="checkbox"]:checked::before {
+input[type="checkbox"]:checked::before,
+input[type="radio"]:checked::before {
   transform: scale(1);
 }
 
