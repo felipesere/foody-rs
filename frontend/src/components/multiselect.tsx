@@ -92,11 +92,6 @@ export function MultiSelect(props: Props) {
           >
             <div
               id="multiselect"
-              // onSubmit={(e) => {
-              //   e.preventDefault();
-              //   e.stopPropagation();
-              //   void form.handleSubmit();
-              // }}
             >
               <ol className={"space-y-2"}>
                 <form.Field
@@ -124,11 +119,6 @@ export function MultiSelect(props: Props) {
                                 key={item.name}
                                 checked={itemField.state.value}
                                 readOnly={true}
-                                // onChange={(event) => {
-                                //   event.preventDefault();
-                                //   event.stopPropagation();
-                                //   itemField.setValue(event.target.checked)
-                                // }}
                                 onClick={() => {
                                   itemField.handleChange(
                                     !itemField.state.value,
@@ -178,7 +168,6 @@ export function MultiSelect(props: Props) {
                   type="button"
                   onClick={() => {
                     form.reset();
-                    console.log("...resetting...");
                   }}
                 />
               </ButtonGroup>
