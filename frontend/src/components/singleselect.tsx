@@ -23,7 +23,7 @@ type Props = {
   className?: string;
   items: string[];
   selected: string | null;
-  onItemsSelected: (item: string) => void;
+  onItemsSelected: (item: string | null) => void;
   hotkey?: string;
 };
 
@@ -53,17 +53,11 @@ export function SingleSelect(props: Props) {
       items: props.items,
       selected: props.selected,
     },
-    onSubmit: (value) => {
-      console.log(value);
-      // const selected = value.value.items
-      //   .filter((i) => i.value)
-      //   .map((i) => i.name);
-      // props.onItemsSelected(selected);
+    onSubmit: ({ value }) => {
+      props.onItemsSelected(value.selected);
       setIsOpen(false);
     },
   });
-
-  console.log(form.getFieldValue("selected"));
 
   return (
     <>
@@ -86,56 +80,58 @@ export function SingleSelect(props: Props) {
             style={floatingStyles}
             {...getFloatingProps()}
           >
-            <div id="multiselect">
+            <div key={form.state.values.selected} id="multiselect">
               <ol className={"space-y-2"}>
-                <form.Field
-                  name={"items"}
-                  children={(itemsField) => {
-                    return itemsField.state.value.map((item, idx) => (
+                <form.Subscribe
+                  selector={(state) => [state.values.selected]}
+                  children={([selected]) => {
+                    return (
                       <form.Field
-                        key={item}
-                        name={`items[${idx}]`}
-                        children={(itemField) => {
-                          const [first, ...remaining] = item;
-                          return (
-                            <div className={"flex flex-row gap-2"} key={item}>
-                              <input
-                                type={"radio"}
-                                name={`${props.label}-selection`}
-                                className={"px-2 bg-white shadow"}
-                                id={item}
-                                key={item}
-                                checked={
-                                  itemField.state.value ===
-                                  itemField.form.state.values.selected
-                                }
-                                onClick={() => {
-                                  form.setFieldValue(
-                                    "selected",
-                                    (value) => {
-                                      console.log(
-                                        `Updating the form from ${item}...`,
-                                      );
-                                      console.log({ value });
-                                      if (value) {
-                                        return null;
-                                      }
-                                      return item;
-                                    },
-                                    { dontUpdateMeta: false },
-                                  );
-                                }}
-                                readOnly={true}
-                              />
-                              <label className={"no-colon"} htmlFor={item}>
-                                <span className={"font-bold"}>{first}</span>
-                                {remaining.join("")}
-                              </label>
-                            </div>
-                          );
+                        name={"items"}
+                        children={(itemsField) => {
+                          return itemsField.state.value.map((item, idx) => (
+                            <form.Field
+                              key={item}
+                              name={`items[${idx}]`}
+                              children={() => {
+                                const [first, ...remaining] = item;
+                                return (
+                                  <div
+                                    className={"flex flex-row gap-2"}
+                                    key={item}
+                                  >
+                                    <input
+                                      type={"radio"}
+                                      name={`${props.label}-selection`}
+                                      className={"px-2 bg-white shadow"}
+                                      id={item}
+                                      key={item}
+                                      checked={item === selected}
+                                      onClick={() => {
+                                        form.setFieldValue(
+                                          "selected",
+                                          item === selected ? null : item,
+                                        );
+                                      }}
+                                      readOnly={true}
+                                    />
+                                    <label
+                                      className={"no-colon"}
+                                      htmlFor={item}
+                                    >
+                                      <span className={"font-bold"}>
+                                        {first}
+                                      </span>
+                                      {remaining.join("")}
+                                    </label>
+                                  </div>
+                                );
+                              }}
+                            />
+                          ));
                         }}
                       />
-                    ));
+                    );
                   }}
                 />
               </ol>

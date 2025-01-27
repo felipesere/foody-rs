@@ -14,7 +14,7 @@ export function SelectAisle(props: {
     <SingleSelect
       label={"Select aisle"}
       items={aisles.data.map((a) => a.name)}
-      selected={"NOTHING"}
+      selected={null}
       onItemsSelected={(item) => console.log(item)}
     />
   );

@@ -148,7 +148,7 @@ export function ShoppingPage() {
         >
           <div className={"flex flex-row gap-6"}>
             {Object.values(Grouping).map((option) => (
-              <div key={option}>
+              <div className={"flex flex-row gap"} key={option}>
                 <input
                   type={"radio"}
                   name={"grouping"}

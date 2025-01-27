@@ -78,6 +78,13 @@ input[type="radio"] {
 
   display: grid;
   place-content: center;
+
+  padding: 8px;
+}
+
+input[type="radio"] {
+  border-radius: 50%;
+  transform: none;
 }
 
 /*  This is the unchecked state, so its scaled down to 0... */
@@ -90,9 +97,10 @@ input[type="radio"]::before {
   box-shadow: inset 1em 1em currentColor;
   clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
 }
-/**:has(input[type="checkbox"]) {*/
-/*    z-index: 1;*/
-/*}*/
+
+input[type="radio"]::before {
+  clip-path: circle(35%);
+}
 
 /* And this is the checked version which resets the scale back to 1 */
 input[type="checkbox"]:checked::before,
