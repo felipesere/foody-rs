@@ -140,6 +140,43 @@ export function useSetIngredientTags(
   });
 }
 
+type SetAisleParams = {
+  aisle: string | null;
+};
+
+export function useSetIngredientAisle(
+  token: string,
+  ingredient: Ingredient["id"],
+  invalidate?: {
+    shoppinglistId: Shoppinglist["id"];
+  },
+) {
+  const client = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ aisle }: SetAisleParams) => {
+      await http
+        .post(`api/ingredients/${ingredient}/aisle`, {
+          json: {
+            aisle,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .json();
+    },
+    onSettled: async () => {
+      if (invalidate) {
+        await client.invalidateQueries({
+          queryKey: ["shoppinglist", invalidate.shoppinglistId],
+        });
+      }
+      return client.invalidateQueries({ queryKey: ["ingredients"] });
+    },
+  });
+}
+
 const IngredientTagsSchema = z.object({
   tags: z.array(z.string()),
 });

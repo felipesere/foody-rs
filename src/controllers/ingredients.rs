@@ -2,8 +2,8 @@ use std::collections::HashSet;
 
 use axum::{extract, http::StatusCode};
 use loco_rs::{controller::middleware, prelude::*};
-use migration::Expr;
-use sea_orm::{ActiveValue, SqlErr, Statement, TransactionTrait};
+use migration::{Expr, SimpleExpr};
+use sea_orm::{ActiveValue, SqlErr, Statement, TransactionTrait, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::models::{
@@ -143,6 +143,42 @@ async fn set_tags_in_ingredient(
 }
 
 #[derive(Deserialize)]
+struct SetAisleParams {
+    aisle: Option<String>,
+}
+
+async fn set_aisle_in_ingredient(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+    Path(id): Path<i32>,
+    extract::Json(params): extract::Json<SetAisleParams>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let aisle = match params.aisle {
+        Some(name) => {
+            let n = aisles::Entity::find()
+                .filter(aisles::Column::Name.eq(name))
+                .one(&ctx.db)
+                .await?;
+            n.map(|aisle| aisle.id)
+        }
+        None => None,
+    };
+
+    ingredients::Entity::update_many()
+        .col_expr(
+            ingredients::Column::Aisle,
+            SimpleExpr::Value(Value::Int(aisle)), // null if we chose to remove an aisle
+        )
+        .filter(ingredients::Column::Id.eq(id))
+        .exec(&ctx.db)
+        .await?;
+
+    Ok(())
+}
+
+#[derive(Deserialize)]
 struct MergeIngredientsParams {
     /// Replace these ingredient IDs...
     replace: Vec<u32>,
@@ -220,5 +256,6 @@ pub fn routes() -> Routes {
         .add("/", post(add_ingredient))
         .add("/tags", get(all_ingredients_tags))
         .add("/{id}/tags", post(set_tags_in_ingredient))
+        .add("/{id}/aisle", post(set_aisle_in_ingredient))
         .add("/merge", post(merge_ingredients))
 }

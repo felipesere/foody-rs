@@ -380,10 +380,11 @@ function EditIngredient({
       {item.ingredient.tags && (
         <>
           <div className={"flex flex-row gap-2"}>
-            <Tags
+            <TagsAndAisle
               token={token}
               ingredientId={item.ingredient.id}
               tags={item.ingredient.tags}
+              aisle={item.ingredient.aisle?.name ?? null}
               isEditing={isEditing}
             />
           </div>
@@ -506,10 +507,11 @@ function EditIngredient({
   );
 }
 
-function Tags(props: {
+function TagsAndAisle(props: {
   token: string;
   ingredientId: Ingredient["id"];
   tags: string[];
+  aisle: string | null;
   isEditing?: boolean;
 }) {
   return (
@@ -526,7 +528,11 @@ function Tags(props: {
             ingredientId={props.ingredientId}
             currentTags={props.tags}
           />
-          <SelectAisle token={props.token} />
+          <SelectAisle
+            token={props.token}
+            ingredientId={props.ingredientId}
+            currentAisle={props.aisle}
+          />
         </>
       )}
     </div>
