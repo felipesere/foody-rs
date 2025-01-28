@@ -328,7 +328,11 @@ function MealLink(props: { details: Meal["details"]; allRecipes: Recipe[] }) {
   if (props.details.type === "from_recipe") {
     const id = props.details.id;
     const name = props.allRecipes.find((r) => r.id === id)?.name || "Unknown";
-    return <Link to={`/recipes/${id}`}>{name}</Link>;
+    return (
+      <Link to={"/recipes/$recipeId"} params={{ recipeId: id.toString() }}>
+        {name}
+      </Link>
+    );
   }
   return props.details.name;
 }
