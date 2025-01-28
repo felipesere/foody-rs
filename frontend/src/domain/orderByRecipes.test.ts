@@ -1,33 +1,41 @@
 import { expect, test } from "vitest";
 import type { Recipe } from "../apis/recipes.ts";
-import type { Ingredient, Quantity } from "../apis/shoppinglists.ts";
+import type {
+  ShoppinglistItem,
+  ShoppinglistQuantity,
+} from "../apis/shoppinglists.ts";
 import { orderByRecipe } from "./orderByRecipe.ts";
 
 function _ingredient(
   name: string,
-  quantities: Ingredient["quantities"],
-): Ingredient {
+  quantities: ShoppinglistItem["quantities"],
+): ShoppinglistItem {
   return {
-    id: 1,
-    name,
-    tags: [],
+    ingredient: {
+      id: 1,
+      name,
+      tags: [],
+      aisle: null,
+    },
     quantities,
     note: null,
   };
 }
 
-function _quantity(recipe_id: number): Quantity {
+function _quantity(recipe_id: number): ShoppinglistQuantity {
   return {
-    id: 1,
+    quantity: {
+      id: 1,
+      unit: "grams",
+    },
     in_basket: false,
     recipe_id,
-    unit: "grams",
   };
 }
 
 test("groups ingredients and quantities into by their recipes", () => {
   const recipeNames: Record<
-    NonNullable<Quantity["recipe_id"]>,
+    NonNullable<ShoppinglistQuantity["recipe_id"]>,
     Recipe["name"]
   > = {
     1: "Foo",
@@ -43,10 +51,12 @@ test("groups ingredients and quantities into by their recipes", () => {
   const carrots = _ingredient("carrot", [_quantity(3)]);
   const manuallyAdded = _ingredient("flour", [
     {
-      id: 1,
+      quantity: {
+        id: 1,
+        unit: "grams",
+      },
       in_basket: false,
       recipe_id: null, // <-- Makes this manually added!
-      unit: "grams",
     },
   ]);
 
@@ -58,7 +68,7 @@ test("groups ingredients and quantities into by their recipes", () => {
   const smallSections = sections.map((section) => {
     return {
       name: section.name,
-      ingredients: section.ingredients.map((i) => i.name),
+      ingredients: section.items.map((i) => i.ingredient.name),
     };
   });
 

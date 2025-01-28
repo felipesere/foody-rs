@@ -1,15 +1,18 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import classnames from "classnames";
 import { Fragment, useState } from "react";
-import { addIngredientToShoppinglist } from "../apis/ingredients.ts";
+import {
+  type Ingredient,
+  addIngredientToShoppinglist,
+} from "../apis/ingredients.ts";
 import {
   type Recipe,
   type StoredQuantity,
   useAllRecipes,
 } from "../apis/recipes.ts";
 import {
-  type Ingredient,
   type Shoppinglist,
+  type ShoppinglistItem,
   useRemoveInBasketItemsFromShoppinglist,
   useRemoveIngredientFromShoppinglist,
   useRemoveQuantityFromShoppinglist,
@@ -19,7 +22,6 @@ import {
   useUpdateQuantityOnShoppinglist,
 } from "../apis/shoppinglists.ts";
 import { useShoppinglist } from "../apis/shoppinglists.ts";
-import { useAllTags } from "../apis/tags.ts";
 import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { DeleteButton } from "../components/deleteButton.tsx";
@@ -28,19 +30,21 @@ import { DottedLine } from "../components/dottedLine.tsx";
 import { Editable } from "../components/editable.tsx";
 import { FieldSet } from "../components/fieldset.tsx";
 import { Progressbar } from "../components/progressbar.tsx";
+import { SelectAisle } from "../components/smart/selectAisle.tsx";
 import { SelectIngredientWithQuantity } from "../components/smart/selectIngredientWithQuantity.tsx";
 import { SelectTags } from "../components/smart/selectTags.tsx";
 import { Toggle, ToggleButton } from "../components/toggle.tsx";
-import { orderByRecipe } from "../domain/orderByRecipe.ts";
-import { type Section, orderByTags } from "../domain/tags.tsx";
+import { orderByAisles } from "../domain/orderByAisle.ts";
+import { type Section, orderByRecipe } from "../domain/orderByRecipe.ts";
 import { combineQuantities, humanize, parse } from "../quantities.ts";
+
 export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId")({
   component: ShoppingPage,
 });
 
 enum Grouping {
   None = "none",
-  ByTag = "byTag",
+  ByAisle = "byAisle",
   ByRecipe = "byRecipe",
 }
 
@@ -48,8 +52,8 @@ function GroupingLabel(v: Grouping): string {
   switch (v) {
     case Grouping.None:
       return "None";
-    case Grouping.ByTag:
-      return "By Tag";
+    case Grouping.ByAisle:
+      return "By Aisle";
     case Grouping.ByRecipe:
       return "By Recipe";
   }
@@ -75,9 +79,7 @@ export function ShoppingPage() {
 
   const deleteRecipe = useRemoveRecipeFromShoppinglist(token, shoppinglistId);
 
-  const tags = useAllTags(token);
-
-  if (shoppinglist.isLoading || !recipes.data || !tags.data) {
+  if (shoppinglist.isLoading || !recipes.data) {
     return <p>Loading</p>;
   }
 
@@ -95,21 +97,21 @@ export function ShoppingPage() {
     ) || {};
 
   let sections: Section[] = [];
-  const ingredients = shoppinglist.data?.ingredients || [];
+  const items = shoppinglist.data?.ingredients || [];
   switch (grouping) {
     case "none":
-      sections = [{ name: "Items", ingredients }];
+      sections = [{ name: "Items", items: items }];
       break;
-    case "byTag":
-      sections = orderByTags(ingredients, tags.data);
+    case "byAisle":
+      sections = orderByAisles(items);
       break;
     case "byRecipe":
-      sections = orderByRecipe(ingredients, allRecipes);
+      sections = orderByRecipe(items, allRecipes);
       break;
   }
 
   const presentRecipes: Record<number, string> = {};
-  for (const i of ingredients) {
+  for (const i of items) {
     for (const q of i.quantities) {
       if (q.recipe_id) {
         presentRecipes[q.recipe_id] = allRecipes[q.recipe_id];
@@ -146,7 +148,7 @@ export function ShoppingPage() {
         >
           <div className={"flex flex-row gap-6"}>
             {Object.values(Grouping).map((option) => (
-              <div key={option}>
+              <div className={"flex flex-row gap"} key={option}>
                 <input
                   type={"radio"}
                   name={"grouping"}
@@ -210,12 +212,12 @@ export function ShoppingPage() {
         {sections.map((section) => (
           <Fragment key={section.name}>
             <Divider className={"capitalize"} label={section.name} />
-            {section.ingredients.map((ingredient) => (
+            {section.items.map((item) => (
               <CompactIngredientView
-                key={ingredient.name}
+                key={item.ingredient.name}
                 token={token}
                 shoppinglistId={shoppinglistId}
-                ingredient={ingredient}
+                item={item}
                 allRecipes={allRecipes}
                 onToggle={(ingredientId, inBasket) =>
                   toggleIngredient.mutate({ ingredientId, inBasket })
@@ -231,18 +233,18 @@ export function ShoppingPage() {
 
 function CompactIngredientView({
   token,
-  ingredient,
+  item,
   shoppinglistId,
   onToggle,
   allRecipes,
 }: {
   token: string;
-  ingredient: Ingredient;
+  item: ShoppinglistItem;
   shoppinglistId: Shoppinglist["id"];
   allRecipes: Record<number, string>;
   onToggle: (ingredient: Ingredient["id"], inBasket: boolean) => void;
 }) {
-  const checked = ingredient.quantities.some((q) => q.in_basket);
+  const checked = item.quantities.some((q) => q.in_basket);
   const [open, setOpen] = useState(false);
   return (
     <li
@@ -259,29 +261,27 @@ function CompactIngredientView({
           type="checkbox"
           checked={checked}
           onChange={() => {
-            onToggle(ingredient.id, !checked);
+            onToggle(item.ingredient.id, !checked);
           }}
         />
         <p
           onClick={() => {
-            onToggle(ingredient.id, !checked);
+            onToggle(item.ingredient.id, !checked);
             // setChecked((checked) => !checked);
           }}
           className={classnames(
             "flex-grow inline capitalize ml-2 font-black tracking-wider",
           )}
         >
-          {ingredient.name}{" "}
-          {ingredient.note && (
-            <span className={"font-light text-gray-600"}>Ⓝ</span>
-          )}
+          {item.ingredient.name}{" "}
+          {item.note && <span className={"font-light text-gray-600"}>Ⓝ</span>}
         </p>
-        <p>{combineQuantities(ingredient.quantities)}</p>
+        <p>{combineQuantities(item.quantities.map((p) => p.quantity))}</p>
         <ToggleButton onToggle={() => setOpen((v) => !v)} open={open} />
       </div>
       {open && (
         <EditIngredient
-          ingredient={ingredient}
+          item={item}
           shoppinglistId={shoppinglistId}
           allRecipes={allRecipes}
           token={token}
@@ -292,7 +292,7 @@ function CompactIngredientView({
 }
 
 type EditIngredientProps = {
-  ingredient: Ingredient;
+  item: ShoppinglistItem;
   shoppinglistId: Shoppinglist["id"];
   allRecipes: Record<number, string>;
   token: string;
@@ -304,7 +304,7 @@ type Changes = {
 };
 
 function EditIngredient({
-  ingredient,
+  item,
   token,
   shoppinglistId,
   allRecipes,
@@ -314,7 +314,7 @@ function EditIngredient({
   const useAddNote = useSetNoteOnIngredient(
     token,
     shoppinglistId,
-    ingredient.id,
+    item.ingredient.id,
   );
 
   const [changes, setChanges] = useState<Changes>({
@@ -322,7 +322,7 @@ function EditIngredient({
     modifications: [],
   });
   const [modifiedIngredient, setModifiedIngredient] = useState(
-    structuredClone(ingredient),
+    structuredClone(item),
   );
   const deleteIngredient = useRemoveIngredientFromShoppinglist(
     token,
@@ -362,13 +362,13 @@ function EditIngredient({
   return (
     <div>
       <Divider />
-      {(ingredient.note || newNote) && (
+      {(item.note || newNote) && (
         <>
           <div className={"flex flex-row gap-2"}>
             <span>Note:</span>
             <Editable
               isEditing={isEditing}
-              value={newNote || ingredient.note || ""}
+              value={newNote || item.note || ""}
               onBlur={(v) => {
                 useAddNote.mutate({ note: v });
               }}
@@ -377,13 +377,14 @@ function EditIngredient({
           <Divider />
         </>
       )}
-      {ingredient.tags && (
+      {item.ingredient.tags && (
         <>
           <div className={"flex flex-row gap-2"}>
-            <Tags
+            <TagsAndAisle
               token={token}
-              ingredientId={ingredient.id}
-              tags={ingredient.tags}
+              ingredientId={item.ingredient.id}
+              tags={item.ingredient.tags}
+              aisle={item.ingredient.aisle?.name ?? null}
               isEditing={isEditing}
             />
           </div>
@@ -391,7 +392,7 @@ function EditIngredient({
         </>
       )}
       {modifiedIngredient.quantities.map((quantity) => (
-        <div key={quantity.id} className={"flex flex-row"}>
+        <div key={quantity.quantity.id} className={"flex flex-row"}>
           <div className={"w-5"}>
             {isEditing ? (
               <DeleteButton
@@ -399,12 +400,12 @@ function EditIngredient({
                 onClick={() => {
                   setChanges((previous) => ({
                     ...previous,
-                    removals: [...previous.removals, quantity.id],
+                    removals: [...previous.removals, quantity.quantity.id],
                   }));
                   setModifiedIngredient((previous) => ({
                     ...previous,
                     quantities: previous.quantities.filter(
-                      (q) => q.id !== quantity.id,
+                      (q) => q.quantity.id !== quantity.quantity.id,
                     ),
                   }));
                 }}
@@ -424,20 +425,20 @@ function EditIngredient({
           <DottedLine />
           <Editable
             isEditing={isEditing}
-            value={humanize(quantity)}
+            value={humanize(quantity.quantity)}
             onBlur={(v) => {
               console.log(`Edited value: ${v}: ${JSON.stringify(parse(v))}`);
               setChanges((previous) => ({
                 ...previous,
                 modifications: [
                   ...previous.modifications,
-                  { value: v, quantity: quantity.id },
+                  { value: v, quantity: quantity.quantity.id },
                 ],
               }));
               setModifiedIngredient((previous) => ({
                 ...previous,
                 quantities: previous.quantities.map((q) => {
-                  if (q.id === quantity.id) {
+                  if (q.quantity.id === quantity.quantity.id) {
                     return { ...q, ...parse(v) };
                   }
                   return q;
@@ -455,7 +456,7 @@ function EditIngredient({
           className={"px-2"}
           disabled={!isEditing}
           onClick={() => {
-            setModifiedIngredient(structuredClone(ingredient));
+            setModifiedIngredient(structuredClone(item));
             setChanges({ removals: [], modifications: [] });
             setIsEditing(false);
           }}
@@ -477,7 +478,7 @@ function EditIngredient({
         <button
           type={"button"}
           className={"px-2"}
-          disabled={ingredient.note !== null}
+          disabled={item.note !== null}
           onClick={() => {
             setNewNote("...");
           }}
@@ -488,7 +489,7 @@ function EditIngredient({
           type={"button"}
           className={"px-2 bg-gray-700 text-white"}
           onClick={() =>
-            deleteIngredient.mutate({ ingredient: ingredient.name })
+            deleteIngredient.mutate({ ingredient: item.ingredient.name })
           }
         >
           Delete
@@ -497,7 +498,7 @@ function EditIngredient({
           className={"underline"}
           from={Route.fullPath}
           to={"/ingredients"}
-          search={{ ingredient: { id: ingredient.id } }}
+          search={{ ingredient: { id: item.ingredient.id } }}
         >
           Full edit
         </Link>
@@ -506,10 +507,11 @@ function EditIngredient({
   );
 }
 
-function Tags(props: {
+function TagsAndAisle(props: {
   token: string;
   ingredientId: Ingredient["id"];
   tags: string[];
+  aisle: string | null;
   isEditing?: boolean;
 }) {
   return (
@@ -520,11 +522,18 @@ function Tags(props: {
         </p>
       ))}
       {props.isEditing && (
-        <SelectTags
-          token={props.token}
-          ingredientId={props.ingredientId}
-          currentTags={props.tags}
-        />
+        <>
+          <SelectTags
+            token={props.token}
+            ingredientId={props.ingredientId}
+            currentTags={props.tags}
+          />
+          <SelectAisle
+            token={props.token}
+            ingredientId={props.ingredientId}
+            currentAisle={props.aisle}
+          />
+        </>
       )}
     </div>
   );

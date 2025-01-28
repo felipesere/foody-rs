@@ -57,6 +57,36 @@ pg-seed environment:
 pg-reset environment:
   cargo loco db reset --environment {{environment}}
 
+pg-snapshot environment:
+  #!/usr/bin/env bash
+  export PATH=/opt/homebrew/Cellar/libpq/17.2/bin:$PATH
+
+  set -euxo pipefail
+  
+  mkdir -p db-snapshots
+  if [ "{{environment}}" == "development" ]; then
+    PORT=5432
+  else
+    PORT=5433
+  fi
+  pg_dump -d "postgres://loco:loco@localhost:${PORT}/foody_{{environment}}" -f db-snapshots/latest.sql
+
+pg-snapshot-restore environment:
+  #!/usr/bin/env bash
+  export PATH=/opt/homebrew/Cellar/libpq/17.2/bin:$PATH
+
+  set -euxo pipefail
+
+  mkdir -p db-snapshots
+  if [ "{{environment}}" == "development" ]; then
+    PORT=5432
+  else
+    PORT=5433
+  fi
+  psql -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;' "postgres://loco:loco@localhost:${PORT}/foody_{{environment}}"
+  psql -f db-snapshots/latest.sql "postgres://loco:loco@localhost:${PORT}/foody_{{environment}}"
+
+
 # Launch the proxy to the fly.io Postgres DB
 fly-proxy:
   fly proxy 5555:5432 -a foody-v2-db

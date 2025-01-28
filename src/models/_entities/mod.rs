@@ -2,6 +2,7 @@
 
 pub mod prelude;
 
+pub mod aisles;
 pub mod ingredients;
 pub mod ingredients_in_recipes;
 pub mod ingredients_in_shoppinglists;
@@ -10,6 +11,4 @@ pub mod meals_in_meal_plans;
 pub mod quantities;
 pub mod recipes;
 pub mod shoppinglists;
-pub mod tags;
-pub mod tags_on_ingredients;
 pub mod users;

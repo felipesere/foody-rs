@@ -75,7 +75,7 @@ function NewRecipePage() {
             ingredients: [
               ...prev.ingredients,
               {
-                ...ingredient,
+                ingredient,
                 quantity: [parse(quantity)],
               },
             ],
@@ -84,14 +84,16 @@ function NewRecipePage() {
         onRemoveIngredient={(name) => {
           setRecipe((prev) => ({
             ...prev,
-            ingredients: prev.ingredients.filter((i) => i.name !== name),
+            ingredients: prev.ingredients.filter(
+              (i) => i.ingredient.name !== name,
+            ),
           }));
         }}
         onChangeQuantity={(name, quantity) => {
           setRecipe((prev) => ({
             ...prev,
             ingredients: prev.ingredients.map((i) => {
-              if (i.name === name) {
+              if (i.ingredient.name === name) {
                 const q = parse(quantity);
                 return { ...i, quantity: [q] };
               }

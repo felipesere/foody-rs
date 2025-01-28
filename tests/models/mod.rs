@@ -11,3 +11,5 @@ mod ingredients_in_recipes;
 
 mod tags;
 mod tags_on_ingredients;
+
+mod ailes;

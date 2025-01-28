@@ -13,7 +13,9 @@ use crate::models::{
     users::users,
 };
 
+use super::ingredients::{AisleResponse, IngredientResponse};
 use super::shoppinglists::QuantityResponse;
+use super::TagsResponse;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RecipesResponse {
@@ -28,7 +30,7 @@ pub struct RecipeResponse {
     pub source: String,
     pub title: Option<String>,
     pub page: Option<i32>,
-    pub ingredients: Vec<IngredientResponse>,
+    pub ingredients: Vec<IngredientWithQuantityResponse>,
     pub tags: Vec<String>,
     pub rating: i32,
     pub notes: String,
@@ -36,9 +38,8 @@ pub struct RecipeResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct IngredientResponse {
-    id: i32,
-    name: String,
+pub struct IngredientWithQuantityResponse {
+    ingredient: IngredientResponse,
     quantity: Vec<QuantityResponse>,
 }
 
@@ -65,16 +66,22 @@ pub async fn all_recipes(
             duration: recipe.duration,
             ingredients: ingredients
                 .into_iter()
-                .map(|(ingredient, quantity)| IngredientResponse {
-                    id: ingredient.id,
-                    name: ingredient.name,
-                    quantity: vec![QuantityResponse {
-                        id: quantity.id,
-                        unit: quantity.unit,
-                        value: quantity.value,
-                        text: quantity.text,
-                    }],
-                })
+                .map(
+                    |(ingredient, quantity, aisle)| IngredientWithQuantityResponse {
+                        ingredient: IngredientResponse {
+                            id: ingredient.id,
+                            name: ingredient.name,
+                            aisle: aisle.map(AisleResponse::from),
+                            tags: Vec::new(),
+                        },
+                        quantity: vec![QuantityResponse {
+                            id: quantity.id,
+                            unit: quantity.unit,
+                            value: quantity.value,
+                            text: quantity.text,
+                        }],
+                    },
+                )
                 .collect(),
         })
     }
@@ -107,16 +114,22 @@ pub async fn recipe(
         duration: recipe.duration,
         ingredients: ingredients
             .into_iter()
-            .map(|(ingredient, quantity)| IngredientResponse {
-                id: ingredient.id,
-                name: ingredient.name,
-                quantity: vec![QuantityResponse {
-                    id: quantity.id,
-                    unit: quantity.unit,
-                    value: quantity.value,
-                    text: quantity.text,
-                }],
-            })
+            .map(
+                |(ingredient, quantity, aisle)| IngredientWithQuantityResponse {
+                    ingredient: IngredientResponse {
+                        id: ingredient.id,
+                        name: ingredient.name,
+                        aisle: aisle.map(AisleResponse::from),
+                        tags: Vec::new(),
+                    },
+                    quantity: vec![QuantityResponse {
+                        id: quantity.id,
+                        unit: quantity.unit,
+                        value: quantity.value,
+                        text: quantity.text,
+                    }],
+                },
+            )
             .collect(),
     })
 }
@@ -181,8 +194,13 @@ impl From<UnstoredQuantity> for Quantity {
 }
 
 #[derive(Deserialize, Debug)]
-struct UnstoredIngredient {
+struct IngredientRef {
     id: i32,
+}
+
+#[derive(Deserialize, Debug)]
+struct UnstoredIngredient {
+    ingredient: IngredientRef,
     quantity: Vec<UnstoredQuantity>,
 }
 
@@ -239,7 +257,7 @@ pub async fn create_recipe(
         ingredients_in_recipes::ActiveModel {
             recipes_id: recipe.id.clone(),
             quantities_id: quantity.id,
-            ingredients_id: ActiveValue::set(i.id),
+            ingredients_id: ActiveValue::set(i.ingredient.id),
             ..Default::default()
         }
         .save(&tx)
@@ -267,23 +285,24 @@ pub async fn create_recipe(
         duration: recipe.duration,
         ingredients: ingredients
             .into_iter()
-            .map(|(ingredient, quantity)| IngredientResponse {
-                id: ingredient.id,
-                name: ingredient.name,
-                quantity: vec![QuantityResponse {
-                    id: quantity.id,
-                    unit: quantity.unit,
-                    value: quantity.value,
-                    text: quantity.text,
-                }],
-            })
+            .map(
+                |(ingredient, quantity, aisle)| IngredientWithQuantityResponse {
+                    ingredient: IngredientResponse {
+                        id: ingredient.id,
+                        name: ingredient.name,
+                        aisle: aisle.map(AisleResponse::from),
+                        tags: Vec::new(),
+                    },
+                    quantity: vec![QuantityResponse {
+                        id: quantity.id,
+                        unit: quantity.unit,
+                        value: quantity.value,
+                        text: quantity.text,
+                    }],
+                },
+            )
             .collect(),
     })
-}
-
-#[derive(Serialize)]
-struct TagsResponse {
-    tags: HashSet<String>,
 }
 
 pub async fn all_recipe_tags(
@@ -487,16 +506,22 @@ pub async fn edit_recipe(
         duration: recipe.duration,
         ingredients: ingredients
             .into_iter()
-            .map(|(ingredient, quantity)| IngredientResponse {
-                id: ingredient.id,
-                name: ingredient.name,
-                quantity: vec![QuantityResponse {
-                    id: quantity.id,
-                    unit: quantity.unit,
-                    value: quantity.value,
-                    text: quantity.text,
-                }],
-            })
+            .map(
+                |(ingredient, quantity, aisle)| IngredientWithQuantityResponse {
+                    ingredient: IngredientResponse {
+                        id: ingredient.id,
+                        name: ingredient.name,
+                        aisle: aisle.map(AisleResponse::from),
+                        tags: Vec::new(),
+                    },
+                    quantity: vec![QuantityResponse {
+                        id: quantity.id,
+                        unit: quantity.unit,
+                        value: quantity.value,
+                        text: quantity.text,
+                    }],
+                },
+            )
             .collect(),
     })
 }

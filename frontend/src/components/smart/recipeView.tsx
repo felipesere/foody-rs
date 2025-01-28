@@ -1,6 +1,9 @@
 import classNames from "classnames";
 import { createContext, useContext, useState } from "react";
-import type { Ingredient as OnlyIngredient } from "../../apis/ingredients.ts";
+import type {
+  Ingredient,
+  Ingredient as OnlyIngredient,
+} from "../../apis/ingredients.ts";
 import type { MealPlan } from "../../apis/mealplans.ts";
 import {
   type Source,
@@ -8,7 +11,6 @@ import {
   type UnstoredRecipe,
   useRecipeTags,
 } from "../../apis/recipes.ts";
-import type { Ingredient } from "../../apis/recipes.ts";
 import type { Shoppinglist } from "../../apis/shoppinglists.ts";
 import { humanize } from "../../quantities.ts";
 import { Button } from "../button.tsx";
@@ -151,9 +153,9 @@ function Notes(props: { value: string; onBlur: (v: string) => void }) {
 function Ingredients(props: {
   ingredients: UnstoredIngredient[];
   onIngredient: (i: OnlyIngredient, quantity: string) => void;
-  onRemove: (name: UnstoredIngredient["name"]) => void;
+  onRemove: (name: UnstoredIngredient["ingredient"]["name"]) => void;
   onChangeQuantity: (
-    name: UnstoredIngredient["name"],
+    name: UnstoredIngredient["ingredient"]["name"],
     quantity: string,
   ) => void;
 }) {
@@ -164,15 +166,14 @@ function Ingredients(props: {
       <ul>
         {props.ingredients.map((ingredient) => {
           const quantity = humanize(ingredient.quantity[0]);
+          const name = ingredient.ingredient.name;
           return (
             <IngredientView
-              key={ingredient.name}
-              ingredient={ingredient}
+              key={name}
+              ingredient={name}
               quantity={quantity}
-              onRemove={() => props.onRemove(ingredient.name)}
-              onChangeQuantity={(q) =>
-                props.onChangeQuantity(ingredient.name, q)
-              }
+              onRemove={() => props.onRemove(name)}
+              onChangeQuantity={(q) => props.onChangeQuantity(name, q)}
             />
           );
         })}
@@ -232,7 +233,7 @@ function Tags(props: {
       ))}
       {editing && (
         <MultiSelect
-          label={"Select Tags"}
+          label={"Select Aisles"}
           items={allRecipeTags.data.tags}
           selected={props.tags}
           onItemsSelected={props.onSetTags}
@@ -274,7 +275,7 @@ export function Stars(props: {
 }
 
 type IngredientViewProps = {
-  ingredient: Pick<UnstoredIngredient, "name">;
+  ingredient: UnstoredIngredient["ingredient"]["name"];
   quantity: string;
   onRemove: () => void;
   onChangeQuantity: (quantity: string) => void;
@@ -291,7 +292,7 @@ function IngredientView(props: IngredientViewProps) {
         />
       )}
       <p className="font-light text-gray-700 whitespace-nowrap overflow-hidden overflow-ellipsis">
-        {props.ingredient.name}
+        {props.ingredient}
       </p>
       <DottedLine />
       {editing ? (

@@ -3,7 +3,7 @@ import classnames from "classnames";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
-  type Ingredient,
+  type IngredientWithQuantity,
   type Recipe,
   type Source,
   addRecipeToShoppinglist,
@@ -232,7 +232,10 @@ function RecipeView(props: RecipeProps) {
           <p className="uppercase">Ingredients:</p>
           <ul>
             {props.recipe.ingredients.map((ingredient) => (
-              <IngredientView key={ingredient.name} ingredient={ingredient} />
+              <IngredientView
+                key={ingredient.ingredient.name}
+                ingredient={ingredient}
+              />
             ))}
           </ul>
         </div>
@@ -297,7 +300,9 @@ function RecipeView(props: RecipeProps) {
   );
 }
 
-function IngredientView({ ingredient }: { ingredient: Ingredient }) {
+function IngredientView({
+  ingredient: { ingredient, quantity },
+}: { ingredient: IngredientWithQuantity }) {
   return (
     <li className="flex flex-row justify-between">
       <p className="font-light text-gray-700 whitespace-nowrap overflow-hidden overflow-ellipsis">
@@ -305,7 +310,7 @@ function IngredientView({ ingredient }: { ingredient: Ingredient }) {
       </p>
       <DottedLine />
       <p className="text-light" style={{ flex: "none" }}>
-        {ingredient.quantity[0].value} {ingredient.quantity[0].unit}
+        {quantity[0].value} {quantity[0].unit}
       </p>
     </li>
   );

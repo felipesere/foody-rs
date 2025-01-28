@@ -15,6 +15,7 @@ import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
 import { ResizingInput } from "../components/resizeableInput.tsx";
 import { AddToShoppinglist } from "../components/smart/addToShoppinglist.tsx";
+import { SelectAisle } from "../components/smart/selectAisle.tsx";
 import { SelectTags } from "../components/smart/selectTags.tsx";
 import { ToggleButton } from "../components/toggle.tsx";
 import { useScrollTo } from "../hooks/useScrollTo.ts";
@@ -158,16 +159,27 @@ function IngredientView(props: IngredientViewProps) {
         <>
           <Divider />
           <div className={"flex flex-row gap-4"}>
-            {anyTags ? (
-              props.ingredient.tags.map((t) => <p key={t}>{t}</p>)
-            ) : (
-              <p>No Tags</p>
-            )}
+            <p>Tags:</p>
+            {anyTags
+              ? props.ingredient.tags.map((t) => <p key={t}>{t}</p>)
+              : "None"}
             {edit && (
               <SelectTags
                 token={props.token}
                 ingredientId={props.ingredient.id}
                 currentTags={props.ingredient.tags}
+              />
+            )}
+          </div>
+          <Divider />
+          <div className={"flex flex-row gap-4"}>
+            <p>Aisle:</p>
+            {props.ingredient.aisle?.name || "None"}
+            {edit && (
+              <SelectAisle
+                token={props.token}
+                ingredientId={props.ingredient.id}
+                currentAisle={props.ingredient.aisle?.name ?? null}
               />
             )}
           </div>

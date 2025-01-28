@@ -1,8 +1,12 @@
 use crate::models::{
-    _entities::{ingredients::Column, prelude::*, tags_on_ingredients},
-    ingredients::IngredientToTags,
+    _entities::{
+        ingredients::{self, Column},
+        prelude::*,
+    },
+    ingredients::all_tags,
 };
 use loco_rs::prelude::*;
+use migration::Expr;
 use sea_orm::{QueryOrder, QuerySelect};
 use task::Vars;
 use tokio::task::JoinHandle;
@@ -17,32 +21,32 @@ impl Task for Tagger {
         }
     }
     async fn run(&self, app_context: &AppContext, _vars: &Vars) -> Result<()> {
-        let other = app_context.db.clone();
-        let existing_tags = Tags::find().all(&app_context.db).await?;
-        let mut tags: Vec<_> = existing_tags.iter().map(|t| t.name.clone()).collect();
+        let conn = app_context.db.clone();
+        let mut tags = all_tags(&conn).await?;
         tags.sort();
         tags.insert(0, "SKIP".to_string());
         let skip_item = 0;
 
-        let x: String = dialoguer::Input::new()
+        let user_input: String = dialoguer::Input::new()
             .with_prompt("Which index do we start from?")
             .with_initial_text("0")
             .interact()
             .expect("to get input from user");
 
-        let ingredients_to_skip = x.parse::<u64>().expect("input to have been a number");
+        let ingredients_to_skip = user_input
+            .parse::<u64>()
+            .expect("input to have been a number");
 
-        let ingredient_with_tag = Ingredients::find()
+        let ingredients = Ingredients::find()
             .order_by_asc(Column::Name)
             .offset(Some(ingredients_to_skip))
-            .find_with_linked(IngredientToTags)
             .all(&app_context.db)
             .await?;
 
-        let (handle, tx) = DbTagger::spawn(other);
+        let (handle, tx) = DbTagger::spawn(conn);
 
-        for (idx, (ingredient, ingredient_tags)) in ingredient_with_tag.iter().enumerate() {
-            if !ingredient_tags.is_empty() {
+        for (idx, ingredient) in ingredients.iter().enumerate() {
+            if !ingredient.tags.is_empty() {
                 continue;
             }
 
@@ -50,7 +54,7 @@ impl Task for Tagger {
                 .clone()
                 .into_iter()
                 .map(|t| {
-                    let is_checked = ingredient_tags.iter().any(|tag| tag.name == t);
+                    let is_checked = ingredient.tags.iter().any(|tag| tag == &t);
                     (t, is_checked)
                 })
                 .collect();
@@ -60,7 +64,7 @@ impl Task for Tagger {
                 .with_prompt(format!(
                     "[{} of {}] Tags for {}",
                     ingredients_to_skip + idx as u64,
-                    ingredient_with_tag.len() - 1,
+                    ingredients.len() - 1,
                     ingredient.name
                 ))
                 .interact()
@@ -70,21 +74,15 @@ impl Task for Tagger {
                 continue;
             }
 
-            let mut tag_ids = Vec::new();
+            let mut new_tags = Vec::new();
             for tag_idx in tagged {
                 let name = &checked_tags[tag_idx].0;
-                let id = existing_tags
-                    .iter()
-                    .find(|t| &t.name == name)
-                    .expect("to find matching tag model")
-                    .id;
-
-                tag_ids.push(id);
+                new_tags.push(name.clone());
             }
 
             tx.send(Msg::Work(ItemToTag {
                 ingredient_id: ingredient.id,
-                tag_ids,
+                new_tags,
             }))
             .expect("Failed to send work item to queue");
         }
@@ -104,7 +102,7 @@ enum Msg {
 
 struct ItemToTag {
     ingredient_id: i32,
-    tag_ids: Vec<i32>,
+    new_tags: Vec<String>,
 }
 
 struct DbTagger {
@@ -148,23 +146,10 @@ impl DbTagger {
 }
 
 async fn handle_item(conn: &DatabaseConnection, item: ItemToTag) -> Result<(), loco_rs::Error> {
-    let tx = conn.begin().await?;
-
-    tags_on_ingredients::Entity::delete_many()
-        .filter(tags_on_ingredients::Column::IngredientId.eq(item.ingredient_id))
-        .exec(&tx)
+    ingredients::Entity::update_many()
+        .col_expr(ingredients::Column::Tags, Expr::value(item.new_tags))
+        .filter(ingredients::Column::Id.eq(item.ingredient_id))
+        .exec(conn)
         .await?;
-
-    for tag_id in item.tag_ids {
-        crate::models::_entities::tags_on_ingredients::ActiveModel {
-            tag_id: ActiveValue::Set(tag_id),
-            ingredient_id: ActiveValue::Set(item.ingredient_id),
-            ..Default::default()
-        }
-        .insert(&tx)
-        .await?;
-    }
-
-    tx.commit().await?;
     Ok(())
 }

@@ -1,10 +1,9 @@
-use std::collections::BTreeSet;
-
 use loco_rs::model::ModelError;
 use sea_orm::{
     ActiveModelBehavior, ConnectionTrait, DatabaseConnection, DbBackend, FromQueryResult, Statement,
 };
 
+use crate::models::aisles::AisleRef;
 use crate::models::ingredients::Model as Ingredient;
 use crate::models::quantities::Model as Quantity;
 
@@ -27,8 +26,8 @@ pub struct ItemQuantity {
 pub struct Item {
     pub ingredient: Ingredient,
     pub quantities: Vec<ItemQuantity>,
-    pub tags: BTreeSet<String>,
     pub note: Option<String>,
+    pub aisle: Option<AisleRef>,
 }
 
 #[derive(Debug)]
@@ -54,6 +53,7 @@ impl Shoppinglist {
                 "r1"."updated_at" as "i_updated_at",
                 "r1"."id" as "i_id",
                 "r1"."name" as "i_name",
+                "r1"."tags" as "i_tags",
                 "r0"."in_basket" as "iis_in_basket",
                 "r0"."recipe_id" as "iis_recipe_id",
                 "r0"."note" as "iis_note",
@@ -63,15 +63,15 @@ impl Shoppinglist {
                 "q"."unit" as "q_unit",
                 "q"."value" as "q_value",
                 "q"."text" as "q_text",
-                "t"."name" as "t_tag"
+                "a"."name" as "a_name",
+                "a"."order" as "a_order"
             from "shoppinglists"
             left join
                 "ingredients_in_shoppinglists" as "r0"
                 on "r0"."shoppinglists_id" = "shoppinglists"."id"
             left join "ingredients" as "r1" on "r0"."ingredients_id" = "r1"."id"
             left join "quantities" as "q" on "r0"."quantities_id" = "q".id
-            left join "tags_on_ingredients" as "t_on_i" on "t_on_i"."ingredient_id" = "r1"."id"
-            left join "tags" as "t" on "t_on_i"."tag_id" = "t".id
+            left join "aisles" as "a" on "r1"."aisle" = "a".id
             where "shoppinglists"."id" = $1
             order by "shoppinglists"."id" asc, "r1"."id" asc, "q"."id" asc
                 "#,
@@ -83,12 +83,12 @@ impl Shoppinglist {
         for row in rows {
             let list = Self::from_query_result(row, "s_")?;
             let ingredient = Ingredient::from_query_result_optional(row, "i_")?;
+            let aisle = AisleRef::from_query_result_optional(row, "a_")?;
             let quantity = Quantity::from_query_result_optional(row, "q_")?;
             let in_basket = row.try_get::<Option<bool>>("iis_", "in_basket")?;
 
             let recipe_id = row.try_get::<Option<i32>>("iis_", "recipe_id")?;
             let note = row.try_get::<Option<String>>("iis_", "note")?;
-            let tag = row.try_get::<Option<String>>("t_", "tag")?;
 
             if result.is_empty() || result[result.len() - 1].list.id != list.id {
                 result.push(FullShoppinglist {
@@ -117,7 +117,6 @@ impl Shoppinglist {
 
             if let Some(item_idx) = item_idx {
                 // Thank you _JOINS_, we've seen this quantity already...
-                items[item_idx].tags.extend(tag);
                 if items[item_idx]
                     .quantities
                     .iter()
@@ -129,8 +128,8 @@ impl Shoppinglist {
                 items.push(Item {
                     ingredient,
                     quantities: vec![item_quantity],
-                    tags: BTreeSet::from_iter(tag.into_iter()),
                     note,
+                    aisle,
                 });
             };
         }
@@ -154,6 +153,7 @@ impl Shoppinglist {
                 "r1"."updated_at" as "i_updated_at",
                 "r1"."id" as "i_id",
                 "r1"."name" as "i_name",
+                "r1"."tags" as "i_tags",
                 "r0"."in_basket" as "iis_in_basket",
                 "r0"."recipe_id" as "iis_recipe_id",
                 "q"."id" as "q_id",
@@ -162,15 +162,15 @@ impl Shoppinglist {
                 "q"."unit" as "q_unit",
                 "q"."value" as "q_value",
                 "q"."text" as "q_text",
-                "t"."name" as "t_tag"
+                "a"."name" as "a_name",
+                "a"."order" as "a_order"
             from "shoppinglists"
             left join
                 "ingredients_in_shoppinglists" as "r0"
                 on "r0"."shoppinglists_id" = "shoppinglists"."id"
             left join "ingredients" as "r1" on "r0"."ingredients_id" = "r1"."id"
             left join "quantities" as "q" on "r0"."quantities_id" = "q".id
-            left join "tags_on_ingredients" as "t_on_i" on "t_on_i"."ingredient_id" = "r1"."id"
-            left join "tags" as "t" on "t_on_i"."tag_id" = "t".id
+            left join "aisles" as "a" on "r1"."aisle" = "a"."id"
             order by "shoppinglists"."id" asc, "r1"."id" asc, "q"."id" asc
             "#,
         );
@@ -182,9 +182,9 @@ impl Shoppinglist {
             let list = Self::from_query_result(row, "s_")?;
             let ingredient = Ingredient::from_query_result_optional(row, "i_")?;
             let quantity = Quantity::from_query_result_optional(row, "q_")?;
+            let aisle = AisleRef::from_query_result_optional(row, "a_")?;
             let in_basket = row.try_get::<Option<bool>>("iis_", "in_basket")?;
             let recipe_id = row.try_get::<Option<i32>>("iis_", "recipe_id")?;
-            let tag = row.try_get::<Option<String>>("t_", "tag")?;
 
             if result.is_empty() || result[result.len() - 1].list.id != list.id {
                 result.push(FullShoppinglist {
@@ -209,13 +209,12 @@ impl Shoppinglist {
             let idx = items.iter().position(|o| o.ingredient.id == ingredient.id);
             if let Some(idx) = idx {
                 items[idx].quantities.push(item_quantity);
-                items[idx].tags.extend(tag);
             } else {
                 items.push(Item {
                     ingredient,
                     quantities: vec![item_quantity],
-                    tags: BTreeSet::from_iter(tag.into_iter()),
                     note: None,
+                    aisle,
                 })
             };
         }

@@ -1,34 +1,53 @@
-#![allow(clippy::unused_async)]
+use std::collections::HashSet;
+
 use axum::{extract, http::StatusCode};
 use loco_rs::{controller::middleware, prelude::*};
-use migration::Expr;
-use sea_orm::{ActiveValue, SqlErr, TransactionTrait};
+use migration::{Expr, SimpleExpr};
+use sea_orm::{ActiveValue, SqlErr, Statement, TransactionTrait, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::models::{
-    _entities::{
-        ingredients, ingredients_in_recipes, ingredients_in_shoppinglists,
-        tags::{self, Model as Tag},
-        tags_on_ingredients,
-    },
-    ingredients::{IngredientToTags, Model as Ingredient},
-    ingredients_in_shoppinglists::batch_insert_if_not_exists,
+    _entities::{aisles, ingredients, ingredients_in_recipes, ingredients_in_shoppinglists},
+    aisles::{AisleRef, Model as Aisle},
+    ingredients::Model as Ingredient,
     users,
 };
 
-#[derive(Serialize, Debug)]
-pub struct IngredientResponse {
-    id: i32,
-    name: String,
-    tags: Vec<String>,
+use super::TagsResponse;
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct AisleResponse {
+    pub name: String,
+    pub order: i16,
 }
 
-impl From<(Ingredient, Vec<Tag>)> for IngredientResponse {
-    fn from((value, tags): (Ingredient, Vec<Tag>)) -> Self {
+impl From<Aisle> for AisleResponse {
+    fn from(value: Aisle) -> Self {
+        Self {
+            name: value.name,
+            order: value.order,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct IngredientResponse {
+    pub id: i32,
+    pub name: String,
+    pub aisle: Option<AisleResponse>,
+    pub tags: Vec<String>,
+}
+
+impl From<(Ingredient, Option<AisleRef>)> for IngredientResponse {
+    fn from((value, aisle): (Ingredient, Option<AisleRef>)) -> Self {
         Self {
             id: value.id,
             name: value.name,
-            tags: tags.into_iter().map(|t| t.name).collect(),
+            tags: value.tags,
+            aisle: aisle.map(|a| AisleResponse {
+                name: a.name,
+                order: a.order,
+            }),
         }
     }
 }
@@ -40,14 +59,16 @@ pub async fn all_ingredients(
     // check auth
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
-    let igs: Vec<(Ingredient, Vec<tags::Model>)> = ingredients::Entity::find()
-        .find_with_linked(IngredientToTags)
+    let igs: Vec<(Ingredient, Option<Aisle>)> = ingredients::Entity::find()
+        .find_also_related(aisles::Entity)
         .all(&ctx.db)
         .await?;
 
     format::json(
         igs.into_iter()
-            .map(IngredientResponse::from)
+            .map(|(ingreient, aisle)| {
+                IngredientResponse::from((ingreient, aisle.map(AisleRef::from)))
+            })
             .collect::<Vec<_>>(),
     )
 }
@@ -68,14 +89,9 @@ pub async fn add_ingredient(
 
     let tx = ctx.db.begin().await?;
 
-    let tags = if !params.tags.is_empty() {
-        batch_insert_if_not_exists(&tx, &params.tags).await?
-    } else {
-        vec![]
-    };
-
     let ingredient_outcome = ingredients::ActiveModel {
         name: ActiveValue::Set(params.name.clone()),
+        tags: ActiveValue::Set(params.tags),
         ..Default::default()
     }
     .insert(&tx)
@@ -83,23 +99,8 @@ pub async fn add_ingredient(
 
     match ingredient_outcome {
         Ok(ingredient) => {
-            if !params.tags.is_empty() {
-                let mut tags_on_ingredient = Vec::new();
-                for tag_id in tags {
-                    tags_on_ingredient.push(tags_on_ingredients::ActiveModel {
-                        tag_id: ActiveValue::Set(tag_id),
-                        ingredient_id: ActiveValue::Set(ingredient.id),
-                        ..Default::default()
-                    })
-                }
-
-                tags_on_ingredients::Entity::insert_many(tags_on_ingredient)
-                    .exec(&tx)
-                    .await?;
-            }
-
             tx.commit().await?;
-            format::json(IngredientResponse::from((ingredient, vec![])))
+            format::json(IngredientResponse::from((ingredient, None)))
         }
         Err(other_err) => {
             if let Some(SqlErr::UniqueConstraintViolation(_)) = other_err.sql_err() {
@@ -111,7 +112,7 @@ pub async fn add_ingredient(
                     .await?
                     .ok_or(Error::NotFound)?;
 
-                return format::json(IngredientResponse::from((ingredient, vec![])));
+                return format::json(IngredientResponse::from((ingredient, None)));
             }
             tx.rollback().await?;
             Err(loco_rs::Error::DB(other_err))
@@ -132,33 +133,47 @@ async fn set_tags_in_ingredient(
 ) -> Result<()> {
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
-    let tx = ctx.db.begin().await?;
-    let ingredient = ingredients::Entity::find_by_id(id)
-        .one(&tx)
-        .await?
-        .ok_or_else(|| Error::NotFound)?;
-
-    let tag_ids = batch_insert_if_not_exists(&tx, &params.tags).await?;
-
-    let tags: Vec<_> = tag_ids
-        .into_iter()
-        .map(|tag_id| tags_on_ingredients::ActiveModel {
-            tag_id: ActiveValue::Set(tag_id),
-            ingredient_id: ActiveValue::Set(ingredient.id),
-            ..Default::default()
-        })
-        .collect();
-
-    tags_on_ingredients::Entity::delete_many()
-        .filter(tags_on_ingredients::Column::IngredientId.eq(id))
-        .exec(&tx)
+    ingredients::Entity::update_many()
+        .col_expr(ingredients::Column::Tags, Expr::value(params.tags))
+        .filter(ingredients::Column::Id.eq(id))
+        .exec(&ctx.db)
         .await?;
 
-    tags_on_ingredients::Entity::insert_many(tags)
-        .exec(&tx)
-        .await?;
+    Ok(())
+}
 
-    tx.commit().await?;
+#[derive(Deserialize)]
+struct SetAisleParams {
+    aisle: Option<String>,
+}
+
+async fn set_aisle_in_ingredient(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+    Path(id): Path<i32>,
+    extract::Json(params): extract::Json<SetAisleParams>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let aisle = match params.aisle {
+        Some(name) => {
+            let n = aisles::Entity::find()
+                .filter(aisles::Column::Name.eq(name))
+                .one(&ctx.db)
+                .await?;
+            n.map(|aisle| aisle.id)
+        }
+        None => None,
+    };
+
+    ingredients::Entity::update_many()
+        .col_expr(
+            ingredients::Column::Aisle,
+            SimpleExpr::Value(Value::Int(aisle)), // null if we chose to remove an aisle
+        )
+        .filter(ingredients::Column::Id.eq(id))
+        .exec(&ctx.db)
+        .await?;
 
     Ok(())
 }
@@ -199,12 +214,6 @@ async fn merge_ingredients(
         .exec(&tx)
         .await?;
 
-    // ...tags
-    tags_on_ingredients::Entity::delete_many()
-        .filter(tags_on_ingredients::Column::IngredientId.is_in(params.replace.clone()))
-        .exec(&tx)
-        .await?;
-
     // delete the actual ingredients
     ingredients::Entity::delete_many()
         .filter(ingredients::Column::Id.is_in(params.replace.clone()))
@@ -216,11 +225,37 @@ async fn merge_ingredients(
     Ok(StatusCode::OK)
 }
 
+pub async fn all_ingredients_tags(
+    auth: middleware::auth::JWT,
+    State(ctx): State<AppContext>,
+) -> Result<Response> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let db = ctx.db;
+
+    let tags_statement = Statement::from_string(
+        db.get_database_backend(),
+        r#"SELECT DISTINCT(unnest("tags")) as "tags" from ingredients;"#,
+    );
+
+    let results = db.query_all(tags_statement).await?;
+
+    let mut unique_tags = HashSet::default();
+    for qr in results {
+        let tag = qr.try_get("", "tags")?;
+        unique_tags.insert(tag);
+    }
+
+    format::json(TagsResponse { tags: unique_tags })
+}
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("api/ingredients")
         .add("/", get(all_ingredients))
         .add("/", post(add_ingredient))
+        .add("/tags", get(all_ingredients_tags))
         .add("/{id}/tags", post(set_tags_in_ingredient))
+        .add("/{id}/aisle", post(set_aisle_in_ingredient))
         .add("/merge", post(merge_ingredients))
 }

@@ -14,6 +14,8 @@ use crate::models::quantities::{self, Model as Quantity};
 use crate::models::shoppinglists::{self, FullShoppinglist, Item, Shoppinglist};
 use crate::models::users;
 
+use super::ingredients::IngredientResponse;
+
 #[derive(Serialize)]
 pub struct ShoppinglistsResponse {
     shoppinglists: Vec<MinimalShoppinglistResponse>,
@@ -41,27 +43,24 @@ impl From<Quantity> for QuantityResponse {
 }
 
 #[derive(Serialize, Clone, Debug)]
-struct ListItem {
-    id: i32,
-    name: String,
-    tags: Vec<String>,
-    quantities: Vec<ItemQuantity>,
+struct ShoppinglistIngredient {
+    ingredient: IngredientResponse,
     note: Option<String>,
+    quantities: Vec<ItemQuantity>,
 }
 
 #[derive(Serialize, Clone, Debug)]
 struct ItemQuantity {
-    #[serde(flatten)]
     quantity: QuantityResponse,
-    recipe_id: Option<i32>,
     in_basket: bool,
+    recipe_id: Option<i32>,
 }
 
 #[derive(Serialize, Clone, Debug)]
 pub struct ShoppinglistResponse {
     id: i32,
     name: String,
-    ingredients: Vec<ListItem>,
+    ingredients: Vec<ShoppinglistIngredient>,
     last_updated: String,
 }
 
@@ -158,12 +157,12 @@ pub async fn add_ingredient(
     };
 
     // TODO: Super goofy to use the name here and allow "creation"?
-    let ingredient = if let Some(i) = ingredients::Entity::find()
+    let ingredient = if let Some(ingredient) = ingredients::Entity::find()
         .filter(Column::Name.eq(&params.ingredient))
         .one(&ctx.db)
         .await?
     {
-        i
+        ingredient
     } else {
         ingredients::ActiveModel {
             name: ActiveValue::Set(params.ingredient),
@@ -273,12 +272,10 @@ pub async fn shoppinglist(
                 |Item {
                      ingredient,
                      quantities,
-                     tags,
                      note,
-                 }| ListItem {
-                    id: ingredient.id,
-                    name: ingredient.name,
-                    tags: tags.into_iter().collect(),
+                     aisle,
+                 }| ShoppinglistIngredient {
+                    ingredient: IngredientResponse::from((ingredient, aisle)),
                     note,
                     quantities: quantities
                         .into_iter()
@@ -289,7 +286,7 @@ pub async fn shoppinglist(
                                  in_basket,
                                  recipe_id,
                              }| ItemQuantity {
-                                quantity: quantity.into(),
+                                quantity: QuantityResponse::from(quantity),
                                 in_basket,
                                 recipe_id,
                             },
@@ -375,7 +372,7 @@ pub async fn add_recipe_to_shoppinglist(
         .ok_or_else(|| Error::NotFound)?;
 
     let tx = ctx.db.begin().await?;
-    for (ingredient, quantity) in ingredients {
+    for (ingredient, quantity, _) in ingredients {
         let quantity = quantities::ActiveModel {
             unit: ActiveValue::Set(quantity.unit),
             value: ActiveValue::Set(quantity.value),

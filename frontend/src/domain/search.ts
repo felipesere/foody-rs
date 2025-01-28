@@ -86,7 +86,9 @@ export function filterRecipes(
       const term = params.term.toLowerCase();
       return (
         recipe.name.toLowerCase().includes(term) ||
-        recipe.ingredients.some((i) => i.name.toLowerCase().includes(term))
+        recipe.ingredients.some((i) =>
+          i.ingredient.name.toLowerCase().includes(term),
+        )
       );
     }
     return true;

@@ -1,9 +1,9 @@
 import {
   type Ingredient,
+  useAllIngredientTags,
   useSetIngredientTags,
 } from "../../apis/ingredients.ts";
 import type { Shoppinglist } from "../../apis/shoppinglists.ts";
-import { useAllTags } from "../../apis/tags.ts";
 import { MultiSelect } from "../multiselect.tsx";
 
 export function SelectTags(props: {
@@ -12,13 +12,13 @@ export function SelectTags(props: {
   currentTags: string[];
   shoppinglistId?: Shoppinglist["id"];
 }) {
-  const tags = useAllTags(props.token);
+  const tags = useAllIngredientTags(props.token);
   const setTags = useSetIngredientTags(props.token, props.ingredientId);
 
   if (!tags.data) {
     return <p>Loading...</p>;
   }
-  const knownTags = Object.keys(tags.data);
+  const knownTags = tags.data.tags;
   return (
     <MultiSelect
       label={"Select tags"}
