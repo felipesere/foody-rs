@@ -39,22 +39,29 @@ async fn can_create_and_update_a_recipe() {
             "source": "book",
             "page": 12,
             "title": "simplissie",
-            "ingredients": [{
-              "id": bacon.id,
+            "ingredients": [
+            {
+              "ingredient": {
+                "id": bacon.id
+              },
               "quantity": [{
                 "unit": "grams",
                 "value": 100,
               }]
             },
             {
-              "id": apples.id,
+              "ingredient": {
+                "id": apples.id
+              },
               "quantity": [{
                 "unit": "grams",
                 "value": 140,
               }]
             },
             {
-              "id": plums.id,
+              "ingredient": {
+                "id": plums.id,
+              },
               "quantity": [{
                     "unit": "count",
                     "value": 0.5,

@@ -111,6 +111,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             .get("ingredients")
             .and_then(|v| v.as_array())
             .and_then(|ingredients| ingredients.first())
+            .and_then(|bananas| bananas.get("ingredient"))
             .and_then(|bananas| bananas.get("id"))
             .and_then(|id| id.as_i64())
             .unwrap();
@@ -124,19 +125,24 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "id": "[redactored]",
           "ingredients": [
             {
-              "id": "[redactored]",
-              "name": "bananas",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redactored]",
+                "name": "bananas",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redactored]",
                   "in_basket": false,
-                  "recipe_id": null,
-                  "unit": "count",
-                  "value": 10.0
+                  "quantity": {
+                    "id": "[redactored]",
+                    "unit": "count",
+                    "value": 10.0
+                  },
+                  "recipe_id": null
                 }
-              ],
-              "tags": []
+              ]
             }
           ],
           "last_updated": "[date]",
@@ -167,19 +173,24 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "id": "[redactored]",
           "ingredients": [
             {
-              "id": "[redactored]",
-              "name": "bananas",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redactored]",
+                "name": "bananas",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redactored]",
                   "in_basket": true,
-                  "recipe_id": null,
-                  "unit": "count",
-                  "value": 10.0
+                  "quantity": {
+                    "id": "[redactored]",
+                    "unit": "count",
+                    "value": 10.0
+                  },
+                  "recipe_id": null
                 }
-              ],
-              "tags": []
+              ]
             }
           ],
           "last_updated": "[date]",
@@ -222,79 +233,104 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "id": "[redacted]",
           "ingredients": [
             {
-              "id": "[redacted]",
-              "name": "double cream",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "double cream",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "unit": "tablespoon",
-                  "value": 2.0
+                  "quantity": {
+                    "id": "[redacted]",
+                    "unit": "tablespoon",
+                    "value": 2.0
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redacted]",
-              "name": "leeks",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "leeks",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "text": "3x",
-                  "unit": "arbitrary"
+                  "quantity": {
+                    "id": "[redacted]",
+                    "text": "3x",
+                    "unit": "arbitrary"
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redacted]",
-              "name": "parmesan shavings",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "parmesan shavings",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "unit": "gram",
-                  "value": 100.0
+                  "quantity": {
+                    "id": "[redacted]",
+                    "unit": "gram",
+                    "value": 100.0
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redacted]",
-              "name": "puff pastry",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "puff pastry",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "text": "1 sheet",
-                  "unit": "arbitrary"
+                  "quantity": {
+                    "id": "[redacted]",
+                    "text": "1 sheet",
+                    "unit": "arbitrary"
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redacted]",
-              "name": "bananas",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "bananas",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": true,
-                  "recipe_id": null,
-                  "unit": "count",
-                  "value": 10.0
+                  "quantity": {
+                    "id": "[redacted]",
+                    "unit": "count",
+                    "value": 10.0
+                  },
+                  "recipe_id": null
                 }
-              ],
-              "tags": []
+              ]
             }
           ],
           "last_updated": "[date]",
@@ -324,64 +360,84 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "id": "[redactor]",
           "ingredients": [
             {
-              "id": "[redactor]",
-              "name": "double cream",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redactor]",
+                "name": "double cream",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redactor]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "unit": "tablespoon",
-                  "value": 2.0
+                  "quantity": {
+                    "id": "[redactor]",
+                    "unit": "tablespoon",
+                    "value": 2.0
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redactor]",
-              "name": "leeks",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redactor]",
+                "name": "leeks",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redactor]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "text": "3x",
-                  "unit": "arbitrary"
+                  "quantity": {
+                    "id": "[redactor]",
+                    "text": "3x",
+                    "unit": "arbitrary"
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redactor]",
-              "name": "parmesan shavings",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redactor]",
+                "name": "parmesan shavings",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redactor]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "unit": "gram",
-                  "value": 100.0
+                  "quantity": {
+                    "id": "[redactor]",
+                    "unit": "gram",
+                    "value": 100.0
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redactor]",
-              "name": "puff pastry",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redactor]",
+                "name": "puff pastry",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redactor]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "text": "1 sheet",
-                  "unit": "arbitrary"
+                  "quantity": {
+                    "id": "[redactor]",
+                    "text": "1 sheet",
+                    "unit": "arbitrary"
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             }
           ],
           "last_updated": "[date]",
@@ -394,9 +450,13 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             .and_then(|ingredients| ingredients.as_array())
             .and_then(|ingredients| {
                 ingredients.iter().find(|i| {
-                    i.get("name").and_then(|name| name.as_str()) == Some("parmesan shavings")
+                    i.get("ingredient")
+                        .and_then(|i| i.get("name"))
+                        .and_then(|n| n.as_str())
+                        .is_some_and(|name| name == "parmesan shavings")
                 })
             })
+            .and_then(|parmesan| parmesan.get("ingredient"))
             .and_then(|parmesan| parmesan.get("id"))
             .and_then(|id| id.as_i64())
             .unwrap();
@@ -424,71 +484,93 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "id": "[redacted]",
           "ingredients": [
             {
-              "id": "[redacted]",
-              "name": "double cream",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "double cream",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "unit": "tablespoon",
-                  "value": 2.0
+                  "quantity": {
+                    "id": "[redacted]",
+                    "unit": "tablespoon",
+                    "value": 2.0
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redacted]",
-              "name": "leeks",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "leeks",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "text": "3x",
-                  "unit": "arbitrary"
+                  "quantity": {
+                    "id": "[redacted]",
+                    "text": "3x",
+                    "unit": "arbitrary"
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redacted]",
-              "name": "parmesan shavings",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "parmesan shavings",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "unit": "gram",
-                  "value": 100.0
+                  "quantity": {
+                    "id": "[redacted]",
+                    "unit": "gram",
+                    "value": 100.0
+                  },
+                  "recipe_id": "[recipe_id]"
                 },
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": null,
-                  "unit": "kilogram",
-                  "value": 3.5
+                  "quantity": {
+                    "id": "[redacted]",
+                    "unit": "kilogram",
+                    "value": 3.5
+                  },
+                  "recipe_id": null
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redacted]",
-              "name": "puff pastry",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "puff pastry",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "text": "1 sheet",
-                  "unit": "arbitrary"
+                  "quantity": {
+                    "id": "[redacted]",
+                    "text": "1 sheet",
+                    "unit": "arbitrary"
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             }
           ],
           "last_updated": "[date]",
@@ -514,71 +596,93 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "id": "[redacted]",
           "ingredients": [
             {
-              "id": "[redacted]",
-              "name": "double cream",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "double cream",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "unit": "tablespoon",
-                  "value": 2.0
+                  "quantity": {
+                    "id": "[redacted]",
+                    "unit": "tablespoon",
+                    "value": 2.0
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redacted]",
-              "name": "leeks",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "leeks",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "text": "3x",
-                  "unit": "arbitrary"
+                  "quantity": {
+                    "id": "[redacted]",
+                    "text": "3x",
+                    "unit": "arbitrary"
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redacted]",
-              "name": "parmesan shavings",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "parmesan shavings",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "unit": "gram",
-                  "value": 100.0
+                  "quantity": {
+                    "id": "[redacted]",
+                    "unit": "gram",
+                    "value": 100.0
+                  },
+                  "recipe_id": "[recipe_id]"
                 },
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": null,
-                  "unit": "kilogram",
-                  "value": 3.5
+                  "quantity": {
+                    "id": "[redacted]",
+                    "unit": "kilogram",
+                    "value": 3.5
+                  },
+                  "recipe_id": null
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redacted]",
-              "name": "puff pastry",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "puff pastry",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "text": "1 sheet",
-                  "unit": "arbitrary"
+                  "quantity": {
+                    "id": "[redacted]",
+                    "text": "1 sheet",
+                    "unit": "arbitrary"
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             }
           ],
           "last_updated": "[date]",
@@ -621,281 +725,373 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "id": "[redacted]",
           "ingredients": [
             {
-              "id": "[redacted]",
-              "name": "chicken breasts",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "chicken breasts",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "unit": "count",
-                  "value": 2.0
+                  "quantity": {
+                    "id": "[redacted]",
+                    "unit": "count",
+                    "value": 2.0
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redacted]",
-              "name": "double cream",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "double cream",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "unit": "tablespoon",
-                  "value": 2.0
+                  "quantity": {
+                    "id": "[redacted]",
+                    "unit": "tablespoon",
+                    "value": 2.0
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redacted]",
-              "name": "fresh salsa",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "fresh salsa",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "unit": "gram",
-                  "value": 230.0
+                  "quantity": {
+                    "id": "[redacted]",
+                    "unit": "gram",
+                    "value": 230.0
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redacted]",
-              "name": "garlic",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "garlic",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "unit": "count",
-                  "value": 2.0
+                  "quantity": {
+                    "id": "[redacted]",
+                    "unit": "count",
+                    "value": 2.0
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redacted]",
-              "name": "ground coriander",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "ground coriander",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "unit": "tablespoon",
-                  "value": 1.0
+                  "quantity": {
+                    "id": "[redacted]",
+                    "unit": "tablespoon",
+                    "value": 1.0
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redacted]",
-              "name": "ground cumin",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "ground cumin",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "text": "pinch",
-                  "unit": "arbitrary"
+                  "quantity": {
+                    "id": "[redacted]",
+                    "text": "pinch",
+                    "unit": "arbitrary"
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redacted]",
-              "name": "leeks",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "leeks",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "text": "3x",
-                  "unit": "arbitrary"
+                  "quantity": {
+                    "id": "[redacted]",
+                    "text": "3x",
+                    "unit": "arbitrary"
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redacted]",
-              "name": "lime",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "lime",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "unit": "count",
-                  "value": 1.0
+                  "quantity": {
+                    "id": "[redacted]",
+                    "unit": "count",
+                    "value": 1.0
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redacted]",
-              "name": "mixed salad",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "mixed salad",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "text": "1 bag",
-                  "unit": "arbitrary"
+                  "quantity": {
+                    "id": "[redacted]",
+                    "text": "1 bag",
+                    "unit": "arbitrary"
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redacted]",
-              "name": "olive oil",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "olive oil",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "unit": "tablespoon",
-                  "value": 4.0
+                  "quantity": {
+                    "id": "[redacted]",
+                    "unit": "tablespoon",
+                    "value": 4.0
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redacted]",
-              "name": "parmesan shavings",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "parmesan shavings",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "unit": "gram",
-                  "value": 100.0
+                  "quantity": {
+                    "id": "[redacted]",
+                    "unit": "gram",
+                    "value": 100.0
+                  },
+                  "recipe_id": "[recipe_id]"
                 },
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": null,
-                  "unit": "kilogram",
-                  "value": 3.5
+                  "quantity": {
+                    "id": "[redacted]",
+                    "unit": "kilogram",
+                    "value": 3.5
+                  },
+                  "recipe_id": null
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redacted]",
-              "name": "puff pastry",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "puff pastry",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "text": "1 sheet",
-                  "unit": "arbitrary"
+                  "quantity": {
+                    "id": "[redacted]",
+                    "text": "1 sheet",
+                    "unit": "arbitrary"
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redacted]",
-              "name": "red chilli",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "red chilli",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "unit": "count",
-                  "value": 1.0
+                  "quantity": {
+                    "id": "[redacted]",
+                    "unit": "count",
+                    "value": 1.0
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redacted]",
-              "name": "red onion",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "red onion",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "unit": "count",
-                  "value": 1.0
+                  "quantity": {
+                    "id": "[redacted]",
+                    "unit": "count",
+                    "value": 1.0
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redacted]",
-              "name": "red pepper",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "red pepper",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "unit": "count",
-                  "value": 1.0
+                  "quantity": {
+                    "id": "[redacted]",
+                    "unit": "count",
+                    "value": 1.0
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redacted]",
-              "name": "smoked paprika",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "smoked paprika",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "text": "pinch",
-                  "unit": "arbitrary"
+                  "quantity": {
+                    "id": "[redacted]",
+                    "text": "pinch",
+                    "unit": "arbitrary"
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redacted]",
-              "name": "tabasco",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "tabasco",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "unit": "tablespoon",
-                  "value": 4.0
+                  "quantity": {
+                    "id": "[redacted]",
+                    "unit": "tablespoon",
+                    "value": 4.0
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             },
             {
-              "id": "[redacted]",
-              "name": "tortilla",
+              "ingredient": {
+                "aisle": null,
+                "id": "[redacted]",
+                "name": "tortilla",
+                "tags": []
+              },
               "note": null,
               "quantities": [
                 {
-                  "id": "[redacted]",
                   "in_basket": false,
-                  "recipe_id": "[recipe_id]",
-                  "unit": "count",
-                  "value": 8.0
+                  "quantity": {
+                    "id": "[redacted]",
+                    "unit": "count",
+                    "value": 8.0
+                  },
+                  "recipe_id": "[recipe_id]"
                 }
-              ],
-              "tags": []
+              ]
             }
           ],
           "last_updated": "[date]",
