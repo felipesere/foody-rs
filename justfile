@@ -96,6 +96,15 @@ fly-proxy-db-url:
   #!/usr/bin/env bash
   echo "export DATABASE_URL=postgres://$(op read op://Personal/foody\ db\ v2/username):$(op read op://Personal/foody\ db\ v2/operator)@localhost:5555/foody_v2";
 
+docker-build-image:
+  # grab some of this from 1password!
+  flyctl auth docker
+  DOCKER_DEFAULT_PLATFORM=linux/amd64 docker build . -t registry.fly.io/foody-v2:$(git sha)
+
+fly-deploy: docker-build-image
+  docker push registry.fly.io/foody-v2:$(git sha)
+  flyctl deploy --app foody-v2 --image registry.fly.io/foody-v2:$(git sha)
+
 frontend-dev: frontend-install
   cd frontend; npm run dev
 
