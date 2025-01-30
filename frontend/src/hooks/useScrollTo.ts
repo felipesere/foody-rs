@@ -7,7 +7,7 @@ import {
 } from "react";
 
 export const useScrollTo = <T extends Element>(): [
-  RefObject<T>,
+  RefObject<T | null>,
   Dispatch<boolean>,
 ] => {
   const ref = useRef<T>(null);
