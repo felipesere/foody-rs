@@ -344,7 +344,7 @@ function BookSource(props: {
         items={uniqueNames.map((name) => ({ name }))}
         onSelectedItem={({ name }) => props.onTitleChange(name)}
         onNewItem={(name) => props.onTitleChange(name)}
-        placeholder={"The book title"}
+        placeholder={props.source.title || "Book title..."}
       />
       <span>
         p.
