@@ -334,15 +334,14 @@ function BookSource(props: {
   }
 
   const names = recipes.data.recipes.flatMap((recipe) =>
-    recipe.title ? [{ name: recipe.title }] : [],
+    recipe.title ? [recipe.title] : [],
   );
-
-  console.log(names);
+  const uniqueNames = [...new Set(names)];
 
   return (
     <>
       <Dropdown
-        items={names}
+        items={uniqueNames.map((name) => ({ name }))}
         onSelectedItem={({ name }) => props.onTitleChange(name)}
         onNewItem={(name) => props.onTitleChange(name)}
         placeholder={"The book title"}
