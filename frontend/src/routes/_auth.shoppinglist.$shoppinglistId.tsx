@@ -22,6 +22,7 @@ import {
   useUpdateQuantityOnShoppinglist,
 } from "../apis/shoppinglists.ts";
 import { useShoppinglist } from "../apis/shoppinglists.ts";
+import { Labeled } from "../components/Labeled.tsx";
 import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { DeleteButton } from "../components/deleteButton.tsx";
@@ -148,7 +149,11 @@ export function ShoppingPage() {
         >
           <div className={"flex flex-row gap-6"}>
             {Object.values(Grouping).map((option) => (
-              <div className={"flex flex-row gap"} key={option}>
+              <Labeled
+                key={option}
+                label={GroupingLabel(option)}
+                htmlFor={option}
+              >
                 <input
                   type={"radio"}
                   name={"grouping"}
@@ -159,10 +164,7 @@ export function ShoppingPage() {
                     setGrouping(option);
                   }}
                 />
-                <label className={"no-colon pl-2"} htmlFor={option}>
-                  {GroupingLabel(option)}
-                </label>
-              </div>
+              </Labeled>
             ))}
           </div>
         </FieldSet>

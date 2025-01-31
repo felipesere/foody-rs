@@ -13,6 +13,7 @@ import {
 } from "../../apis/recipes.ts";
 import type { Shoppinglist } from "../../apis/shoppinglists.ts";
 import { humanize } from "../../quantities.ts";
+import { Labeled } from "../Labeled.tsx";
 import { Button } from "../button.tsx";
 import { ButtonGroup } from "../buttonGroup.tsx";
 import { DeleteButton } from "../deleteButton.tsx";
@@ -54,10 +55,13 @@ export function RecipeView(props: RecipeViewProps) {
     <div className="content-grid space-y-4 pb-20">
       <div className={"grid gap-4 grid-cols-1 sm:grid-cols-2"}>
         {/* left or top */}
-        <div>
+        <div className={"flex flex-col gap-2"}>
           <Name value={recipe.name} onBlur={props.onSetName} />
           <ShowSource recipe={recipe} onBlur={props.onSetSource} />
-          <Stars rating={recipe.rating} setRating={props.onSetRating} />
+          <div className={"flex flex-row gap-2"}>
+            <p>Rating:</p>{" "}
+            <Stars rating={recipe.rating} setRating={props.onSetRating} />
+          </div>
           <Tags tags={recipe.tags} onSetTags={props.onSetTags} />
           <Duration
             duration={recipe.duration}
@@ -233,7 +237,7 @@ function Tags(props: {
       ))}
       {editing && (
         <MultiSelect
-          label={"Select Aisles"}
+          label={"Select Tags"}
           items={allRecipeTags.data.tags}
           selected={props.tags}
           onItemsSelected={props.onSetTags}
@@ -332,27 +336,28 @@ function ShowSource(props: {
   if (editing) {
     return (
       <div>
-        <div>
-          <input
-            type="radio"
-            id="book"
-            name="book"
-            value="book"
-            checked={sourceChoice === "book"}
-            onChange={() => setSourceChoice("book")}
-          />
-          <label htmlFor="book">Book</label>
-          <input
-            type="radio"
-            id="website"
-            name="website"
-            value="website"
-            checked={sourceChoice === "website"}
-            onChange={() => setSourceChoice("website")}
-          />
-          <label htmlFor="website">Website</label>
+        <div className={"flex flex-row gap-2"}>
+          <Labeled label={"Book"} htmlFor={"book"}>
+            <input
+              type="radio"
+              id="book"
+              name="book"
+              value="book"
+              checked={sourceChoice === "book"}
+              onChange={() => setSourceChoice("book")}
+            />
+          </Labeled>
+          <Labeled label={"Website"} htmlFor={"website"}>
+            <input
+              type="radio"
+              id="website"
+              name="website"
+              value="website"
+              checked={sourceChoice === "website"}
+              onChange={() => setSourceChoice("website")}
+            />
+          </Labeled>
         </div>
-
         {sourceChoice === "website" && (
           <Input
             type={"text"}
