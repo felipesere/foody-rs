@@ -100,34 +100,17 @@ export function MultiSelect(props: Props) {
                         key={item.name}
                         name={`items[${idx}].value`}
                         children={(itemField) => {
-                          const [first, ...remaining] = item.name;
-                          useHotkeys([first], () =>
-                            itemField.handleChange((p) => !p),
-                          );
-
+                          function update() {
+                            itemField.handleChange((p) => !p);
+                          }
+                          const name = item.name;
+                          const checked: boolean = itemField.state.value;
                           return (
-                            <div
-                              className={"flex flex-row gap-2"}
-                              key={item.name}
-                            >
-                              <input
-                                type={"checkbox"}
-                                className={"px-2 bg-white shadow"}
-                                id={item.name}
-                                key={item.name}
-                                checked={itemField.state.value}
-                                readOnly={true}
-                                onClick={() => {
-                                  itemField.handleChange(
-                                    !itemField.state.value,
-                                  );
-                                }}
-                              />
-                              <label className={"no-colon"} htmlFor={item.name}>
-                                <span className={"font-bold"}>{first}</span>
-                                {remaining.join("")}
-                              </label>
-                            </div>
+                            <Checkbox
+                              name={name}
+                              update={update}
+                              checked={checked}
+                            />
                           );
                         }}
                       />
@@ -174,5 +157,33 @@ export function MultiSelect(props: Props) {
         </FloatingFocusManager>
       )}
     </>
+  );
+}
+
+function Checkbox(props: {
+  name: string;
+  update: () => void;
+  checked: boolean;
+}) {
+  const { name, update, checked } = props;
+  const [first, ...remaining] = name;
+  useHotkeys([first], update);
+
+  return (
+    <div className={"flex flex-row gap-2"} key={name}>
+      <input
+        type={"checkbox"}
+        className={"px-2 bg-white shadow"}
+        id={name}
+        key={name}
+        checked={checked}
+        readOnly={true}
+        onClick={update}
+      />
+      <label className={"no-colon"} htmlFor={name}>
+        <span className={"font-bold"}>{first}</span>
+        {remaining.join("")}
+      </label>
+    </div>
   );
 }
