@@ -9,6 +9,7 @@ import {
   type Source,
   type UnstoredIngredient,
   type UnstoredRecipe,
+  useAllRecipes,
   useRecipeTags,
 } from "../../apis/recipes.ts";
 import type { Shoppinglist } from "../../apis/shoppinglists.ts";
@@ -19,6 +20,7 @@ import { ButtonGroup } from "../buttonGroup.tsx";
 import { DeleteButton } from "../deleteButton.tsx";
 import { Divider } from "../divider.tsx";
 import { DottedLine } from "../dottedLine.tsx";
+import { Dropdown } from "../dropdown.tsx";
 import { MultiSelect } from "../multiselect.tsx";
 import { AddToMealPlan } from "./addToMealplan.tsx";
 import { AddToShoppinglist } from "./addToShoppinglist.tsx";
@@ -57,7 +59,11 @@ export function RecipeView(props: RecipeViewProps) {
         {/* left or top */}
         <div className={"flex flex-col gap-2"}>
           <Name value={recipe.name} onBlur={props.onSetName} />
-          <ShowSource recipe={recipe} onBlur={props.onSetSource} />
+          <ShowSource
+            token={token}
+            recipe={recipe}
+            onBlur={props.onSetSource}
+          />
           <div className={"flex flex-row gap-2"}>
             <p>Rating:</p>{" "}
             <Stars rating={recipe.rating} setRating={props.onSetRating} />
@@ -315,8 +321,49 @@ function IngredientView(props: IngredientViewProps) {
   );
 }
 
+function BookSource(props: {
+  token: string;
+  source: { page: number | null; title: string | null };
+  onTitleChange: (title: string) => void;
+  onPageChange: (page: number) => void;
+  onBlur: () => void;
+}) {
+  const recipes = useAllRecipes(props.token);
+  if (recipes.error || !recipes.data) {
+    return <p>Loading...</p>;
+  }
+
+  const names = recipes.data.recipes.flatMap((recipe) =>
+    recipe.title ? [{ name: recipe.title }] : [],
+  );
+
+  console.log(names);
+
+  return (
+    <>
+      <Dropdown
+        items={names}
+        onSelectedItem={({ name }) => props.onTitleChange(name)}
+        onNewItem={(name) => props.onTitleChange(name)}
+        placeholder={"The book title"}
+      />
+      <span>
+        p.
+        <Input
+          type={"number"}
+          placeholder={"...page..."}
+          value={props.source.page || 0}
+          onChange={(value) => props.onPageChange(Number.parseInt(value))}
+          onBlur={props.onBlur}
+        />
+      </span>
+    </>
+  );
+}
+
 // TODO: move this back into the normal show recipes
 function ShowSource(props: {
+  token: string;
   recipe: UnstoredRecipe;
   onBlur: (details: Source) => void;
 }) {
@@ -369,28 +416,15 @@ function ShowSource(props: {
         )}
         {sourceChoice === "book" && (
           <div className={"flex gap-2 flex-row"}>
-            <Input
-              type={"text"}
-              placeholder={"The book title"}
-              value={source.title || ""}
-              onChange={(title) => setSource((prev) => ({ ...prev, title }))}
+            <BookSource
+              token={props.token}
+              source={source}
+              onTitleChange={(title) =>
+                setSource((prev) => ({ ...prev, title }))
+              }
+              onPageChange={(page) => setSource((prev) => ({ ...prev, page }))}
               onBlur={propagate}
             />
-            <span>
-              p.
-              <Input
-                type={"number"}
-                placeholder={"...page..."}
-                value={source.page || 0}
-                onChange={(page) =>
-                  setSource((prev) => ({
-                    ...prev,
-                    page: Number.parseInt(page),
-                  }))
-                }
-                onBlur={propagate}
-              />
-            </span>
           </div>
         )}
       </div>
