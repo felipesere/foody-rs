@@ -162,21 +162,19 @@ function RecipePage() {
         }}
         onSetSource={(source: Source) => {
           if (source.source === "book") {
-            setChanges((prev) => {
-              return [
-                ...prev,
-                {
-                  type: "source",
-                  value: {
-                    type: "book",
-                    // biome-ignore lint/style/noNonNullAssertion: We know we are a `book` from the source check above
-                    title: source.title!,
-                    // biome-ignore lint/style/noNonNullAssertion: We know we are a `book` from the source check above
-                    page: source.page!,
-                  },
+            setChanges((prev) => [
+              ...prev,
+              {
+                type: "source",
+                value: {
+                  type: "book",
+                  // biome-ignore lint/style/noNonNullAssertion: We know we are a `book` from the source check above
+                  title: source.title!,
+                  // biome-ignore lint/style/noNonNullAssertion: We know we are a `book` from the source check above
+                  page: source.page!,
                 },
-              ];
-            });
+              },
+            ]);
           }
           if (source.source === "website") {
             setChanges((prev) => [
