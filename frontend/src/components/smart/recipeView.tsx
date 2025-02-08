@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { createContext, useContext, useState } from "react";
+import { createContext, useCallback, useContext, useState } from "react";
 import type {
   Ingredient,
   Ingredient as OnlyIngredient,
@@ -345,6 +345,7 @@ function BookSource(props: {
         onSelectedItem={({ name }) => props.onTitleChange(name)}
         onNewItem={(name) => props.onTitleChange(name)}
         placeholder={props.source.title || "Book title..."}
+        onBlur={props.onBlur}
       />
       <span>
         p.
@@ -375,9 +376,9 @@ function ShowSource(props: {
     title: props.recipe.title,
   });
 
-  const propagate = () => {
+  const bubbleUpToParent = useCallback(() => {
     props.onBlur({ ...source, source: sourceChoice });
-  };
+  }, [props.onBlur, sourceChoice, source]);
 
   if (editing) {
     return (
@@ -409,8 +410,10 @@ function ShowSource(props: {
             type={"text"}
             placeholder={"The URL"}
             value={source.url || ""}
-            onChange={(url) => setSource((prev) => ({ ...prev, url }))}
-            onBlur={propagate}
+            onChange={(url) =>
+              setSource(() => ({ url, page: null, title: null }))
+            }
+            onBlur={bubbleUpToParent}
           />
         )}
         {sourceChoice === "book" && (
@@ -419,10 +422,20 @@ function ShowSource(props: {
               token={props.token}
               source={source}
               onTitleChange={(title) =>
-                setSource((prev) => ({ ...prev, title }))
+                setSource((prev) => ({
+                  title: title,
+                  page: prev.page,
+                  url: null,
+                }))
               }
-              onPageChange={(page) => setSource((prev) => ({ ...prev, page }))}
-              onBlur={propagate}
+              onPageChange={(page) =>
+                setSource((prev) => ({
+                  title: prev.title,
+                  page: page,
+                  url: null,
+                }))
+              }
+              onBlur={bubbleUpToParent}
             />
           </div>
         )}

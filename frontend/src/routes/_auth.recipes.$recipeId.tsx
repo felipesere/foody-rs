@@ -145,9 +145,9 @@ function RecipePage() {
       }}
     >
       <RecipeView
+        recipe={recipe}
         onSave={() => {
-          if (changes && editing) {
-            console.log("Using new API");
+          if (changes.length > 0 && editing) {
             submitChanges.mutate(changes);
             setChanges([]);
           }
@@ -157,25 +157,26 @@ function RecipePage() {
           setChanges([]);
           navigate({ search: { editing: false } });
         }}
-        recipe={recipe}
         onSetName={(name) => {
           setChanges((prev) => [...prev, { type: "name", value: name }]);
         }}
         onSetSource={(source: Source) => {
           if (source.source === "book") {
-            setChanges((prev) => [
-              ...prev,
-              {
-                type: "source",
-                value: {
-                  type: "book",
-                  // biome-ignore lint/style/noNonNullAssertion: We know we are a `book` from the source check above
-                  title: source.title!,
-                  // biome-ignore lint/style/noNonNullAssertion: We know we are a `book` from the source check above
-                  page: source.page!,
+            setChanges((prev) => {
+              return [
+                ...prev,
+                {
+                  type: "source",
+                  value: {
+                    type: "book",
+                    // biome-ignore lint/style/noNonNullAssertion: We know we are a `book` from the source check above
+                    title: source.title!,
+                    // biome-ignore lint/style/noNonNullAssertion: We know we are a `book` from the source check above
+                    page: source.page!,
+                  },
                 },
-              },
-            ]);
+              ];
+            });
           }
           if (source.source === "website") {
             setChanges((prev) => [

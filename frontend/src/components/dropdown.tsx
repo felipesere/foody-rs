@@ -39,6 +39,7 @@ export interface DropdownProps<T extends Named> {
   dropdownClassnames?: string;
   onSelectedItem: (item: T) => void;
   onNewItem?: (value: string) => void;
+  onBlur?: () => void;
   placeholder: string;
   ref?: ForwardedRef<HTMLInputElement>;
 }
@@ -97,6 +98,12 @@ function InnerDropdown<T extends Named>(
     }
   }
 
+  function handleBlur(event: { target: EventTarget | null }) {
+    console.log("We got a blur event!");
+    console.log(event.target);
+    props.onBlur?.();
+  }
+
   const mergedRefs = useMergeRefs([refs.setReference, ref]);
 
   return (
@@ -106,6 +113,7 @@ function InnerDropdown<T extends Named>(
           className: props.dropdownClassnames || "",
           ref: mergedRefs,
           onChange,
+          onBlur: handleBlur,
           value: query,
           placeholder: props.placeholder,
           "aria-autocomplete": "list",
@@ -164,6 +172,7 @@ function InnerDropdown<T extends Named>(
                         props.onSelectedItem(item);
                         refs.domReference.current?.focus();
                       },
+                      onBlur: handleBlur,
                     })}
                     key={item.name}
                     active={activeIndex === idx}
@@ -183,6 +192,7 @@ function InnerDropdown<T extends Named>(
                       props.onNewItem?.(query);
                       refs.domReference.current?.focus();
                     }}
+                    onBlur={handleBlur}
                   >
                     {query}
                   </NewItem>
