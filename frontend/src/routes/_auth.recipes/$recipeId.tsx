@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
-import { type Ingredient, useAllIngredients } from "../apis/ingredients.ts";
-import { useAddRecipeToMealplan } from "../apis/mealplans.ts";
+import { type Ingredient, useAllIngredients } from "../../apis/ingredients.ts";
+import { useAddRecipeToMealplan } from "../../apis/mealplans.ts";
 import {
   type Change,
   type Recipe,
@@ -10,9 +10,12 @@ import {
   addRecipeToShoppinglist,
   useChangeRecipe,
   useRecipe,
-} from "../apis/recipes.ts";
-import { RecipeContext, RecipeView } from "../components/smart/recipeView.tsx";
-import { parse } from "../quantities.ts";
+} from "../../apis/recipes.ts";
+import {
+  RecipeContext,
+  RecipeView,
+} from "../../components/smart/recipeView.tsx";
+import { parse } from "../../quantities.ts";
 
 const RecipeSearch = z.object({
   editing: z.boolean().optional(),

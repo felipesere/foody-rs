@@ -28,7 +28,7 @@ import {
   updateSearchParams,
 } from "../domain/search.ts";
 
-export const Route = createFileRoute("/_auth/recipes/")({
+export const Route = createFileRoute("/_auth/recipes")({
   component: RecipesPage,
   validateSearch: RecipeSearchSchemaParams,
 });
@@ -77,6 +77,7 @@ export function RecipesPage() {
             items={knownTags}
             onItemsSelected={(items) => {
               navigate({
+                to: ".",
                 search: (params) =>
                   updateSearchParams(params, { tags: { set: items } }),
               });
@@ -105,6 +106,7 @@ export function RecipesPage() {
             items={Array.from(knownBookTitles)}
             onItemsSelected={(items) => {
               navigate({
+                to: ".",
                 search: (params) =>
                   updateSearchParams(params, { books: { set: items } }),
               });
@@ -302,7 +304,9 @@ function RecipeView(props: RecipeProps) {
 
 function IngredientView({
   ingredient: { ingredient, quantity },
-}: { ingredient: IngredientWithQuantity }) {
+}: {
+  ingredient: IngredientWithQuantity;
+}) {
   return (
     <li className="flex flex-row justify-between">
       <p className="font-light text-gray-700 whitespace-nowrap overflow-hidden overflow-ellipsis">

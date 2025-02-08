@@ -5,9 +5,12 @@ import {
   type Source,
   type UnstoredRecipe,
   useCreateRecipe,
-} from "../apis/recipes.ts";
-import { RecipeContext, RecipeView } from "../components/smart/recipeView.tsx";
-import { parse } from "../quantities.ts";
+} from "../../apis/recipes.ts";
+import {
+  RecipeContext,
+  RecipeView,
+} from "../../components/smart/recipeView.tsx";
+import { parse } from "../../quantities.ts";
 
 export const Route = createFileRoute("/_auth/recipes/new")({
   component: NewRecipePage,
