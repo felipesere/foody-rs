@@ -98,9 +98,7 @@ function InnerDropdown<T extends Named>(
     }
   }
 
-  function handleBlur(event: { target: EventTarget | null }) {
-    console.log("We got a blur event!");
-    console.log(event.target);
+  function handleBlur() {
     props.onBlur?.();
   }
 
