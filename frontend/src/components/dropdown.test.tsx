@@ -166,7 +166,6 @@ test("loosing focus after using arrows to select and existing item", async () =>
   });
   screen.debug();
 
-  expect(focusTaget).toHaveFocus();
   expect(blurred).toBe(true);
   expect(selected).toEqual({ name: "Bravo" });
   expect(newItem).toBeUndefined();

@@ -377,7 +377,21 @@ function ShowSource(props: {
   });
 
   const bubbleUpToParent = useCallback(() => {
-    props.onBlur({ ...source, source: sourceChoice });
+    if (sourceChoice === "book" && source.title && source.page) {
+      props.onBlur({
+        source: "book",
+        title: source.title,
+        page: source.page,
+        url: null,
+      });
+    } else if (sourceChoice === "website" && source.url) {
+      props.onBlur({
+        source: "website",
+        title: null,
+        page: null,
+        url: source.url,
+      });
+    }
   }, [props.onBlur, sourceChoice, source]);
 
   if (editing) {
