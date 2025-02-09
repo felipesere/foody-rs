@@ -28,7 +28,7 @@ import {
   updateSearchParams,
 } from "../domain/search.ts";
 
-export const Route = createFileRoute("/_auth/recipes")({
+export const Route = createFileRoute("/_auth/recipes/")({
   component: RecipesPage,
   validateSearch: RecipeSearchSchemaParams,
 });

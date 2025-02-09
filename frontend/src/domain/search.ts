@@ -16,45 +16,46 @@ export function updateSearchParams(
     term?: { set?: string };
   },
 ): RecipeSearchParams {
+  const other = structuredClone(previous);
   if (changes.tags?.set) {
-    previous.tags = changes.tags.set;
+    other.tags = changes.tags.set;
   }
 
   if (changes.tags?.add) {
-    previous.tags = [...(previous.tags || []), changes.tags.add];
+    other.tags = [...(previous.tags || []), changes.tags.add];
   }
 
   if (changes.tags?.remove) {
-    previous.tags = (previous.tags || []).filter(
+    other.tags = (previous.tags || []).filter(
       (t) => t !== changes.tags?.remove,
     );
-    if (previous.tags.length === 0) {
-      previous.tags = undefined;
+    if (other.tags.length === 0) {
+      other.tags = undefined;
     }
   }
 
   if (changes.books?.set) {
-    previous.books = changes.books.set;
+    other.books = changes.books.set;
   }
 
   if (changes.books?.add) {
-    previous.books = [...(previous.books || []), changes.books.add];
+    other.books = [...(previous.books || []), changes.books.add];
   }
 
   if (changes.books?.remove) {
-    previous.books = (previous.books || []).filter(
+    other.books = (previous.books || []).filter(
       (t) => t !== changes.books?.remove,
     );
-    if (previous.books.length === 0) {
-      previous.books = undefined;
+    if (other.books.length === 0) {
+      other.books = undefined;
     }
   }
 
   if (changes.term) {
-    previous.term = changes.term.set;
+    other.term = changes.term.set;
   }
 
-  return previous;
+  return other;
 }
 
 export function filterRecipes(
