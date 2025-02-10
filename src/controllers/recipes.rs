@@ -3,12 +3,13 @@ use std::collections::HashSet;
 use axum::{extract, response::Response};
 use loco_rs::controller::middleware::{self};
 use loco_rs::prelude::*;
+use migration::Expr;
 use sea_orm::Statement;
 use serde::{Deserialize, Serialize};
 
-use crate::models::_entities::quantities;
+use crate::models::_entities::{ingredients_in_shoppinglists, quantities};
 use crate::models::{
-    _entities::{self, ingredients_in_recipes, recipes},
+    _entities::{self, ingredients_in_recipes, recipes, shoppinglists},
     quantities::Quantity,
     users::users,
 };
@@ -142,6 +143,15 @@ pub async fn delete_recipe(
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
     let tx = ctx.db.begin().await?;
+
+    ingredients_in_shoppinglists::Entity::update_many()
+        .col_expr(
+            ingredients_in_shoppinglists::Column::RecipeId,
+            migration::SimpleExpr::Keyword(migration::Keyword::Null),
+        )
+        .filter(ingredients_in_shoppinglists::Column::RecipeId.eq(recipe_id))
+        .exec(&tx)
+        .await?;
 
     ingredients_in_recipes::Entity::delete_many()
         .filter(ingredients_in_recipes::Column::RecipesId.eq(recipe_id))
