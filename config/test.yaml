@@ -91,7 +91,8 @@ mailer:
 # Database Configuration
 database:
   # Database connection URI
-  uri: {{ get_env(name="DATABASE_URL", default="postgres://loco:loco@localhost:5433/foody_test") }}
+  # uri: {{ get_env(name="DATABASE_URL", default="postgres://loco:loco@localhost:5433/foody_test") }}
+  uri: {{ get_env(name="DATABASE_URL", default="sqlite://first_attempt.sqlite") }}
   # When enabled, the sql query will be logged.
   enable_logging: true
   # Set the timeout duration when acquiring a connection.
