@@ -38,14 +38,8 @@ pg-start:
 # direction is one `up` or `down`
 pg-migrate environment direction:
   #!/usr/bin/env bash
-  set -euxo pipefail
-  if [ "{{environment}}" == "development" ]; then
-    PORT=5432
-  else
-    PORT=5433
-  fi
   cd migration
-  DATABASE_URL=postgres://loco:loco@localhost:${PORT}/foody_{{environment}} cargo run -- {{direction}}
+  DATABASE_URL="sqlite://../first_attempt.sqlite" cargo run -- {{direction}}
 
 pg-reseed environment: (pg-reset environment) (pg-seed environment)
 

@@ -26,7 +26,10 @@ sea-orm = { version = "1.0.1", features = [
   "sqlx-postgres",
   "runtime-tokio-rustls",
   "macros",
+  "with-chrono",
+  "with-uuid",
 ] }
+sea-query = { version = "0.32.1", features = ["backend-sqlite", "with-chrono"] }
 
 axum = "^0.8"
 include_dir = "^0.7"
