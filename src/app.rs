@@ -145,7 +145,7 @@ impl Hooks for App {
                 .website_url
                 .map_or_else(AV::not_set, |w| AV::set(Some(w)));
             model.source = AV::set(recipe.source);
-            model.tags = AV::set(recipe.tags.unwrap_or_default());
+            model.tags = AV::set(recipe.tags.unwrap_or_default().into());
             let model = model.insert(db).await.unwrap();
 
             for (name, quantity) in recipe.ingredients {
@@ -194,13 +194,14 @@ impl Hooks for App {
         }
 
         db::seed::<users::ActiveModel>(db, &base.join("users.yaml").display().to_string()).await?;
-        for table in ["users"] {
-            db.query_one(Statement::from_string(
-                DbBackend::Postgres,
-                format!("SELECT setval('{table}_id_seq', (SELECT MAX(id) FROM {table}))"),
-            ))
-            .await?;
-        }
+        // Figure this out later in Sqlite
+        // for table in ["users"] {
+        //     db.query_one(Statement::from_string(
+        //         DbBackend::Postgres,
+        //         format!("SELECT setval('{table}_id_seq', (SELECT MAX(id) FROM {table}))"),
+        //     ))
+        //     .await?;
+        // }
 
         Ok(())
     }

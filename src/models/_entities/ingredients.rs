@@ -3,16 +3,19 @@
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
+use crate::models::custom_db_types::JsonStringArray;
+
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
 #[sea_orm(table_name = "ingredients")]
 pub struct Model {
-    pub created_at: DateTime,
-    pub updated_at: DateTime,
+    pub created_at: DateTimeUtc,
+    pub updated_at: DateTimeUtc,
     #[sea_orm(primary_key)]
     pub id: i32,
     #[sea_orm(unique)]
     pub name: String,
-    pub tags: Vec<String>,
+    #[sea_orm(column_type = "Text")]
+    pub tags: JsonStringArray,
     pub aisle: Option<i32>,
 }
 
