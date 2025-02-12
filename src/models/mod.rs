@@ -9,3 +9,5 @@ pub mod quantities;
 pub mod recipes;
 pub mod shoppinglists;
 pub mod users;
+
+pub mod custom_db_types;

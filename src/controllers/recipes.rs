@@ -60,7 +60,7 @@ pub async fn all_recipes(
             url: recipe.website_url,
             title: recipe.book_title,
             page: recipe.book_page,
-            tags: recipe.tags,
+            tags: recipe.tags.to_vec(),
             rating: recipe.rating,
             notes: recipe.notes,
             duration: recipe.duration,
@@ -108,7 +108,7 @@ pub async fn recipe(
         url: recipe.website_url,
         title: recipe.book_title,
         page: recipe.book_page,
-        tags: recipe.tags,
+        tags: recipe.tags.to_vec(),
         rating: recipe.rating,
         notes: recipe.notes,
         duration: recipe.duration,
@@ -238,7 +238,7 @@ pub async fn create_recipe(
         name: ActiveValue::set(params.name),
         rating: ActiveValue::set(params.rating),
         notes: ActiveValue::set(params.notes),
-        tags: ActiveValue::set(params.tags),
+        tags: ActiveValue::set(params.tags.into()),
         ..Default::default()
     };
 
@@ -288,7 +288,7 @@ pub async fn create_recipe(
         url: recipe.website_url,
         title: recipe.book_title,
         page: recipe.book_page,
-        tags: recipe.tags,
+        tags: recipe.tags.to_vec(),
         rating: recipe.rating,
         notes: recipe.notes,
         duration: recipe.duration,
@@ -430,7 +430,7 @@ pub async fn edit_recipe(
     for change in params.changes {
         match change {
             RecipeChange::Name(name) => recipe.name = ActiveValue::set(name),
-            RecipeChange::Tags(tags) => recipe.tags = ActiveValue::set(tags),
+            RecipeChange::Tags(tags) => recipe.tags = ActiveValue::set(tags.into()),
             RecipeChange::Notes(notes) => recipe.notes = ActiveValue::set(notes),
             RecipeChange::Source(RecipeSource::Book { title, page }) => {
                 recipe.source = ActiveValue::set("book".to_string());
@@ -509,7 +509,7 @@ pub async fn edit_recipe(
         url: recipe.website_url,
         title: recipe.book_title,
         page: recipe.book_page,
-        tags: recipe.tags,
+        tags: recipe.tags.to_vec(),
         rating: recipe.rating,
         notes: recipe.notes,
         duration: recipe.duration,

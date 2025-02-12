@@ -191,7 +191,12 @@ impl MigrationTrait for Migration {
                             .not_null()
                             .unique_key(),
                     )
-                    .col(ColumnDef::new(Ingredients::Tags).text().not_null())
+                    .col(
+                        ColumnDef::new(Ingredients::Tags)
+                            .text()
+                            .not_null()
+                            .default(Expr::value("[]")),
+                    )
                     .col(ColumnDef::new(Ingredients::Aisle).integer())
                     .foreign_key(
                         ForeignKey::create()
@@ -294,7 +299,12 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(Recipes::BookPage).integer())
                     .col(ColumnDef::new(Recipes::WebsiteUrl).string())
                     .col(ColumnDef::new(Recipes::Source).string().not_null())
-                    .col(ColumnDef::new(Recipes::Tags).text().not_null())
+                    .col(
+                        ColumnDef::new(Recipes::Tags)
+                            .text()
+                            .not_null()
+                            .default(Expr::value("[]")),
+                    )
                     .col(
                         ColumnDef::new(Recipes::Rating)
                             .integer()

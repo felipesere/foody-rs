@@ -36,7 +36,7 @@ pub(crate) async fn find_all(db: &DatabaseConnection) -> Result<Vec<FullRecipe>,
                q.unit as q_unit,
                q.value as q_value,
                a.name as a_name,
-               a.order as a_order
+               a."order" as a_order
         FROM ingredients_in_recipes
                  JOIN ingredients i ON ingredients_in_recipes.ingredients_id = i.id
                  JOIN quantities q ON q.id = ingredients_in_recipes.quantities_id

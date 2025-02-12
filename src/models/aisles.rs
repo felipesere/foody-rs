@@ -5,7 +5,7 @@ pub type Aisles = Entity;
 #[derive(Debug, FromQueryResult)]
 pub struct AisleRef {
     pub name: String,
-    pub order: i16,
+    pub order: i32,
 }
 
 impl From<Model> for AisleRef {
