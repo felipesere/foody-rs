@@ -18,6 +18,7 @@ import { AddToShoppinglist } from "../components/smart/addToShoppinglist.tsx";
 import { SelectAisle } from "../components/smart/selectAisle.tsx";
 import { SelectTags } from "../components/smart/selectTags.tsx";
 import { ToggleButton } from "../components/toggle.tsx";
+import { orderByTag } from "../domain/orderByTag.ts";
 import { useScrollTo } from "../hooks/useScrollTo.ts";
 
 const ingredientSearchSchema = z.object({
@@ -58,18 +59,42 @@ function IngredientsPage() {
     return <p>Loading...</p>;
   }
 
+  const byTag = orderByTag(ingredients);
+
   return (
     <div className="content-grid">
-      <ul className="grid gap-4 max-w-md">
-        {ingredients.map((ingredient, idx) => (
-          <IngredientView
-            key={ingredient.name}
-            ingredient={ingredient}
-            selected={idx === selected}
-            token={token}
-            onClick={() => setSelected(idx)}
-          />
-        ))}
+      {/*<ul className="grid gap-4 max-w-md">*/}
+      <ul className="gap-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        {byTag.map((section) => {
+          return (
+            <div key={section.name} className={"flex flex-col"}>
+              <p>{section.name}</p>
+              <ol className="space-y-2">
+                {section.items.map((ingredient) => {
+                  return (
+                    <IngredientView
+                      key={ingredient.name}
+                      ingredient={ingredient}
+                      selected={false}
+                      token={token}
+                      onClick={() => {}}
+                    />
+                  );
+                })}
+              </ol>
+            </div>
+          );
+        })}
+
+        {/*{ingredients.map((ingredient, idx) => (*/}
+        {/*  <IngredientView*/}
+        {/*    key={ingredient.name}*/}
+        {/*    ingredient={ingredient}*/}
+        {/*    selected={idx === selected}*/}
+        {/*    token={token}*/}
+        {/*    onClick={() => setSelected(idx)}*/}
+        {/*  />*/}
+        {/*))}*/}
       </ul>
     </div>
   );

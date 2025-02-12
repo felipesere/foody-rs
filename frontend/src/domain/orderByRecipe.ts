@@ -5,9 +5,9 @@ import type {
   ShoppinglistQuantity,
 } from "../apis/shoppinglists.ts";
 
-export type Section = {
+export type Section<Item = ShoppinglistItem> = {
   name: string;
-  items: ShoppinglistItem[];
+  items: Item[];
 };
 
 export function orderByRecipe(
