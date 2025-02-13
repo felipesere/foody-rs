@@ -13,11 +13,12 @@ export function orderByTag(items: Ingredient[]): Section<Ingredient>[] {
       // no need to further process this item...
       continue;
     }
-    for (const tag of item.tags) {
-      const existing = ingredientsByTag[tag] || [];
-      existing.push(item);
-      ingredientsByTag[tag] = existing;
-    }
+
+    item.tags.sort();
+    const tag = item.tags[0];
+    const existing = ingredientsByTag[tag] || [];
+    existing.push(item);
+    ingredientsByTag[tag] = existing;
   }
 
   return Object.entries(ingredientsByTag).map(([tag, ingredients]) => {
