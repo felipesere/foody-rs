@@ -73,7 +73,7 @@ function MealPlanPage() {
         </div>
         {/* right or bottom */}
         <div className={"divider"}>
-          <ol>
+          <ol className={"space-y-4"}>
             {all.data.meal_plans.map((mealPlan: MealPlan) => (
               <li key={mealPlan.id}>
                 <div className={"flex flex-row justify-between"}>
