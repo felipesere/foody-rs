@@ -116,15 +116,15 @@ test("multiple tags must match simultaneously", () => {
 });
 
 test("terms can match in name", () => {
-  const remaining = filterRecipes(recipes, { term: "tarti" });
+  const remaining = filterRecipes(recipes, { terms: ["tarti"] });
   expect(remaining.map((r) => r.name)).toEqual(["tartiflette"]);
 
-  const other = filterRecipes(recipes, { term: "TARTI" });
+  const other = filterRecipes(recipes, { terms: ["TARTI"] });
   expect(other.map((r) => r.name)).toEqual(["tartiflette"]);
 });
 
 test("terms can match in ingredient name", () => {
-  const remaining = filterRecipes(recipes, { term: "sweet" });
+  const remaining = filterRecipes(recipes, { terms: ["sweet"] });
   expect(remaining.map((r) => r.name)).toEqual(["blurb"]);
 });
 

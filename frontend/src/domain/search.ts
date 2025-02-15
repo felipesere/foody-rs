@@ -4,7 +4,7 @@ import type { Recipe } from "../apis/recipes.ts";
 export const RecipeSearchSchemaParams = z.object({
   tags: z.array(z.string()).optional(),
   books: z.array(z.string()).optional(),
-  term: z.string().optional(),
+  terms: z.array(z.string()).optional(),
 });
 export type RecipeSearchParams = z.infer<typeof RecipeSearchSchemaParams>;
 
@@ -13,7 +13,7 @@ export function updateSearchParams(
   changes: {
     books?: { set?: string[]; add?: string; remove?: string };
     tags?: { set?: string[]; add?: string; remove?: string };
-    term?: { set?: string };
+    terms?: { add?: string; remove?: string };
   },
 ): RecipeSearchParams {
   const other = structuredClone(previous);
@@ -51,8 +51,17 @@ export function updateSearchParams(
     }
   }
 
-  if (changes.term) {
-    other.term = changes.term.set;
+  if (changes.terms?.add) {
+    other.terms = [...(previous.terms || []), changes.terms.add];
+  }
+
+  if (changes.terms?.remove) {
+    other.terms = (previous.terms || []).filter(
+      (t) => t !== changes.terms?.remove,
+    );
+    if (other.terms.length === 0) {
+      other.terms = undefined;
+    }
   }
 
   return other;
@@ -83,14 +92,20 @@ export function filterRecipes(
   }
 
   function termMatch(recipe: Recipe) {
-    if (params.term) {
-      const term = params.term.toLowerCase();
-      return (
-        recipe.name.toLowerCase().includes(term) ||
-        recipe.ingredients.some((i) =>
-          i.ingredient.name.toLowerCase().includes(term),
-        )
-      );
+    if (params.terms) {
+      const terms = params.terms || [];
+      if (terms.length > 0) {
+        return terms.every((t) => {
+          const term = t.toLowerCase();
+          console.log(`Cehcking ${term}`);
+          return (
+            recipe.name.toLowerCase().includes(term) ||
+            recipe.ingredients.some((i) =>
+              i.ingredient.name.toLowerCase().includes(term),
+            )
+          );
+        });
+      }
     }
     return true;
   }

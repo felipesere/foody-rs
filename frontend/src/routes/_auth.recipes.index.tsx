@@ -35,7 +35,7 @@ export const Route = createFileRoute("/_auth/recipes/")({
 
 export function RecipesPage() {
   const { token } = Route.useRouteContext();
-  const { tags, term, books } = Route.useSearch();
+  const { tags, terms, books } = Route.useSearch();
   const { data, isLoading, isError } = useAllRecipes(token);
   const navigate = useNavigate({ from: Route.path });
 
@@ -48,7 +48,7 @@ export function RecipesPage() {
     return <p>Loading</p>;
   }
 
-  const recipes = filterRecipes(data.recipes, { tags, term, books });
+  const recipes = filterRecipes(data.recipes, { tags, terms, books });
   recipes.sort((a, b) => a.name.localeCompare(b.name));
 
   const knownBookTitles = new Set<string>();
@@ -135,22 +135,25 @@ export function RecipesPage() {
               navigate({
                 search: (params) =>
                   updateSearchParams(params, {
-                    term: { set: term.toLowerCase() },
+                    terms: { add: term.toLowerCase() },
                   }),
               });
             }}
           />
-          {term && (
-            <Pill
-              value={term}
-              onClose={() => {
-                navigate({
-                  search: (params) =>
-                    updateSearchParams(params, { term: { set: undefined } }),
-                });
-              }}
-            />
-          )}
+          {(terms || []).map((term) => {
+            return (
+              <Pill
+                key={term}
+                value={term}
+                onClose={() => {
+                  navigate({
+                    search: (params) =>
+                      updateSearchParams(params, { terms: { remove: term } }),
+                  });
+                }}
+              />
+            );
+          })}
         </FieldSet>
       </FieldSet>
       <ul className="grid gap-4">

@@ -3,13 +3,12 @@ use std::collections::HashSet;
 use axum::{extract, response::Response};
 use loco_rs::controller::middleware::{self};
 use loco_rs::prelude::*;
-use migration::Expr;
 use sea_orm::Statement;
 use serde::{Deserialize, Serialize};
 
 use crate::models::_entities::{ingredients_in_shoppinglists, quantities};
 use crate::models::{
-    _entities::{self, ingredients_in_recipes, recipes, shoppinglists},
+    _entities::{self, ingredients_in_recipes, recipes},
     quantities::Quantity,
     users::users,
 };
