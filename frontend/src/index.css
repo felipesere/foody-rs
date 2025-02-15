@@ -73,13 +73,17 @@ input[type="radio"] {
   height: 1.15em;
   border: 0.2em solid currentColor;
   border-radius: 0;
-  /* nudging to align with label, which I may not have: */
-  transform: translateY(+0.1em);
 
   display: grid;
   place-content: center;
+}
 
-  padding: 8px;
+/* If we follow an actual label we have
+to nudge the checkbox down for visual balance
+ */
+input[type="checkbox"]:has(~ label),
+input[type="radio"]:has(~ label) {
+  transform: translateY(+0.1em);
 }
 
 input[type="radio"] {
@@ -97,15 +101,14 @@ input[type="radio"]::before {
   box-shadow: inset 1em 1em currentColor;
   clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
 }
-
-input[type="radio"]::before {
-  clip-path: circle(35%);
-}
-
 /* And this is the checked version which resets the scale back to 1 */
 input[type="checkbox"]:checked::before,
 input[type="radio"]:checked::before {
   transform: scale(1);
+}
+
+input[type="radio"]::before {
+  clip-path: circle(35%);
 }
 
 /* Broad styles for all buttons */

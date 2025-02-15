@@ -73,31 +73,42 @@ function MealPlanPage() {
         </div>
         {/* right or bottom */}
         <div className={"divider"}>
-          <ol className={"space-y-4"}>
-            {all.data.meal_plans.map((mealPlan: MealPlan) => (
-              <li key={mealPlan.id}>
-                <div className={"flex flex-row justify-between"}>
-                  <Link
-                    to={"/mealplan"}
-                    search={{
-                      mealPlan: mealPlan.id,
-                    }}
+          <table className={"w-full"}>
+            <tbody className={"table-auto"}>
+              {all.data.meal_plans.map((mealPlan: MealPlan) => {
+                return (
+                  <tr
+                    key={mealPlan.id}
+                    className={
+                      "py-2 odd:bg-gray-100 flex flex-row justify-between"
+                    }
                   >
-                    {selected && selected.id === mealPlan.id && "* "}
-                    {mealPlan.name}
-                  </Link>
-                  <Button
-                    label={"Remove"}
-                    onClick={(ev) => {
-                      ev.preventDefault();
-                      ev.stopPropagation();
-                      remove.mutate({ id: mealPlan.id });
-                    }}
-                  />
-                </div>
-              </li>
-            ))}
-          </ol>
+                    <td>
+                      <Link
+                        to={"/mealplan"}
+                        search={{
+                          mealPlan: mealPlan.id,
+                        }}
+                      >
+                        {selected && selected.id === mealPlan.id && "* "}
+                        {mealPlan.name}
+                      </Link>
+                    </td>
+                    <td>
+                      <Button
+                        label={"Remove"}
+                        onClick={(ev) => {
+                          ev.preventDefault();
+                          ev.stopPropagation();
+                          remove.mutate({ id: mealPlan.id });
+                        }}
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
