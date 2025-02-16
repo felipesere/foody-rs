@@ -1,7 +1,6 @@
-version: "3.1"
 services:
   db:
-    image: postgres:16
+    image: cgr.dev/chainguard/postgres
     restart: always
     environment:
       POSTGRES_USER: loco
@@ -13,7 +12,7 @@ services:
       - pgdata:/var/lib/postgresql/data
 
   test_db:
-    image: postgres:16
+    image: cgr.dev/chainguard/postgres
     restart: always
     environment:
       POSTGRES_USER: loco
@@ -24,22 +23,6 @@ services:
     volumes:
       - pgtestdata:/var/lib/postgresql/data
 
-  adminer:
-    image: adminer
-    restart: always
-    ports:
-      - 8080:8080
-
-  redis:
-    image: redis/redis-stack:latest
-    restart: always
-    ports:
-      - 6379:6379
-      - 8001:8001
-    volumes:
-      - redisdata:/data
-
 volumes:
   pgdata:
   pgtestdata:
-  redisdata:
