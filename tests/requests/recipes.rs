@@ -23,7 +23,6 @@ async fn named_ingredient(db: &DatabaseConnection, name: &str) -> _entities::ing
 #[serial]
 async fn can_create_and_update_a_recipe() {
     testing::request::request::<App, _, _>(|mut request, ctx| async move {
-        let _ = loco_rs::logger::init::<App>(&ctx.config.logger);
         testing::db::seed::<App>(&ctx).await.unwrap();
 
         prepare_data::authenticated(&mut request, &ctx).await;

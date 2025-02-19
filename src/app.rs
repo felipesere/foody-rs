@@ -12,7 +12,7 @@ use loco_rs::{
     Result,
 };
 use migration::Migrator;
-use sea_orm::{ActiveModelBehavior, ActiveModelTrait, ConnectionTrait, DbBackend, Statement};
+use sea_orm::{ActiveModelBehavior, ActiveModelTrait};
 
 use crate::{
     controllers,
