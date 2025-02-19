@@ -8,7 +8,7 @@ use crate::models::{_entities::aisles, users};
 struct FullAisleResponse {
     id: i32,
     name: String,
-    order: i16,
+    order: i32,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

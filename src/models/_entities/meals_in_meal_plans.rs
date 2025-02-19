@@ -6,10 +6,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
 #[sea_orm(table_name = "meals_in_meal_plans")]
 pub struct Model {
-    pub created_at: DateTime,
-    pub updated_at: DateTime,
     #[sea_orm(primary_key)]
     pub id: i32,
+    pub created_at: DateTimeUtc,
+    pub updated_at: DateTimeUtc,
     pub meal_plan_id: i32,
     pub recipe_id: Option<i32>,
     pub untracked_meal_name: Option<String>,
@@ -23,14 +23,28 @@ pub enum Relation {
         belongs_to = "super::meal_plans::Entity",
         from = "Column::MealPlanId",
         to = "super::meal_plans::Column::Id",
-        on_update = "Cascade",
-        on_delete = "Cascade"
+        on_update = "NoAction",
+        on_delete = "NoAction"
     )]
     MealPlans,
+    #[sea_orm(
+        belongs_to = "super::recipes::Entity",
+        from = "Column::RecipeId",
+        to = "super::recipes::Column::Id",
+        on_update = "NoAction",
+        on_delete = "NoAction"
+    )]
+    Recipes,
 }
 
 impl Related<super::meal_plans::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::MealPlans.def()
+    }
+}
+
+impl Related<super::recipes::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Recipes.def()
     }
 }

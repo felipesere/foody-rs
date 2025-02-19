@@ -18,7 +18,7 @@ use super::TagsResponse;
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct AisleResponse {
     pub name: String,
-    pub order: i16,
+    pub order: i32,
 }
 
 impl From<Aisle> for AisleResponse {
@@ -43,7 +43,7 @@ impl From<(Ingredient, Option<AisleRef>)> for IngredientResponse {
         Self {
             id: value.id,
             name: value.name,
-            tags: value.tags,
+            tags: value.tags.to_vec(),
             aisle: aisle.map(|a| AisleResponse {
                 name: a.name,
                 order: a.order,
@@ -91,7 +91,7 @@ pub async fn add_ingredient(
 
     let ingredient_outcome = ingredients::ActiveModel {
         name: ActiveValue::Set(params.name.clone()),
-        tags: ActiveValue::Set(params.tags),
+        tags: ActiveValue::Set(params.tags.into()),
         ..Default::default()
     }
     .insert(&tx)

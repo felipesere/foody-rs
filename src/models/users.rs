@@ -1,4 +1,4 @@
-use chrono::offset::Local;
+use chrono::Utc;
 use loco_rs::{
     auth, hash,
     model::{Authenticable, ModelError, ModelResult},
@@ -225,7 +225,7 @@ impl super::_entities::users::ActiveModel {
         mut self,
         db: &DatabaseConnection,
     ) -> ModelResult<Model> {
-        self.email_verification_sent_at = ActiveValue::set(Some(Local::now().naive_local()));
+        self.email_verification_sent_at = ActiveValue::set(Some(Utc::now()));
         self.email_verification_token = ActiveValue::Set(Some(Uuid::new_v4().to_string()));
         Ok(self.update(db).await?)
     }
@@ -243,7 +243,7 @@ impl super::_entities::users::ActiveModel {
     ///
     /// when has DB query error
     pub async fn set_forgot_password_sent(mut self, db: &DatabaseConnection) -> ModelResult<Model> {
-        self.reset_sent_at = ActiveValue::set(Some(Local::now().naive_local()));
+        self.reset_sent_at = ActiveValue::set(Some(Utc::now()));
         self.reset_token = ActiveValue::Set(Some(Uuid::new_v4().to_string()));
         Ok(self.update(db).await?)
     }
@@ -258,7 +258,7 @@ impl super::_entities::users::ActiveModel {
     ///
     /// when has DB query error
     pub async fn verified(mut self, db: &DatabaseConnection) -> ModelResult<Model> {
-        self.email_verified_at = ActiveValue::set(Some(Local::now().naive_local()));
+        self.email_verified_at = ActiveValue::set(Some(Utc::now()));
         Ok(self.update(db).await?)
     }
 
