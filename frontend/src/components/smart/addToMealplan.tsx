@@ -83,9 +83,11 @@ function PickMealplan(props: Props) {
     return <p>Loading...</p>;
   }
 
+  const meal_plans = data.meal_plans.slice(0, 5);
+
   return (
     <ol className={"space-y-2"}>
-      {data.meal_plans.map((list) => (
+      {meal_plans.map((list) => (
         <li key={list.id}>
           <button
             type={"submit"}

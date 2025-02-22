@@ -97,7 +97,6 @@ export function filterRecipes(
       if (terms.length > 0) {
         return terms.every((t) => {
           const term = t.toLowerCase();
-          console.log(`Cehcking ${term}`);
           return (
             recipe.name.toLowerCase().includes(term) ||
             recipe.ingredients.some((i) =>

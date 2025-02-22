@@ -8,6 +8,7 @@ import {
   type StoredQuantity,
   StoredQuantitySchema,
 } from "./recipes.ts";
+import { newToOld } from "./sorting.ts";
 
 const MinimalShoppinglistSchema = z.object({
   id: z.number(),
@@ -30,7 +31,9 @@ export function useAllShoppinglists(token: string) {
         })
         .json();
 
-      return AllShoppinglistsSchema.parse(body);
+      const shoppinglists = AllShoppinglistsSchema.parse(body);
+      shoppinglists.shoppinglists.sort(newToOld("last_updated"));
+      return shoppinglists;
     },
   });
 }

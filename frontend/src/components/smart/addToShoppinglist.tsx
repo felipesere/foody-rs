@@ -83,9 +83,11 @@ function PickShoppinglist(props: Props) {
     return <p>Loading...</p>;
   }
 
+  const shoppinglists = data.shoppinglists.slice(0, 5);
+
   return (
     <ol className={"space-y-2"}>
-      {data.shoppinglists.map((list) => (
+      {shoppinglists.map((list) => (
         <li key={list.id}>
           <button
             type={"submit"}
