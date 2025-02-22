@@ -18,7 +18,7 @@ pub struct Model {
 #[sea_orm(entity = "Entity")]
 pub struct PartialAisle {
     pub name: String,
-    pub order: i16,
+    pub order: i32,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
