@@ -7,6 +7,7 @@ use loco_rs::{
 };
 use sea_orm::{entity::prelude::*, ActiveValue, DatabaseConnection, DbErr, TransactionTrait};
 use serde::{Deserialize, Serialize};
+use serde_json::Map;
 use uuid::Uuid;
 
 pub use super::_entities::users::{self, ActiveModel, Entity, Model};
@@ -197,8 +198,12 @@ impl super::_entities::users::Model {
     /// # Errors
     ///
     /// when could not convert user claims to jwt token
-    pub fn generate_jwt(&self, secret: &str, expiration: &u64) -> ModelResult<String> {
-        Ok(auth::jwt::JWT::new(secret).generate_token(expiration, self.pid.to_string(), None)?)
+    pub fn generate_jwt(&self, secret: &str, expiration: u64) -> ModelResult<String> {
+        Ok(auth::jwt::JWT::new(secret).generate_token(
+            expiration,
+            self.pid.to_string(),
+            Map::new(),
+        )?)
     }
 }
 
