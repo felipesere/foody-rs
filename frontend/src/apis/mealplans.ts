@@ -4,7 +4,7 @@ import { z } from "zod";
 import { http } from "./http.ts";
 import { WithIdSchema } from "./recipes.ts";
 import type { Shoppinglist } from "./shoppinglists.ts";
-import { newToOld, oldToNew } from "./sorting.ts";
+import { newToOld } from "./sorting.ts";
 
 const DetailsSchema = z.discriminatedUnion("type", [
   z.object({
@@ -58,7 +58,7 @@ export function useAllMealPlans(token: string) {
       const meals = MealPlansSchema.parse(body);
       meals.meal_plans.sort(newToOld("created_at"));
       for (const plan of meals.meal_plans) {
-        plan.meals.sort(oldToNew("created_at"));
+        plan.meals.sort((a, b) => a.id - b.id);
       }
 
       return meals;
