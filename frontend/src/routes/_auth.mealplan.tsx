@@ -89,9 +89,10 @@ function MealPlanPage() {
                         search={{
                           mealPlan: mealPlan.id,
                         }}
+                        className={"pl-2"}
                       >
-                        {selected && selected.id === mealPlan.id && "* "}
                         {mealPlan.name}
+                        {selected && selected.id === mealPlan.id && "* "}
                       </Link>
                     </td>
                     <td>
