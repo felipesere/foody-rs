@@ -13,6 +13,7 @@ test.each([
     {name: "teaspoon", v: "1 tsp", quantity: { unit: "teaspoon", value: 1}},
     {name: "teaspoon no space", v: "1tsp", quantity: { unit: "teaspoon", value: 1}},
     {name: "arbitrary stuff", v: "a small pinch", quantity: { unit: "arbitrary", text: "a small pinch"}},
+    {name: "number and arbitrary stuff", v: "1 something random", quantity: { unit: "arbitrary", text: "1 something random"}},
 ])('$name', ({v, quantity}) => {
     expect(parse(v)).toEqual(quantity)
 })

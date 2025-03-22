@@ -39,7 +39,7 @@ export function combineQuantities(quantities: Quantity[]): string {
 
 export function parse(raw: string): Quantity {
   const matches =
-    / *(?<numerator>\d+\.?\d*) *\/? *(?<denominator>\d+\.?\d*)? *(?<unit>[^ ]+)?/.exec(
+    / *(?<numerator>\d+\.?\d*) *\/? *(?<denominator>\d+\.?\d*)? *(?<unit>.+)?/.exec(
       raw,
     );
   if (!matches?.groups) {
@@ -61,15 +61,23 @@ export function parse(raw: string): Quantity {
       unit: "count",
     };
   }
+  const properUnit = canonical(unit);
+
+  if (!properUnit) {
+    return {
+      unit: "arbitrary",
+      text: raw,
+    };
+  }
 
   return {
     value,
-    unit: canonical(unit),
+    unit: properUnit,
   };
 }
 
-function canonical(unit: string): string {
-  return invertedUnit[unit] || unit;
+function canonical(unit: string): string | undefined {
+  return invertedUnit[unit];
 }
 
 function invert(input: Record<string, string>): Record<string, string> {
