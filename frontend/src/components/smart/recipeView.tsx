@@ -13,6 +13,7 @@ import {
   useRecipeTags,
 } from "../../apis/recipes.ts";
 import type { Shoppinglist } from "../../apis/shoppinglists.ts";
+import { orderByAisles } from "../../domain/orderByAisle.ts";
 import { humanize } from "../../quantities.ts";
 import { Labeled } from "../Labeled.tsx";
 import { Button } from "../button.tsx";
@@ -48,6 +49,7 @@ type RecipeViewProps = {
   onAddToShoppinglist?: (shoppinglistId: Shoppinglist["id"]) => void;
   onAddToMealPlan?: (mealplanId: MealPlan["id"]) => void;
 };
+
 export function RecipeView(props: RecipeViewProps) {
   const { editing, token } = useContext(RecipeContext);
 
@@ -161,7 +163,7 @@ function Notes(props: { value: string; onBlur: (v: string) => void }) {
 }
 
 function Ingredients(props: {
-  ingredients: UnstoredIngredient[];
+  ingredients: UnstoredRecipe["ingredients"];
   onIngredient: (i: OnlyIngredient, quantity: string) => void;
   onRemove: (name: UnstoredIngredient["ingredient"]["name"]) => void;
   onChangeQuantity: (
@@ -170,21 +172,29 @@ function Ingredients(props: {
   ) => void;
 }) {
   const { editing, token } = useContext(RecipeContext);
+
+  const sections = orderByAisles(props.ingredients);
   return (
     <div className={"flex flex-col gap-2"}>
       <p className="uppercase">Ingredients:</p>
-      <ul>
-        {props.ingredients.map((ingredient) => {
-          const quantity = humanize(ingredient.quantity[0]);
-          const name = ingredient.ingredient.name;
+      <ul className={"space-y-4"}>
+        {Object.entries(sections).map(([name, ingredients]) => {
           return (
-            <IngredientView
-              key={name}
-              ingredient={name}
-              quantity={quantity}
-              onRemove={() => props.onRemove(name)}
-              onChangeQuantity={(q) => props.onChangeQuantity(name, q)}
-            />
+            <ul key={name}>
+              {ingredients.items.map((ingredient) => {
+                const quantity = humanize(ingredient.quantity[0]);
+                const name = ingredient.ingredient.name;
+                return (
+                  <IngredientView
+                    key={name}
+                    ingredient={name}
+                    quantity={quantity}
+                    onRemove={() => props.onRemove(name)}
+                    onChangeQuantity={(q) => props.onChangeQuantity(name, q)}
+                  />
+                );
+              })}
+            </ul>
           );
         })}
       </ul>

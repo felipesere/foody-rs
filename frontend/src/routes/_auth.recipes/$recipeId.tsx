@@ -34,7 +34,7 @@ function RecipePage() {
   const { recipeId } = Route.useParams();
   const id = Number(recipeId);
 
-  const data = useRecipe(token, id);
+  const recipeData = useRecipe(token, id);
   const ingredientData = useAllIngredients(token);
 
   const addMealToPlan = useAddRecipeToMealplan(token);
@@ -43,11 +43,11 @@ function RecipePage() {
   const submitChanges = useChangeRecipe(token, id);
 
   // TODO: needs to be lower inside of layout... but we will get there
-  if (data.isLoading || ingredientData.isLoading) {
+  if (recipeData.isLoading || ingredientData.isLoading) {
     return <p>Loading</p>;
   }
 
-  if (!data.data || !ingredientData.data) {
+  if (!recipeData.data || !ingredientData.data) {
     return <p>Error</p>;
   }
 
@@ -138,7 +138,7 @@ function RecipePage() {
     return copy;
   }
 
-  const recipe = applyChanges(changes, data.data, ingredientData.data);
+  const recipe = applyChanges(changes, recipeData.data, ingredientData.data);
 
   return (
     <RecipeContext.Provider

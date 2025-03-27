@@ -1,15 +1,21 @@
 import type { Aisle } from "../apis/ingredients.ts";
-import type { ShoppinglistItem } from "../apis/shoppinglists.ts";
+
+interface Item {
+  ingredient: {
+    name: string;
+    aisle: Aisle | null;
+  };
+}
 
 import type { Section } from "./orderByRecipe.ts";
 
-export function orderByAisles(items: ShoppinglistItem[]): Section[] {
+export function orderByAisles<I extends Item>(items: I[]): Section<I>[] {
   const ingredientsByAisle: Record<
     NonNullable<Aisle["name"]>,
-    { aisle: Aisle; ingredients: ShoppinglistItem[] }
+    { aisle: Aisle; ingredients: I[] }
   > = {};
 
-  const noAisle: ShoppinglistItem[] = [];
+  const noAisle: I[] = [];
   for (const item of items) {
     const ingredient = item.ingredient;
     if (!ingredient.aisle) {
@@ -27,6 +33,9 @@ export function orderByAisles(items: ShoppinglistItem[]): Section[] {
   const sections = Object.values(ingredientsByAisle)
     .sort((a, b) => a.aisle.order - b.aisle.order)
     .map((n) => {
+      n.ingredients.sort((a, b) =>
+        a.ingredient.name > b.ingredient.name ? 1 : -1,
+      );
       return {
         name: n.aisle.name,
         items: n.ingredients,

@@ -1,13 +1,8 @@
-import {
-  queryOptions,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { z } from "zod";
 import { http } from "./http.ts";
-import { IngredientSchema } from "./ingredients.ts";
+import { type Ingredient, IngredientSchema } from "./ingredients.ts";
 import type { Shoppinglist } from "./shoppinglists.ts";
 
 export const WithIdSchema = z.object({
@@ -60,8 +55,13 @@ export type UnstoredIngredient = {
   };
   quantity: Quantity[];
 };
+
+export type QuantifiedIngredient = {
+  ingredient: Ingredient;
+  quantity: Quantity[];
+};
 export type UnstoredRecipe = Omit<Recipe, "id" | "ingredients"> & {
-  ingredients: UnstoredIngredient[];
+  ingredients: QuantifiedIngredient[];
 };
 
 export const RecipesSchema = z.object({
@@ -131,8 +131,8 @@ export function useAllRecipes(token: string) {
   });
 }
 
-export function useRecipeOptions(token: string, id: Recipe["id"]) {
-  return queryOptions({
+export function useRecipe(token: string, id: Recipe["id"]) {
+  return useQuery({
     queryKey: ["recipe", id],
     queryFn: async () => {
       const body = await http
@@ -146,10 +146,6 @@ export function useRecipeOptions(token: string, id: Recipe["id"]) {
       return RecipeSchema.parse(body);
     },
   });
-}
-
-export function useRecipe(token: string, id: Recipe["id"]) {
-  return useQuery(useRecipeOptions(token, id));
 }
 
 export function useCreateRecipe(token: string, navigate: (id: number) => void) {

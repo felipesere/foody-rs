@@ -7,7 +7,10 @@ use sea_orm::{ActiveValue, SqlErr, Statement, TransactionTrait, Value};
 use serde::{Deserialize, Serialize};
 
 use crate::models::{
-    _entities::{aisles, ingredients, ingredients_in_recipes, ingredients_in_shoppinglists},
+    _entities::{
+        aisles::{self, PartialAisle},
+        ingredients, ingredients_in_recipes, ingredients_in_shoppinglists,
+    },
     aisles::{AisleRef, Model as Aisle},
     ingredients::Model as Ingredient,
     users,
@@ -21,8 +24,8 @@ pub struct AisleResponse {
     pub order: i16,
 }
 
-impl From<Aisle> for AisleResponse {
-    fn from(value: Aisle) -> Self {
+impl From<PartialAisle> for AisleResponse {
+    fn from(value: PartialAisle) -> Self {
         Self {
             name: value.name,
             order: value.order,

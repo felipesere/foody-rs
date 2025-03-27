@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
-use super::_entities::aisles::Model as Aisle;
+use crate::models::_entities::aisles::PartialAisle;
+
 use super::_entities::ingredients::Model as Ingredient;
 use super::_entities::quantities::Model as Quantity;
 use super::_entities::recipes::{ActiveModel, Model as Recipes};
@@ -14,7 +15,7 @@ impl ActiveModelBehavior for ActiveModel {
 }
 
 // TODO: Turn this into an actual struct with proper names
-type FullRecipe = (Recipes, Vec<(Ingredient, Quantity, Option<Aisle>)>);
+type FullRecipe = (Recipes, Vec<(Ingredient, Quantity, Option<PartialAisle>)>);
 
 pub(crate) async fn find_all(db: &DatabaseConnection) -> Result<Vec<FullRecipe>, ModelError> {
     let backend = db.get_database_backend();
@@ -49,7 +50,7 @@ pub(crate) async fn find_all(db: &DatabaseConnection) -> Result<Vec<FullRecipe>,
         let recipe_id: i32 = row.try_get("", "recipes_id")?;
         let ingredient = _entities::ingredients::Model::from_query_result(row, "i_")?;
         let quantity = _entities::quantities::Model::from_query_result(row, "q_")?;
-        let aisle = _entities::aisles::Model::from_query_result_optional(row, "a_")?;
+        let aisle = PartialAisle::from_query_result_optional(row, "a_")?;
         ingredients_for_recipes
             .entry(recipe_id)
             .or_insert_with(Vec::new)
@@ -113,7 +114,7 @@ pub(crate) async fn find_one(
     for row in rows {
         let ingredient = Ingredient::from_query_result(row, "I_")?;
         let quantity = Quantity::from_query_result(row, "Q_")?;
-        let aisle = Aisle::from_query_result_optional(row, "a_")?;
+        let aisle = PartialAisle::from_query_result_optional(row, "a_")?;
         ingredients.push((ingredient, quantity, aisle));
     }
 
