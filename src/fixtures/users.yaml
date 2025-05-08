@@ -5,21 +5,21 @@
   password: "$argon2id$v=19$m=19456,t=2,p=1$ETQBx4rTgNAZhSaeYZKOZg$eYTdH26CRT6nUJtacLDEboP0li6xUwUF/q5nSlQ8uuc"
   api_key: lo-95ec80d7-cb60-4b70-9b4b-9ef74cb88758
   name: user1
-  created_at: "2023-11-12T12:34:56.789"
-  updated_at: "2023-11-12T12:34:56.789"
+  created_at: "2023-11-12T12:34:56.789Z"
+  updated_at: "2023-11-12T12:34:56.789Z"
 - id: 2
   pid: 22222222-2222-2222-2222-222222222222
   email: user2@example.com
   password: "$argon2id$v=19$m=19456,t=2,p=1$ETQBx4rTgNAZhSaeYZKOZg$eYTdH26CRT6nUJtacLDEboP0li6xUwUF/q5nSlQ8uuc"
   api_key: lo-153561ca-fa84-4e1b-813a-c62526d0a77e
   name: user2
-  created_at: "2023-11-12T12:34:56.789"
-  updated_at: "2023-11-12T12:34:56.789"
+  created_at: "2023-11-12T12:34:56.789Z"
+  updated_at: "2023-11-12T12:34:56.789Z"
 - id: 3
   pid: 33333333-3333-3333-3333-333333333333
   email: jim@example.com
   password: "$argon2id$v=19$m=19456,t=2,p=1$4deuFL+fyuU2c+NHUFjsFw$/HdbvQL4FMA2XGG3gyVlOHJNSF3FYgm+O77+MIsalKs"
   api_key: lo-fa5af17c-b71e-46ef-8d7a-83462731bef4
   name: jim
-  created_at: "2023-12-26T10:23:59.575"
-  updated_at: "2023-12-26T10:23:59.575"
+  created_at: "2023-12-26T10:23:59.575Z"
+  updated_at: "2023-12-26T10:23:59.575Z"
