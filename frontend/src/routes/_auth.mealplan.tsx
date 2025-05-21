@@ -1,6 +1,5 @@
-import { type FieldApi, useForm } from "@tanstack/react-form";
+import { type AnyFieldApi, useForm } from "@tanstack/react-form";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { zodValidator } from "@tanstack/zod-form-adapter";
 import classNames from "classnames";
 import { useState } from "react";
 import { z } from "zod";
@@ -391,7 +390,6 @@ function NewMealPlan(props: { token: string }) {
       void form.reset();
       await navigate({ to: "/mealplan", search: { mealPlan: newMeal.id } });
     },
-    validatorAdapter: zodValidator(),
   });
   return (
     <form
@@ -461,8 +459,7 @@ function NewMealPlan(props: { token: string }) {
   );
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-function FieldInfo({ field }: { field: FieldApi<any, any, any, any> }) {
+function FieldInfo({ field }: { field: AnyFieldApi }) {
   return (
     <>
       {field.state.meta.isTouched && field.state.meta.errors.length ? (

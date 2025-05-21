@@ -1,6 +1,5 @@
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute } from "@tanstack/react-router";
-import { zodValidator } from "@tanstack/zod-form-adapter";
 import { toast } from "sonner";
 import { z } from "zod";
 import { type Aisle, useAllAisles } from "../apis/aisles.ts";
@@ -75,7 +74,6 @@ function Login() {
     onSubmit: async ({ value }) => {
       await login.mutateAsync(value);
     },
-    validatorAdapter: zodValidator(),
   });
   return (
     <div className="content-grid">
@@ -109,7 +107,11 @@ function Login() {
                 onChange={(e) => emailField.handleChange(e.target.value)}
               />
               {emailField.state.meta.errorMap.onBlur ? (
-                <em>{emailField.state.meta.errorMap.onBlur}</em>
+                <em>
+                  {emailField.state.meta.errorMap.onBlur
+                    .map((error) => error.message)
+                    .join(", ")}
+                </em>
               ) : null}
             </div>
           )}

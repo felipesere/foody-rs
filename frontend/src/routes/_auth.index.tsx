@@ -1,7 +1,6 @@
-import type { FieldApi } from "@tanstack/react-form";
+import type { AnyFieldApi } from "@tanstack/react-form";
 import { useForm } from "@tanstack/react-form";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { zodValidator } from "@tanstack/zod-form-adapter";
 import { z } from "zod";
 import {
   useAllShoppinglists,
@@ -47,7 +46,6 @@ function NewShoppinglist(props: { token: string }) {
       await createNewShoppinglist.mutateAsync(value);
       void form.reset();
     },
-    validatorAdapter: zodValidator(),
   });
   return (
     <form
@@ -97,8 +95,7 @@ function NewShoppinglist(props: { token: string }) {
   );
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-function FieldInfo({ field }: { field: FieldApi<any, any, any, any> }) {
+function FieldInfo({ field }: { field: AnyFieldApi }) {
   return (
     <>
       {field.state.meta.isTouched && field.state.meta.errors.length ? (
