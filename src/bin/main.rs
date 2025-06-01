@@ -1,3 +1,5 @@
+#![allow(clippy::result_large_err)]
+
 use foody::app::App;
 use loco_rs::cli;
 use migration::Migrator;

@@ -22,7 +22,7 @@ impl TryGetableFromJson for JsonStringArray {}
 
 impl std::convert::From<JsonStringArray> for sea_orm::Value {
     fn from(value: JsonStringArray) -> Self {
-        sea_orm::Value::Json(serde_json::to_value(&value).ok().map(Box::new))
+        Self::Json(serde_json::to_value(&value).ok().map(Box::new))
     }
 }
 
@@ -55,11 +55,11 @@ impl FromStr for JsonStringArray {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.is_empty() {
-            return Ok(JsonStringArray(vec![]));
+            return Ok(Self(vec![]));
         }
 
         let value: Vec<String> = serde_json::from_str(s)?;
 
-        Ok(JsonStringArray(value))
+        Ok(Self(value))
     }
 }
