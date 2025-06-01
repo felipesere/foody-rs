@@ -46,7 +46,8 @@ impl Task for Tagger {
         let (handle, tx) = DbTagger::spawn(conn);
 
         for (idx, ingredient) in ingredients.iter().enumerate() {
-            if !ingredient.tags.is_empty() {
+            let ingredient_tags = ingredient.tags.clone().to_vec();
+            if !ingredient_tags.is_empty() {
                 continue;
             }
 
@@ -54,7 +55,7 @@ impl Task for Tagger {
                 .clone()
                 .into_iter()
                 .map(|t| {
-                    let is_checked = ingredient.tags.iter().any(|tag| tag == &t);
+                    let is_checked = ingredient_tags.iter().any(|tag| tag == &t);
                     (t, is_checked)
                 })
                 .collect();

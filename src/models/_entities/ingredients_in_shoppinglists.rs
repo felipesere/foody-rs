@@ -6,10 +6,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
 #[sea_orm(table_name = "ingredients_in_shoppinglists")]
 pub struct Model {
-    pub created_at: DateTime,
-    pub updated_at: DateTime,
     #[sea_orm(primary_key)]
     pub id: i32,
+    pub created_at: DateTimeUtc,
+    pub updated_at: DateTimeUtc,
     pub in_basket: bool,
     pub shoppinglists_id: i32,
     pub ingredients_id: i32,
@@ -24,16 +24,16 @@ pub enum Relation {
         belongs_to = "super::ingredients::Entity",
         from = "Column::IngredientsId",
         to = "super::ingredients::Column::Id",
-        on_update = "Cascade",
-        on_delete = "Cascade"
+        on_update = "NoAction",
+        on_delete = "NoAction"
     )]
     Ingredients,
     #[sea_orm(
         belongs_to = "super::quantities::Entity",
         from = "Column::QuantitiesId",
         to = "super::quantities::Column::Id",
-        on_update = "Cascade",
-        on_delete = "Cascade"
+        on_update = "NoAction",
+        on_delete = "NoAction"
     )]
     Quantities,
     #[sea_orm(
@@ -48,8 +48,8 @@ pub enum Relation {
         belongs_to = "super::shoppinglists::Entity",
         from = "Column::ShoppinglistsId",
         to = "super::shoppinglists::Column::Id",
-        on_update = "Cascade",
-        on_delete = "Cascade"
+        on_update = "NoAction",
+        on_delete = "NoAction"
     )]
     Shoppinglists,
 }
