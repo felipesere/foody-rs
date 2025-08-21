@@ -1,7 +1,6 @@
 use std::collections::HashSet;
 
 use axum::{extract, response::Response};
-use loco_rs::controller::middleware::{self};
 use loco_rs::prelude::*;
 use sea_orm::Statement;
 use serde::{Deserialize, Serialize};
@@ -43,10 +42,7 @@ pub struct IngredientWithQuantityResponse {
     quantity: Vec<QuantityResponse>,
 }
 
-pub async fn all_recipes(
-    auth: middleware::auth::JWT,
-    State(ctx): State<AppContext>,
-) -> Result<Response> {
+pub async fn all_recipes(auth: auth::JWT, State(ctx): State<AppContext>) -> Result<Response> {
     // check auth
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
@@ -90,7 +86,7 @@ pub async fn all_recipes(
 }
 
 pub async fn recipe(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     Path(id): Path<i32>,
     State(ctx): State<AppContext>,
 ) -> Result<Response> {
@@ -134,7 +130,7 @@ pub async fn recipe(
     })
 }
 pub async fn delete_recipe(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     Path(recipe_id): Path<i32>,
     State(ctx): State<AppContext>,
 ) -> Result<()> {
@@ -225,7 +221,7 @@ pub struct CreateRecipe {
 }
 
 pub async fn create_recipe(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
     extract::Json(params): extract::Json<CreateRecipe>,
 ) -> Result<Response> {
@@ -314,10 +310,7 @@ pub async fn create_recipe(
     })
 }
 
-pub async fn all_recipe_tags(
-    auth: middleware::auth::JWT,
-    State(ctx): State<AppContext>,
-) -> Result<Response> {
+pub async fn all_recipe_tags(auth: auth::JWT, State(ctx): State<AppContext>) -> Result<Response> {
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
     let db = ctx.db;
@@ -347,7 +340,7 @@ pub struct AddIngredientParams {
 }
 
 pub async fn add_ingredient(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     Path(id): Path<i32>,
     State(ctx): State<AppContext>,
     extract::Json(params): extract::Json<AddIngredientParams>,
@@ -414,7 +407,7 @@ pub struct EditRecipeParameters {
 }
 
 pub async fn edit_recipe(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     Path(id): Path<i32>,
     State(ctx): State<AppContext>,
     extract::Json(params): extract::Json<EditRecipeParameters>,
@@ -536,7 +529,7 @@ pub async fn edit_recipe(
 }
 
 pub async fn delete_ingredient(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
     Path((id, ingredient)): Path<(i32, i32)>,
 ) -> Result<()> {

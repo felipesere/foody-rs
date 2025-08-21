@@ -1,6 +1,6 @@
 use axum::extract;
 use axum::response::Response;
-use loco_rs::{controller::middleware, prelude::*};
+use loco_rs::{prelude::*};
 use migration::Expr;
 use sea_orm::entity::ColumnTrait;
 use sea_orm::ActiveValue::{self, Set};
@@ -93,7 +93,7 @@ impl From<Shoppinglist> for ShoppinglistResponse {
 }
 
 pub async fn all_shoppinglists(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
 ) -> Result<Response> {
     // check auth
@@ -115,7 +115,7 @@ pub struct NewShoppinglist {
 }
 
 pub async fn create_shoppinglist(
-    _auth: middleware::auth::JWT,
+    _auth: auth::JWT,
     State(ctx): State<AppContext>,
     extract::Json(params): extract::Json<NewShoppinglist>,
 ) -> Result<Response> {
@@ -143,7 +143,7 @@ pub struct NewQuantity {
 }
 
 pub async fn add_ingredient(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
     Path(id): Path<i32>,
     extract::Json(params): extract::Json<NewIngredient>,
@@ -207,7 +207,7 @@ pub struct RemoveIngredient {
 }
 
 pub async fn remove_ingredient(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
     Path(id): Path<i32>,
     extract::Json(params): extract::Json<RemoveIngredient>,
@@ -238,7 +238,7 @@ pub async fn remove_ingredient(
 }
 
 pub async fn remove_shoppinglist(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     Path(id): Path<i32>,
     State(ctx): State<AppContext>,
 ) -> Result<()> {
@@ -252,7 +252,7 @@ pub async fn remove_shoppinglist(
 }
 
 pub async fn shoppinglist(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     Path(id): Path<u32>,
     State(ctx): State<AppContext>,
 ) -> Result<Response> {
@@ -304,7 +304,7 @@ pub struct InBasketPayload {
 }
 
 pub async fn toggle_in_basket_for_item(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
     Path((id, ingredient_id)): Path<(u32, u32)>,
     extract::Json(params): extract::Json<InBasketPayload>,
@@ -333,7 +333,7 @@ pub struct NoteOnItem {
 }
 
 pub async fn add_note_to_item(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
     Path((id, ingredient_id)): Path<(u32, u32)>,
     extract::Json(params): extract::Json<NoteOnItem>,
@@ -357,7 +357,7 @@ pub async fn add_note_to_item(
 }
 
 pub async fn add_recipe_to_shoppinglist(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
     Path((shoppinglist_id, recipe_id)): Path<(i32, i32)>,
 ) -> Result<()> {
@@ -406,7 +406,7 @@ pub async fn add_recipe_to_shoppinglist(
 }
 
 pub async fn remove_recipe_from_shoppinglist(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
     Path((shoppinglist_id, recipe_id)): Path<(i32, i32)>,
 ) -> Result<()> {
@@ -431,7 +431,7 @@ pub struct RawQuantity {
 }
 
 pub async fn add_quantity_to_ingredient(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
     Path((id, ingredient_id)): Path<(i32, i32)>,
     extract::Json(params): extract::Json<RawQuantity>,
@@ -457,7 +457,7 @@ pub async fn add_quantity_to_ingredient(
 }
 
 pub async fn remove_quantity_from_shoppinglist(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
     Path((id, quantity_id)): Path<(i32, i32)>,
 ) -> Result<()> {
@@ -485,7 +485,7 @@ pub async fn remove_quantity_from_shoppinglist(
 }
 
 pub async fn update_quantity_on_shoppinglist(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
     Path((id, quantity_id)): Path<(i32, i32)>,
 
@@ -535,7 +535,7 @@ pub async fn update_quantity_on_shoppinglist(
 }
 
 pub async fn clear_checked_shoppinglist_items(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
     Path(id): Path<i32>,
 ) -> Result<()> {

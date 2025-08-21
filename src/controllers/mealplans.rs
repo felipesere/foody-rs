@@ -2,7 +2,7 @@ use axum::{
     extract::{self, State},
     routing::get,
 };
-use loco_rs::{controller::middleware, prelude::*};
+use loco_rs::{prelude::*};
 use serde::{Deserialize, Serialize};
 
 use crate::models::{
@@ -96,7 +96,7 @@ where
 }
 
 pub async fn all_mealplans(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
 ) -> Result<Response> {
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
@@ -116,7 +116,7 @@ pub struct NewMealPlan {
 }
 
 pub async fn create_meal_plan(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
     extract::Json(params): extract::Json<NewMealPlan>,
 ) -> Result<Response> {
@@ -184,7 +184,7 @@ pub struct AddMealParams {
 }
 
 pub async fn add_to_meal(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
     Path(id): Path<i32>,
     extract::Json(meal): extract::Json<AddMealParams>,
@@ -226,7 +226,7 @@ pub struct MarkMealAsCookedParams {
 }
 
 pub async fn mark_meal_as_cooked(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
     Path((id, meal_id)): Path<(i32, i32)>,
     extract::Json(mark): extract::Json<MarkMealAsCookedParams>,
@@ -251,7 +251,7 @@ pub async fn mark_meal_as_cooked(
 }
 
 pub async fn delete_meal_from_mealplan(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
     Path((id, meal_id)): Path<(i32, i32)>,
 ) -> Result<()> {
@@ -275,7 +275,7 @@ pub struct SetMealOfSectionParams {
 }
 
 pub async fn set_section_of_meal(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
     Path((id, meal_id)): Path<(i32, i32)>,
     extract::Json(SetMealOfSectionParams { section }): extract::Json<SetMealOfSectionParams>,
@@ -301,7 +301,7 @@ pub async fn set_section_of_meal(
 
 // TODO this is more of an interim thing anyway...
 pub async fn clear_meal_plan(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
     Path(id): Path<i32>,
 ) -> Result<()> {
@@ -322,7 +322,7 @@ pub async fn clear_meal_plan(
 
 // TODO this is more of an interim thing anyway...
 pub async fn remove_meal_plan(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
     Path(id): Path<i32>,
 ) -> Result<()> {
@@ -346,7 +346,7 @@ pub struct AddMealPlanToShoppinglistsParams {
 }
 
 pub async fn add_meal_plan_to_shoppinglist(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
     Path(id): Path<i32>,
     extract::Json(AddMealPlanToShoppinglistsParams {

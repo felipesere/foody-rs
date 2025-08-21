@@ -1,5 +1,5 @@
 use axum::{extract::State, routing::get};
-use loco_rs::{controller::middleware, prelude::*};
+use loco_rs::{prelude::*};
 use serde::{Deserialize, Serialize};
 
 use crate::models::{_entities::aisles, users};
@@ -17,7 +17,7 @@ struct AislesResponse {
 }
 
 pub async fn all_ailes(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
 ) -> Result<Response> {
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;

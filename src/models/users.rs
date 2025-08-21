@@ -2,7 +2,7 @@ use chrono::offset::Local;
 use loco_rs::{
     auth, hash,
     model::{Authenticable, ModelError, ModelResult},
-    validation::{self, Validatable},
+    validation::Validatable,
     validator::Validate,
 };
 use sea_orm::{entity::prelude::*, ActiveValue, DatabaseConnection, DbErr, TransactionTrait};
@@ -29,7 +29,7 @@ pub struct RegisterParams {
 pub struct ModelValidator {
     #[validate(length(min = 2, message = "Name must be at least 2 characters long."))]
     pub name: String,
-    #[validate(custom(function = "validation::is_valid_email"))]
+    #[validate(email(message = "invalid email"))]
     pub email: String,
 }
 

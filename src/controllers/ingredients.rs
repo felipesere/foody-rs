@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use axum::{extract, http::StatusCode};
-use loco_rs::{controller::middleware, prelude::*};
+use loco_rs::{prelude::*};
 use migration::{Expr, SimpleExpr};
 use sea_orm::{ActiveValue, SqlErr, Statement, TransactionTrait, Value};
 use serde::{Deserialize, Serialize};
@@ -56,7 +56,7 @@ impl From<(Ingredient, Option<AisleRef>)> for IngredientResponse {
 }
 
 pub async fn all_ingredients(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
 ) -> Result<Response> {
     // check auth
@@ -83,7 +83,7 @@ pub struct NewIngredient {
 }
 
 pub async fn add_ingredient(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
     extract::Json(params): extract::Json<NewIngredient>,
 ) -> Result<Response> {
@@ -129,7 +129,7 @@ struct SetTagsParams {
 }
 
 async fn set_tags_in_ingredient(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
     Path(id): Path<i32>,
     extract::Json(params): extract::Json<SetTagsParams>,
@@ -151,7 +151,7 @@ struct SetAisleParams {
 }
 
 async fn set_aisle_in_ingredient(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
     Path(id): Path<i32>,
     extract::Json(params): extract::Json<SetAisleParams>,
@@ -190,7 +190,7 @@ struct MergeIngredientsParams {
 }
 
 async fn merge_ingredients(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
     extract::Json(params): extract::Json<MergeIngredientsParams>,
 ) -> Result<StatusCode> {
@@ -229,7 +229,7 @@ async fn merge_ingredients(
 }
 
 pub async fn all_ingredients_tags(
-    auth: middleware::auth::JWT,
+    auth: auth::JWT,
     State(ctx): State<AppContext>,
 ) -> Result<Response> {
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
