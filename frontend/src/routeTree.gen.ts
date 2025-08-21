@@ -8,171 +8,64 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-// Import Routes
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthRouteImport } from './routes/_auth'
+import { Route as AuthIndexRouteImport } from './routes/_auth.index'
+import { Route as AuthMealplanRouteImport } from './routes/_auth.mealplan'
+import { Route as AuthIngredientsRouteImport } from './routes/_auth.ingredients'
+import { Route as AuthRecipesIndexRouteImport } from './routes/_auth.recipes.index'
+import { Route as AuthShoppinglistShoppinglistIdRouteImport } from './routes/_auth.shoppinglist.$shoppinglistId'
+import { Route as AuthRecipesNewRouteImport } from './routes/_auth.recipes/new'
+import { Route as AuthRecipesRecipeIdRouteImport } from './routes/_auth.recipes/$recipeId'
 
-import { Route as rootRoute } from './routes/__root'
-import { Route as LoginImport } from './routes/login'
-import { Route as AuthImport } from './routes/_auth'
-import { Route as AuthIndexImport } from './routes/_auth.index'
-import { Route as AuthMealplanImport } from './routes/_auth.mealplan'
-import { Route as AuthIngredientsImport } from './routes/_auth.ingredients'
-import { Route as AuthRecipesIndexImport } from './routes/_auth.recipes.index'
-import { Route as AuthShoppinglistShoppinglistIdImport } from './routes/_auth.shoppinglist.$shoppinglistId'
-import { Route as AuthRecipesNewImport } from './routes/_auth.recipes/new'
-import { Route as AuthRecipesRecipeIdImport } from './routes/_auth.recipes/$recipeId'
-
-// Create/Update Routes
-
-const LoginRoute = LoginImport.update({
+const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AuthRoute = AuthImport.update({
+const AuthRoute = AuthRouteImport.update({
   id: '/_auth',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-
-const AuthIndexRoute = AuthIndexImport.update({
+const AuthIndexRoute = AuthIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthRoute,
 } as any)
-
-const AuthMealplanRoute = AuthMealplanImport.update({
+const AuthMealplanRoute = AuthMealplanRouteImport.update({
   id: '/mealplan',
   path: '/mealplan',
   getParentRoute: () => AuthRoute,
 } as any)
-
-const AuthIngredientsRoute = AuthIngredientsImport.update({
+const AuthIngredientsRoute = AuthIngredientsRouteImport.update({
   id: '/ingredients',
   path: '/ingredients',
   getParentRoute: () => AuthRoute,
 } as any)
-
-const AuthRecipesIndexRoute = AuthRecipesIndexImport.update({
+const AuthRecipesIndexRoute = AuthRecipesIndexRouteImport.update({
   id: '/recipes/',
   path: '/recipes/',
   getParentRoute: () => AuthRoute,
 } as any)
-
 const AuthShoppinglistShoppinglistIdRoute =
-  AuthShoppinglistShoppinglistIdImport.update({
+  AuthShoppinglistShoppinglistIdRouteImport.update({
     id: '/shoppinglist/$shoppinglistId',
     path: '/shoppinglist/$shoppinglistId',
     getParentRoute: () => AuthRoute,
   } as any)
-
-const AuthRecipesNewRoute = AuthRecipesNewImport.update({
+const AuthRecipesNewRoute = AuthRecipesNewRouteImport.update({
   id: '/recipes/new',
   path: '/recipes/new',
   getParentRoute: () => AuthRoute,
 } as any)
-
-const AuthRecipesRecipeIdRoute = AuthRecipesRecipeIdImport.update({
+const AuthRecipesRecipeIdRoute = AuthRecipesRecipeIdRouteImport.update({
   id: '/recipes/$recipeId',
   path: '/recipes/$recipeId',
   getParentRoute: () => AuthRoute,
 } as any)
 
-// Populate the FileRoutesByPath interface
-
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {
-    '/_auth': {
-      id: '/_auth'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof AuthImport
-      parentRoute: typeof rootRoute
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginImport
-      parentRoute: typeof rootRoute
-    }
-    '/_auth/ingredients': {
-      id: '/_auth/ingredients'
-      path: '/ingredients'
-      fullPath: '/ingredients'
-      preLoaderRoute: typeof AuthIngredientsImport
-      parentRoute: typeof AuthImport
-    }
-    '/_auth/mealplan': {
-      id: '/_auth/mealplan'
-      path: '/mealplan'
-      fullPath: '/mealplan'
-      preLoaderRoute: typeof AuthMealplanImport
-      parentRoute: typeof AuthImport
-    }
-    '/_auth/': {
-      id: '/_auth/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof AuthIndexImport
-      parentRoute: typeof AuthImport
-    }
-    '/_auth/recipes/$recipeId': {
-      id: '/_auth/recipes/$recipeId'
-      path: '/recipes/$recipeId'
-      fullPath: '/recipes/$recipeId'
-      preLoaderRoute: typeof AuthRecipesRecipeIdImport
-      parentRoute: typeof AuthImport
-    }
-    '/_auth/recipes/new': {
-      id: '/_auth/recipes/new'
-      path: '/recipes/new'
-      fullPath: '/recipes/new'
-      preLoaderRoute: typeof AuthRecipesNewImport
-      parentRoute: typeof AuthImport
-    }
-    '/_auth/shoppinglist/$shoppinglistId': {
-      id: '/_auth/shoppinglist/$shoppinglistId'
-      path: '/shoppinglist/$shoppinglistId'
-      fullPath: '/shoppinglist/$shoppinglistId'
-      preLoaderRoute: typeof AuthShoppinglistShoppinglistIdImport
-      parentRoute: typeof AuthImport
-    }
-    '/_auth/recipes/': {
-      id: '/_auth/recipes/'
-      path: '/recipes'
-      fullPath: '/recipes'
-      preLoaderRoute: typeof AuthRecipesIndexImport
-      parentRoute: typeof AuthImport
-    }
-  }
-}
-
-// Create and export the route tree
-
-interface AuthRouteChildren {
-  AuthIngredientsRoute: typeof AuthIngredientsRoute
-  AuthMealplanRoute: typeof AuthMealplanRoute
-  AuthIndexRoute: typeof AuthIndexRoute
-  AuthRecipesRecipeIdRoute: typeof AuthRecipesRecipeIdRoute
-  AuthRecipesNewRoute: typeof AuthRecipesNewRoute
-  AuthShoppinglistShoppinglistIdRoute: typeof AuthShoppinglistShoppinglistIdRoute
-  AuthRecipesIndexRoute: typeof AuthRecipesIndexRoute
-}
-
-const AuthRouteChildren: AuthRouteChildren = {
-  AuthIngredientsRoute: AuthIngredientsRoute,
-  AuthMealplanRoute: AuthMealplanRoute,
-  AuthIndexRoute: AuthIndexRoute,
-  AuthRecipesRecipeIdRoute: AuthRecipesRecipeIdRoute,
-  AuthRecipesNewRoute: AuthRecipesNewRoute,
-  AuthShoppinglistShoppinglistIdRoute: AuthShoppinglistShoppinglistIdRoute,
-  AuthRecipesIndexRoute: AuthRecipesIndexRoute,
-}
-
-const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
-
 export interface FileRoutesByFullPath {
-  '': typeof AuthRouteWithChildren
   '/login': typeof LoginRoute
   '/ingredients': typeof AuthIngredientsRoute
   '/mealplan': typeof AuthMealplanRoute
@@ -182,7 +75,6 @@ export interface FileRoutesByFullPath {
   '/shoppinglist/$shoppinglistId': typeof AuthShoppinglistShoppinglistIdRoute
   '/recipes': typeof AuthRecipesIndexRoute
 }
-
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/ingredients': typeof AuthIngredientsRoute
@@ -193,9 +85,8 @@ export interface FileRoutesByTo {
   '/shoppinglist/$shoppinglistId': typeof AuthShoppinglistShoppinglistIdRoute
   '/recipes': typeof AuthRecipesIndexRoute
 }
-
 export interface FileRoutesById {
-  __root__: typeof rootRoute
+  __root__: typeof rootRouteImport
   '/_auth': typeof AuthRouteWithChildren
   '/login': typeof LoginRoute
   '/_auth/ingredients': typeof AuthIngredientsRoute
@@ -206,11 +97,9 @@ export interface FileRoutesById {
   '/_auth/shoppinglist/$shoppinglistId': typeof AuthShoppinglistShoppinglistIdRoute
   '/_auth/recipes/': typeof AuthRecipesIndexRoute
 }
-
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | ''
     | '/login'
     | '/ingredients'
     | '/mealplan'
@@ -242,74 +131,105 @@ export interface FileRouteTypes {
     | '/_auth/recipes/'
   fileRoutesById: FileRoutesById
 }
-
 export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   LoginRoute: typeof LoginRoute
 }
 
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_auth': {
+      id: '/_auth'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_auth/': {
+      id: '/_auth/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AuthIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/mealplan': {
+      id: '/_auth/mealplan'
+      path: '/mealplan'
+      fullPath: '/mealplan'
+      preLoaderRoute: typeof AuthMealplanRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/ingredients': {
+      id: '/_auth/ingredients'
+      path: '/ingredients'
+      fullPath: '/ingredients'
+      preLoaderRoute: typeof AuthIngredientsRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/recipes/': {
+      id: '/_auth/recipes/'
+      path: '/recipes'
+      fullPath: '/recipes'
+      preLoaderRoute: typeof AuthRecipesIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/shoppinglist/$shoppinglistId': {
+      id: '/_auth/shoppinglist/$shoppinglistId'
+      path: '/shoppinglist/$shoppinglistId'
+      fullPath: '/shoppinglist/$shoppinglistId'
+      preLoaderRoute: typeof AuthShoppinglistShoppinglistIdRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/recipes/new': {
+      id: '/_auth/recipes/new'
+      path: '/recipes/new'
+      fullPath: '/recipes/new'
+      preLoaderRoute: typeof AuthRecipesNewRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/recipes/$recipeId': {
+      id: '/_auth/recipes/$recipeId'
+      path: '/recipes/$recipeId'
+      fullPath: '/recipes/$recipeId'
+      preLoaderRoute: typeof AuthRecipesRecipeIdRouteImport
+      parentRoute: typeof AuthRoute
+    }
+  }
+}
+
+interface AuthRouteChildren {
+  AuthIngredientsRoute: typeof AuthIngredientsRoute
+  AuthMealplanRoute: typeof AuthMealplanRoute
+  AuthIndexRoute: typeof AuthIndexRoute
+  AuthRecipesRecipeIdRoute: typeof AuthRecipesRecipeIdRoute
+  AuthRecipesNewRoute: typeof AuthRecipesNewRoute
+  AuthShoppinglistShoppinglistIdRoute: typeof AuthShoppinglistShoppinglistIdRoute
+  AuthRecipesIndexRoute: typeof AuthRecipesIndexRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthIngredientsRoute: AuthIngredientsRoute,
+  AuthMealplanRoute: AuthMealplanRoute,
+  AuthIndexRoute: AuthIndexRoute,
+  AuthRecipesRecipeIdRoute: AuthRecipesRecipeIdRoute,
+  AuthRecipesNewRoute: AuthRecipesNewRoute,
+  AuthShoppinglistShoppinglistIdRoute: AuthShoppinglistShoppinglistIdRoute,
+  AuthRecipesIndexRoute: AuthRecipesIndexRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   LoginRoute: LoginRoute,
 }
-
-export const routeTree = rootRoute
+export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-/* ROUTE_MANIFEST_START
-{
-  "routes": {
-    "__root__": {
-      "filePath": "__root.tsx",
-      "children": [
-        "/_auth",
-        "/login"
-      ]
-    },
-    "/_auth": {
-      "filePath": "_auth.tsx",
-      "children": [
-        "/_auth/ingredients",
-        "/_auth/mealplan",
-        "/_auth/",
-        "/_auth/recipes/$recipeId",
-        "/_auth/recipes/new",
-        "/_auth/shoppinglist/$shoppinglistId",
-        "/_auth/recipes/"
-      ]
-    },
-    "/login": {
-      "filePath": "login.tsx"
-    },
-    "/_auth/ingredients": {
-      "filePath": "_auth.ingredients.tsx",
-      "parent": "/_auth"
-    },
-    "/_auth/mealplan": {
-      "filePath": "_auth.mealplan.tsx",
-      "parent": "/_auth"
-    },
-    "/_auth/": {
-      "filePath": "_auth.index.tsx",
-      "parent": "/_auth"
-    },
-    "/_auth/recipes/$recipeId": {
-      "filePath": "_auth.recipes/$recipeId.tsx",
-      "parent": "/_auth"
-    },
-    "/_auth/recipes/new": {
-      "filePath": "_auth.recipes/new.tsx",
-      "parent": "/_auth"
-    },
-    "/_auth/shoppinglist/$shoppinglistId": {
-      "filePath": "_auth.shoppinglist.$shoppinglistId.tsx",
-      "parent": "/_auth"
-    },
-    "/_auth/recipes/": {
-      "filePath": "_auth.recipes.index.tsx",
-      "parent": "/_auth"
-    }
-  }
-}
-ROUTE_MANIFEST_END */
