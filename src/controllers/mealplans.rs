@@ -2,7 +2,7 @@ use axum::{
     extract::{self, State},
     routing::get,
 };
-use loco_rs::{prelude::*};
+use loco_rs::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::models::{
@@ -95,10 +95,7 @@ where
     }
 }
 
-pub async fn all_mealplans(
-    auth: auth::JWT,
-    State(ctx): State<AppContext>,
-) -> Result<Response> {
+pub async fn all_mealplans(auth: auth::JWT, State(ctx): State<AppContext>) -> Result<Response> {
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
     let plans = meal_plans::Entity::find()
@@ -345,6 +342,8 @@ pub struct AddMealPlanToShoppinglistsParams {
     shoppinglist: i32,
 }
 
+// TODO: Make this simpler...
+#[allow(clippy::cognitive_complexity)]
 pub async fn add_meal_plan_to_shoppinglist(
     auth: auth::JWT,
     State(ctx): State<AppContext>,
