@@ -62,7 +62,7 @@ export function RecipesPage() {
 
   return (
     <div className="content-grid space-y-4">
-      <FieldSet legend={"..."} className={{ fieldSet: "flex flex-col" }}>
+      <FieldSet legend={"..."} className={{ fieldSet: "flex-wrap" }}>
         <ButtonGroup>
           <Button
             onClick={() => navigate({ to: "/recipes/new" })}
