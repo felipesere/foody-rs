@@ -1,7 +1,5 @@
 @import "tailwindcss";
 
-@tailwind base;
-@tailwind components;
 @tailwind utilities;
 
 /* this creates a grid.
@@ -38,7 +36,7 @@
   border-color: black;
   border-left-width: 0;
   border-top-width: 2px;
-  padding-top: .5rem;
+  padding-top: 0.5rem;
   padding-left: 0;
 
   @media (min-width: 768px) {
@@ -46,7 +44,7 @@
     border-top-width: 0;
 
     padding-top: 0;
-    padding-left: .5rem;
+    padding-left: 0.5rem;
   }
 }
 
