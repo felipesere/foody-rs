@@ -15,13 +15,13 @@ import {
 import type { Shoppinglist } from "../../apis/shoppinglists.ts";
 import { orderByAisles } from "../../domain/orderByAisle.ts";
 import { humanize } from "../../quantities.ts";
-import { Labeled } from "../Labeled.tsx";
 import { Button } from "../button.tsx";
 import { ButtonGroup } from "../buttonGroup.tsx";
 import { DeleteButton } from "../deleteButton.tsx";
 import { Divider } from "../divider.tsx";
 import { DottedLine } from "../dottedLine.tsx";
 import { Dropdown } from "../dropdown.tsx";
+import { Labeled } from "../Labeled.tsx";
 import { MultiSelect } from "../multiselect.tsx";
 import { AddToMealPlan } from "./addToMealplan.tsx";
 import { AddToShoppinglist } from "./addToShoppinglist.tsx";
@@ -236,10 +236,7 @@ function Duration(props: {
   return null;
 }
 
-function Tags(props: {
-  tags: string[];
-  onSetTags: (items: string[]) => void;
-}) {
+function Tags(props: { tags: string[]; onSetTags: (items: string[]) => void }) {
   const { editing, token } = useContext(RecipeContext);
   const allRecipeTags = useRecipeTags(token);
   if (!allRecipeTags.data) {

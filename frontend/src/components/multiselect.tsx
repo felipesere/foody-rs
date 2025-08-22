@@ -1,6 +1,6 @@
 import {
-  FloatingFocusManager,
   autoUpdate,
+  FloatingFocusManager,
   flip,
   offset,
   shift,

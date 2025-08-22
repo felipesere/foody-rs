@@ -4,9 +4,9 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import {
+  addIngredientToShoppinglist,
   type Ingredient,
   IngredientSchema,
-  addIngredientToShoppinglist,
   useAllIngredients,
 } from "../apis/ingredients.ts";
 import { Button } from "../components/button.tsx";

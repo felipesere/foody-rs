@@ -265,15 +265,16 @@ function MergeIngredients(props: { token: string }) {
     },
     onSubmit: (values) => {
       const replace = values.value.replace.map((i) => i.id);
-      // biome-ignore lint/style/noNonNullAssertion: <explanation>
-      const target = values.value.target!.id;
-      mergeIngredients.mutate({ replace, target });
-      form.reset();
-      const replaceNames = values.value.replace.map((i) => i.name);
-      const targetName = values.value.target?.name || "unknown";
-      toast.success(
-        `Successfully merged ${replaceNames.join(", ")} into ${targetName}`,
-      );
+      const target = values.value.target?.id;
+      if (target) {
+        mergeIngredients.mutate({ replace, target });
+        form.reset();
+        const replaceNames = values.value.replace.map((i) => i.name);
+        const targetName = values.value.target?.name || "unknown";
+        toast.success(
+          `Successfully merged ${replaceNames.join(", ")} into ${targetName}`,
+        );
+      }
     },
   });
   return (

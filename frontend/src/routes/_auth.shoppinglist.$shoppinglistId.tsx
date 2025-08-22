@@ -1,9 +1,9 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import classnames from "classnames";
 import { Fragment, useState } from "react";
 import {
-  type Ingredient,
   addIngredientToShoppinglist,
+  type Ingredient,
 } from "../apis/ingredients.ts";
 import {
   type Recipe,
@@ -18,11 +18,10 @@ import {
   useRemoveQuantityFromShoppinglist,
   useRemoveRecipeFromShoppinglist,
   useSetNoteOnIngredient,
+  useShoppinglist,
   useToggleIngredientInShoppinglist,
   useUpdateQuantityOnShoppinglist,
 } from "../apis/shoppinglists.ts";
-import { useShoppinglist } from "../apis/shoppinglists.ts";
-import { Labeled } from "../components/Labeled.tsx";
 import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { DeleteButton } from "../components/deleteButton.tsx";
@@ -30,13 +29,14 @@ import { Divider } from "../components/divider.tsx";
 import { DottedLine } from "../components/dottedLine.tsx";
 import { Editable } from "../components/editable.tsx";
 import { FieldSet } from "../components/fieldset.tsx";
+import { Labeled } from "../components/Labeled.tsx";
 import { Progressbar } from "../components/progressbar.tsx";
 import { SelectAisle } from "../components/smart/selectAisle.tsx";
 import { SelectIngredientWithQuantity } from "../components/smart/selectIngredientWithQuantity.tsx";
 import { SelectTags } from "../components/smart/selectTags.tsx";
 import { Toggle, ToggleButton } from "../components/toggle.tsx";
 import { orderByAisles } from "../domain/orderByAisle.ts";
-import { type Section, orderByRecipe } from "../domain/orderByRecipe.ts";
+import { orderByRecipe, type Section } from "../domain/orderByRecipe.ts";
 import { combineQuantities, humanize, parse } from "../quantities.ts";
 
 export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId")({

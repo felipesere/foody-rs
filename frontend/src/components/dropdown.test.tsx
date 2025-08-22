@@ -30,8 +30,8 @@ test("clicking on an existing item", async () => {
     />,
   );
 
-  // biome-ignore lint/style/noNonNullAssertion: <explanation>
-  const i = await screen.findByPlaceholderText("Greek letters")!;
+  const i = await screen.findByPlaceholderText("Greek letters");
+  expect(i).toBeDefined();
   await userEvent.type(i, "Char", {});
   await userEvent.click(await screen.findByText("Charlie"));
 
@@ -55,7 +55,7 @@ test("clicking on a new item", async () => {
     />,
   );
 
-  // biome-ignore lint/style/noNonNullAssertion: <explanation>
+  // biome-ignore lint/style/noNonNullAssertion: test setup
   const i = await screen.findByPlaceholderText("Greek letters")!;
   await userEvent.type(i, "Epsilon", {});
   await userEvent.click(await screen.findByText("Epsilon"));
@@ -90,7 +90,7 @@ test("tabbing away after selecting an exisitng item with the keyboard", async ()
     />,
   );
 
-  // biome-ignore lint/style/noNonNullAssertion: <explanation>
+  // biome-ignore lint/style/noNonNullAssertion: test setup
   let input = await screen.findByPlaceholderText("Greek letters")!;
   await userEvent.type(input, "Char", {});
   await userEvent.keyboard("{ArrowDown}{ArrowDown}");
@@ -121,7 +121,7 @@ test("tabbing away after selecting a new item with the keyboard", async () => {
     />,
   );
 
-  // biome-ignore lint/style/noNonNullAssertion: <explanation>
+  // biome-ignore lint/style/noNonNullAssertion: test setup
   let input = await screen.findByPlaceholderText("Greek letters")!;
   await userEvent.type(input, "Random", {});
   await userEvent.keyboard("{ArrowDown}");
@@ -155,7 +155,7 @@ test.skip("loosing focus after using arrows to select and existing item", async 
     </div>,
   );
 
-  // biome-ignore lint/style/noNonNullAssertion: <explanation>
+  // biome-ignore lint/style/noNonNullAssertion: test setup
   let input = await screen.findByPlaceholderText("Greek letters")!;
   let focusTaget = screen.getByText("Random focus target");
   screen.debug();

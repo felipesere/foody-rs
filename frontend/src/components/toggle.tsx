@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import classnames from "classnames";
-import { useState } from "react";
 import type { PropsWithChildren } from "react";
+import { useState } from "react";
 
 const TOGGLE_MENU = "▶";
 

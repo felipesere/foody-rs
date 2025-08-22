@@ -3,7 +3,10 @@ import classnames from "classnames";
 export function Progressbar({
   fraction,
   sticky,
-}: { fraction: number; sticky?: boolean }) {
+}: {
+  fraction: number;
+  sticky?: boolean;
+}) {
   return (
     <div
       className={classnames("p-2 bg-white z-30", {

@@ -1,6 +1,6 @@
 import type { AnyFieldApi } from "@tanstack/react-form";
 import { useForm } from "@tanstack/react-form";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
 import {
   useAllShoppinglists,
@@ -109,7 +109,10 @@ function FieldInfo({ field }: { field: AnyFieldApi }) {
 function Shoppinglist({
   list,
   token,
-}: { list: { name: string; id: number }; token: string }) {
+}: {
+  list: { name: string; id: number };
+  token: string;
+}) {
   const removeShoppinglist = useRemoveShoppinglist(token);
   return (
     <li className="flex flex-row justify-between shadow border-black border-solid border-2 p-2 col-span-2">

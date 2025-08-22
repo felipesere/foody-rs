@@ -1,18 +1,14 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.5.3/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.2.0/schema.json",
   "files": {
-    "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.css"],
-    "ignore": ["*.gen.ts"]
-  },
-  "organizeImports": {
-    "enabled": true
+    "includes": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.css", "!**/*.gen.ts"]
   },
   "formatter": {
     "indentStyle": "space"
   },
   "linter": {
     "enabled": true,
-    "ignore": ["**/*.test.tsx"],
+    "includes": ["!**/*.test.tsx"],
     "rules": {
       "recommended": true,
       "correctness": {

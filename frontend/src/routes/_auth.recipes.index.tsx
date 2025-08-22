@@ -3,10 +3,10 @@ import classnames from "classnames";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
+  addRecipeToShoppinglist,
   type IngredientWithQuantity,
   type Recipe,
   type Source,
-  addRecipeToShoppinglist,
   useAllRecipes,
   useChangeRecipe,
   useDeleteRecipe,
@@ -23,8 +23,8 @@ import { Pill } from "../components/pill.tsx";
 import { AddToShoppinglist } from "../components/smart/addToShoppinglist.tsx";
 import { Stars } from "../components/smart/recipeView.tsx";
 import {
-  RecipeSearchSchemaParams,
   filterRecipes,
+  RecipeSearchSchemaParams,
   updateSearchParams,
 } from "../domain/search.ts";
 

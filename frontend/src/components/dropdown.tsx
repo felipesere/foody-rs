@@ -1,7 +1,7 @@
 import {
+  autoUpdate,
   FloatingFocusManager,
   FloatingPortal,
-  autoUpdate,
   offset,
   size,
   useDismiss,
@@ -14,6 +14,7 @@ import {
 } from "@floating-ui/react";
 import classNames from "classnames";
 import Fuse from "fuse.js";
+import type { ChangeEvent, HTMLProps, ReactNode } from "react";
 import {
   type ForwardedRef,
   forwardRef,
@@ -21,7 +22,6 @@ import {
   useRef,
   useState,
 } from "react";
-import type { ChangeEvent, HTMLProps, ReactNode } from "react";
 
 const matchWidth = size({
   apply({ rects, elements }) {
