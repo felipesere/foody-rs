@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use sea_orm::{entity::prelude::*, Statement};
+use sea_orm::{entity::prelude::*, QuerySelect, Statement};
 
 pub use super::_entities::ingredients::{self, ActiveModel, Entity, Model};
 
@@ -25,4 +25,21 @@ pub async fn all_tags(conn: &DatabaseConnection) -> Result<Vec<String>, loco_rs:
     }
 
     Ok(unique_tags.into_iter().collect())
+}
+
+pub async fn ingredient_tags(
+    conn: &DatabaseConnection,
+) -> Result<Vec<(String, i32, Vec<String>)>, loco_rs::Error> {
+    let n = Entity::find()
+        .select_only()
+        .columns([
+            ingredients::Column::Name,
+            ingredients::Column::Id,
+            ingredients::Column::Tags,
+        ])
+        .into_tuple()
+        .all(conn)
+        .await?;
+
+    Ok(n)
 }

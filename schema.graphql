@@ -1,0 +1,11 @@
+type Tag {
+  value: String!
+}
+
+type TaggedItem = {
+  name: String!
+  tag: Tag!
+  type Tagged
+}
+
+type Tagged = Recipe | Ingredient

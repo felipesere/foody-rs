@@ -2,7 +2,7 @@ use std::{collections::HashMap, fs::File, path::Path};
 
 use async_trait::async_trait;
 use loco_rs::{
-    app::{AppContext, Hooks},
+    app::{AppContext, Hooks, Initializer},
     boot::{create_app, BootResult, StartMode},
     config::Config,
     controller::AppRoutes,
@@ -15,7 +15,7 @@ use migration::Migrator;
 use sea_orm::{ActiveModelBehavior, ActiveModelTrait, ConnectionTrait, DbBackend, Statement};
 
 use crate::{
-    controllers,
+    controllers, initializsers,
     models::_entities::{
         ingredients, ingredients_in_recipes, ingredients_in_shoppinglists, quantities, recipes,
         shoppinglists, users,
@@ -57,6 +57,13 @@ impl Hooks for App {
             .add_route(controllers::ailes::routes())
             .add_route(controllers::auth::routes())
             .add_route(controllers::user::routes())
+    }
+
+    async fn initializers(_ctx: &AppContext) -> Result<Vec<Box<dyn Initializer>>> {
+        let initializers: Vec<Box<dyn Initializer>> =
+            vec![Box::new(initializsers::graphql::GraphqlContextInitializer)];
+
+        Ok(initializers)
     }
 
     async fn connect_workers(_ctx: &AppContext, _queue: &loco_rs::prelude::Queue) -> Result<()> {
