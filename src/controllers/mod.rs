@@ -14,6 +14,7 @@ pub mod recipes;
 pub mod mealplans;
 
 pub mod ailes;
+pub mod graphql;
 
 #[derive(Serialize)]
 pub struct TagsResponse {

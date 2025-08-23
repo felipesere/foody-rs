@@ -44,6 +44,7 @@ server:
       timeout: 5000
     cors:
       enable: true
+      allow_credentials: true
       # Set the value of the [`Access-Control-Allow-Origin`][mdn] header
       allow_origins:
         - http://localhost:5173
@@ -53,9 +54,13 @@ server:
       # - Content-Type
       # Set the value of the [`Access-Control-Allow-Methods`][mdn] header
       allow_methods:
+        - GET
         - PUT
         - POST
         - DELETE
+      allow_headers:
+        - Authorization
+        - Content-Type
       # Set the value of the [`Access-Control-Max-Age`][mdn] header in seconds
       # max_age: 3600
     static:

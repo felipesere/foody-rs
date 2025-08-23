@@ -25,6 +25,8 @@
     "@tanstack/router-devtools": "^1.120.6",
     "classnames": "^2.5.1",
     "fuse.js": "^7.1.0",
+    "graphql": "^16.11.0",
+    "graphql-request": "^5",
     "ky": "^1.8.1",
     "react": "^19",
     "react-dom": "^19",
@@ -35,6 +37,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2",
+    "@graphql-codegen/client-preset": "^4.8.3",
     "@playwright/test": "^1.52.0",
     "@tanstack/router-vite-plugin": "^1.120.5",
     "@testing-library/dom": "^10.4.0",
