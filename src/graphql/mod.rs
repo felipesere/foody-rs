@@ -1,9 +1,16 @@
+use crate::models::ingredients;
+use async_graphql::Schema;
 use async_graphql::*;
 use sea_orm::DatabaseConnection;
 
-use crate::models::ingredients;
-
 pub struct Queries;
+
+pub fn schema(pool: DatabaseConnection) -> Schema<Queries, EmptyMutation, EmptySubscription> {
+    Schema::build(Queries, EmptyMutation, EmptySubscription)
+        .data(pool)
+        .limit_complexity(10)
+        .finish()
+}
 
 #[derive(SimpleObject)]
 struct TaggedIngredient {

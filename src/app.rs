@@ -70,6 +70,7 @@ impl Hooks for App {
         tasks.register(tasks::change_password::ChangePassword);
         tasks.register(tasks::create_user::CreateUser);
         tasks.register(tasks::seed::SeedData);
+        tasks.register(tasks::gql_schema::GqlSchema);
         // tasks-inject (do not remove)
     }
 
