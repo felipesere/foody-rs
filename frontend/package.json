@@ -37,6 +37,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2",
+    "@graphql-codegen/cli": "^5.0.7",
     "@graphql-codegen/client-preset": "^4.8.3",
     "@playwright/test": "^1.52.0",
     "@tanstack/router-vite-plugin": "^1.120.5",
@@ -51,8 +52,9 @@
     "jsdom": "^26.1.0",
     "msw": "^2.8.4",
     "tailwindcss": "^4.1.7",
-    "typescript": "^5.8",
+    "typescript": "^5.9.2",
     "vite": "^7",
+    "vite-plugin-graphql-codegen": "^3.6.3",
     "vitest": "^3"
   }
 }

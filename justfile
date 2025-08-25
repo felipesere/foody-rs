@@ -14,7 +14,13 @@ rust-fmt:
 rust-test:
   cargo test
 
-frontend-lint:
+gql-schema-generate:
+  cargo run task gql-schema -- quiet:true
+
+gql-ts-generate:
+  cd frontend; npx graphql-codegen --config codegen.ts
+
+frontend-lint: gql-ts-generate
   cd frontend; npx biome check --write .
   cd frontend; npx biome check .
   cd frontend; npm run tsc
@@ -27,7 +33,7 @@ frontend-test:
 
 run: frontend-build run-backend
 
-run-backend:
+run-backend: gql-schema-generate
   cargo loco start
 
 pg-start:
@@ -105,7 +111,7 @@ fly-deploy: docker-build-image
   docker push registry.fly.io/foody-v2:$(git sha)
   flyctl deploy --app foody-v2 --image registry.fly.io/foody-v2:$(git sha)
 
-frontend-dev: frontend-install
+frontend-dev: frontend-install gql-ts-generate
   cd frontend; npm run dev
 
 frontend-build: frontend-install

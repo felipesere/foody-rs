@@ -14,6 +14,11 @@ impl Task for GqlSchema {
         }
     }
     async fn run(&self, app_context: &AppContext, vars: &task::Vars) -> Result<()> {
+        let quiet = vars
+            .cli_arg("quiet")
+            .or_else(|_| vars.cli_arg("q"))
+            .is_ok_and(|v| v == "true");
+
         let default_file = "schema.graphql".to_string();
         let output_file = vars
             .cli_arg("file")
@@ -30,7 +35,9 @@ impl Task for GqlSchema {
             .open(output_file)?;
         file.write_all(sdl.as_bytes())?;
 
-        println!("{sdl}");
+        if !quiet {
+            println!("{sdl}");
+        }
         Ok(())
     }
 }

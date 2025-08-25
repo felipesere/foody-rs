@@ -2,10 +2,14 @@ import { defineConfig } from 'vite'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { TanStackRouterVite } from '@tanstack/router-vite-plugin'
+import codegen from 'vite-plugin-graphql-codegen';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), TanStackRouterVite(), tailwindcss()],
+  plugins: [react(), TanStackRouterVite(), tailwindcss(), codegen({
+    throwOnStart: true,
+    throwOnBuild: true,
+  })],
   test: {
     globals: true,
     environment: "jsdom",

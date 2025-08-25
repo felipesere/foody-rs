@@ -1,31 +1,24 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { GraphQLClient, gql } from "graphql-request";
+import { GraphQLClient } from "graphql-request";
+import { graphql } from "../gql";
 
-interface IngredientTagsQuery {
-  allTags: Array<{
-    name: string;
-    id: number;
-    tags: string[];
-  }>;
-}
-
-const ingredientTagsDocument = gql`
-    query IngredientTags {
-        allTags(tagged: "felipe") {
+const IngredientTagsDocument = graphql(`
+    query ingredientTags {
+        allTags(tagged: "ingredient") {
             name,
             id,
             tags
         }
     }
-`;
+`);
 
 export const Route = createFileRoute("/_auth/tags/")({
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const { data } = useQuery<IngredientTagsQuery>({
+  const { data } = useQuery({
     queryKey: ["gqp", "ingredient", "tags"],
     queryFn: async () => {
       let endpoint = "http://localhost:5150/api/gql";
@@ -33,7 +26,7 @@ function RouteComponent() {
         credentials: "include",
         mode: "cors",
       });
-      return client.request(ingredientTagsDocument, {});
+      return client.request(IngredientTagsDocument, {});
     },
   });
 
