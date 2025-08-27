@@ -26,9 +26,8 @@ impl Queries {
     async fn all_tags<'ctx>(
         &self,
         ctx: &Context<'ctx>,
-        tagged: String,
+        _tagged: String,
     ) -> Result<TaggedIngredients> {
-        tracing::info!(t = tagged, "getting all tags");
         let conn = ctx.data::<DatabaseConnection>()?;
 
         let is = ingredients::ingredient_tags(conn).await?;
@@ -37,5 +36,13 @@ impl Queries {
             .into_iter()
             .map(|(name, id, tags)| TaggedIngredient { name, id, tags })
             .collect())
+    }
+
+    async fn tags<'ctx>(&self, ctx: &Context<'ctx>) -> Result<Vec<String>> {
+        let conn = ctx.data::<DatabaseConnection>()?;
+
+        let t = ingredients::all_tags(conn).await?;
+
+        Ok(t)
     }
 }

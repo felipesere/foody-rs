@@ -17,6 +17,7 @@ const queryClient = new QueryClient({
   },
 });
 
+
 const localStoragePersister = createSyncStoragePersister({
   storage: window.localStorage,
 });

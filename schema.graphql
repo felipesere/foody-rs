@@ -1,5 +1,6 @@
 type Queries {
 	allTags(tagged: String!): [TaggedIngredient!]!
+	tags: [String!]!
 }
 
 type TaggedIngredient {
