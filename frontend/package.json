@@ -22,7 +22,7 @@
     "@tanstack/react-query-devtools": "^5.76.1",
     "@tanstack/react-query-persist-client": "^5.76.1",
     "@tanstack/react-router": "^1.120.5",
-    "@tanstack/router-devtools": "^1.120.6",
+    "@tanstack/router-devtools": "^1.131.28",
     "classnames": "^2.5.1",
     "fuse.js": "^7.1.0",
     "graphql": "^16.11.0",
