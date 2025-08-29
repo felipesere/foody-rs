@@ -121,5 +121,8 @@ frontend-install:
   cd frontend; npm install
 
 # login to application as jim. requires seeding first.
-login:
+login-dev:
   http post localhost:5150/api/auth/login email=jim@example.com password=rubberduck
+
+login-prod:
+  http post https://foody.felipesere.com/api/auth/login email=$(op read "op://wnaq74cwoe7fp2i6swskavzafq/Foody prod login/username") password=$(op read "op://wnaq74cwoe7fp2i6swskavzafq/Foody prod login/password")
