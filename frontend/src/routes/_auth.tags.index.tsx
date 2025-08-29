@@ -3,6 +3,7 @@ import {createFileRoute} from "@tanstack/react-router";
 import {graphql} from "../gql";
 import {graphql as client} from "../apis/http.ts";
 import {IngredientTagsQuery, TagsQuery} from "../gql/graphql.ts";
+import {KebabMenu} from "../components/kebabMenu.tsx";
 
 const IngredientTagsDocument = graphql(`
     query ingredientTags {
@@ -60,6 +61,7 @@ function TagsTable(props: { knownTags: TagsQuery["tags"], ingredients: Ingredien
             <tr>
                 <th className={"p-2"}>Name</th>
                 <th className={"p-2"}>Tags</th>
+                <th className={"p-2"}></th>
             </tr>
             </thead>
             <tbody>
@@ -79,6 +81,11 @@ function TagTableRow(props: { knownTags: string[], ingredient: IngredientTagsQue
                 {tags.map((tag) => {
                     return (<span className={`bg-white border-2 px-2 mr-2`}>{tag}</span>);
                 })}
+            </td>
+            <td className={"p-2"}>
+                <KebabMenu>
+                    <p>Something...</p>
+                </KebabMenu>
             </td>
         </tr>
     )
