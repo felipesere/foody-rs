@@ -27,14 +27,14 @@ export const Route = createFileRoute("/_auth/tags/")({
 
 function RouteComponent() {
     const ingredients = useQuery({
-        queryKey: ["gqp", "ingredient", "tags"],
+        queryKey: ["gql", "ingredient", "tags"],
         queryFn: async () => {
             return client.request(IngredientTagsDocument, {});
         },
     });
 
     const tags = useQuery(({
-        queryKey: ["gqp", "tags"],
+        queryKey: ["gql", "tags"],
         queryFn: async () => {
             return client.request(TagsDocument, {});
         },
