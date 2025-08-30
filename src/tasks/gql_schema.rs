@@ -2,7 +2,7 @@ use std::{fs::OpenOptions, io::Write};
 
 use loco_rs::prelude::*;
 
-use crate::graphql::schema;
+use crate::graphql::schema_builder;
 
 pub struct GqlSchema;
 #[async_trait]
@@ -25,7 +25,7 @@ impl Task for GqlSchema {
             .or_else(|_| vars.cli_arg("f"))
             .unwrap_or(&default_file);
         let db = app_context.db.clone();
-        let s = schema(db);
+        let s = schema_builder(db).finish();
 
         let sdl = s.sdl();
 

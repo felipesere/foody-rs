@@ -5,11 +5,12 @@ use sea_orm::DatabaseConnection;
 
 pub struct Queries;
 
-pub fn schema(pool: DatabaseConnection) -> Schema<Queries, EmptyMutation, EmptySubscription> {
+pub fn schema_builder(
+    pool: DatabaseConnection,
+) -> SchemaBuilder<Queries, EmptyMutation, EmptySubscription> {
     Schema::build(Queries, EmptyMutation, EmptySubscription)
         .data(pool)
         .limit_complexity(10)
-        .finish()
 }
 
 #[derive(SimpleObject)]
