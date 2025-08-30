@@ -1,15 +1,23 @@
 use crate::models::ingredients;
+use crate::models::users::Model;
 use async_graphql::Schema;
 use async_graphql::*;
 use sea_orm::DatabaseConnection;
 
 pub struct Queries;
 
-pub fn schema(pool: DatabaseConnection) -> Schema<Queries, EmptyMutation, EmptySubscription> {
-    Schema::build(Queries, EmptyMutation, EmptySubscription)
+pub fn schema(
+    pool: DatabaseConnection,
+    user: Option<Model>,
+) -> Schema<Queries, EmptyMutation, EmptySubscription> {
+    let mut builder = Schema::build(Queries, EmptyMutation, EmptySubscription)
         .data(pool)
-        .limit_complexity(10)
-        .finish()
+        .limit_complexity(10);
+
+    if let Some(user) = user {
+        builder = builder.data(user)
+    }
+    builder.finish()
 }
 
 #[derive(SimpleObject)]

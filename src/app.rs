@@ -48,7 +48,7 @@ impl Hooks for App {
         create_app::<Self, Migrator>(mode, environment, config).await
     }
 
-    fn routes(ctx: &AppContext) -> AppRoutes {
+    fn routes(_ctx: &AppContext) -> AppRoutes {
         AppRoutes::with_default_routes()
             .add_route(controllers::recipes::routes())
             .add_route(controllers::shoppinglists::routes())
@@ -57,7 +57,7 @@ impl Hooks for App {
             .add_route(controllers::ailes::routes())
             .add_route(controllers::auth::routes())
             .add_route(controllers::user::routes())
-            .add_route(controllers::graphql::routes(ctx))
+            .add_route(controllers::graphql::routes())
     }
 
     async fn connect_workers(_ctx: &AppContext, _queue: &loco_rs::prelude::Queue) -> Result<()> {

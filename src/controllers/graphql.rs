@@ -1,18 +1,28 @@
-use async_graphql::{EmptyMutation, EmptySubscription, Schema};
-use async_graphql_axum::GraphQL;
-use axum::routing::post_service;
-use loco_rs::{app::AppContext, prelude::Routes};
+use axum::{body::Body, extract::State, http::Request, routing::post};
+use loco_rs::{app::AppContext, prelude::*};
 
-use crate::graphql::Queries;
+use crate::{
+    graphql::{self},
+    models::users::{self},
+};
 
-pub fn routes(ctx: &AppContext) -> Routes {
-    let pool = ctx.db.clone();
-    let schema = Schema::build(Queries, EmptyMutation, EmptySubscription)
-        .data(pool)
-        .limit_complexity(10)
-        .finish();
+pub fn routes() -> Routes {
+    Routes::new().prefix("api/gql").add("/", post(gql_handler))
+}
 
-    Routes::new()
-        .prefix("api/gql")
-        .add("/", post_service(GraphQL::new(schema)))
+pub async fn gql_handler(
+    auth: auth::JWT,
+    State(ctx): State<AppContext>,
+    req: Request<Body>,
+) -> Result<Response> {
+    use tower_service::Service;
+
+    let user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let schema = graphql::schema(ctx.db.clone(), Some(user));
+    let mut graphql_svc = async_graphql_axum::GraphQL::new(schema);
+    // Execute GraphQL request and fetch the results
+    let res = graphql_svc.call(req).await.unwrap();
+
+    Ok(res)
 }
