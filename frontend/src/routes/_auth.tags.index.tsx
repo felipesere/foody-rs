@@ -1,10 +1,9 @@
 import {createFileRoute} from "@tanstack/react-router";
-import {KebabMenu} from "../components/kebabMenu.tsx";
-import {graphql} from "../gql";
-import {IngredientTagsQuery} from "../gql/graphql.ts";
 import {createColumnHelper, flexRender, getCoreRowModel, useReactTable} from "@tanstack/react-table";
-import {Ingredient, useAllIngredients} from "../apis/ingredients.ts";
-import {useMemo, useState} from "react";
+import {Ingredient, useAllIngredients, useSetIngredientTags} from "../apis/ingredients.ts";
+import {useMemo, useRef, useState} from "react";
+import {Pill} from "../components/pill.tsx";
+import {FieldSet} from "../components/fieldset.tsx";
 
 export const Route = createFileRoute("/_auth/tags/")({
     component: RouteComponent,
@@ -15,6 +14,12 @@ function RouteComponent() {
 
     let ingredients = useAllIngredients(token)
 
+    const setTags = useSetIngredientTags(token)
+
+    const [newTags, setNewTags] = useState<string[]>([])
+    const inputRef = useRef<HTMLInputElement>(null);
+    const [batchEdit, setBatchEdit] = useState(false);
+
     if (
         !ingredients.data ||
         ingredients.isLoading
@@ -24,9 +29,34 @@ function RouteComponent() {
 
     let tags = ingredients.data.flatMap((i) => i.tags).sort().filter((x, i, a) => a.indexOf(x) == i);
 
+    let knownTags = new Set([...tags, ...newTags]);
+
     return (
         <div className="content-grid space-y-4">
-            <TagsTable ingredients={ingredients.data} knownTags={tags}/>
+            <FieldSet>
+                <button className={"px-2"} onClick={() => setBatchEdit((v) => !v)}>Toggle Batch Edit</button>
+                <p>New tags</p>
+                <input className={"px-2 border-2"} type={"text"} ref={inputRef}/>
+                <button className={"px-2"} type={"button"} onClick={() => {
+                    let newTag = inputRef.current?.value
+                    if (newTag) {
+                        setNewTags((prevTags) => [...prevTags, newTag])
+                    }
+                }}>Add
+                </button>
+                <ul className={"flex flex-row flex-wrap gap-2"}>
+                    {newTags.map((tag) => <li><Pill value={tag} onClose={(thisTag) => {
+                        setNewTags((prevTags) => prevTags.filter((tag) => tag !== thisTag))
+                    }}/></li>)}
+                </ul>
+            </FieldSet>
+            <TagsTable
+                batchEdit={batchEdit}
+                ingredients={ingredients.data}
+                knownTags={Array.from(knownTags.values())}
+                toggleTags={(id, tags) => {
+                    setTags.mutate({tags, id})
+                }}/>
         </div>
     );
 }
@@ -35,10 +65,13 @@ function RouteComponent() {
 function TagsTable(props: {
     ingredients: Ingredient[],
     knownTags: string[],
+    toggleTags: (ingredient: Ingredient["id"], tags: string[]) => void,
+    batchEdit: boolean,
 }) {
 
-    const [batchEdit, setBatchEdit] = useState(false);
+    const batchEdit = props.batchEdit;
     const knownTags = props.knownTags;
+    const toggleTags = props.toggleTags
     const helper = createColumnHelper<Ingredient>()
 
     const columns = useMemo(() => [
@@ -49,11 +82,16 @@ function TagsTable(props: {
         helper.accessor("tags", {
             header: "Tags",
             cell: cell => {
+                const ingredient = cell.row.original;
                 let batchTags = knownTags.map(t => {
-                    const color = cell.row.original.tags.includes(t) ? `text-black` : `text-gray-400`;
-                    return (<span className={`bg-white border-2 px-2 mr-2 ${color}`}>{t}</span>)
+                    const existingTag = ingredient.tags.includes(t)
+                    const color = existingTag ? `text-black` : `text-gray-400`;
+                    const tags = existingTag ? ingredient.tags.filter(tag => tag != t) : [...ingredient.tags, t]
+
+                    return (<span onClick={() => toggleTags(ingredient.id, tags)}
+                                  className={`bg-white border-2 px-2 mr-2 ${color}`}>{t}</span>)
                 })
-                let ownTags = cell.row.original.tags.map((t) => {
+                let ownTags = ingredient.tags.map((t) => {
                     return (<span className={`bg-white border-2 px-2 mr-2`}>{t}</span>)
                 })
                 return (
@@ -73,7 +111,6 @@ function TagsTable(props: {
 
     return (
         <div className={`w-full`}>
-            <button onClick={() => setBatchEdit((v) => !v)}>Toggle Batch Edit</button>
             <table className={"w-full border-spacing-2 border-collapse text-left"}>
                 <thead>
                 <tr>

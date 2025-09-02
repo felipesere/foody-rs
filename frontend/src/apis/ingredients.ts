@@ -102,12 +102,13 @@ export function useCreateNewIngredient(token: string) {
 }
 
 type SetTagsParams = {
-  tags: Array<string>;
+  id?: Ingredient["id"],
+  tags: Array<string>,
 };
 
 export function useSetIngredientTags(
   token: string,
-  ingredient: Ingredient["id"],
+  ingredient?: Ingredient["id"],
   invalidate?: {
     shoppinglistId: Shoppinglist["id"];
   },
@@ -115,9 +116,13 @@ export function useSetIngredientTags(
   const client = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ tags }: SetTagsParams) => {
+    mutationFn: async ({ tags, id }: SetTagsParams) => {
+      if (!ingredient && !id) {
+        return Promise.reject("need to pass id either as param to hook or as variable")
+      }
+      const ix = ingredient || id;
       const response = await http
-        .post(`api/ingredients/${ingredient}/tags`, {
+        .post(`api/ingredients/${ix}/tags`, {
           json: {
             tags,
           },

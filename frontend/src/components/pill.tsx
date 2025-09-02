@@ -2,7 +2,7 @@ import classnames from "classnames";
 
 export type PillProps = {
   value: string;
-  onClose?: () => void;
+  onClose?: (v: string) => void;
 };
 export function Pill(props: PillProps) {
   return (
@@ -18,7 +18,7 @@ export function Pill(props: PillProps) {
       {props.onClose && (
         <span
           className={"hover:bg-gray-300 px-2 cursor-pointer mr-2 max"}
-          onClick={props.onClose}
+          onClick={() => props.onClose?.(props.value)}
         >
           &#x2715;
         </span>

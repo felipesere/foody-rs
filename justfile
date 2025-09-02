@@ -111,7 +111,7 @@ fly-deploy: docker-build-image
   docker push registry.fly.io/foody-v2:$(git sha)
   flyctl deploy --app foody-v2 --image registry.fly.io/foody-v2:$(git sha)
 
-frontend-dev: frontend-install gql-ts-generate
+frontend-dev: frontend-install # gql-ts-generate
   cd frontend; npm run dev
 
 frontend-build: frontend-install

@@ -6,10 +6,7 @@ import codegen from 'vite-plugin-graphql-codegen';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), TanStackRouterVite(), tailwindcss(), codegen({
-    throwOnStart: true,
-    throwOnBuild: true,
-  })],
+  plugins: [react(), TanStackRouterVite(), tailwindcss()],
   test: {
     globals: true,
     environment: "jsdom",
