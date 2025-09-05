@@ -126,7 +126,11 @@ export function useAllRecipes(token: string) {
         })
         .json();
 
-      return RecipesSchema.parse(body);
+      let data = RecipesSchema.parse(body);
+
+      data.recipes.sort((a, b) => a.name.localeCompare(b.name, 'en', {'sensitivity': 'base'}));
+
+      return  data
     },
   });
 }
@@ -211,16 +215,20 @@ export function useRecipeTags(token: string) {
   });
 }
 
-export function useChangeRecipe(token: string, id: Recipe["id"]) {
+export function useChangeRecipe(token: string, id?: Recipe["id"]) {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: async (changes: Change[]) => {
-      await http.post(`api/recipes/${id}/edit`, {
+    mutationFn: async (vars: {changes: Change[], recipeId?: Recipe["id"]}) => {
+      if (!id && !vars.changes) {
+        throw new Error("Recipe id not set on call to useChangeRecipe");
+      }
+      const i = id || vars.recipeId;
+      await http.post(`api/recipes/${i}/edit`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
         json: {
-          changes,
+          changes: vars.changes,
         },
       });
     },

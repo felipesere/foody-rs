@@ -71,7 +71,7 @@ export function ShoppingPage() {
     shoppinglistId,
   );
   const addIngredient = addIngredientToShoppinglist(token);
-  const [grouping, setGrouping] = useState<Grouping>(Grouping.None);
+  const [grouping, setGrouping] = useState<Grouping>(Grouping.ByAisle);
   const [showProgressBar, setShowProgressBar] = useState(false);
   const removeCheckedItems = useRemoveInBasketItemsFromShoppinglist(
     token,
@@ -213,7 +213,7 @@ export function ShoppingPage() {
       <ul className="grid max-w-md gap-4">
         {sections.map((section) => (
           <Fragment key={section.name}>
-            <Divider className={"capitalize"} label={section.name} />
+            <Divider className={"capitalize text-nowrap"} label={section.name} />
             {section.items.map((item) => (
               <CompactIngredientView
                 key={item.ingredient.name}

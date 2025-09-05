@@ -217,7 +217,7 @@ function RecipeView(props: RecipeProps) {
       <ShowSource details={props.recipe} />
       <Stars
         rating={props.recipe.rating}
-        setRating={(n) => changeRecipe.mutate([{ type: "rating", value: n }])}
+        setRating={(n) => changeRecipe.mutate({changes: [{ type: "rating", value: n }]})}
       />
       {props.recipe.duration && <p>⏲ {props.recipe.duration}</p>}
 

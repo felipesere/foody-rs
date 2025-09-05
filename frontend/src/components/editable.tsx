@@ -13,13 +13,14 @@ export function Editable(props: {
 
   useEditable(currentValueRef, setCurrentValue, { disabled: !props.isEditing });
 
+
   return (
     <p
       className={classnames(
-        "min-w-4 whitespace-nowrap text-nowrap",
+        "min-w-4",
         props.className,
         {
-          "outline-dashed outline-2 outline-yellow-400": props.isEditing,
+          "outline-dashed outline-2 outline-yellow-400 whitespace-nowrap text-nowrap": props.isEditing,
         },
       )}
       onKeyDown={(e) => {

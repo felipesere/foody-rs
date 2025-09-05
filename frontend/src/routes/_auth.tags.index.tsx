@@ -1,9 +1,12 @@
 import {createFileRoute} from "@tanstack/react-router";
 import {createColumnHelper, flexRender, getCoreRowModel, useReactTable} from "@tanstack/react-table";
-import {Ingredient, useAllIngredients, useSetIngredientTags} from "../apis/ingredients.ts";
+import {useAllIngredients, useSetIngredientTags} from "../apis/ingredients.ts";
 import {useMemo, useRef, useState} from "react";
 import {Pill} from "../components/pill.tsx";
 import {FieldSet} from "../components/fieldset.tsx";
+import {Labeled} from "../components/Labeled.tsx";
+import {useAllRecipes, useChangeRecipe} from "../apis/recipes.ts";
+
 
 export const Route = createFileRoute("/_auth/tags/")({
     component: RouteComponent,
@@ -11,14 +14,42 @@ export const Route = createFileRoute("/_auth/tags/")({
 
 function RouteComponent() {
     const {token} = Route.useRouteContext();
+    const [recipesOrIngredients, setRecipesOrIngredients] = useState<"ingredients" | "recipes">("ingredients");
 
+    return (
+        <div className="content-grid space-y-4">
+            <div className={"flex flex-row flex-wrap gap-2"}>
+                <Labeled label={"Ingredients"} htmlFor={"ingredients"}>
+                    <input
+                        type="radio"
+                        id="ingredients"
+                        name="ingredients"
+                        value="ingredients"
+                        checked={recipesOrIngredients === "ingredients"}
+                        onChange={() => setRecipesOrIngredients("ingredients")}
+                    />
+                </Labeled>
+                <Labeled label={"Recipes"} htmlFor={"recipes"}>
+                    <input
+                        type="radio"
+                        id="recipes"
+                        name="recipes"
+                        value="recipes"
+                        checked={recipesOrIngredients === "recipes"}
+                        onChange={() => setRecipesOrIngredients("recipes")}
+                    />
+                </Labeled>
+            </div>
+            {recipesOrIngredients === "ingredients" ? <EditIngredietns token={token}/> : <EditRecipes token={token}/>}
+        </div>
+    )
+}
+
+function EditIngredietns(props: { token: string }) {
+    let token = props.token
     let ingredients = useAllIngredients(token)
 
     const setTags = useSetIngredientTags(token)
-
-    const [newTags, setNewTags] = useState<string[]>([])
-    const inputRef = useRef<HTMLInputElement>(null);
-    const [batchEdit, setBatchEdit] = useState(false);
 
     if (
         !ingredients.data ||
@@ -27,12 +58,55 @@ function RouteComponent() {
         return <p>Loading</p>;
     }
 
-    let tags = ingredients.data.flatMap((i) => i.tags).sort().filter((x, i, a) => a.indexOf(x) == i);
+    return (
+        <EditTags
+            items={ingredients.data}
+            onToggleTags={(id, tags) => setTags.mutate({tags, id})}
+        />)
+}
+
+function EditRecipes(props: { token: string }) {
+    let token = props.token
+    let recipes = useAllRecipes(token)
+
+    const changeRecipe = useChangeRecipe(token)
+
+    if (
+        !recipes.data ||
+        recipes.isLoading
+    ) {
+        return <p>Loading</p>;
+    }
+
+    return (
+        <EditTags
+            items={recipes.data.recipes}
+            onToggleTags={(id, tags) => changeRecipe.mutate({changes: [{type: "tags", value: tags}], recipeId: id})}
+        />)
+}
+
+interface TaggedItem {
+    id: number;
+    name: string;
+    tags: string[];
+}
+
+interface EditTagsProps {
+    items: TaggedItem[],
+    onToggleTags: (id: TaggedItem["id"], tags: string[]) => void,
+}
+
+function EditTags(props: EditTagsProps) {
+    const [newTags, setNewTags] = useState<string[]>([])
+    const inputRef = useRef<HTMLInputElement>(null);
+    const [batchEdit, setBatchEdit] = useState(false);
+
+    let tags = props.items.flatMap((i) => i.tags).sort().filter((x, i, a) => a.indexOf(x) == i);
 
     let knownTags = new Set([...tags, ...newTags]);
 
     return (
-        <div className="content-grid space-y-4">
+        <>
             <FieldSet>
                 <button className={"px-2"} onClick={() => setBatchEdit((v) => !v)}>Toggle Batch Edit</button>
                 <p>New tags</p>
@@ -52,27 +126,24 @@ function RouteComponent() {
             </FieldSet>
             <TagsTable
                 batchEdit={batchEdit}
-                ingredients={ingredients.data}
+                items={props.items}
                 knownTags={Array.from(knownTags.values())}
-                toggleTags={(id, tags) => {
-                    setTags.mutate({tags, id})
-                }}/>
-        </div>
+                toggleTags={props.onToggleTags}/>
+        </>
     );
 }
 
-
 function TagsTable(props: {
-    ingredients: Ingredient[],
+    items: TaggedItem[],
     knownTags: string[],
-    toggleTags: (ingredient: Ingredient["id"], tags: string[]) => void,
+    toggleTags: (ingredient: TaggedItem["id"], tags: string[]) => void,
     batchEdit: boolean,
 }) {
 
     const batchEdit = props.batchEdit;
     const knownTags = props.knownTags;
     const toggleTags = props.toggleTags
-    const helper = createColumnHelper<Ingredient>()
+    const helper = createColumnHelper<TaggedItem>()
 
     const columns = useMemo(() => [
         helper.accessor("name", {
@@ -105,27 +176,25 @@ function TagsTable(props: {
 
     const table = useReactTable({
         columns,
-        data: props.ingredients,
+        data: props.items,
         getCoreRowModel: getCoreRowModel(),
     })
 
     return (
-        <div className={`w-full`}>
-            <table className={"w-full border-spacing-2 border-collapse text-left"}>
-                <thead>
-                <tr>
-                    <th className={"p-2"}>Name</th>
-                    <th className={"p-2"}>Tags</th>
+        <table className={"w-full border-spacing-2 border-collapse text-left"}>
+            <thead>
+            <tr>
+                <th className={"p-2"}>Name</th>
+                <th className={"p-2"}>Tags</th>
+            </tr>
+            </thead>
+            <tbody>
+            {table.getRowModel().rows.map((row) => (
+                <tr key={row.id} className={"hover:bg-slate-400 even:bg-gray-100 odd:bg-white"}>
+                    {row.getVisibleCells().map((cell) => flexRender(cell.column.columnDef.cell, cell.getContext()))}
                 </tr>
-                </thead>
-                <tbody>
-                {table.getRowModel().rows.map((row) => (
-                    <tr key={row.id} className={"hover:bg-slate-400 even:bg-gray-100 odd:bg-white"}>
-                        {row.getVisibleCells().map((cell) => flexRender(cell.column.columnDef.cell, cell.getContext()))}
-                    </tr>
-                ))}
-                </tbody>
-            </table>
-        </div>
+            ))}
+            </tbody>
+        </table>
     );
 }
