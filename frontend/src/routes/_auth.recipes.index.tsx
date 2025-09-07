@@ -1,9 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import classnames from "classnames";
 import { useState } from "react";
-import { toast } from "sonner";
 import {
-  addRecipeToShoppinglist,
   type IngredientWithQuantity,
   type Recipe,
   type Source,
@@ -20,13 +18,13 @@ import { DottedLine } from "../components/dottedLine.tsx";
 import { FieldSet } from "../components/fieldset.tsx";
 import { MultiSelect } from "../components/multiselect.tsx";
 import { Pill } from "../components/pill.tsx";
-import { AddToShoppinglist } from "../components/smart/addToShoppinglist.tsx";
 import { Stars } from "../components/smart/recipeView.tsx";
 import {
   filterRecipes,
   RecipeSearchSchemaParams,
   updateSearchParams,
 } from "../domain/search.ts";
+import { AddtoEither } from "../components/smart/addToEither.tsx";
 
 export const Route = createFileRoute("/_auth/recipes/")({
   component: RecipesPage,
@@ -49,7 +47,9 @@ export function RecipesPage() {
   }
 
   const recipes = filterRecipes(data.recipes, { tags, terms, books });
-  recipes.sort((a, b) => a.name.localeCompare(b.name));
+  recipes.sort((a, b) =>
+    a.name.localeCompare(b.name, "en", { sensitivity: "base" }),
+  );
 
   const knownBookTitles = new Set<string>();
   for (const r of data.recipes) {
@@ -198,6 +198,7 @@ function Search(props: SearchProps) {
     </div>
   );
 }
+
 type RecipeProps = {
   recipe: Recipe;
 };
@@ -205,7 +206,6 @@ type RecipeProps = {
 function RecipeView(props: RecipeProps) {
   const { token } = Route.useRouteContext();
   const [open, setOpen] = useState(false);
-  const addRecipe = addRecipeToShoppinglist(token);
   const deleteRecipe = useDeleteRecipe(token);
   const recipeId = props.recipe.id;
   const changeRecipe = useChangeRecipe(token, recipeId);
@@ -217,7 +217,9 @@ function RecipeView(props: RecipeProps) {
       <ShowSource details={props.recipe} />
       <Stars
         rating={props.recipe.rating}
-        setRating={(n) => changeRecipe.mutate({changes: [{ type: "rating", value: n }]})}
+        setRating={(n) =>
+          changeRecipe.mutate({ changes: [{ type: "rating", value: n }] })
+        }
       />
       {props.recipe.duration && <p>⏲ {props.recipe.duration}</p>}
 
@@ -284,15 +286,7 @@ function RecipeView(props: RecipeProps) {
         >
           Details
         </button>
-        <AddToShoppinglist
-          token={token}
-          onSelect={(shoppinglist) => {
-            addRecipe.mutate({ shoppinglistId: shoppinglist.id, recipeId });
-            toast(
-              `Added "${props.recipe.name}" to shoppinglist "${shoppinglist.name}"`,
-            );
-          }}
-        />
+        <AddtoEither recipeId={recipeId} token={token} />
         <button
           type="submit"
           className="px-2 text-white bg-gray-700 shadow"
@@ -340,6 +334,7 @@ function ShowSource(props: { details: Source }) {
       );
   }
 }
+
 function maybeHostname(v: string): string {
   try {
     return new URL(v).hostname;

@@ -128,9 +128,11 @@ export function useAllRecipes(token: string) {
 
       let data = RecipesSchema.parse(body);
 
-      data.recipes.sort((a, b) => a.name.localeCompare(b.name, 'en', {'sensitivity': 'base'}));
+      data.recipes.sort((a, b) =>
+        a.name.localeCompare(b.name, "en", { sensitivity: "base" }),
+      );
 
-      return  data
+      return data;
     },
   });
 }
@@ -218,7 +220,10 @@ export function useRecipeTags(token: string) {
 export function useChangeRecipe(token: string, id?: Recipe["id"]) {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: async (vars: {changes: Change[], recipeId?: Recipe["id"]}) => {
+    mutationFn: async (vars: {
+      changes: Change[];
+      recipeId?: Recipe["id"];
+    }) => {
       if (!id && !vars.changes) {
         throw new Error("Recipe id not set on call to useChangeRecipe");
       }

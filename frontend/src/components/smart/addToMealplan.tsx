@@ -14,11 +14,11 @@ import { useState } from "react";
 import { useAllMealPlans } from "../../apis/mealplans.ts";
 import type { Shoppinglist } from "../../apis/shoppinglists.ts";
 
-type ShoppinglistIdentifier = Pick<Shoppinglist, "id" | "name">;
+type MealPlanIdentifier = Pick<Shoppinglist, "id" | "name">;
 
-type Props = {
+export type Props = {
   token: string;
-  onSelect: (id: ShoppinglistIdentifier) => void;
+  onSelect: (id: MealPlanIdentifier) => void;
   label?: string;
 };
 
@@ -76,7 +76,7 @@ export function AddToMealPlan(props: Props) {
   );
 }
 
-function PickMealplan(props: Props) {
+export function PickMealplan(props: Props) {
   const { isLoading, data } = useAllMealPlans(props.token);
 
   if (isLoading || !data) {

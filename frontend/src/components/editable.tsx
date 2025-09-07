@@ -13,16 +13,12 @@ export function Editable(props: {
 
   useEditable(currentValueRef, setCurrentValue, { disabled: !props.isEditing });
 
-
   return (
     <p
-      className={classnames(
-        "min-w-4",
-        props.className,
-        {
-          "outline-dashed outline-2 outline-yellow-400 whitespace-nowrap text-nowrap": props.isEditing,
-        },
-      )}
+      className={classnames("min-w-4", props.className, {
+        "outline-dashed outline-2 outline-yellow-400 whitespace-nowrap text-nowrap":
+          props.isEditing,
+      })}
       onKeyDown={(e) => {
         if (e.key === "Enter") {
           e.preventDefault();

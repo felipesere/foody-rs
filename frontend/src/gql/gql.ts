@@ -1,6 +1,6 @@
 /* eslint-disable */
-import * as types from './graphql';
-import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+import * as types from "./graphql";
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 
 /**
  * Map of all GraphQL operations in the project.
@@ -14,12 +14,13 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
-    "\n    query ingredientTags {\n        allTags(tagged: \"ingredient\") {\n            name,\n            id,\n            tags\n        }\n    }\n": typeof types.IngredientTagsDocument,
-    "\n    query tags {\n       tags\n   }\n": typeof types.TagsDocument,
+  '\n    query ingredientTags {\n        allTags(tagged: "ingredient") {\n            name,\n            id,\n            tags\n        }\n    }\n': typeof types.IngredientTagsDocument;
+  "\n    query tags {\n       tags\n   }\n": typeof types.TagsDocument;
 };
 const documents: Documents = {
-    "\n    query ingredientTags {\n        allTags(tagged: \"ingredient\") {\n            name,\n            id,\n            tags\n        }\n    }\n": types.IngredientTagsDocument,
-    "\n    query tags {\n       tags\n   }\n": types.TagsDocument,
+  '\n    query ingredientTags {\n        allTags(tagged: "ingredient") {\n            name,\n            id,\n            tags\n        }\n    }\n':
+    types.IngredientTagsDocument,
+  "\n    query tags {\n       tags\n   }\n": types.TagsDocument,
 };
 
 /**
@@ -39,14 +40,19 @@ export function graphql(source: string): unknown;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n    query ingredientTags {\n        allTags(tagged: \"ingredient\") {\n            name,\n            id,\n            tags\n        }\n    }\n"): (typeof documents)["\n    query ingredientTags {\n        allTags(tagged: \"ingredient\") {\n            name,\n            id,\n            tags\n        }\n    }\n"];
+export function graphql(
+  source: '\n    query ingredientTags {\n        allTags(tagged: "ingredient") {\n            name,\n            id,\n            tags\n        }\n    }\n',
+): (typeof documents)['\n    query ingredientTags {\n        allTags(tagged: "ingredient") {\n            name,\n            id,\n            tags\n        }\n    }\n'];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n    query tags {\n       tags\n   }\n"): (typeof documents)["\n    query tags {\n       tags\n   }\n"];
+export function graphql(
+  source: "\n    query tags {\n       tags\n   }\n",
+): (typeof documents)["\n    query tags {\n       tags\n   }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};
 }
 
-export type DocumentType<TDocumentNode extends DocumentNode<any, any>> = TDocumentNode extends DocumentNode<  infer TType,  any>  ? TType  : never;
+export type DocumentType<TDocumentNode extends DocumentNode<any, any>> =
+  TDocumentNode extends DocumentNode<infer TType, any> ? TType : never;

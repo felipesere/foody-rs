@@ -1,6 +1,6 @@
 use axum::extract;
 use axum::response::Response;
-use loco_rs::{prelude::*};
+use loco_rs::prelude::*;
 use migration::Expr;
 use sea_orm::entity::ColumnTrait;
 use sea_orm::ActiveValue::{self, Set};
@@ -92,10 +92,7 @@ impl From<Shoppinglist> for ShoppinglistResponse {
     }
 }
 
-pub async fn all_shoppinglists(
-    auth: auth::JWT,
-    State(ctx): State<AppContext>,
-) -> Result<Response> {
+pub async fn all_shoppinglists(auth: auth::JWT, State(ctx): State<AppContext>) -> Result<Response> {
     // check auth
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 

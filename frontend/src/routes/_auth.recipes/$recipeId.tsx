@@ -151,7 +151,7 @@ function RecipePage() {
         recipe={recipe}
         onSave={() => {
           if (changes.length > 0 && editing) {
-            submitChanges.mutate({changes});
+            submitChanges.mutate({ changes });
             setChanges([]);
           }
           navigate({ search: { editing: !editing } });

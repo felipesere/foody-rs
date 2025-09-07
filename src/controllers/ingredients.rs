@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use axum::{extract, http::StatusCode};
-use loco_rs::{prelude::*};
+use loco_rs::prelude::*;
 use migration::{Expr, SimpleExpr};
 use sea_orm::{ActiveValue, SqlErr, Statement, TransactionTrait, Value};
 use serde::{Deserialize, Serialize};
@@ -55,10 +55,7 @@ impl From<(Ingredient, Option<AisleRef>)> for IngredientResponse {
     }
 }
 
-pub async fn all_ingredients(
-    auth: auth::JWT,
-    State(ctx): State<AppContext>,
-) -> Result<Response> {
+pub async fn all_ingredients(auth: auth::JWT, State(ctx): State<AppContext>) -> Result<Response> {
     // check auth
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 

@@ -7,7 +7,7 @@ export function DeleteButton(props: {
   return (
     <button
       type={"button"}
-      className={classnames(props.className, "border-0")}
+      className={classnames(props.className, "border-0 w-6 h-6")}
       onClick={props.onClick}
     >
       &#x2715;

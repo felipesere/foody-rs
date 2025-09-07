@@ -76,7 +76,7 @@ export function AddToShoppinglist(props: Props) {
   );
 }
 
-function PickShoppinglist(props: Props) {
+export function PickShoppinglist(props: Props) {
   const { isLoading, data } = useAllShoppinglists(props.token);
 
   if (isLoading || !data) {

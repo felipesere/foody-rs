@@ -121,7 +121,7 @@ export function MultiSelect(props: Props) {
                   <div className={"flex flex-row gap-2"} key={"new-item"}>
                     <input
                       type={"text"}
-                      className={"border-2 border-solid border-black px-2"}
+                      className={"bg-white border-2 border-solid border-black px-2"}
                       id={"new-item"}
                       placeholder={props.newItemPlaceholder || "New..."}
                       onBlur={(e) => {

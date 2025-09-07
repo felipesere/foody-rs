@@ -103,7 +103,7 @@ export function SingleSelect(props: Props) {
                                     <input
                                       type={"radio"}
                                       name={`${props.label}-selection`}
-                                      className={"px-2 bg-white shadow"}
+                                      className={"bg-white shadow w-5 h-5"}
                                       id={item}
                                       key={item}
                                       checked={item === selected}
