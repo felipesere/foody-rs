@@ -20,7 +20,7 @@ gql-schema-generate:
 gql-ts-generate:
   cd frontend; npx graphql-codegen --config codegen.ts
 
-frontend-lint: gql-ts-generate
+frontend-lint: # gql-ts-generate
   cd frontend; npx biome check --write .
   cd frontend; npx biome check .
   cd frontend; npm run tsc

@@ -25,8 +25,7 @@ export function useAllAisles(token: string) {
         })
         .json();
 
-      const tags = AislesSchema.parse(body);
-      return tags.aisles;
+      return AislesSchema.parse(body).aisles;
     },
   });
 }

@@ -196,8 +196,10 @@ export function useDeleteRecipe(token: string) {
   });
 }
 
+const Tags = z.array(z.string());
+
 const RecipeTagsSchema = z.object({
-  tags: z.array(z.string()),
+  tags: Tags,
 });
 
 export function useRecipeTags(token: string) {

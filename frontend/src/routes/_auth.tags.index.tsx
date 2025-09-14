@@ -5,15 +5,15 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { useMemo, useRef, useState } from "react";
 import {
   useAllIngredients,
   useSetIngredientTags,
 } from "../apis/ingredients.ts";
-import { useMemo, useRef, useState } from "react";
-import { Pill } from "../components/pill.tsx";
+import { useAllRecipes, useChangeRecipe } from "../apis/recipes.ts";
 import { FieldSet } from "../components/fieldset.tsx";
 import { Labeled } from "../components/Labeled.tsx";
-import { useAllRecipes, useChangeRecipe } from "../apis/recipes.ts";
+import { Pill } from "../components/pill.tsx";
 
 export const Route = createFileRoute("/_auth/tags/")({
   component: RouteComponent,

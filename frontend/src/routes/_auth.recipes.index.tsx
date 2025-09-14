@@ -18,13 +18,14 @@ import { DottedLine } from "../components/dottedLine.tsx";
 import { FieldSet } from "../components/fieldset.tsx";
 import { MultiSelect } from "../components/multiselect.tsx";
 import { Pill } from "../components/pill.tsx";
+import { AddtoEither } from "../components/smart/addToEither.tsx";
 import { Stars } from "../components/smart/recipeView.tsx";
+import { Tags } from "../components/tags.tsx";
 import {
   filterRecipes,
   RecipeSearchSchemaParams,
   updateSearchParams,
 } from "../domain/search.ts";
-import { AddtoEither } from "../components/smart/addToEither.tsx";
 
 export const Route = createFileRoute("/_auth/recipes/")({
   component: RecipesPage,
@@ -228,11 +229,7 @@ function RecipeView(props: RecipeProps) {
           {props.recipe.tags.length > 0 && (
             <>
               <Divider />
-              <ol className={"flex flex-row gap-2"}>
-                {props.recipe.tags.map((tag) => (
-                  <li key={tag}>#{tag}</li>
-                ))}
-              </ol>
+              <Tags tags={props.recipe.tags} />
             </>
           )}
           <Divider />

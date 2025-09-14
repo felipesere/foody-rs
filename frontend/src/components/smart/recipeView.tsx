@@ -22,10 +22,10 @@ import { Divider } from "../divider.tsx";
 import { DottedLine } from "../dottedLine.tsx";
 import { Dropdown } from "../dropdown.tsx";
 import { Labeled } from "../Labeled.tsx";
-import { MultiSelect } from "../multiselect.tsx";
 import { AddToMealPlan } from "./addToMealplan.tsx";
 import { AddToShoppinglist } from "./addToShoppinglist.tsx";
 import { SelectIngredientWithQuantity } from "./selectIngredientWithQuantity.tsx";
+import { EditableTag } from "../tags.tsx";
 
 export const RecipeContext = createContext({
   editing: false,
@@ -55,6 +55,12 @@ export function RecipeView(props: RecipeViewProps) {
 
   const recipe = props.recipe;
 
+  const allRecipeTags = useRecipeTags(token);
+
+  if (!allRecipeTags.data) {
+    return null;
+  }
+
   return (
     <div className="content-grid space-y-4 pb-20">
       <div className={"grid gap-4 grid-cols-1 sm:grid-cols-2"}>
@@ -70,7 +76,12 @@ export function RecipeView(props: RecipeViewProps) {
             <p>Rating:</p>{" "}
             <Stars rating={recipe.rating} setRating={props.onSetRating} />
           </div>
-          <Tags tags={recipe.tags} onSetTags={props.onSetTags} />
+          <EditableTag
+            tags={recipe.tags}
+            allTags={allRecipeTags.data.tags}
+            editing={editing}
+            onSetTags={props.onSetTags}
+          />
           <Duration
             duration={recipe.duration}
             onSetDuration={props.onSetDuration}
@@ -236,31 +247,6 @@ function Duration(props: {
   return null;
 }
 
-function Tags(props: { tags: string[]; onSetTags: (items: string[]) => void }) {
-  const { editing, token } = useContext(RecipeContext);
-  const allRecipeTags = useRecipeTags(token);
-  if (!allRecipeTags.data) {
-    return null;
-  }
-
-  return (
-    <ol className={"flex flex-row gap-2"}>
-      {props.tags.map((tag) => (
-        <li key={tag}>#{tag}</li>
-      ))}
-      {editing && (
-        <MultiSelect
-          label={"Select Tags"}
-          items={allRecipeTags.data.tags}
-          selected={props.tags}
-          onItemsSelected={props.onSetTags}
-          onNewItem={(newTag) => props.onSetTags([...props.tags, newTag])}
-        />
-      )}
-    </ol>
-  );
-}
-
 export function Stars(props: {
   rating: number;
   setRating: (n: number) => void;
@@ -302,12 +288,7 @@ function IngredientView(props: IngredientViewProps) {
   const { editing } = useContext(RecipeContext);
   return (
     <li className="flex flex-row justify-between">
-      {editing && (
-        <DeleteButton
-          className={"text-red-700 mr-2"}
-          onClick={props.onRemove}
-        />
-      )}
+      {editing && <DeleteButton className={"mr-2"} onClick={props.onRemove} />}
       <p className="font-light text-gray-700 whitespace-nowrap overflow-hidden overflow-ellipsis">
         {props.ingredient}
       </p>

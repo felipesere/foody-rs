@@ -5,12 +5,11 @@ export function DeleteButton(props: {
   onClick: () => void;
 }) {
   return (
-    <button
-      type={"button"}
-      className={classnames(props.className, "border-0 w-6 h-6")}
+    <div
+      className={classnames(props.className, "borderless hover:text-red-700 ")}
       onClick={props.onClick}
     >
-      &#x2715;
-    </button>
+      ⓧ
+    </div>
   );
 }

@@ -1,8 +1,7 @@
-import { useState } from "react";
 import {
   autoUpdate,
-  flip,
   FloatingFocusManager,
+  flip,
   offset,
   shift,
   useClick,
@@ -11,12 +10,13 @@ import {
   useInteractions,
   useRole,
 } from "@floating-ui/react";
-import { PickMealplan } from "./addToMealplan.tsx";
-import { Divider } from "../divider.tsx";
-import { PickShoppinglist } from "./addToShoppinglist.tsx";
-import { addRecipeToShoppinglist, Recipe } from "../../apis/recipes.ts";
-import { useAddRecipeToMealplan } from "../../apis/mealplans.ts";
+import { useState } from "react";
 import { toast } from "sonner";
+import { useAddRecipeToMealplan } from "../../apis/mealplans.ts";
+import { addRecipeToShoppinglist, Recipe } from "../../apis/recipes.ts";
+import { Divider } from "../divider.tsx";
+import { PickMealplan } from "./addToMealplan.tsx";
+import { PickShoppinglist } from "./addToShoppinglist.tsx";
 
 type Props = {
   recipeId: Recipe["id"];
