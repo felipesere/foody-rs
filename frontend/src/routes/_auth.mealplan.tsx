@@ -257,8 +257,8 @@ function SectionOfMeals(props: {
   const setSection = useSetSectionOfMeal(props.token, props.mealPlanId);
 
   return (
-    <>
-      {props.title && <p>{props.title}</p>}
+    <div>
+      {props.title && <p className={"underline"}>{props.title}</p>}
       <table className={"table-fixed w-full border-collapse"}>
         <thead>
           <tr>
@@ -331,7 +331,7 @@ function SectionOfMeals(props: {
           ))}
         </tbody>
       </table>
-    </>
+    </div>
   );
 }
 
