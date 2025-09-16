@@ -132,3 +132,8 @@ test("books match", () => {
   const remaining = filterRecipes(recipes, { books: ["simplissime"] });
   expect(remaining.map((r) => r.name)).toEqual(["blurb"]);
 });
+
+test("ratings at least as good", () => {
+  const remaining = filterRecipes(recipes, { rating: 5 });
+  expect(remaining.map((r) => r.name)).toEqual(["tartiflette"]);
+});

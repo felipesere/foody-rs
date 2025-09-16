@@ -34,7 +34,7 @@ export const Route = createFileRoute("/_auth/recipes/")({
 
 export function RecipesPage() {
   const { token } = Route.useRouteContext();
-  const { tags, terms, books } = Route.useSearch();
+  const { tags, terms, books, rating } = Route.useSearch();
   const { data, isLoading, isError } = useAllRecipes(token);
   const navigate = useNavigate({ from: Route.path });
 
@@ -47,7 +47,7 @@ export function RecipesPage() {
     return <p>Loading</p>;
   }
 
-  const recipes = filterRecipes(data.recipes, { tags, terms, books });
+  const recipes = filterRecipes(data.recipes, { tags, terms, books, rating });
   recipes.sort((a, b) =>
     a.name.localeCompare(b.name, "en", { sensitivity: "base" }),
   );
@@ -129,6 +129,18 @@ export function RecipesPage() {
               />
             ))}
           </ul>
+          <FieldSet legend={"Rating"}>
+            <Stars
+              rating={rating || 0}
+              setRating={(r) => {
+                const newRating = r != 0 ? r : undefined;
+                navigate({
+                  search: (params) =>
+                    updateSearchParams(params, { ratings: { set: newRating } }),
+                });
+              }}
+            />
+          </FieldSet>
         </FieldSet>
         <FieldSet legend={"Word Search"}>
           <Search

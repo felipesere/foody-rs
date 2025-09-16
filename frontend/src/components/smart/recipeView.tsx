@@ -270,7 +270,14 @@ export function Stars(props: {
           key={idx}
           rating={props.rating}
           idx={idx}
-          onClick={() => props.setRating(idx)}
+          onClick={() => {
+            if (idx == props.rating) {
+              // clicked the current one, set it back to 0
+              props.setRating(0);
+            } else {
+              props.setRating(idx);
+            }
+          }}
         />
       ))}
     </div>

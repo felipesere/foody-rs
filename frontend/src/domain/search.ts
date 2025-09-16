@@ -5,6 +5,7 @@ export const RecipeSearchSchemaParams = z.object({
   tags: z.array(z.string()).optional(),
   books: z.array(z.string()).optional(),
   terms: z.array(z.string()).optional(),
+  rating: z.number().optional(),
 });
 export type RecipeSearchParams = z.infer<typeof RecipeSearchSchemaParams>;
 
@@ -14,6 +15,7 @@ export function updateSearchParams(
     books?: { set?: string[]; add?: string; remove?: string };
     tags?: { set?: string[]; add?: string; remove?: string };
     terms?: { add?: string; remove?: string };
+    ratings?: { set: number | undefined };
   },
 ): RecipeSearchParams {
   const other = structuredClone(previous);
@@ -64,6 +66,11 @@ export function updateSearchParams(
     }
   }
 
+  if (changes.ratings) {
+    const ratings = changes.ratings;
+    other.rating = ratings.set;
+  }
+
   return other;
 }
 
@@ -91,6 +98,14 @@ export function filterRecipes(
     return true;
   }
 
+  function ratingsMatch(recipe: Recipe) {
+    if (params.rating) {
+      let rating = params.rating;
+      return recipe.rating >= rating;
+    }
+    return true;
+  }
+
   function termMatch(recipe: Recipe) {
     if (params.terms) {
       const terms = params.terms || [];
@@ -109,5 +124,9 @@ export function filterRecipes(
     return true;
   }
 
-  return recipes.filter(tagsMatch).filter(termMatch).filter(booksMatch);
+  return recipes
+    .filter(tagsMatch)
+    .filter(termMatch)
+    .filter(booksMatch)
+    .filter(ratingsMatch);
 }
