@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import classnames from "classnames";
 import { useState } from "react";
+import { z } from "zod";
 import {
   type IngredientWithQuantity,
   type Recipe,
@@ -27,14 +28,18 @@ import {
   updateSearchParams,
 } from "../domain/search.ts";
 
+const recipeUrlParams = z.object({
+  search: RecipeSearchSchemaParams.optional(),
+});
+
 export const Route = createFileRoute("/_auth/recipes/")({
   component: RecipesPage,
-  validateSearch: RecipeSearchSchemaParams,
+  validateSearch: recipeUrlParams,
 });
 
 export function RecipesPage() {
   const { token } = Route.useRouteContext();
-  const { tags, terms, books, rating } = Route.useSearch();
+  const { search } = Route.useSearch();
   const { data, isLoading, isError } = useAllRecipes(token);
   const navigate = useNavigate({ from: Route.path });
 
@@ -47,7 +52,7 @@ export function RecipesPage() {
     return <p>Loading</p>;
   }
 
-  const recipes = filterRecipes(data.recipes, { tags, terms, books, rating });
+  const recipes = filterRecipes(data.recipes, search);
   recipes.sort((a, b) =>
     a.name.localeCompare(b.name, "en", { sensitivity: "base" }),
   );
@@ -72,28 +77,38 @@ export function RecipesPage() {
         </ButtonGroup>
         <FieldSet legend={"Filter"}>
           <MultiSelect
-            key={(tags || ["tag"]).toString()} // force to re-render when tags change...
+            key={(search?.tags || ["tag"]).toString()} // force to re-render when tags change...
             label={"Select tags"}
-            selected={tags || []}
+            selected={search?.tags || []}
             items={knownTags}
             onItemsSelected={(items) => {
               navigate({
                 to: ".",
-                search: (params) =>
-                  updateSearchParams(params, { tags: { set: items } }),
+                search: (params) => {
+                  return {
+                    search: updateSearchParams(params.search || {}, {
+                      tags: { set: items },
+                    }),
+                  };
+                },
               });
             }}
             hotkey={"ctrl+t"}
           />
           <ul className={"flex flex-row gap-2"}>
-            {(tags || []).map((tag) => (
+            {(search?.tags || []).map((tag) => (
               <Pill
                 key={"tag"}
                 value={tag}
                 onClose={() => {
                   navigate({
-                    search: (params) =>
-                      updateSearchParams(params, { tags: { remove: tag } }),
+                    search: (params) => {
+                      return {
+                        search: updateSearchParams(params.search || {}, {
+                          tags: { remove: tag },
+                        }),
+                      };
+                    },
                   });
                 }}
               />
@@ -101,29 +116,39 @@ export function RecipesPage() {
           </ul>
 
           <MultiSelect
-            key={(books || ["book"]).toString()} // force to re-render when tags change...
+            key={(search?.books || ["book"]).toString()} // force to re-render when tags change...
             label={"By book title"}
-            selected={books}
+            selected={search?.books || []}
             items={Array.from(knownBookTitles)}
             onItemsSelected={(items) => {
               navigate({
                 to: ".",
-                search: (params) =>
-                  updateSearchParams(params, { books: { set: items } }),
+                search: (params) => {
+                  return {
+                    search: updateSearchParams(params.search || {}, {
+                      books: { set: items },
+                    }),
+                  };
+                },
               });
             }}
             hotkey={"ctrl+b"}
           />
 
           <ul className={"flex flex-row gap-2"}>
-            {(books || []).map((book) => (
+            {(search?.books || []).map((book) => (
               <Pill
                 key={book}
                 value={book}
                 onClose={() => {
                   navigate({
-                    search: (params) =>
-                      updateSearchParams(params, { books: { remove: book } }),
+                    search: (params) => {
+                      return {
+                        search: updateSearchParams(params.search || {}, {
+                          books: { remove: book },
+                        }),
+                      };
+                    },
                   });
                 }}
               />
@@ -131,12 +156,17 @@ export function RecipesPage() {
           </ul>
           <FieldSet legend={"Rating"}>
             <Stars
-              rating={rating || 0}
+              rating={search?.rating || 0}
               setRating={(r) => {
                 const newRating = r != 0 ? r : undefined;
                 navigate({
-                  search: (params) =>
-                    updateSearchParams(params, { ratings: { set: newRating } }),
+                  search: (params) => {
+                    return {
+                      search: updateSearchParams(params.search || {}, {
+                        ratings: { set: newRating },
+                      }),
+                    };
+                  },
                 });
               }}
             />
@@ -146,22 +176,30 @@ export function RecipesPage() {
           <Search
             onSubmit={(term) => {
               navigate({
-                search: (params) =>
-                  updateSearchParams(params, {
-                    terms: { add: term.toLowerCase() },
-                  }),
+                search: (params) => {
+                  return {
+                    search: updateSearchParams(params.search || {}, {
+                      terms: { add: term.toLowerCase() },
+                    }),
+                  };
+                },
               });
             }}
           />
-          {(terms || []).map((term) => {
+          {(search?.terms || []).map((term) => {
             return (
               <Pill
                 key={term}
                 value={term}
                 onClose={() => {
                   navigate({
-                    search: (params) =>
-                      updateSearchParams(params, { terms: { remove: term } }),
+                    search: (params) => {
+                      return {
+                        search: updateSearchParams(params.search || {}, {
+                          terms: { remove: term },
+                        }),
+                      };
+                    },
                   });
                 }}
               />

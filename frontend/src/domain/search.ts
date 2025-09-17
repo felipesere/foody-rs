@@ -76,8 +76,13 @@ export function updateSearchParams(
 
 export function filterRecipes(
   recipes: Recipe[],
-  params: RecipeSearchParams,
+  searchParams: RecipeSearchParams | undefined,
 ): Recipe[] {
+  if (searchParams === undefined) {
+    return recipes;
+  }
+  let params = searchParams;
+
   function tagsMatch(recipe: Recipe) {
     if (params.tags) {
       return (params.tags || []).every((t) => recipe.tags.includes(t));

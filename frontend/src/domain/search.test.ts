@@ -93,6 +93,12 @@ const recipes: Recipe[] = [
   },
 ];
 
+test("undefined search returns all data", () => {
+  const remaining = filterRecipes(recipes, undefined);
+
+  expect(remaining.map((r) => r.name)).toEqual(["tartiflette", "blurb"]);
+});
+
 test("empty search returns all data", () => {
   const remaining = filterRecipes(recipes, {});
 

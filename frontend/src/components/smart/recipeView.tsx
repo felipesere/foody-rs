@@ -22,10 +22,10 @@ import { Divider } from "../divider.tsx";
 import { DottedLine } from "../dottedLine.tsx";
 import { Dropdown } from "../dropdown.tsx";
 import { Labeled } from "../Labeled.tsx";
+import { EditableTag } from "../tags.tsx";
 import { AddToMealPlan } from "./addToMealplan.tsx";
 import { AddToShoppinglist } from "./addToShoppinglist.tsx";
 import { SelectIngredientWithQuantity } from "./selectIngredientWithQuantity.tsx";
-import { EditableTag } from "../tags.tsx";
 
 export const RecipeContext = createContext({
   editing: false,
