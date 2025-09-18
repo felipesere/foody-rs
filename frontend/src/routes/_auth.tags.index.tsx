@@ -99,18 +99,18 @@ function EditRecipes(props: { token: string }) {
   );
 }
 
-interface TaggedItem {
+export interface TaggedItem {
   id: number;
   name: string;
   tags: string[];
 }
 
-interface EditTagsProps {
+export interface EditTagsProps {
   items: TaggedItem[];
   onToggleTags: (id: TaggedItem["id"], tags: string[]) => void;
 }
 
-function EditTags(props: EditTagsProps) {
+export function EditTags(props: EditTagsProps) {
   const [newTags, setNewTags] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const [batchEdit, setBatchEdit] = useState(false);
