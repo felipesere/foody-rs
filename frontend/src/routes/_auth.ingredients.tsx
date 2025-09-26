@@ -1,26 +1,35 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import classnames from "classnames";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import {
   addIngredientToShoppinglist,
   type Ingredient,
-  IngredientSchema,
   useAllIngredients,
+  useSetIngredientTags,
 } from "../apis/ingredients.ts";
 import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
+import { FieldSet } from "../components/fieldset.tsx";
+import { MultiSelect } from "../components/multiselect.tsx";
 import { ResizingInput } from "../components/resizeableInput.tsx";
 import { AddToShoppinglist } from "../components/smart/addToShoppinglist.tsx";
 import { SelectAisle } from "../components/smart/selectAisle.tsx";
 import { SelectTags } from "../components/smart/selectTags.tsx";
 import { ToggleButton } from "../components/toggle.tsx";
 import { orderByTag } from "../domain/orderByTag.ts";
+import { TagsTable } from "../components/tags.tsx";
 
 const ingredientSearchSchema = z.object({
-  ingredient: IngredientSchema.pick({ id: true }).optional(),
+  search: z
+    .object({
+      tags: z.array(z.string()).optional(),
+      aisle: z.array(z.string()).optional(),
+    })
+    .optional(),
+  massEditTags: z.boolean().optional(),
 });
 
 export const Route = createFileRoute("/_auth/ingredients")({
@@ -30,40 +39,86 @@ export const Route = createFileRoute("/_auth/ingredients")({
 
 function IngredientsPage() {
   const { token } = Route.useRouteContext();
-  const { data: ingredients } = useAllIngredients(token);
+  const { massEditTags } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.path });
+  const ingredients = useAllIngredients(token);
 
-  if (!ingredients) {
+  if (!ingredients.data) {
     return <p>Loading...</p>;
   }
 
-  const sections = orderByTag(ingredients);
+  return (
+    <div className="content-grid">
+      <FieldSet className={{ fieldSet: "flex-wrap" }}>
+        <ButtonGroup>
+          <Button
+            label={"Mass edit tags"}
+            onClick={() =>
+              navigate({
+                to: ".",
+                search: (params) => {
+                  return {
+                    ...params,
+                    massEditTags: massEditTags ? undefined : true,
+                  };
+                },
+              })
+            }
+          />
+        </ButtonGroup>
+        <FieldSet legend={"Filter"}>
+          <MultiSelect
+            label={"Select tags"}
+            selected={[]}
+            items={["foo", "bar", "baz"]}
+            onItemsSelected={(_items) => {}}
+            hotkey={"ctrl+t"}
+          />
+          <MultiSelect
+            label={"Select aisle"}
+            selected={[]}
+            items={["x", "y", "z"]}
+            onItemsSelected={(_items) => {}}
+            hotkey={"ctrl+a"}
+          />
+        </FieldSet>
+      </FieldSet>
+      {massEditTags ? (
+        <MassEditTags token={token} ingredients={ingredients.data} />
+      ) : (
+        <Overview token={token} ingredients={ingredients.data} />
+      )}
+    </div>
+  );
+}
+
+function Overview(props: { ingredients: Ingredient[]; token: string }) {
+  const sections = orderByTag(props.ingredients);
   sections.sort((a, b) => a.items.length - b.items.length);
 
   return (
-    <div className="content-grid">
-      <ul className="gap-4 columns-xs space-y-10">
-        {sections.map((section) => {
-          return (
-            <div key={section.name} className={"flex flex-col"}>
-              <p className={"font-black"}>{section.name}</p>
-              <ol className="space-y-2">
-                {section.items.map((ingredient) => {
-                  return (
-                    <IngredientView
-                      key={ingredient.name}
-                      ingredient={ingredient}
-                      selected={false}
-                      token={token}
-                      onClick={() => {}}
-                    />
-                  );
-                })}
-              </ol>
-            </div>
-          );
-        })}
-      </ul>
-    </div>
+    <ul className="gap-4 columns-xs space-y-10 mt-4">
+      {sections.map((section) => {
+        return (
+          <div key={section.name} className={"flex flex-col"}>
+            <p className={"font-black"}>{section.name}</p>
+            <ol className="space-y-2">
+              {section.items.map((ingredient) => {
+                return (
+                  <IngredientView
+                    key={ingredient.name}
+                    ingredient={ingredient}
+                    selected={false}
+                    token={props.token}
+                    onClick={() => {}}
+                  />
+                );
+              })}
+            </ol>
+          </div>
+        );
+      })}
+    </ul>
   );
 }
 
@@ -180,5 +235,53 @@ function IngredientView(props: IngredientViewProps) {
         </>
       )}
     </li>
+  );
+}
+function MassEditTags(props: { token: string; ingredients: Ingredient[] }) {
+  let ingredients = props.ingredients;
+  const [newTags, setNewTags] = useState<string[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const updateTags = useSetIngredientTags(props.token);
+
+  let tags = ingredients
+    .flatMap((i) => i.tags)
+    .sort()
+    .filter((x, i, a) => a.indexOf(x) == i);
+
+  let knownTags = new Set([...tags, ...newTags]);
+
+  return (
+    <div className={"mt-4"}>
+      <input
+        placeholder={"Additional Tag"}
+        className={"px-2 border-2"}
+        type={"text"}
+        ref={inputRef}
+      />
+      <button
+        className={"px-2 ml-2"}
+        type={"button"}
+        onClick={() => {
+          let newTag = inputRef.current?.value;
+          if (newTag) {
+            setNewTags((prevTags) => [...prevTags, newTag]);
+          }
+        }}
+      >
+        Add
+      </button>
+      <TagsTable
+        batchEdit={true}
+        items={ingredients}
+        knownTags={Array.from(knownTags.values())}
+        toggleTags={(id, tags) => {
+          updateTags.mutate({
+            id,
+            tags,
+          });
+        }}
+      />
+    </div>
   );
 }

@@ -81,7 +81,7 @@ export function RecipesPage() {
                 to: "/recipes",
                 search: (params) => ({
                   ...params,
-                  massEditTags: massEditTags === true ? undefined : true,
+                  massEditTags: massEditTags ? undefined : true,
                 }),
               })
             }
