@@ -167,7 +167,7 @@ export function EditTags(props: EditTagsProps) {
   );
 }
 
-function TagsTable(props: {
+export function TagsTable(props: {
   items: TaggedItem[];
   knownTags: string[];
   toggleTags: (ingredient: TaggedItem["id"], tags: string[]) => void;
