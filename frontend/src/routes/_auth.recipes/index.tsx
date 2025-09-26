@@ -431,7 +431,8 @@ function MassEditTags(props: { token: string; recipes: Recipe[] }) {
     .sort()
     .filter((x, i, a) => a.indexOf(x) == i);
 
-  let knownTags = new Set([...tags, ...newTags]);
+  let combinedTags = new Set([...tags, ...newTags]);
+  let knownTags = Array.from(combinedTags.values()).sort()
 
   return (
     <div>

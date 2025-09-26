@@ -499,12 +499,7 @@ function EditIngredient({
         >
           Delete
         </button>
-        <Link
-          className={"underline"}
-          from={Route.fullPath}
-          to={"/ingredients"}
-          search={{ ingredient: { id: item.ingredient.id } }}
-        >
+        <Link className={"underline"} from={Route.fullPath} to={"/ingredients"}>
           Full edit
         </Link>
       </ButtonGroup>
