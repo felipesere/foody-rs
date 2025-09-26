@@ -21,13 +21,12 @@ import { MultiSelect } from "../../components/multiselect.tsx";
 import { Pill } from "../../components/pill.tsx";
 import { AddtoEither } from "../../components/smart/addToEither.tsx";
 import { Stars } from "../../components/smart/recipeView.tsx";
-import { Tags } from "../../components/tags.tsx";
+import { Tags, TagsTable } from "../../components/tags.tsx";
 import {
   filterRecipes,
   RecipeSearchSchemaParams,
   updateSearchParams,
 } from "../../domain/search.ts";
-import { TagsTable } from "../_auth.tags.index.tsx";
 
 const recipeUrlParams = z.object({
   search: RecipeSearchSchemaParams.optional(),

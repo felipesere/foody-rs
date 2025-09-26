@@ -1,11 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  createColumnHelper,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import { useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
   useAllIngredients,
   useSetIngredientTags,
@@ -14,6 +8,7 @@ import { useAllRecipes, useChangeRecipe } from "../apis/recipes.ts";
 import { FieldSet } from "../components/fieldset.tsx";
 import { Labeled } from "../components/Labeled.tsx";
 import { Pill } from "../components/pill.tsx";
+import { TagsTable } from "../components/tags.tsx";
 
 export const Route = createFileRoute("/_auth/tags/")({
   component: RouteComponent,
@@ -164,88 +159,5 @@ export function EditTags(props: EditTagsProps) {
         toggleTags={props.onToggleTags}
       />
     </>
-  );
-}
-
-export function TagsTable(props: {
-  items: TaggedItem[];
-  knownTags: string[];
-  toggleTags: (ingredient: TaggedItem["id"], tags: string[]) => void;
-  batchEdit: boolean;
-}) {
-  const batchEdit = props.batchEdit;
-  const knownTags = props.knownTags;
-  const toggleTags = props.toggleTags;
-  const helper = createColumnHelper<TaggedItem>();
-
-  const columns = useMemo(
-    () => [
-      helper.accessor("name", {
-        header: "Name",
-        cell: (cell) => <td className={"p-2"}>{cell.row.original.name}</td>,
-      }),
-      helper.accessor("tags", {
-        header: "Tags",
-        cell: (cell) => {
-          const ingredient = cell.row.original;
-          let batchTags = knownTags.map((t) => {
-            const existingTag = ingredient.tags.includes(t);
-            const color = existingTag ? `text-black` : `text-gray-400`;
-            const tags = existingTag
-              ? ingredient.tags.filter((tag) => tag != t)
-              : [...ingredient.tags, t];
-
-            return (
-              <span
-                onClick={() => toggleTags(ingredient.id, tags)}
-                className={`bg-white border-2 px-2 mr-2 ${color}`}
-              >
-                {t}
-              </span>
-            );
-          });
-          let ownTags = ingredient.tags.map((t) => {
-            return <span className={`bg-white border-2 px-2 mr-2`}>{t}</span>;
-          });
-          return (
-            <td className={"p-2 flex flex-row gap-2 flex-wrap"}>
-              {batchEdit ? batchTags : ownTags}
-            </td>
-          );
-        },
-      }),
-    ],
-    [helper, batchEdit, knownTags],
-  );
-
-  const table = useReactTable({
-    columns,
-    data: props.items,
-    getCoreRowModel: getCoreRowModel(),
-  });
-
-  return (
-    <table className={"w-full border-spacing-2 border-collapse text-left"}>
-      <thead>
-        <tr>
-          <th className={"p-2"}>Name</th>
-          <th className={"p-2"}>Tags</th>
-        </tr>
-      </thead>
-      <tbody>
-        {table.getRowModel().rows.map((row) => (
-          <tr
-            key={row.id}
-            className={"hover:bg-slate-400 even:bg-gray-100 odd:bg-white"}
-          >
-            {row
-              .getVisibleCells()
-              .map((cell) =>
-                flexRender(cell.column.columnDef.cell, cell.getContext()),
-              )}
-          </tr>
-        ))}
-      </tbody>
-    </table>
   );
 }
