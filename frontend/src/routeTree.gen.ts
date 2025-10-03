@@ -14,7 +14,6 @@ import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as AuthIndexRouteImport } from './routes/_auth.index'
 import { Route as AuthMealplanRouteImport } from './routes/_auth.mealplan'
 import { Route as AuthIngredientsRouteImport } from './routes/_auth.ingredients'
-import { Route as AuthTagsIndexRouteImport } from './routes/_auth.tags.index'
 import { Route as AuthRecipesIndexRouteImport } from './routes/_auth.recipes/index'
 import { Route as AuthShoppinglistShoppinglistIdRouteImport } from './routes/_auth.shoppinglist.$shoppinglistId'
 import { Route as AuthRecipesNewRouteImport } from './routes/_auth.recipes/new'
@@ -42,11 +41,6 @@ const AuthMealplanRoute = AuthMealplanRouteImport.update({
 const AuthIngredientsRoute = AuthIngredientsRouteImport.update({
   id: '/ingredients',
   path: '/ingredients',
-  getParentRoute: () => AuthRoute,
-} as any)
-const AuthTagsIndexRoute = AuthTagsIndexRouteImport.update({
-  id: '/tags/',
-  path: '/tags/',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthRecipesIndexRoute = AuthRecipesIndexRouteImport.update({
@@ -80,7 +74,6 @@ export interface FileRoutesByFullPath {
   '/recipes/new': typeof AuthRecipesNewRoute
   '/shoppinglist/$shoppinglistId': typeof AuthShoppinglistShoppinglistIdRoute
   '/recipes': typeof AuthRecipesIndexRoute
-  '/tags': typeof AuthTagsIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -91,7 +84,6 @@ export interface FileRoutesByTo {
   '/recipes/new': typeof AuthRecipesNewRoute
   '/shoppinglist/$shoppinglistId': typeof AuthShoppinglistShoppinglistIdRoute
   '/recipes': typeof AuthRecipesIndexRoute
-  '/tags': typeof AuthTagsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -104,7 +96,6 @@ export interface FileRoutesById {
   '/_auth/recipes/new': typeof AuthRecipesNewRoute
   '/_auth/shoppinglist/$shoppinglistId': typeof AuthShoppinglistShoppinglistIdRoute
   '/_auth/recipes/': typeof AuthRecipesIndexRoute
-  '/_auth/tags/': typeof AuthTagsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -117,7 +108,6 @@ export interface FileRouteTypes {
     | '/recipes/new'
     | '/shoppinglist/$shoppinglistId'
     | '/recipes'
-    | '/tags'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -128,7 +118,6 @@ export interface FileRouteTypes {
     | '/recipes/new'
     | '/shoppinglist/$shoppinglistId'
     | '/recipes'
-    | '/tags'
   id:
     | '__root__'
     | '/_auth'
@@ -140,7 +129,6 @@ export interface FileRouteTypes {
     | '/_auth/recipes/new'
     | '/_auth/shoppinglist/$shoppinglistId'
     | '/_auth/recipes/'
-    | '/_auth/tags/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -185,13 +173,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthIngredientsRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/tags/': {
-      id: '/_auth/tags/'
-      path: '/tags'
-      fullPath: '/tags'
-      preLoaderRoute: typeof AuthTagsIndexRouteImport
-      parentRoute: typeof AuthRoute
-    }
     '/_auth/recipes/': {
       id: '/_auth/recipes/'
       path: '/recipes'
@@ -231,7 +212,6 @@ interface AuthRouteChildren {
   AuthRecipesNewRoute: typeof AuthRecipesNewRoute
   AuthShoppinglistShoppinglistIdRoute: typeof AuthShoppinglistShoppinglistIdRoute
   AuthRecipesIndexRoute: typeof AuthRecipesIndexRoute
-  AuthTagsIndexRoute: typeof AuthTagsIndexRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
@@ -242,7 +222,6 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthRecipesNewRoute: AuthRecipesNewRoute,
   AuthShoppinglistShoppinglistIdRoute: AuthShoppinglistShoppinglistIdRoute,
   AuthRecipesIndexRoute: AuthRecipesIndexRoute,
-  AuthTagsIndexRoute: AuthTagsIndexRoute,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)

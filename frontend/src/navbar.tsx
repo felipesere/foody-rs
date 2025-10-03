@@ -21,9 +21,6 @@ export function Navbar() {
           <NavLink name={"Recipes"} to={"/recipes"} />
         </li>
         <li>
-          <NavLink name={"Tags"} to={"/tags"} />
-        </li>
-        <li>
           {token ? (
             <UserOrLogin token={token} />
           ) : (

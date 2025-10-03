@@ -189,7 +189,10 @@ export function ShoppingPage() {
         <FieldSet legend={"Recipes"}>
           <ul className={"space-y-2 "}>
             {Object.entries(presentRecipes).map(([id, name]) => (
-              <li key={id} className={"flex flex-row gap-4gg hover:bg-slate-200"}>
+              <li
+                key={id}
+                className={"flex flex-row gap-4gg hover:bg-slate-200"}
+              >
                 <Link
                   className={"block flex-grow"}
                   to={"/recipes/$recipeId"}

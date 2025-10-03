@@ -5,7 +5,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { useMemo, useRef } from "react";
-import { TaggedItem } from "../routes/_auth.tags.index.tsx";
 import { Button } from "./button.tsx";
 
 export function Tags(props: { tags: string[] }) {
@@ -93,6 +92,12 @@ export function EditableTag(props: Props & AllOrNothing<EditableProps>) {
   } else {
     return <Tags tags={props.tags} />;
   }
+}
+
+export interface TaggedItem {
+  id: number;
+  name: string;
+  tags: string[];
 }
 
 export function TagsTable(props: {
