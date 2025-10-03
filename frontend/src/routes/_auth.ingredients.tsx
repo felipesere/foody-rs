@@ -22,7 +22,6 @@ import {SelectTags} from "../components/smart/selectTags.tsx";
 import {TagsTable} from "../components/tags.tsx";
 import {ToggleButton} from "../components/toggle.tsx";
 import {orderByTag} from "../domain/orderByTag.ts";
-import * as sea from "node:sea";
 
 const ingredientSearchSchema = z.object({
     search: z
