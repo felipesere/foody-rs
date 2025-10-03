@@ -2,6 +2,29 @@
 
 @tailwind utilities;
 
+/* Interim placeholder... */
+
+.new-single-select-pane {
+  anchor-scope: --single-select;
+}
+.new-single-select-button {
+  anchor-name: --single-select;
+}
+
+.new-single-select {
+  position: absolute;
+  position-anchor: --single-select;
+  margin: 0;
+  margin-top: 2px;
+  inset: auto;
+  top: anchor(bottom);
+  right: anchor(right);
+}
+.new-single-select:popover-open {
+}
+
+/* Interim placeholder... */
+
 /* this creates a grid.
  It is defined by ${name}-start and ${name}.
  There are 2 areas:
