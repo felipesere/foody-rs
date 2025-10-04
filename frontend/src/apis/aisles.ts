@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { http } from "./http.ts";
 
@@ -26,6 +26,32 @@ export function useAllAisles(token: string) {
         .json();
 
       return AislesSchema.parse(body).aisles;
+    },
+  });
+}
+
+export function useCreateAisle(token: string) {
+  const client = useQueryClient();
+  return useMutation({
+    mutationKey: ["aisles/new"],
+    mutationFn: async ({ name }: { name: string }) => {
+      const response = await http
+        .post("api/aisles", {
+          json: {
+            name,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .json();
+
+      return AisleSchema.parse(response);
+    },
+    onSettled: (_data, _err, _) => {
+      return client.invalidateQueries({
+        queryKey: ["aisles"],
+      });
     },
   });
 }

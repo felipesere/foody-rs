@@ -3,12 +3,12 @@ import {
   type Ingredient,
   useSetIngredientAisle,
 } from "../../apis/ingredients.ts";
-import type {Shoppinglist} from "../../apis/shoppinglists.ts";
-import {useField, useForm} from "@tanstack/react-form";
-import {Button} from "../button.tsx";
-import {Divider} from "../divider.tsx";
-import {ButtonGroup} from "../buttonGroup.tsx";
-import {useId} from "@floating-ui/react";
+import type { Shoppinglist } from "../../apis/shoppinglists.ts";
+import { useForm } from "@tanstack/react-form";
+import { Button } from "../button.tsx";
+import { Divider } from "../divider.tsx";
+import { ButtonGroup } from "../buttonGroup.tsx";
+import { useId } from "@floating-ui/react";
 import classNames from "classnames";
 import { InputWithButton } from "../inputWithButton.tsx";
 
@@ -51,97 +51,99 @@ type Props = {
 };
 
 function NewSingleSelect(props: Props) {
-    const id = useId();
-    const form = useForm({
-        defaultValues: {
-            items: props.items,
-            selected: props.selected,
-        },
-        onSubmit: ({value}) => {
-            props.onItemsSelected(value.selected);
-        },
-    });
+  const id = useId();
+  const form = useForm({
+    defaultValues: {
+      items: props.items,
+      selected: props.selected,
+    },
+    onSubmit: ({ value }) => {
+      props.onItemsSelected(value.selected);
+    },
+  });
 
-    const itemsField = useField({
-        form,
-        name: "items"
-    });
-
-    return (
-        <div className={"new-single-select-pane"}>
-            <Button
-                popoverTarget={id}
-                label={props.label}
-                className={classNames(props.className, "new-single-select-button")}
-                type={"button"}
-                hotkey={props.hotkey}
-            />
-            <div
-                id={id}
-                popover={"auto"}
-                tabIndex={-1}
-                className={"bg-gray-100 p-2 border-solid border-black border-2 z-50 new-single-select"}
-            >
-                <div key={form.state.values.selected} id="multiselect">
-                    <ol className={"space-y-2"}>
-                        <form.Subscribe
-                            selector={(state) => [state.values.selected]}
-                            children={([selected]) => {
-                                return (
-                                    <form.Field
-                                        name={"items"}
-                                        children={(itemsField) => {
-                                            return itemsField.state.value.map((item, idx) => (
-                                                <form.Field
-                                                    key={item}
-                                                    name={`items[${idx}]`}
-                                                    children={() => {
-                                                        const isChecked = item === selected;
-                                                        const onClick = () => {
-                                                            form.setFieldValue(
-                                                                "selected",
-                                                                isChecked ? null : item,
-                                                            );
-                                                        }
-                                                        return (<Choice item={item} isChecked={isChecked}
-                                                                        onClick={onClick}/>)
-                                                    }}
-                                                />
-                                            ));
-                                        }}
-                                    />
-                                );
-                            }}
+  return (
+    <div className={"new-single-select-pane"}>
+      <Button
+        popoverTarget={id}
+        label={props.label}
+        className={classNames(props.className, "new-single-select-button")}
+        type={"button"}
+        hotkey={props.hotkey}
+      />
+      <div
+        id={id}
+        popover={"auto"}
+        tabIndex={-1}
+        className={
+          "bg-gray-100 p-2 border-solid border-black border-2 z-50 new-single-select"
+        }
+      >
+        <div key={form.state.values.selected} id="multiselect">
+          <ol className={"space-y-2"}>
+            <form.Subscribe
+              selector={(state) => [state.values.selected]}
+              children={([selected]) => {
+                return (
+                  <form.Field
+                    name={"items"}
+                    children={(itemsField) => {
+                      return itemsField.state.value.map((item, idx) => (
+                        <form.Field
+                          key={item}
+                          name={`items[${idx}]`}
+                          children={() => {
+                            const isChecked = item === selected;
+                            const onClick = () => {
+                              form.setFieldValue(
+                                "selected",
+                                isChecked ? null : item,
+                              );
+                            };
+                            return (
+                              <Choice
+                                item={item}
+                                isChecked={isChecked}
+                                onClick={onClick}
+                              />
+                            );
+                          }}
                         />
-                    </ol>
-                    <Divider/>
-                    <div className={"space-y-2"}>
-                        <InputWithButton label={"+"} placeholder={"New aisle..."} onSubmit={(item) => {
-                            itemsField.pushValue(item)
-                        }}/>
-                        <ButtonGroup>
-                            <Button
-                                popoverTarget={id}
-                                popoverTargetAction={"hide"}
-                                label="Save"
-                                type="submit"
-                                hotkey="ctrl+s"
-                                onClick={() => {
-                                    void form.handleSubmit();
-                                }}
-                            />
-                            <Button
-                                label={"Reset"}
-                                hotkey={"ctrl+r"}
-                                type="button"
-                                onClick={() => {
-                                    form.reset();
-                                }}
-                            />
-                        </ButtonGroup>
-                    </div>
-                </div>
-            </div>
+                      ));
+                    }}
+                  />
+                );
+              }}
+            />
+          </ol>
+          <Divider />
+          <div className={"space-y-2"}>
+            <InputWithButton
+              label={"+"}
+              placeholder={"New aisle..."}
+              onSubmit={props.onNewItem}
+            />
+            <ButtonGroup>
+              <Button
+                popoverTarget={id}
+                popoverTargetAction={"hide"}
+                label="Save"
+                type="submit"
+                hotkey="ctrl+s"
+                onClick={() => {
+                  void form.handleSubmit();
+                }}
+              />
+              <Button
+                label={"Reset"}
+                hotkey={"ctrl+r"}
+                type="button"
+                onClick={() => {
+                  form.reset();
+                }}
+              />
+            </ButtonGroup>
+          </div>
         </div>
       </div>
     </div>
