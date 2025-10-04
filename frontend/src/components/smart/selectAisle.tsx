@@ -4,12 +4,13 @@ import {
   useSetIngredientAisle,
 } from "../../apis/ingredients.ts";
 import type {Shoppinglist} from "../../apis/shoppinglists.ts";
-import {useForm} from "@tanstack/react-form";
+import {useField, useForm} from "@tanstack/react-form";
 import {Button} from "../button.tsx";
 import {Divider} from "../divider.tsx";
 import {ButtonGroup} from "../buttonGroup.tsx";
 import {useId} from "@floating-ui/react";
 import classNames from "classnames";
+import { InputWithButton } from "../inputWithButton.tsx";
 
 export function SelectAisle(props: {
   token: string;
@@ -51,7 +52,6 @@ type Props = {
 
 function NewSingleSelect(props: Props) {
     const id = useId();
-    console.log(id)
     const form = useForm({
         defaultValues: {
             items: props.items,
@@ -60,6 +60,11 @@ function NewSingleSelect(props: Props) {
         onSubmit: ({value}) => {
             props.onItemsSelected(value.selected);
         },
+    });
+
+    const itemsField = useField({
+        form,
+        name: "items"
     });
 
     return (
@@ -91,38 +96,15 @@ function NewSingleSelect(props: Props) {
                                                     key={item}
                                                     name={`items[${idx}]`}
                                                     children={() => {
-                                                        const [first, ...remaining] = item;
-                                                        return (
-                                                            <li
-                                                                className={"flex flex-row gap-2"}
-                                                                key={item}
-                                                            >
-                                                                <input
-                                                                    type={"radio"}
-                                                                    name={`${props.label}-selection`}
-                                                                    className={"bg-white shadow w-5 h-5"}
-                                                                    id={item}
-                                                                    key={item}
-                                                                    checked={item === selected}
-                                                                    onClick={() => {
-                                                                        form.setFieldValue(
-                                                                            "selected",
-                                                                            item === selected ? null : item,
-                                                                        );
-                                                                    }}
-                                                                    readOnly={true}
-                                                                />
-                                                                <label
-                                                                    className={"no-colon"}
-                                                                    htmlFor={item}
-                                                                >
-                                      <span className={"font-bold"}>
-                                        {first}
-                                      </span>
-                                                                    {remaining.join("")}
-                                                                </label>
-                                                            </li>
-                                                        );
+                                                        const isChecked = item === selected;
+                                                        const onClick = () => {
+                                                            form.setFieldValue(
+                                                                "selected",
+                                                                isChecked ? null : item,
+                                                            );
+                                                        }
+                                                        return (<Choice item={item} isChecked={isChecked}
+                                                                        onClick={onClick}/>)
                                                     }}
                                                 />
                                             ));
@@ -133,27 +115,64 @@ function NewSingleSelect(props: Props) {
                         />
                     </ol>
                     <Divider/>
-                    <ButtonGroup>
-                        <Button
-                            label="Save"
-                            type="submit"
-                            hotkey="ctrl+s"
-                            onClick={() => {
-                                void form.handleSubmit();
-                            }}
-                        />
-                        <Button
-                            label={"Reset"}
-                            hotkey={"ctrl+r"}
-                            type="button"
-                            onClick={() => {
-                                form.reset();
-                            }}
-                        />
-                    </ButtonGroup>
+                    <div className={"space-y-2"}>
+                        <InputWithButton label={"+"} placeholder={"New aisle..."} onSubmit={(item) => {
+                            itemsField.pushValue(item)
+                        }}/>
+                        <ButtonGroup>
+                            <Button
+                                popoverTarget={id}
+                                popoverTargetAction={"hide"}
+                                label="Save"
+                                type="submit"
+                                hotkey="ctrl+s"
+                                onClick={() => {
+                                    void form.handleSubmit();
+                                }}
+                            />
+                            <Button
+                                label={"Reset"}
+                                hotkey={"ctrl+r"}
+                                type="button"
+                                onClick={() => {
+                                    form.reset();
+                                }}
+                            />
+                        </ButtonGroup>
+                    </div>
                 </div>
             </div>
         </div>
-    )
-        ;
+      </div>
+    </div>
+  );
+}
+
+function Choice({
+  item,
+  isChecked,
+  onClick,
+}: {
+  item: string;
+  isChecked: boolean;
+  onClick: () => void;
+}) {
+  const [first, ...remaining] = item;
+  return (
+    <li className={"flex flex-row gap-2"} key={item}>
+      <input
+        type={"radio"}
+        className={"bg-white shadow w-5 h-5"}
+        id={item}
+        key={item}
+        checked={isChecked}
+        onClick={onClick}
+        readOnly={true}
+      />
+      <label className={"no-colon"} htmlFor={item}>
+        <span className={"font-bold"}>{first}</span>
+        {remaining.join("")}
+      </label>
+    </li>
+  );
 }
