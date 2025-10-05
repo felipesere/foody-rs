@@ -65,7 +65,7 @@ pg-reset environment:
 
 pg-snapshot environment:
   #!/usr/bin/env bash
-  export PATH=/opt/homebrew/Cellar/libpq/17.2/bin:$PATH
+  export PATH=/opt/homebrew/Cellar/libpq/18.0/bin:$PATH
 
   set -euxo pipefail
   
@@ -79,7 +79,7 @@ pg-snapshot environment:
 
 pg-snapshot-restore environment:
   #!/usr/bin/env bash
-  export PATH=/opt/homebrew/Cellar/libpq/17.2/bin:$PATH
+  export PATH=/opt/homebrew/Cellar/libpq/18.0/bin:$PATH
 
   set -euxo pipefail
 
