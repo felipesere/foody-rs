@@ -274,19 +274,13 @@ function IngredientView(props: IngredientViewProps) {
           <ButtonGroup>
             <Button
               label={"Edit"}
-              hotkey={"ctrl+e"}
               onClick={() => {
                 setEdit((e) => !e);
               }}
               type={"button"}
               classNames={{ "border-amber-400": edit }}
             />
-            <Button
-              label={"Reset"}
-              hotkey={"ctrl+r"}
-              type="button"
-              onClick={() => {}}
-            />
+            <Button label={"Reset"} type="button" onClick={() => {}} />
           </ButtonGroup>
         </>
       )}

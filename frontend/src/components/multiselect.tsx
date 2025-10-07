@@ -1,5 +1,4 @@
 import { useForm } from "@tanstack/react-form";
-import { useHotkeys } from "react-hotkeys-hook";
 import { Button } from "./button.tsx";
 import { ButtonGroup } from "./buttonGroup.tsx";
 import { Divider } from "./divider.tsx";
@@ -114,7 +113,6 @@ function Checkbox(props: {
 }) {
   const { name, update, checked } = props;
   const [first, ...remaining] = name;
-  useHotkeys([first], update);
 
   return (
     <div className={"flex flex-row gap-2"} key={name}>

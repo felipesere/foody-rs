@@ -105,7 +105,6 @@ function InnerSelectAisle(props: Props) {
             />
             <Button
               label={"Reset"}
-              hotkey={"ctrl+r"}
               type="button"
               onClick={() => {
                 form.reset();

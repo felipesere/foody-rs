@@ -89,7 +89,7 @@ function Login() {
         <form.Field
           name="email"
           validators={{
-            onBlur: z.string().email(),
+            onBlur: z.email(),
           }}
           children={(emailField) => (
             <div>
@@ -238,7 +238,7 @@ function EditAislesForm(props: { token: string; aisles: Aisle[] }) {
           </tbody>
         </table>
         <ButtonGroup>
-          <Button label={"Save"} type={"submit"} hotkey={"ctrl+s"} />
+          <Button label={"Save"} type={"submit"} />
           <Button
             label={"Add row"}
             onClick={() =>
