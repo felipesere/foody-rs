@@ -1,16 +1,15 @@
+import { useForm } from "@tanstack/react-form";
 import { useAllAisles, useCreateAisle } from "../../apis/aisles.ts";
 import {
   type Ingredient,
   useSetIngredientAisle,
 } from "../../apis/ingredients.ts";
 import type { Shoppinglist } from "../../apis/shoppinglists.ts";
-import { useForm } from "@tanstack/react-form";
 import { Button } from "../button.tsx";
-import { Divider } from "../divider.tsx";
 import { ButtonGroup } from "../buttonGroup.tsx";
-import { useId } from "@floating-ui/react";
-import classNames from "classnames";
+import { Divider } from "../divider.tsx";
 import { InputWithButton } from "../inputWithButton.tsx";
+import { Popup } from "../popup.tsx";
 
 export function SelectAisle(props: {
   token: string;
@@ -27,31 +26,18 @@ export function SelectAisle(props: {
   }
 
   return (
-    <NewSingleSelect
-      label={"Select aisle"}
+    <InnerSelectAisle
       items={aisles.data.map((a) => a.name)}
       selected={props.currentAisle}
       onItemsSelected={(item) => setAisle.mutate({ aisle: item })}
       onNewItem={(item) => {
-        console.log(item);
         newAisle.mutate({ name: item });
       }}
     />
   );
 }
 
-type Props = {
-  label: string;
-  className?: string;
-  items: string[];
-  selected: string | null;
-  onItemsSelected: (item: string | null) => void;
-  onNewItem: (item: string) => void;
-  hotkey?: string;
-};
-
-function NewSingleSelect(props: Props) {
-  const id = useId();
+function InnerSelectAisle(props: Props) {
   const form = useForm({
     defaultValues: {
       items: props.items,
@@ -63,92 +49,81 @@ function NewSingleSelect(props: Props) {
   });
 
   return (
-    <div className={"new-single-select-pane"}>
-      <Button
-        popoverTarget={id}
-        label={props.label}
-        className={classNames(props.className, "new-single-select-button")}
-        type={"button"}
-        hotkey={props.hotkey}
-      />
-      <div
-        id={id}
-        popover={"auto"}
-        tabIndex={-1}
-        className={
-          "bg-gray-100 p-2 border-solid border-black border-2 z-50 new-single-select"
-        }
-      >
-        <div key={form.state.values.selected} id="multiselect">
-          <ol className={"space-y-2"}>
-            <form.Subscribe
-              selector={(state) => [state.values.selected]}
-              children={([selected]) => {
-                return (
-                  <form.Field
-                    name={"items"}
-                    children={(itemsField) => {
-                      return itemsField.state.value.map((item, idx) => (
-                        <form.Field
-                          key={item}
-                          name={`items[${idx}]`}
-                          children={() => {
-                            const isChecked = item === selected;
-                            const onClick = () => {
-                              form.setFieldValue(
-                                "selected",
-                                isChecked ? null : item,
-                              );
-                            };
-                            return (
-                              <Choice
-                                item={item}
-                                isChecked={isChecked}
-                                onClick={onClick}
-                              />
+    <Popup>
+      <Popup.OpenButton label={"Select Aisle"} />
+      <Popup.Pane>
+        <ol className={"space-y-2"}>
+          <form.Subscribe
+            selector={(state) => [state.values.selected]}
+            children={([selected]) => {
+              return (
+                <form.Field
+                  name={"items"}
+                  children={(itemsField) => {
+                    return itemsField.state.value.map((item, idx) => (
+                      <form.Field
+                        key={item}
+                        name={`items[${idx}]`}
+                        children={() => {
+                          const isChecked = item === selected;
+                          const onClick = () => {
+                            form.setFieldValue(
+                              "selected",
+                              isChecked ? null : item,
                             );
-                          }}
-                        />
-                      ));
-                    }}
-                  />
-                );
+                          };
+                          return (
+                            <Choice
+                              item={item}
+                              isChecked={isChecked}
+                              onClick={onClick}
+                            />
+                          );
+                        }}
+                      />
+                    ));
+                  }}
+                />
+              );
+            }}
+          />
+        </ol>
+        <Divider />
+        <div className={"space-y-2"}>
+          <InputWithButton
+            label={"+"}
+            placeholder={"New aisle..."}
+            onSubmit={props.onNewItem}
+          />
+          <ButtonGroup>
+            <Popup.CloseButton
+              label="Save"
+              type="submit"
+              onClick={() => {
+                void form.handleSubmit();
               }}
             />
-          </ol>
-          <Divider />
-          <div className={"space-y-2"}>
-            <InputWithButton
-              label={"+"}
-              placeholder={"New aisle..."}
-              onSubmit={props.onNewItem}
+            <Button
+              label={"Reset"}
+              hotkey={"ctrl+r"}
+              type="button"
+              onClick={() => {
+                form.reset();
+              }}
             />
-            <ButtonGroup>
-              <Button
-                popoverTarget={id}
-                popoverTargetAction={"hide"}
-                label="Save"
-                type="submit"
-                hotkey="ctrl+s"
-                onClick={() => {
-                  void form.handleSubmit();
-                }}
-              />
-              <Button
-                label={"Reset"}
-                hotkey={"ctrl+r"}
-                type="button"
-                onClick={() => {
-                  form.reset();
-                }}
-              />
-            </ButtonGroup>
-          </div>
+          </ButtonGroup>
         </div>
-      </div>
-    </div>
+      </Popup.Pane>
+    </Popup>
   );
 }
+
+type Props = {
+  items: string[];
+  selected: string | null;
+  onItemsSelected: (item: string | null) => void;
+  onNewItem: (item: string) => void;
+};
 
 function Choice({
   item,

@@ -27,8 +27,10 @@ export function Popup(props: PropsWithChildren<{}>) {
 interface ButtonProps {
   label: string;
   className?: string;
+  onClick?: () => void;
+  type?: "button" | "submit" | "reset";
 }
-function Button(props: ButtonProps) {
+function OpenButton(props: ButtonProps) {
   const { targetId } = useContext(PopupContext);
 
   return (
@@ -36,7 +38,10 @@ function Button(props: ButtonProps) {
       popoverTarget={targetId}
       label={props.label}
       className={classNames(props.className, "new-single-select-button")}
-      type={"button"}
+      type={props.type || "button"}
+      onClick={() => {
+        props.onClick?.();
+      }}
     />
   );
 }
@@ -50,25 +55,13 @@ function CloseButton(props: ButtonProps) {
       popoverTargetAction={"hide"}
       label={props.label}
       className={props.className}
-      type={"button"}
+      type={props.type || "button"}
+      onClick={() => {
+        props.onClick?.();
+      }}
     />
   );
 }
-
-/*
-function OtherButton(props: ButtonProps) {
-  const { hidePopover } = useContext(PopupContext);
-
-  return (
-    <InnerButton
-      label={props.label}
-      className={props.className}
-      type={"button"}
-      onClick={() => hidePopover()}
-    />
-  );
-}
-*/
 
 interface PaneProps {}
 function Pane(props: PropsWithChildren<PaneProps>) {
@@ -87,36 +80,6 @@ function Pane(props: PropsWithChildren<PaneProps>) {
   );
 }
 
-Popup.Button = Button;
+Popup.OpenButton = OpenButton;
 Popup.CloseButton = CloseButton;
 Popup.Pane = Pane;
-
-/*
-function NewSingleSelect() {
-  return (
-    <Popup>
-      <Button label={"something"} />
-      <Pane>
-        <p>Some Big Thing...</p>
-        <Divider />
-        <div className={"space-y-2"}>
-          <InputWithButton
-            label={"+"}
-            placeholder={"New aisle..."}
-            onSubmit={() => {}}
-          />
-          <ButtonGroup>
-            <CloseButton label="Save" />
-            <InnerButton
-              label={"Reset"}
-              hotkey={"ctrl+r"}
-              type="button"
-              onClick={() => {}}
-            />
-          </ButtonGroup>
-        </div>
-      </Pane>
-    </Popup>
-  );
-}
- */
