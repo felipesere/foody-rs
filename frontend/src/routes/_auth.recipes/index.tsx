@@ -106,7 +106,6 @@ export function RecipesPage() {
                 },
               });
             }}
-            hotkey={"ctrl+t"}
           />
           <ul className={"flex flex-row gap-2"}>
             {(search?.tags || []).map((tag) => (
@@ -147,7 +146,6 @@ export function RecipesPage() {
                 },
               });
             }}
-            hotkey={"ctrl+b"}
           />
 
           <ul className={"flex flex-row gap-2"}>

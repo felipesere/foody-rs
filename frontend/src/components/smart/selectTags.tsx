@@ -31,7 +31,6 @@ export function SelectTags(props: {
       onNewItem={(value) => {
         setTags.mutate({ tags: [...props.currentTags, value] });
       }}
-      hotkey={"ctrl+t"}
     />
   );
 }

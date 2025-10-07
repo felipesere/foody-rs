@@ -1,5 +1,5 @@
-import { Button } from "./button.tsx";
 import { useRef } from "react";
+import { Button } from "./button.tsx";
 
 interface Props {
   label: string;

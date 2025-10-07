@@ -122,7 +122,6 @@ function IngredientsPage() {
                 }),
               });
             }}
-            hotkey={"ctrl+t"}
           />
           <MultiSelect
             label={"Select aisle"}
@@ -136,7 +135,6 @@ function IngredientsPage() {
                 }),
               });
             }}
-            hotkey={"ctrl+a"}
           />
         </FieldSet>
       </FieldSet>
