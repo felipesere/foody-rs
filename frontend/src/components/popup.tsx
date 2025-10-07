@@ -25,7 +25,7 @@ export function Popup(props: PropsWithChildren<{}>) {
   };
   return (
     <PopupContext.Provider value={{ targetId: id, hidePopover }}>
-      <div className={"new-single-select-pane"}>{props.children}</div>;
+      <div className={"new-single-select-pane"}>{props.children}</div>
     </PopupContext.Provider>
   );
 }
@@ -70,7 +70,9 @@ function CloseButton(props: ButtonProps) {
   );
 }
 
-interface PaneProps {}
+interface PaneProps {
+  className?: string;
+}
 function Pane(props: PropsWithChildren<PaneProps>) {
   const { targetId } = useContext(PopupContext);
   return (
@@ -78,9 +80,10 @@ function Pane(props: PropsWithChildren<PaneProps>) {
       id={targetId}
       popover={"auto"}
       tabIndex={-1}
-      className={
-        "bg-gray-100 p-2 border-solid border-black border-2 z-50 new-single-select"
-      }
+      className={classNames(
+        "bg-gray-100 p-2 border-solid border-black border-2 z-50 new-single-select",
+        props.className,
+      )}
     >
       {props.children}
     </div>
