@@ -1,6 +1,12 @@
-import { useId } from "@floating-ui/react";
 import classNames from "classnames";
-import { createContext, PropsWithChildren, useContext, useRef } from "react";
+import {
+  createContext,
+  MouseEventHandler,
+  PropsWithChildren,
+  useContext,
+  useId,
+  useRef,
+} from "react";
 import { Button as InnerButton } from "./button";
 
 export const PopupContext = createContext({
@@ -9,7 +15,7 @@ export const PopupContext = createContext({
 });
 
 export function Popup(props: PropsWithChildren<{}>) {
-  const id = useId()!;
+  const id = useId();
   const popoverElementRef = useRef<HTMLDivElement | null>(null);
   // do I need to worry about useMemo and stuff?
   const hidePopover = () => {
@@ -27,9 +33,10 @@ export function Popup(props: PropsWithChildren<{}>) {
 interface ButtonProps {
   label: string;
   className?: string;
-  onClick?: () => void;
+  onClick?: MouseEventHandler<HTMLButtonElement> | undefined;
   type?: "button" | "submit" | "reset";
 }
+
 function OpenButton(props: ButtonProps) {
   const { targetId } = useContext(PopupContext);
 
@@ -39,8 +46,8 @@ function OpenButton(props: ButtonProps) {
       label={props.label}
       className={classNames(props.className, "new-single-select-button")}
       type={props.type || "button"}
-      onClick={() => {
-        props.onClick?.();
+      onClick={(ev) => {
+        props.onClick?.(ev);
       }}
     />
   );
@@ -56,8 +63,8 @@ function CloseButton(props: ButtonProps) {
       label={props.label}
       className={props.className}
       type={props.type || "button"}
-      onClick={() => {
-        props.onClick?.();
+      onClick={(event) => {
+        props.onClick?.(event);
       }}
     />
   );
