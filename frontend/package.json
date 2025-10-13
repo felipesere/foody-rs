@@ -39,7 +39,7 @@
     "@biomejs/biome": "^2",
     "@graphql-codegen/cli": "^5.0.7",
     "@graphql-codegen/client-preset": "^4.8.3",
-    "@playwright/test": "^1.52.0",
+    "@playwright/test": "^1.56.0",
     "@tanstack/router-vite-plugin": "^1.120.5",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.3",
