@@ -56,4 +56,4 @@ insta = { version = "1.34.0", features = [
 ] }
 
 [workspace.dependencies]
-loco-rs = { version = "0.16.0" }
+loco-rs = { git = "https://github.com/loco-rs/loco.git"  }
