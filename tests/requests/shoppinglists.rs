@@ -120,7 +120,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             ".last_updated" => "[date]",
             ".**.id" => "[redactored]",
         },
-        @r###"
+        @r#"
         {
           "id": "[redactored]",
           "ingredients": [
@@ -129,6 +129,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redactored]",
                 "name": "bananas",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -148,7 +149,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "last_updated": "[date]",
           "name": "testing-shopping-list"
         }
-        "###);
+        "#);
 
         // then we mark the ingredient as being in the basket
         let res = request
@@ -168,7 +169,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             ".last_updated" => "[date]",
             ".**.id" => "[redactored]",
         },
-        @r###"
+        @r#"
         {
           "id": "[redactored]",
           "ingredients": [
@@ -177,6 +178,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redactored]",
                 "name": "bananas",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -196,7 +198,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "last_updated": "[date]",
           "name": "testing-shopping-list"
         }
-        "###);
+        "#);
 
         let res = request.get("/api/recipes").await;
         assert_eq!(res.status_code(), 200);
@@ -228,7 +230,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             ".**.id" => "[redacted]",
             ".**.recipe_id" => replace_value_with("[recipe_id]"),
         },
-        @r###"
+        @r#"
         {
           "id": "[redacted]",
           "ingredients": [
@@ -237,6 +239,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "double cream",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -257,6 +260,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "leeks",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -277,6 +281,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "parmesan shavings",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -297,6 +302,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "puff pastry",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -317,6 +323,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "bananas",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -336,7 +343,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "last_updated": "[date]",
           "name": "testing-shopping-list"
         }
-        "###);
+        "#);
 
         let res = request
             .delete(&format!("/api/shoppinglists/{id}/ingredient"))
@@ -355,7 +362,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             ".**.id" => "[redactor]",
             ".**.recipe_id" => replace_value_with("[recipe_id]"),
         },
-        @r###"
+        @r#"
         {
           "id": "[redactor]",
           "ingredients": [
@@ -364,6 +371,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redactor]",
                 "name": "double cream",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -384,6 +392,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redactor]",
                 "name": "leeks",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -404,6 +413,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redactor]",
                 "name": "parmesan shavings",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -424,6 +434,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redactor]",
                 "name": "puff pastry",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -443,7 +454,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "last_updated": "[date]",
           "name": "testing-shopping-list"
         }
-        "###);
+        "#);
 
         let parmesan_shavings = list
             .get("ingredients")
@@ -479,7 +490,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             ".**.id" => "[redacted]",
             ".**.recipe_id" => replace_value_with("[recipe_id]"),
         },
-        @r###"
+        @r#"
         {
           "id": "[redacted]",
           "ingredients": [
@@ -488,6 +499,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "double cream",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -508,6 +520,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "leeks",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -528,6 +541,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "parmesan shavings",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -557,6 +571,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "puff pastry",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -576,7 +591,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "last_updated": "[date]",
           "name": "testing-shopping-list"
         }
-        "###);
+        "#);
 
         let res = request
             .delete(&format!("/api/shoppinglists/{id}/quantity/21"))
@@ -591,7 +606,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             ".**.id" => "[redacted]",
             ".**.recipe_id" => replace_value_with("[recipe_id]"),
         },
-        @r###"
+        @r#"
         {
           "id": "[redacted]",
           "ingredients": [
@@ -600,6 +615,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "double cream",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -620,6 +636,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "leeks",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -640,6 +657,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "parmesan shavings",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -669,6 +687,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "puff pastry",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -688,7 +707,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "last_updated": "[date]",
           "name": "testing-shopping-list"
         }
-        "###);
+        "#);
 
         let res = request.get("/api/recipes").await;
         assert_eq!(res.status_code(), 200);
@@ -720,7 +739,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
             ".**.id" => "[redacted]",
             ".**.recipe_id" => replace_value_with("[recipe_id]"),
         },
-        @r###"
+        @r#"
         {
           "id": "[redacted]",
           "ingredients": [
@@ -729,6 +748,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "chicken breasts",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -749,6 +769,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "double cream",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -769,6 +790,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "fresh salsa",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -789,6 +811,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "garlic",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -809,6 +832,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "ground coriander",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -829,6 +853,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "ground cumin",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -849,6 +874,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "leeks",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -869,6 +895,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "lime",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -889,6 +916,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "mixed salad",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -909,6 +937,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "olive oil",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -929,6 +958,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "parmesan shavings",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -958,6 +988,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "puff pastry",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -978,6 +1009,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "red chilli",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -998,6 +1030,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "red onion",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -1018,6 +1051,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "red pepper",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -1038,6 +1072,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "smoked paprika",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -1058,6 +1093,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "tabasco",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -1078,6 +1114,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
                 "aisle": null,
                 "id": "[redacted]",
                 "name": "tortilla",
+                "stored_in": null,
                 "tags": []
               },
               "note": null,
@@ -1097,7 +1134,7 @@ async fn create_a_shoppinglist_and_add_ingredients() {
           "last_updated": "[date]",
           "name": "testing-shopping-list"
         }
-        "###);
+        "#);
     })
     .await;
 }

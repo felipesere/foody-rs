@@ -69,6 +69,7 @@ pub async fn all_recipes(auth: auth::JWT, State(ctx): State<AppContext>) -> Resu
                             name: ingredient.name,
                             aisle: aisle.map(AisleResponse::from),
                             tags: Vec::new(),
+                            stored_in: None,
                         },
                         quantity: vec![QuantityResponse {
                             id: quantity.id,
@@ -117,6 +118,7 @@ pub async fn recipe(
                         name: ingredient.name,
                         aisle: aisle.map(AisleResponse::from),
                         tags: Vec::new(),
+                        stored_in: None,
                     },
                     quantity: vec![QuantityResponse {
                         id: quantity.id,
@@ -297,6 +299,7 @@ pub async fn create_recipe(
                         name: ingredient.name,
                         aisle: aisle.map(AisleResponse::from),
                         tags: Vec::new(),
+                        stored_in: None,
                     },
                     quantity: vec![QuantityResponse {
                         id: quantity.id,
@@ -515,6 +518,7 @@ pub async fn edit_recipe(
                         name: ingredient.name,
                         aisle: aisle.map(AisleResponse::from),
                         tags: Vec::new(),
+                        stored_in: None,
                     },
                     quantity: vec![QuantityResponse {
                         id: quantity.id,

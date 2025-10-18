@@ -37,6 +37,7 @@ mod m20250119_144448_copy_tags_data_to_new_columns_and_table;
 mod m20250119_152408_remove_tags_table;
 mod m20251018_134742_storages;
 mod m20251018_204736_add_storage_ref_to_ingredients;
+mod m20251018_215237_add_storage_locations;
 pub struct Migrator;
 
 #[async_trait::async_trait]
@@ -77,6 +78,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20250119_152408_remove_tags_table::Migration),
             Box::new(m20251018_134742_storages::Migration),
             Box::new(m20251018_204736_add_storage_ref_to_ingredients::Migration),
+            Box::new(m20251018_215237_add_storage_locations::Migration),
             // inject-above (do not remove this comment)
         ]
     }

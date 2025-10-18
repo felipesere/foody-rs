@@ -24,6 +24,12 @@ pub struct AisleResponse {
     pub order: i16,
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct StorageResponse {
+    pub name: String,
+    pub order: i16,
+}
+
 impl From<PartialAisle> for AisleResponse {
     fn from(value: PartialAisle) -> Self {
         Self {
@@ -39,6 +45,7 @@ pub struct IngredientResponse {
     pub name: String,
     pub aisle: Option<AisleResponse>,
     pub tags: Vec<String>,
+    pub stored_in: Option<StorageResponse>,
 }
 
 impl From<(Ingredient, Option<AisleRef>)> for IngredientResponse {
@@ -51,6 +58,7 @@ impl From<(Ingredient, Option<AisleRef>)> for IngredientResponse {
                 name: a.name,
                 order: a.order,
             }),
+            stored_in: None,
         }
     }
 }
