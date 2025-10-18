@@ -4,23 +4,24 @@ use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
-#[sea_orm(table_name = "shoppinglists")]
+#[sea_orm(table_name = "storages")]
 pub struct Model {
-    pub created_at: DateTime,
-    pub updated_at: DateTime,
+    pub created_at: DateTimeWithTimeZone,
+    pub updated_at: DateTimeWithTimeZone,
     #[sea_orm(primary_key)]
     pub id: i32,
     pub name: String,
+    pub order: i16,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
-    #[sea_orm(has_many = "super::ingredients_in_shoppinglists::Entity")]
-    IngredientsInShoppinglists,
+    #[sea_orm(has_many = "super::ingredients::Entity")]
+    Ingredients,
 }
 
-impl Related<super::ingredients_in_shoppinglists::Entity> for Entity {
+impl Related<super::ingredients::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::IngredientsInShoppinglists.def()
+        Relation::Ingredients.def()
     }
 }

@@ -8,10 +8,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::{
     _entities::{
-        aisles::{self, PartialAisle},
+        aisles::{self},
         ingredients, ingredients_in_recipes, ingredients_in_shoppinglists,
     },
-    aisles::{AisleRef, Model as Aisle},
+    aisles::{AisleRef, Model as Aisle, PartialAisle},
     ingredients::Model as Ingredient,
     users,
 };

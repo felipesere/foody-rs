@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::models::_entities::aisles::PartialAisle;
+use crate::models::aisles::PartialAisle;
 
 use super::_entities::ingredients::Model as Ingredient;
 use super::_entities::quantities::Model as Quantity;
