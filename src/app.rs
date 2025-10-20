@@ -50,6 +50,7 @@ impl Hooks for App {
 
     fn routes(_ctx: &AppContext) -> AppRoutes {
         AppRoutes::with_default_routes()
+            .add_route(controllers::storage::routes())
             .add_route(controllers::recipes::routes())
             .add_route(controllers::shoppinglists::routes())
             .add_route(controllers::ingredients::routes())

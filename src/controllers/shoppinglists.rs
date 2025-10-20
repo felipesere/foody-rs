@@ -272,7 +272,7 @@ pub async fn shoppinglist(
                      note,
                      aisle,
                  }| ShoppinglistIngredient {
-                    ingredient: IngredientResponse::from((ingredient, aisle)),
+                    ingredient: IngredientResponse::from((ingredient, aisle, None)),
                     note,
                     quantities: quantities
                         .into_iter()

@@ -6,3 +6,5 @@ pub mod ingredients;
 pub mod shoppinglists;
 
 pub mod recipes;
+
+pub mod storage;

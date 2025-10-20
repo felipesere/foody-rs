@@ -13,6 +13,7 @@ use crate::models::{
     },
     aisles::{AisleRef, Model as Aisle, PartialAisle},
     ingredients::Model as Ingredient,
+    storages::{self, Model as Storage},
     users,
 };
 
@@ -48,8 +49,8 @@ pub struct IngredientResponse {
     pub stored_in: Option<StorageResponse>,
 }
 
-impl From<(Ingredient, Option<AisleRef>)> for IngredientResponse {
-    fn from((value, aisle): (Ingredient, Option<AisleRef>)) -> Self {
+impl From<(Ingredient, Option<AisleRef>, Option<Storage>)> for IngredientResponse {
+    fn from((value, aisle, stored_in): (Ingredient, Option<AisleRef>, Option<Storage>)) -> Self {
         Self {
             id: value.id,
             name: value.name,
@@ -58,7 +59,10 @@ impl From<(Ingredient, Option<AisleRef>)> for IngredientResponse {
                 name: a.name,
                 order: a.order,
             }),
-            stored_in: None,
+            stored_in: stored_in.map(|s| StorageResponse {
+                name: s.name,
+                order: s.order,
+            }),
         }
     }
 }
@@ -67,15 +71,16 @@ pub async fn all_ingredients(auth: auth::JWT, State(ctx): State<AppContext>) -> 
     // check auth
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
-    let igs: Vec<(Ingredient, Option<Aisle>)> = ingredients::Entity::find()
+    let igs: Vec<(Ingredient, Option<Aisle>, Option<Storage>)> = ingredients::Entity::find()
         .find_also_related(aisles::Entity)
+        .find_also_related(storages::Entity)
         .all(&ctx.db)
         .await?;
 
     format::json(
         igs.into_iter()
-            .map(|(ingreient, aisle)| {
-                IngredientResponse::from((ingreient, aisle.map(AisleRef::from)))
+            .map(|(ingredient, aisle, stored_in)| {
+                IngredientResponse::from((ingredient, aisle.map(AisleRef::from), stored_in))
             })
             .collect::<Vec<_>>(),
     )
@@ -108,7 +113,7 @@ pub async fn add_ingredient(
     match ingredient_outcome {
         Ok(ingredient) => {
             tx.commit().await?;
-            format::json(IngredientResponse::from((ingredient, None)))
+            format::json(IngredientResponse::from((ingredient, None, None)))
         }
         Err(other_err) => {
             if let Some(SqlErr::UniqueConstraintViolation(_)) = other_err.sql_err() {
@@ -120,7 +125,7 @@ pub async fn add_ingredient(
                     .await?
                     .ok_or(Error::NotFound)?;
 
-                return format::json(IngredientResponse::from((ingredient, None)));
+                return format::json(IngredientResponse::from((ingredient, None, None)));
             }
             tx.rollback().await?;
             Err(loco_rs::Error::DB(other_err))
@@ -173,7 +178,6 @@ async fn set_aisle_in_ingredient(
         }
         None => None,
     };
-
     ingredients::Entity::update_many()
         .col_expr(
             ingredients::Column::Aisle,
@@ -257,6 +261,31 @@ pub async fn all_ingredients_tags(
     format::json(TagsResponse { tags: unique_tags })
 }
 
+#[derive(Deserialize)]
+struct SetStoredInParams {
+    id: Option<i32>,
+}
+
+async fn set_ingredient_stored_in(
+    auth: auth::JWT,
+    State(ctx): State<AppContext>,
+    Path(id): Path<i32>,
+    extract::Json(params): extract::Json<SetStoredInParams>,
+) -> Result<()> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    ingredients::Entity::update_many()
+        .col_expr(
+            ingredients::Column::StoredIn,
+            SimpleExpr::Value(Value::Int(params.id)),
+        )
+        .filter(ingredients::Column::Id.eq(id))
+        .exec(&ctx.db)
+        .await?;
+
+    Ok(())
+}
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("api/ingredients")
@@ -265,5 +294,6 @@ pub fn routes() -> Routes {
         .add("/tags", get(all_ingredients_tags))
         .add("/{id}/tags", post(set_tags_in_ingredient))
         .add("/{id}/aisle", post(set_aisle_in_ingredient))
+        .add("/{id}/storage", post(set_ingredient_stored_in))
         .add("/merge", post(merge_ingredients))
 }

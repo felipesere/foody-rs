@@ -20,3 +20,5 @@ pub mod graphql;
 pub struct TagsResponse {
     tags: HashSet<String>,
 }
+
+pub mod storage;
