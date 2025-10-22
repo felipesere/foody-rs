@@ -1,5 +1,5 @@
+pub use super::_entities::storages::{ActiveModel, Entity, Model};
 use sea_orm::entity::prelude::*;
-pub use super::_entities::storages::{ActiveModel, Model, Entity};
 pub type Storages = Entity;
 
 #[async_trait::async_trait]
@@ -24,5 +24,8 @@ impl Model {}
 // implement your write-oriented logic here
 impl ActiveModel {}
 
-// implement your custom finders, selectors oriented logic here
-impl Entity {}
+impl Entity {
+    pub async fn all<C: ConnectionTrait>(db: &C) -> Result<Vec<Model>, DbErr> {
+        Entity::find().all(db).await
+    }
+}

@@ -4,6 +4,7 @@ use sea_orm::{entity::prelude::*, QuerySelect, Statement};
 
 pub use super::_entities::ingredients::{self, ActiveModel, Entity, Model};
 
+pub type Ingredient = Entity;
 impl ActiveModelBehavior for ActiveModel {
     // extend activemodel below (keep comment for generators)
 }
