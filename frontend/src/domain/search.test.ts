@@ -13,6 +13,7 @@ const recipes: Recipe[] = [
           name: "potatoes",
           tags: [],
           aisle: null,
+          stored_in: null,
         },
         quantity: [
           {
@@ -28,6 +29,7 @@ const recipes: Recipe[] = [
           name: "cheese",
           tags: [],
           aisle: null,
+          stored_in: null,
         },
         quantity: [
           {
@@ -57,6 +59,7 @@ const recipes: Recipe[] = [
           name: "Strawberry",
           tags: [],
           aisle: null,
+          stored_in: null,
         },
         quantity: [
           {
@@ -72,6 +75,7 @@ const recipes: Recipe[] = [
           name: "Sweet potato",
           tags: [],
           aisle: null,
+          stored_in: null,
         },
         quantity: [
           {

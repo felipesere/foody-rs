@@ -3,6 +3,7 @@ import { z } from "zod";
 import { http } from "./http.ts";
 import type { Quantity } from "./recipes.ts";
 import type { Shoppinglist } from "./shoppinglists.ts";
+import { StorageSchema } from "./storage.ts";
 
 const AisleSchema = z.object({
   name: z.string(),
@@ -15,6 +16,7 @@ export const IngredientSchema = z.object({
   name: z.string(),
   tags: z.array(z.string()),
   aisle: z.nullable(AisleSchema),
+  stored_in: z.nullable(StorageSchema),
 });
 
 export type Ingredient = z.infer<typeof IngredientSchema>;
@@ -179,6 +181,35 @@ export function useSetIngredientAisle(
           queryKey: ["shoppinglist", invalidate.shoppinglistId],
         });
       }
+      return client.invalidateQueries({ queryKey: ["ingredients"] });
+    },
+  });
+}
+
+type SetStorageParams = {
+  id: Storage["id"];
+};
+
+export function useSetIngredientStorage(
+  token: string,
+  ingredient: Ingredient["id"],
+) {
+  const client = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id }: SetStorageParams) => {
+      await http
+        .post(`api/ingredients/${ingredient}/storage`, {
+          json: {
+            id,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .json();
+    },
+    onSettled: async () => {
       return client.invalidateQueries({ queryKey: ["ingredients"] });
     },
   });

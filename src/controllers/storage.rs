@@ -22,6 +22,7 @@ pub async fn index(auth: auth::JWT, State(ctx): State<AppContext>) -> Result<Res
         storage: storage_locations
             .into_iter()
             .map(|s| StorageResponse {
+                id: s.id,
                 name: s.name,
                 order: s.order,
             })

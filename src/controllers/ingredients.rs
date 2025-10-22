@@ -27,6 +27,7 @@ pub struct AisleResponse {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct StorageResponse {
+    pub id: i32,
     pub name: String,
     pub order: i16,
 }
@@ -60,6 +61,7 @@ impl From<(Ingredient, Option<AisleRef>, Option<Storage>)> for IngredientRespons
                 order: a.order,
             }),
             stored_in: stored_in.map(|s| StorageResponse {
+                id: s.id,
                 name: s.name,
                 order: s.order,
             }),

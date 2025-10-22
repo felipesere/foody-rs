@@ -271,6 +271,11 @@ function IngredientView(props: IngredientViewProps) {
             )}
           </div>
           <Divider />
+          <div className={"flex flex-row gap-4"}>
+            <p>Stored in:</p>
+            {props.ingredient.stored_in?.name || "None"}
+          </div>
+          <Divider />
           <ButtonGroup>
             <Button
               label={"Edit"}

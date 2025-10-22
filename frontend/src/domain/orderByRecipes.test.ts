@@ -16,6 +16,7 @@ function _ingredient(
       name,
       tags: [],
       aisle: null,
+      stored_in: null,
     },
     quantities,
     note: null,
