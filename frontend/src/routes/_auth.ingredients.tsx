@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import classnames from "classnames";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import {
@@ -8,8 +8,10 @@ import {
   type Ingredient,
   useAllIngredients,
   useAllIngredientTags,
+  useSetIngredientStorage,
   useSetIngredientTags,
 } from "../apis/ingredients.ts";
+import { type Storage, useAllStorages } from "../apis/storage.ts";
 import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
@@ -22,6 +24,12 @@ import { SelectTags } from "../components/smart/selectTags.tsx";
 import { TagsTable } from "../components/tags.tsx";
 import { ToggleButton } from "../components/toggle.tsx";
 import { orderByTag } from "../domain/orderByTag.ts";
+import {
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
 
 const ingredientSearchSchema = z.object({
   search: z
@@ -30,7 +38,7 @@ const ingredientSearchSchema = z.object({
       aisle: z.array(z.string()).optional(),
     })
     .optional(),
-  massEditTags: z.boolean().optional(),
+  massEdit: z.union([z.literal("tags"), z.literal("storedIn")]).optional(),
 });
 
 type IngredientSearch = z.infer<typeof ingredientSearchSchema>;
@@ -62,7 +70,7 @@ function updateSearch(change: IngredientSearch["search"]) {
 
 function IngredientsPage() {
   const { token } = Route.useRouteContext();
-  const { search, massEditTags } = Route.useSearch();
+  const { search, massEdit } = Route.useSearch();
   const navigate = useNavigate({ from: Route.path });
   const ingredients = useAllIngredients(token);
   const allTags = useAllIngredientTags(token);
@@ -102,7 +110,21 @@ function IngredientsPage() {
                 search: (params) => {
                   return {
                     ...params,
-                    massEditTags: massEditTags ? undefined : true,
+                    massEdit: massEdit === "tags" ? undefined : "tags",
+                  };
+                },
+              })
+            }
+          />
+          <Button
+            label={"Mass edit storage locations"}
+            onClick={() =>
+              navigate({
+                to: ".",
+                search: (params) => {
+                  return {
+                    ...params,
+                    massEdit: massEdit === "storedIn" ? undefined : "storedIn",
                   };
                 },
               })
@@ -138,9 +160,13 @@ function IngredientsPage() {
           />
         </FieldSet>
       </FieldSet>
-      {massEditTags ? (
+      {massEdit === "tags" && (
         <MassEditTags token={token} ingredients={filteredIngredients} />
-      ) : (
+      )}
+      {massEdit === "storedIn" && (
+        <MassEditStoredIn token={token} ingredients={filteredIngredients} />
+      )}
+      {massEdit === undefined && (
         <Overview token={token} ingredients={filteredIngredients} />
       )}
     </div>
@@ -339,5 +365,124 @@ function MassEditTags(props: { token: string; ingredients: Ingredient[] }) {
         }}
       />
     </div>
+  );
+}
+
+function MassEditStoredIn(props: { token: string; ingredients: Ingredient[] }) {
+  let ingredients = props.ingredients;
+
+  const knownStorageLocations = useAllStorages(props.token);
+  const updateStorageLocation = useSetIngredientStorage(props.token);
+
+  if (!knownStorageLocations.data || knownStorageLocations.isLoading) {
+    return "Loading";
+  }
+
+  let storageLocations = knownStorageLocations.data.sort(
+    (a, b) => a?.name.localeCompare(b?.name || "") || 0,
+  );
+
+  return (
+    <div className={"mt-4"}>
+      <StoredInTable
+        batchEdit={true}
+        items={ingredients}
+        knownStorageLocations={storageLocations}
+        toggleStorageLocation={(ingredient, id) => {
+          updateStorageLocation.mutate({ id, ingredient });
+        }}
+      />
+    </div>
+  );
+}
+
+// Shamelessly duplicated
+// TODO: Come back to this!
+export function StoredInTable(props: {
+  items: Ingredient[];
+  knownStorageLocations: Storage[];
+  toggleStorageLocation: (
+    ingredient: Ingredient["id"],
+    id: Storage["id"] | null,
+  ) => void;
+  batchEdit: boolean;
+}) {
+  const batchEdit = props.batchEdit;
+  const knownStorageLocations = props.knownStorageLocations;
+  const toggleStorage = props.toggleStorageLocation;
+  const helper = createColumnHelper<Ingredient>();
+
+  const columns = useMemo(
+    () => [
+      helper.accessor("name", {
+        header: "Name",
+        cell: (cell) => <td className={"p-2"}>{cell.row.original.name}</td>,
+      }),
+      helper.accessor("tags", {
+        header: "Tags",
+        cell: (cell) => {
+          const ingredient = cell.row.original;
+          let togglableStorageLocations = knownStorageLocations.map((t) => {
+            const isStoredIn = ingredient.stored_in?.id === t.id;
+            const color = isStoredIn ? `text-black` : `text-gray-400`;
+            const newStorageId = isStoredIn ? null : t.id;
+
+            return (
+              <span
+                onClick={() => toggleStorage(ingredient.id, newStorageId)}
+                className={`bg-white border-2 px-2 mr-2 ${color}`}
+              >
+                {t.name}
+              </span>
+            );
+          });
+          let ownStorageLocation =
+            ingredient.stored_in === null ? (
+              ""
+            ) : (
+              <span className={`bg-white border-2 px-2 mr-2`}>
+                {ingredient.stored_in.name}
+              </span>
+            );
+          return (
+            <td className={"p-2 flex flex-row gap-2 flex-wrap"}>
+              {batchEdit ? togglableStorageLocations : ownStorageLocation}
+            </td>
+          );
+        },
+      }),
+    ],
+    [helper, batchEdit, knownStorageLocations],
+  );
+
+  const table = useReactTable({
+    columns,
+    data: props.items,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
+  return (
+    <table className={"w-full border-spacing-2 border-collapse text-left"}>
+      <thead>
+        <tr>
+          <th className={"p-2"}>Name</th>
+          <th className={"p-2"}>Stored In</th>
+        </tr>
+      </thead>
+      <tbody>
+        {table.getRowModel().rows.map((row) => (
+          <tr
+            key={row.id}
+            className={"hover:bg-slate-400 even:bg-gray-100 odd:bg-white"}
+          >
+            {row
+              .getVisibleCells()
+              .map((cell) =>
+                flexRender(cell.column.columnDef.cell, cell.getContext()),
+              )}
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }

@@ -187,17 +187,15 @@ export function useSetIngredientAisle(
 }
 
 type SetStorageParams = {
-  id: Storage["id"];
+  ingredient: Ingredient["id"];
+  id?: Storage["id"];
 };
 
-export function useSetIngredientStorage(
-  token: string,
-  ingredient: Ingredient["id"],
-) {
+export function useSetIngredientStorage(token: string) {
   const client = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id }: SetStorageParams) => {
+    mutationFn: async ({ id, ingredient }: SetStorageParams) => {
       await http
         .post(`api/ingredients/${ingredient}/storage`, {
           json: {

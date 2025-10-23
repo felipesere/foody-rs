@@ -10,7 +10,7 @@ export const StorageSchema = z.object({
 export type Storage = z.infer<typeof StorageSchema>;
 
 const StoragesSchema = z.object({
-  storages: z.array(StorageSchema),
+  storage: z.array(StorageSchema),
 });
 
 export function useAllStorages(token: string) {
@@ -25,7 +25,7 @@ export function useAllStorages(token: string) {
         })
         .json();
 
-      return StoragesSchema.parse(body).storages;
+      return StoragesSchema.parse(body).storage;
     },
   });
 }
