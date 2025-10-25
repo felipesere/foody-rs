@@ -263,6 +263,21 @@ pub async fn all_ingredients_tags(
     format::json(TagsResponse { tags: unique_tags })
 }
 
+#[derive(Deserialize, Debug)]
+#[serde(tag = "type", content = "value")]
+#[serde(rename_all = "lowercase")]
+enum IngredientChange {
+    Name(String),
+    Tags(Vec<String>),
+    Aisle(Option<String>),
+    StoredIn(Option<i32>),
+}
+
+#[derive(Deserialize)]
+pub struct EditIngredientParams {
+    changes: Vec<IngredientChange>,
+}
+
 #[derive(Deserialize)]
 struct SetStoredInParams {
     id: Option<i32>,
@@ -288,12 +303,79 @@ async fn set_ingredient_stored_in(
     Ok(())
 }
 
+pub async fn edit(
+    auth: auth::JWT,
+    Path(id): Path<i32>,
+    State(ctx): State<AppContext>,
+    extract::Json(params): extract::Json<EditIngredientParams>,
+) -> Result<Response> {
+    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
+
+    let mut ingredient = ingredients::Entity::find_by_id(id)
+        .one(&ctx.db)
+        .await?
+        .ok_or_else(|| Error::NotFound)?
+        .into_active_model();
+
+    for change in params.changes {
+        match change {
+            IngredientChange::Name(name) => {
+                ingredient.name = ActiveValue::Set(name);
+            }
+            IngredientChange::Tags(tags) => {
+                ingredient.tags = ActiveValue::Set(tags);
+            }
+            IngredientChange::Aisle(aisle_name) => {
+                let aisle_id = match aisle_name {
+                    Some(name) => {
+                        let aisle = aisles::Entity::find()
+                            .filter(aisles::Column::Name.eq(name))
+                            .one(&ctx.db)
+                            .await?;
+                        aisle.map(|a| a.id)
+                    }
+                    None => None,
+                };
+                ingredient.aisle = ActiveValue::Set(aisle_id);
+            }
+            IngredientChange::StoredIn(storage_id) => {
+                ingredient.stored_in = ActiveValue::Set(storage_id.map(|id| id as i16));
+            }
+        }
+    }
+
+    let updated_ingredient = ingredient.update(&ctx.db).await?;
+
+    // Fetch related aisle and storage for the response
+    let aisle = match updated_ingredient.aisle {
+        Some(aisle_id) => {
+            aisles::Entity::find_by_id(aisle_id)
+                .one(&ctx.db)
+                .await?
+                .map(AisleRef::from)
+        }
+        None => None,
+    };
+
+    let storage = match updated_ingredient.stored_in {
+        Some(storage_id) => storages::Entity::find_by_id(storage_id).one(&ctx.db).await?,
+        None => None,
+    };
+
+    format::json(IngredientResponse::from((
+        updated_ingredient,
+        aisle,
+        storage,
+    )))
+}
+
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("api/ingredients")
         .add("/", get(all_ingredients))
         .add("/", post(add_ingredient))
         .add("/tags", get(all_ingredients_tags))
+        .add("/{id}/edit", post(edit))
         .add("/{id}/tags", post(set_tags_in_ingredient))
         .add("/{id}/aisle", post(set_aisle_in_ingredient))
         .add("/{id}/storage", post(set_ingredient_stored_in))
