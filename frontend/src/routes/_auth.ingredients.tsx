@@ -1,4 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import {
+  createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
 import classnames from "classnames";
 import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -8,8 +14,7 @@ import {
   type Ingredient,
   useAllIngredients,
   useAllIngredientTags,
-  useSetIngredientStorage,
-  useSetIngredientTags,
+  useEditIngredient,
 } from "../apis/ingredients.ts";
 import { type Storage, useAllStorages } from "../apis/storage.ts";
 import { Button } from "../components/button.tsx";
@@ -24,12 +29,6 @@ import { SelectTags } from "../components/smart/selectTags.tsx";
 import { TagsTable } from "../components/tags.tsx";
 import { ToggleButton } from "../components/toggle.tsx";
 import { orderByTag } from "../domain/orderByTag.ts";
-import {
-  createColumnHelper,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
 
 const ingredientSearchSchema = z.object({
   search: z
@@ -324,7 +323,7 @@ function MassEditTags(props: { token: string; ingredients: Ingredient[] }) {
   const [newTags, setNewTags] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const updateTags = useSetIngredientTags(props.token);
+  const editIngredient = useEditIngredient(props.token);
 
   let tags = ingredients
     .flatMap((i) => i.tags)
@@ -358,9 +357,9 @@ function MassEditTags(props: { token: string; ingredients: Ingredient[] }) {
         items={ingredients}
         knownTags={Array.from(knownTags.values())}
         toggleTags={(id, tags) => {
-          updateTags.mutate({
+          editIngredient.mutate({
             id,
-            tags,
+            changes: [{ type: "tags", value: tags }],
           });
         }}
       />
@@ -372,7 +371,7 @@ function MassEditStoredIn(props: { token: string; ingredients: Ingredient[] }) {
   let ingredients = props.ingredients;
 
   const knownStorageLocations = useAllStorages(props.token);
-  const updateStorageLocation = useSetIngredientStorage(props.token);
+  const editIngredient = useEditIngredient(props.token);
 
   if (!knownStorageLocations.data || knownStorageLocations.isLoading) {
     return "Loading";
@@ -388,8 +387,11 @@ function MassEditStoredIn(props: { token: string; ingredients: Ingredient[] }) {
         batchEdit={true}
         items={ingredients}
         knownStorageLocations={storageLocations}
-        toggleStorageLocation={(ingredient, id) => {
-          updateStorageLocation.mutate({ id, ingredient });
+        toggleStorageLocation={(ingredient, storedIn) => {
+          editIngredient.mutate({
+            id: ingredient,
+            changes: [{ type: "storedin", value: storedIn }],
+          });
         }}
       />
     </div>

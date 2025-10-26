@@ -2,8 +2,8 @@ use std::collections::HashSet;
 
 use axum::{extract, http::StatusCode};
 use loco_rs::prelude::*;
-use migration::{Expr, SimpleExpr};
-use sea_orm::{ActiveValue, SqlErr, Statement, TransactionTrait, Value};
+use migration::Expr;
+use sea_orm::{ActiveValue, SqlErr, Statement, TransactionTrait};
 use serde::{Deserialize, Serialize};
 
 use crate::models::{
@@ -136,63 +136,6 @@ pub async fn add_ingredient(
 }
 
 #[derive(Deserialize)]
-struct SetTagsParams {
-    tags: Vec<String>,
-}
-
-async fn set_tags_in_ingredient(
-    auth: auth::JWT,
-    State(ctx): State<AppContext>,
-    Path(id): Path<i32>,
-    extract::Json(params): extract::Json<SetTagsParams>,
-) -> Result<()> {
-    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
-
-    ingredients::Entity::update_many()
-        .col_expr(ingredients::Column::Tags, Expr::value(params.tags))
-        .filter(ingredients::Column::Id.eq(id))
-        .exec(&ctx.db)
-        .await?;
-
-    Ok(())
-}
-
-#[derive(Deserialize)]
-struct SetAisleParams {
-    aisle: Option<String>,
-}
-
-async fn set_aisle_in_ingredient(
-    auth: auth::JWT,
-    State(ctx): State<AppContext>,
-    Path(id): Path<i32>,
-    extract::Json(params): extract::Json<SetAisleParams>,
-) -> Result<()> {
-    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
-
-    let aisle = match params.aisle {
-        Some(name) => {
-            let n = aisles::Entity::find()
-                .filter(aisles::Column::Name.eq(name))
-                .one(&ctx.db)
-                .await?;
-            n.map(|aisle| aisle.id)
-        }
-        None => None,
-    };
-    ingredients::Entity::update_many()
-        .col_expr(
-            ingredients::Column::Aisle,
-            SimpleExpr::Value(Value::Int(aisle)), // null if we chose to remove an aisle
-        )
-        .filter(ingredients::Column::Id.eq(id))
-        .exec(&ctx.db)
-        .await?;
-
-    Ok(())
-}
-
-#[derive(Deserialize)]
 struct MergeIngredientsParams {
     /// Replace these ingredient IDs...
     replace: Vec<u32>,
@@ -278,31 +221,6 @@ pub struct EditIngredientParams {
     changes: Vec<IngredientChange>,
 }
 
-#[derive(Deserialize)]
-struct SetStoredInParams {
-    id: Option<i32>,
-}
-
-async fn set_ingredient_stored_in(
-    auth: auth::JWT,
-    State(ctx): State<AppContext>,
-    Path(id): Path<i32>,
-    extract::Json(params): extract::Json<SetStoredInParams>,
-) -> Result<()> {
-    let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
-
-    ingredients::Entity::update_many()
-        .col_expr(
-            ingredients::Column::StoredIn,
-            SimpleExpr::Value(Value::Int(params.id)),
-        )
-        .filter(ingredients::Column::Id.eq(id))
-        .exec(&ctx.db)
-        .await?;
-
-    Ok(())
-}
-
 pub async fn edit(
     auth: auth::JWT,
     Path(id): Path<i32>,
@@ -348,17 +266,19 @@ pub async fn edit(
 
     // Fetch related aisle and storage for the response
     let aisle = match updated_ingredient.aisle {
-        Some(aisle_id) => {
-            aisles::Entity::find_by_id(aisle_id)
-                .one(&ctx.db)
-                .await?
-                .map(AisleRef::from)
-        }
+        Some(aisle_id) => aisles::Entity::find_by_id(aisle_id)
+            .one(&ctx.db)
+            .await?
+            .map(AisleRef::from),
         None => None,
     };
 
     let storage = match updated_ingredient.stored_in {
-        Some(storage_id) => storages::Entity::find_by_id(storage_id).one(&ctx.db).await?,
+        Some(storage_id) => {
+            storages::Entity::find_by_id(storage_id)
+                .one(&ctx.db)
+                .await?
+        }
         None => None,
     };
 
@@ -376,8 +296,5 @@ pub fn routes() -> Routes {
         .add("/", post(add_ingredient))
         .add("/tags", get(all_ingredients_tags))
         .add("/{id}/edit", post(edit))
-        .add("/{id}/tags", post(set_tags_in_ingredient))
-        .add("/{id}/aisle", post(set_aisle_in_ingredient))
-        .add("/{id}/storage", post(set_ingredient_stored_in))
         .add("/merge", post(merge_ingredients))
 }

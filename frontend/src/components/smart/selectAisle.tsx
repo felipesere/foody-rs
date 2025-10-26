@@ -1,9 +1,6 @@
 import { useForm } from "@tanstack/react-form";
 import { useAllAisles, useCreateAisle } from "../../apis/aisles.ts";
-import {
-  type Ingredient,
-  useSetIngredientAisle,
-} from "../../apis/ingredients.ts";
+import { type Ingredient, useEditIngredient } from "../../apis/ingredients.ts";
 import type { Shoppinglist } from "../../apis/shoppinglists.ts";
 import { Button } from "../button.tsx";
 import { ButtonGroup } from "../buttonGroup.tsx";
@@ -18,7 +15,9 @@ export function SelectAisle(props: {
   shoppinglistId?: Shoppinglist["id"];
 }) {
   const aisles = useAllAisles(props.token);
-  const setAisle = useSetIngredientAisle(props.token, props.ingredientId);
+  // const setAisle = useSetIngredientAisle(props.token, props.ingredientId);
+
+  const editIngredient = useEditIngredient(props.token);
   const newAisle = useCreateAisle(props.token);
 
   if (!aisles.data || aisles.error) {
@@ -29,7 +28,12 @@ export function SelectAisle(props: {
     <InnerSelectAisle
       items={aisles.data.map((a) => a.name)}
       selected={props.currentAisle}
-      onItemsSelected={(item) => setAisle.mutate({ aisle: item })}
+      onItemsSelected={(item) =>
+        editIngredient.mutate({
+          id: props.ingredientId,
+          changes: [{ type: "aisle", value: item }],
+        })
+      }
       onNewItem={(item) => {
         newAisle.mutate({ name: item });
       }}

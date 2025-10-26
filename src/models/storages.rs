@@ -23,9 +23,3 @@ impl Model {}
 
 // implement your write-oriented logic here
 impl ActiveModel {}
-
-impl Entity {
-    pub async fn all<C: ConnectionTrait>(db: &C) -> Result<Vec<Model>, DbErr> {
-        Entity::find().all(db).await
-    }
-}

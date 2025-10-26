@@ -72,7 +72,6 @@ impl Hooks for App {
         tasks.register(tasks::create_user::CreateUser);
         tasks.register(tasks::seed::SeedData);
         tasks.register(tasks::gql_schema::GqlSchema);
-        tasks.register(tasks::ingredient_storage_location::IngredientStorageLocation);
         // tasks-inject (do not remove)
     }
 

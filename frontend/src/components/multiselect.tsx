@@ -8,7 +8,7 @@ type Props = {
   label: string;
   className?: string;
   items: string[];
-  selected?: string[];
+  selected: string[];
   onItemsSelected: (items: string[]) => void;
   onNewItem?: (value: string) => void;
   newItemPlaceholder?: string;
@@ -17,7 +17,7 @@ type Props = {
 export function MultiSelect(props: Props) {
   const items = props.items.map((i) => ({
     name: i,
-    value: props.selected?.includes(i) || false,
+    value: props.selected.includes(i),
   }));
 
   const form = useForm({

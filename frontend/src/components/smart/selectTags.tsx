@@ -1,7 +1,7 @@
 import {
   type Ingredient,
   useAllIngredientTags,
-  useSetIngredientTags,
+  useEditIngredient,
 } from "../../apis/ingredients.ts";
 import type { Shoppinglist } from "../../apis/shoppinglists.ts";
 import { MultiSelect } from "../multiselect.tsx";
@@ -13,7 +13,7 @@ export function SelectTags(props: {
   shoppinglistId?: Shoppinglist["id"];
 }) {
   const tags = useAllIngredientTags(props.token);
-  const setTags = useSetIngredientTags(props.token, props.ingredientId);
+  const editIngredient = useEditIngredient(props.token);
 
   if (!tags.data) {
     return <p>Loading...</p>;
@@ -25,11 +25,18 @@ export function SelectTags(props: {
       selected={props.currentTags}
       items={knownTags}
       onItemsSelected={(tags) => {
-        setTags.mutate({ tags });
+        console.log(tags);
+        editIngredient.mutate({
+          id: props.ingredientId,
+          changes: [{ type: "tags", value: tags }],
+        });
       }}
       newItemPlaceholder={"New tag..."}
       onNewItem={(value) => {
-        setTags.mutate({ tags: [...props.currentTags, value] });
+        editIngredient.mutate({
+          id: props.ingredientId,
+          changes: [{ type: "tags", value: [...props.currentTags, value] }],
+        });
       }}
     />
   );

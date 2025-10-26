@@ -8,5 +8,5 @@ pub mod meals_in_meal_plans;
 pub mod quantities;
 pub mod recipes;
 pub mod shoppinglists;
-pub mod users;
 pub mod storages;
+pub mod users;

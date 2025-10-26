@@ -103,32 +103,25 @@ export function useCreateNewIngredient(token: string) {
   });
 }
 
-type SetTagsParams = {
-  id?: Ingredient["id"];
-  tags: Array<string>;
+type EditIngredientParams = {
+  id: Ingredient["id"];
+  changes: IngredientChanges[];
 };
 
-export function useSetIngredientTags(
-  token: string,
-  ingredient?: Ingredient["id"],
-  invalidate?: {
-    shoppinglistId: Shoppinglist["id"];
-  },
-) {
-  const client = useQueryClient();
+type IngredientChanges =
+  | { type: "name"; value: string }
+  | { type: "tags"; value: string[] }
+  | { type: "aisle"; value: string | null }
+  | { type: "storedin"; value: number | null };
 
+export function useEditIngredient(token: string) {
+  const client = useQueryClient();
   return useMutation({
-    mutationFn: async ({ tags, id }: SetTagsParams) => {
-      if (!ingredient && !id) {
-        return Promise.reject(
-          "need to pass id either as param to hook or as variable",
-        );
-      }
-      const ix = ingredient || id;
+    mutationFn: async ({ id, changes }: EditIngredientParams) => {
       const response = await http
-        .post(`api/ingredients/${ix}/tags`, {
+        .post(`api/ingredients/${id}/edit`, {
           json: {
-            tags,
+            changes,
           },
           headers: {
             Authorization: `Bearer ${token}`,
@@ -138,77 +131,10 @@ export function useSetIngredientTags(
 
       return IngredientSchema.parse(response);
     },
-    onSettled: async () => {
-      if (invalidate) {
-        await client.invalidateQueries({
-          queryKey: ["shoppinglist", invalidate.shoppinglistId],
-        });
-      }
-      return client.invalidateQueries({ queryKey: ["ingredients"] });
-    },
-  });
-}
-
-type SetAisleParams = {
-  aisle: string | null;
-};
-
-export function useSetIngredientAisle(
-  token: string,
-  ingredient: Ingredient["id"],
-  invalidate?: {
-    shoppinglistId: Shoppinglist["id"];
-  },
-) {
-  const client = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ aisle }: SetAisleParams) => {
-      await http
-        .post(`api/ingredients/${ingredient}/aisle`, {
-          json: {
-            aisle,
-          },
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .json();
-    },
-    onSettled: async () => {
-      if (invalidate) {
-        await client.invalidateQueries({
-          queryKey: ["shoppinglist", invalidate.shoppinglistId],
-        });
-      }
-      return client.invalidateQueries({ queryKey: ["ingredients"] });
-    },
-  });
-}
-
-type SetStorageParams = {
-  ingredient: Ingredient["id"];
-  id?: Storage["id"];
-};
-
-export function useSetIngredientStorage(token: string) {
-  const client = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ id, ingredient }: SetStorageParams) => {
-      await http
-        .post(`api/ingredients/${ingredient}/storage`, {
-          json: {
-            id,
-          },
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .json();
-    },
-    onSettled: async () => {
-      return client.invalidateQueries({ queryKey: ["ingredients"] });
+    onSettled: (_data, _err, _) => {
+      return client.invalidateQueries({
+        queryKey: ["ingredients"],
+      });
     },
   });
 }
