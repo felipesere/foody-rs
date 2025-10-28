@@ -2,6 +2,10 @@
 
 @tailwind utilities;
 
+:root {
+  --line-height: 1.2rem;
+}
+
 /* Interim placeholder... */
 
 .new-single-select-pane {

@@ -14,7 +14,7 @@ export function Toggle(props: ToggleProps) {
   return (
     <div className={"p-2 border-black border-solid border-2"}>
       <div
-        className={classNames("flex flex-row", {
+        className={classNames("flex flex-row items-center", {
           "pb-2": open,
         })}
       >
@@ -44,6 +44,7 @@ export function ToggleButton(props: ToggleButtonProps) {
       className={classnames("mx-2 transition-transform ease-linear", {
         "rotate-90": props.open,
       })}
+      style={{ maxHeight: "24px", verticalAlign: "text-top" }}
     >
       {TOGGLE_MENU}
     </div>

@@ -241,7 +241,7 @@ function IngredientView(props: IngredientViewProps) {
           readOnly={!edit}
           name={"ingredient"}
           boxClassName={"flex-grow"}
-          className={"uppercase tracking-wider"}
+          className={"uppercase tracking-wider mt-auto mb-auto"}
           onChange={(v) => {
             setTemporaryName(v.target.value);
             setIsDirty(true);
@@ -284,9 +284,8 @@ function IngredientView(props: IngredientViewProps) {
             )}
           </div>
           <Divider />
-          <div className={"flex flex-row gap-4"}>
-            <p>Aisle:</p>
-            {props.ingredient.aisle?.name || "None"}
+          <div className={"flex flex-row justify-between"}>
+            <p>Aisle: {props.ingredient.aisle?.name || "None"} </p>
             {edit && (
               <SelectAisle
                 token={props.token}
