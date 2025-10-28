@@ -69,7 +69,7 @@ impl From<(Ingredient, Option<AisleRef>, Option<Storage>)> for IngredientRespons
     }
 }
 
-pub async fn all_ingredients(auth: auth::JWT, State(ctx): State<AppContext>) -> Result<Response> {
+pub async fn index(auth: auth::JWT, State(ctx): State<AppContext>) -> Result<Response> {
     // check auth
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
@@ -94,7 +94,7 @@ pub struct NewIngredient {
     tags: Vec<String>,
 }
 
-pub async fn add_ingredient(
+pub async fn create(
     auth: auth::JWT,
     State(ctx): State<AppContext>,
     extract::Json(params): extract::Json<NewIngredient>,
@@ -292,9 +292,9 @@ pub async fn edit(
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("api/ingredients")
-        .add("/", get(all_ingredients))
-        .add("/", post(add_ingredient))
+        .add("/", get(index))
+        .add("/", post(create))
         .add("/tags", get(all_ingredients_tags))
-        .add("/{id}/edit", post(edit))
+        .add("/{id}", post(edit))
         .add("/merge", post(merge_ingredients))
 }

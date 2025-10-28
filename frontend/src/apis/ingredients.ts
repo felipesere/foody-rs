@@ -119,7 +119,7 @@ export function useEditIngredient(token: string) {
   return useMutation({
     mutationFn: async ({ id, changes }: EditIngredientParams) => {
       const response = await http
-        .post(`api/ingredients/${id}/edit`, {
+        .post(`api/ingredients/${id}`, {
           json: {
             changes,
           },
