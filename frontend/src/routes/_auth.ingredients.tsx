@@ -29,6 +29,7 @@ import { SelectTags } from "../components/smart/selectTags.tsx";
 import { TagsTable } from "../components/tags.tsx";
 import { ToggleButton } from "../components/toggle.tsx";
 import { orderByTag } from "../domain/orderByTag.ts";
+import { SelectStoredIn } from "../components/smart/selectStoredIn.tsx";
 
 const ingredientSearchSchema = z.object({
   search: z
@@ -295,9 +296,15 @@ function IngredientView(props: IngredientViewProps) {
             )}
           </div>
           <Divider />
-          <div className={"flex flex-row gap-4"}>
-            <p>Stored in:</p>
-            {props.ingredient.stored_in?.name || "None"}
+          <div className={"flex flex-row justify-between"}>
+            <p>Stored in: {props.ingredient.stored_in?.name || "None"} </p>
+            {edit && (
+              <SelectStoredIn
+                token={props.token}
+                ingredientId={props.ingredient.id}
+                currentStoredIn={props.ingredient.stored_in?.name ?? null}
+              />
+            )}
           </div>
           <Divider />
           <ButtonGroup>
