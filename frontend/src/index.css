@@ -10,6 +10,7 @@ body {
   font-family: "JetBrains Mono", ui-monospace, monospace;
   line-height: 1.2;
   font-weight: 400;
+  font-variant-numeric: tabular-nums lining-nums;
 }
 
 /* Interim placeholder... */
