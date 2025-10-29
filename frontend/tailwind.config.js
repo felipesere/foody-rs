@@ -5,7 +5,11 @@ export default {
     "./src/**/*.{ts,tsx}"
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+      },
+    },
   },
   plugins: [],
 }
