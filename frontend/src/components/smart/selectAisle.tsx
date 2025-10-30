@@ -56,7 +56,7 @@ function InnerSelectAisle(props: Props) {
     <Popup>
       <Popup.OpenButton label={"Select Aisle"} />
       <Popup.Pane>
-        <ol className={"space-y-2"}>
+        <ol className={"space-y-1lh"}>
           <form.Subscribe
             selector={(state) => [state.values.selected]}
             children={([selected]) => {
@@ -93,7 +93,7 @@ function InnerSelectAisle(props: Props) {
           />
         </ol>
         <Divider />
-        <div className={"space-y-2"}>
+        <div className={"space-y-1lh"}>
           <InputWithButton
             label={"+"}
             placeholder={"New aisle..."}

@@ -62,8 +62,8 @@ export function RecipeView(props: RecipeViewProps) {
   }
 
   return (
-    <div className="content-grid space-y-4 pb-20">
-      <div className={"grid gap-4 grid-cols-1 sm:grid-cols-2"}>
+    <div className="content-grid space-y-2lh pb-10lh">
+      <div className={"grid gap-x-4ch gap-y-2lh grid-cols-1 sm:grid-cols-2"}>
         {/* left or top */}
         <div className={"flex flex-col gap-2ch"}>
           <Name value={recipe.name} onBlur={props.onSetName} />
@@ -188,7 +188,7 @@ function Ingredients(props: {
   return (
     <div className={"flex flex-col gap-2ch"}>
       <p className="uppercase">Ingredients:</p>
-      <ul className={"space-y-4"}>
+      <ul className={"space-y-2lh"}>
         {Object.entries(sections).map(([name, ingredients]) => {
           return (
             <ul key={name}>

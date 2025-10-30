@@ -221,10 +221,10 @@ const NewItem = forwardRef<HTMLLIElement, ItemProps & HTMLProps<HTMLLIElement>>(
         style={{
           ...rest.style,
         }}
-        className={"p-1 striped-bg text-yellow-500 cursor-default"}
+        className={"px-1ch py-0.5lh striped-bg text-yellow-500 cursor-default"}
       >
         <div
-          className={classNames("p-1 text-black hover:bg-gray-300", {
+          className={classNames("px-1ch py-0.5lh text-black hover:bg-gray-300", {
             "bg-white": !active,
             "bg-gray-300": active,
           })}
@@ -245,7 +245,7 @@ const Item = forwardRef<HTMLLIElement, ItemProps & HTMLProps<HTMLLIElement>>(
         aria-selected={active}
         {...rest}
         style={rest.style}
-        className={classNames("p-2 hover:bg-gray-300 cursor-default", {
+        className={classNames("px-2ch py-1lh hover:bg-gray-300 cursor-default", {
           "bg-gray-300": active,
         })}
       >

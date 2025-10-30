@@ -41,7 +41,7 @@ export function MultiSelect(props: Props) {
       />
       <Popup.Pane>
         <div id="multiselect">
-          <ol className={"space-y-2"}>
+          <ol className={"space-y-1lh"}>
             <form.Field
               name={"items"}
               children={(itemsField) => {

@@ -12,10 +12,10 @@ type ToggleProps = PropsWithChildren<Props>;
 export function Toggle(props: ToggleProps) {
   const [open, setOpen] = useState(false);
   return (
-    <div className={"p-2 border-black border-solid border-2"}>
+    <div className={"px-2ch py-1lh border-black border-solid border-2"}>
       <div
         className={classNames("flex flex-row items-center", {
-          "pb-2": open,
+          "pb-1lh": open,
         })}
       >
         <ToggleButton onToggle={() => setOpen((v) => !v)} open={open} />

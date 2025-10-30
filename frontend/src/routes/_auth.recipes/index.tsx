@@ -68,7 +68,7 @@ export function RecipesPage() {
   const knownTags = allTags.data.tags;
 
   return (
-    <div className="content-grid space-y-4">
+    <div className="content-grid space-y-2lh">
       <FieldSet className={{ fieldSet: "flex-wrap" }}>
         <ButtonGroup>
           <Button
@@ -107,7 +107,7 @@ export function RecipesPage() {
               });
             }}
           />
-          <ul className={"flex flex-row gap-2ch"}>
+          <ul className={"flex flex-row gapx-2ch py-1lhch"}>
             {(search?.tags || []).map((tag) => (
               <Pill
                 key={"tag"}
@@ -148,7 +148,7 @@ export function RecipesPage() {
             }}
           />
 
-          <ul className={"flex flex-row gap-2ch"}>
+          <ul className={"flex flex-row gapx-2ch py-1lhch"}>
             {(search?.books || []).map((book) => (
               <Pill
                 key={book}
@@ -235,7 +235,7 @@ export function RecipesPage() {
 
 function Overview(props: { recipes: Recipe[] }) {
   return (
-    <ul className="grid gap-4">
+    <ul className="grid gap-x-2ch gap-y-2lh">
       {props.recipes.map((recipe) => (
         <RecipeView key={recipe.id} recipe={recipe} />
       ))}
@@ -264,7 +264,7 @@ function Search(props: SearchProps) {
       />
       <button
         type={"button"}
-        className={"borderless hover:bg-gray-300 p-2"}
+        className={"borderless hover:bg-gray-300 px-2ch py-1lh"}
         onClick={() => props.onSubmit(term)}
       >
         <img
@@ -290,7 +290,7 @@ function RecipeView(props: RecipeProps) {
   const navigate = useNavigate({ from: "/recipes" });
 
   return (
-    <li className="p-2 border-black border-solid border-2">
+    <li className="px-2ch py-1lh border-black border-solid border-2">
       <p className="font-black uppercase tracking-wider">{props.recipe.name}</p>
       <ShowSource details={props.recipe} />
       <Stars

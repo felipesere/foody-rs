@@ -81,7 +81,7 @@ function Pane(props: PropsWithChildren<PaneProps>) {
       popover={"auto"}
       tabIndex={-1}
       className={classNames(
-        "bg-gray-100 p-2 border-solid border-black border-2 z-50 new-single-select",
+        "bg-gray-100 px-2ch py-1lh border-solid border-black border-2 z-50 new-single-select",
         props.className,
       )}
     >

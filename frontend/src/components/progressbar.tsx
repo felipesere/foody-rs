@@ -9,7 +9,7 @@ export function Progressbar({
 }) {
   return (
     <div
-      className={classnames("p-2 bg-white z-30", {
+      className={classnames("px-2ch py-1lh bg-white z-30", {
         "sticky top-0 ": sticky,
       })}
     >

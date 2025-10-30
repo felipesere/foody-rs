@@ -129,7 +129,7 @@ export function ShoppingPage() {
     (inBasket.length / (shoppinglist.data?.ingredients.length || 1)) * 100;
 
   return (
-    <div className="content-grid space-y-4 max-w-md pb-20">
+    <div className="content-grid space-y-2lh max-w-md pb-10lh">
       <Toggle buttonLabel={"More..."}>
         <FieldSet legend={"Add ingredient"}>
           <SelectIngredientWithQuantity
@@ -145,7 +145,7 @@ export function ShoppingPage() {
         </FieldSet>
         <FieldSet
           legend={"Filter and Sort"}
-          className={{ fieldSet: "mt-4 flex flex-col" }}
+          className={{ fieldSet: "mt-2lh flex flex-col" }}
         >
           <div className={"flex flex-row gap-6ch"}>
             {Object.values(Grouping).map((option) => (
@@ -168,7 +168,7 @@ export function ShoppingPage() {
             ))}
           </div>
         </FieldSet>
-        <div className={"p-2 flex flex-row gap-2ch"}>
+        <div className={"px-2ch py-1lh flex flex-row gapx-2ch py-1lhch"}>
           <input
             id={"groupByAisle"}
             type={"checkbox"}
@@ -180,18 +180,18 @@ export function ShoppingPage() {
             Show progress bar
           </label>
         </div>
-        <div className={"p-2 flex flex-row gap-2ch"}>
+        <div className={"px-2ch py-1lh flex flex-row gapx-2ch py-1lhch"}>
           <Button
             label={"Clear checked items"}
             onClick={() => removeCheckedItems.mutate()}
           />
         </div>
         <FieldSet legend={"Recipes"}>
-          <ul className={"space-y-2 "}>
+          <ul className={"space-y-1lh "}>
             {Object.entries(presentRecipes).map(([id, name]) => (
               <li
                 key={id}
-                className={"flex flex-row gap-4gg hover:bg-slate-200"}
+                className={"flex flex-row gap-4ch hover:bg-slate-200"}
               >
                 <Link
                   className={"block flex-grow"}
@@ -213,7 +213,7 @@ export function ShoppingPage() {
         </FieldSet>
       </Toggle>
       {showProgressBar && <Progressbar fraction={fraction} sticky={true} />}
-      <ul className="grid max-w-md gap-4">
+      <ul className="grid max-w-md gap-x-2ch gap-y-2lh">
         {sections.map((section) => (
           <Fragment key={section.name}>
             <Divider
@@ -256,7 +256,7 @@ function CompactIngredientView({
   const [open, setOpen] = useState(false);
   return (
     <li
-      className={classnames("border-black border-solid border-2 p-2", {
+      className={classnames("border-black border-solid border-2 px-2ch py-1lh", {
         "bg-gray-200 text-gray-500": checked,
       })}
     >
@@ -372,7 +372,7 @@ function EditIngredient({
       <Divider />
       {(item.note || newNote) && (
         <>
-          <div className={"flex flex-row gap-2ch"}>
+          <div className={"flex flex-row gapx-2ch py-1lhch"}>
             <span>Note:</span>
             <Editable
               isEditing={isEditing}
@@ -387,7 +387,7 @@ function EditIngredient({
       )}
       {item.ingredient.tags && (
         <>
-          <div className={"flex flex-row gap-2ch"}>
+          <div className={"flex flex-row gapx-2ch py-1lhch"}>
             <TagsAndAisle
               token={token}
               ingredientId={item.ingredient.id}
@@ -518,7 +518,7 @@ function TagsAndAisle(props: {
   isEditing?: boolean;
 }) {
   return (
-    <div className={"flex flex-row gap-2"}>
+    <div className={"flex flex-row gapx-2ch py-1lh"}>
       {props.tags.map((t) => (
         <p className={"lowercase"} key={t}>
           #{t}

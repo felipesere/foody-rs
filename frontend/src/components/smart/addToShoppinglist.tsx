@@ -41,7 +41,7 @@ export function PickShoppinglist(props: Props) {
   const shoppinglists = data.shoppinglists.slice(0, 5);
 
   return (
-    <ol className={"space-y-2"}>
+    <ol className={"space-y-1lh"}>
       {shoppinglists.map((list) => (
         <li key={list.id}>
           <Popup.CloseButton

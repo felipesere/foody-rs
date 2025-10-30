@@ -6,8 +6,8 @@ export function Navbar() {
   const { token } = RootRoute.useRouteContext();
 
   return (
-    <nav className="content-grid pt-4 border-solid border-black border-b-2 dotted-bg">
-      <ul className="mb-4 flex flex-wrap gap-5ch justify-start items-center">
+    <nav className="content-grid pt-2lh border-solid border-black border-b-2 dotted-bg">
+      <ul className="mb-2lh flex flex-wrap gap-5ch justify-start items-center">
         <li>
           <NavLink name={"Meal plan"} to={"/mealplan"} />
         </li>
@@ -50,7 +50,7 @@ function NavLink(props: {
       inactiveProps={{
         className: "bg-white hover:bg-gray-100",
       }}
-      className={"p-2 text-black border-black border-2 border-solid uppercase"}
+      className={"px-2ch py-1lh text-black border-black border-2 border-solid uppercase"}
       to={props.to}
     >
       {props.name}

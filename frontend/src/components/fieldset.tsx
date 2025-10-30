@@ -15,7 +15,7 @@ export function FieldSet(props: FieldsetProps) {
     <fieldset
       className={classnames(
         props.className?.fieldSet,
-        "border-black border-2 p-2 flex flex-row gap-4ch",
+        "border-black border-2 px-2ch py-1lh flex flex-row gap-4ch",
       )}
     >
       {props.legend && (

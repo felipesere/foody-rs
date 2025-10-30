@@ -55,10 +55,10 @@ function MealPlanPage() {
     all.data.meal_plans[0];
 
   return (
-    <div className="content-grid gap-2 pb-20">
-      <div className={"grid gap-4 grid-cols-1 sm:grid-cols-2"}>
+    <div className="content-grid gapx-2ch py-1lh pb-20">
+      <div className={"grid gap-x-4ch gap-y-2lh grid-cols-1 sm:grid-cols-2"}>
         {/* left or top */}
-        <div className={"space-y-4"}>
+        <div className={"space-y-2lh"}>
           <Toggle buttonLabel={"New Meal Plan"}>
             <NewMealPlan token={token} />
           </Toggle>
@@ -79,7 +79,7 @@ function MealPlanPage() {
                   <tr
                     key={mealPlan.id}
                     className={
-                      "py-2 odd:bg-gray-100 flex flex-row justify-between"
+                      "py-1lh odd:bg-gray-100 flex flex-row justify-between"
                     }
                   >
                     <td>
@@ -149,9 +149,9 @@ function ViewMealPlan(props: {
     <>
       <FieldSet
         legend={mealPlan.name}
-        className={{ fieldSet: "flex flex-col items-start gap-2" }}
+        className={{ fieldSet: "flex flex-col items-start gapx-2ch py-1lh" }}
       >
-        <div className={"flex flex-row gap-2ch"}>
+        <div className={"flex flex-row gapx-2ch py-1lhch"}>
           <Button
             classNames={"whitespace-nowrap flex-shrink"}
             label={"Clear"}
@@ -167,7 +167,7 @@ function ViewMealPlan(props: {
             }}
           />
         </div>
-        <div className={"flex flex-row gap-2ch"}>
+        <div className={"flex flex-row gapx-2ch py-1lhch"}>
           <p>Add recipe or thing</p>
           <FindRecipe
             token={props.token}
@@ -393,7 +393,7 @@ function NewMealPlan(props: { token: string }) {
   });
   return (
     <form
-      className={"space-y-2"}
+      className={"space-y-1lh"}
       onSubmit={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -410,7 +410,7 @@ function NewMealPlan(props: { token: string }) {
             <>
               <input
                 type={"text"}
-                className={"p-2 outline-0 border-black border-2 border-solid"}
+                className={"px-2ch py-1lh outline-0 border-black border-2 border-solid"}
                 name={field.name}
                 id={field.name}
                 value={field.state.value}

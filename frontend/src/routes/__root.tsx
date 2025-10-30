@@ -19,7 +19,7 @@ export const Route = createRootRouteWithContext<Context>()({
   component: () => {
     return (
       <>
-        <div className={"space-y-4"}>
+        <div className={"space-y-2lh"}>
           <Navbar />
           <Outlet />
         </div>

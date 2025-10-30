@@ -79,7 +79,7 @@ function Login() {
     <div className="content-grid">
       <h3>Login</h3>
       <form
-        className={"space-y-4"}
+        className={"space-y-2lh"}
         onSubmit={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -98,7 +98,7 @@ function Login() {
               </label>
               <input
                 type={"text"}
-                className={"p-2 outline-0 border-black border-2 border-solid"}
+                className={"px-2ch py-1lh outline-0 border-black border-2 border-solid"}
                 autoComplete={"username"}
                 name={emailField.name}
                 id={emailField.name}
@@ -129,7 +129,7 @@ function Login() {
               </label>
               <input
                 type={"password"}
-                className={"p-2 outline-0 border-black border-2 border-solid"}
+                className={"px-2ch py-1lh outline-0 border-black border-2 border-solid"}
                 autoComplete={"current-password"}
                 name={passwordField.name}
                 id={passwordField.name}
@@ -197,7 +197,7 @@ function EditAislesForm(props: { token: string; aisles: Aisle[] }) {
           void form.handleSubmit();
         }}
       >
-        <table className={"table-auto border-collapse mt-2"}>
+        <table className={"table-auto border-collapse mt-1lh"}>
           <thead>
             <tr>
               <th className={"pr-4ch text-left border-black border-r-2"}>Name</th>
@@ -308,7 +308,7 @@ function MergeIngredients(props: { token: string }) {
                     onIngredient={(i) => fieldApi.pushValue(i)}
                   />
                 </div>
-                <ul className={"flex flex-row gap-2ch"}>
+                <ul className={"flex flex-row gapx-2ch py-1lhch"}>
                   {fieldApi.state.value.map((ingredient, idx) => (
                     <li key={ingredient.id}>
                       <Pill
@@ -329,7 +329,7 @@ function MergeIngredients(props: { token: string }) {
               v === null ? "Need an ingredient to merge into" : undefined,
           }}
           children={(fieldApi) => (
-            <div className={"flex flex-row gap-2ch"}>
+            <div className={"flex flex-row gapx-2ch py-1lhch"}>
               <p>Merge into</p>
               {fieldApi.state.value === null ? (
                 <FindIngredient

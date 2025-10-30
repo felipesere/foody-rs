@@ -18,9 +18,9 @@ export function ShoppingPage() {
   const data = useAllShoppinglists(token);
 
   return (
-    <div className="content-grid space-y-4">
+    <div className="content-grid space-y-2lh">
       <NewShoppinglist token={token} />
-      <ul className="grid max-w-md gap-4">
+      <ul className="grid max-w-md gap-x-2ch gap-y-2lh">
         {!data.data || data.isLoading
           ? "Loading"
           : data.data.shoppinglists
@@ -66,7 +66,7 @@ function NewShoppinglist(props: { token: string }) {
             <input
               placeholder={"New shoppinglist"}
               type={"text"}
-              className={"p-2 outline-0 border-black border-2 border-solid"}
+              className={"px-2ch py-1lh outline-0 border-black border-2 border-solid"}
               name={field.name}
               id={field.name}
               value={field.state.value}
@@ -115,7 +115,7 @@ function Shoppinglist({
 }) {
   const removeShoppinglist = useRemoveShoppinglist(token);
   return (
-    <li className="flex flex-row justify-between shadow border-black border-solid border-2 p-2 col-span-2">
+    <li className="flex flex-row justify-between shadow border-black border-solid border-2 px-2ch py-1lh col-span-2">
       <Link
         to={"/shoppinglist/$shoppinglistId"}
         params={{ shoppinglistId: list.id.toString() }}

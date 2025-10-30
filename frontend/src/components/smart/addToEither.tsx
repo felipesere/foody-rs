@@ -25,7 +25,7 @@ export function AddtoEither(props: Props) {
         className="px-2ch text-black bg-gray-300 shadow"
       />
       <Popup.Pane>
-        <p className={"pb-2 font-bold"}>Shoppinglist</p>
+        <p className={"pb-1lh font-bold"}>Shoppinglist</p>
         <PickShoppinglist
           token={props.token}
           onSelect={(shoppinglist) => {
@@ -36,7 +36,7 @@ export function AddtoEither(props: Props) {
           }}
         />
         <Divider />
-        <p className={"pb-2 font-bold"}>Mealplans</p>
+        <p className={"pb-1lh font-bold"}>Mealplans</p>
         <PickMealplan
           token={props.token}
           onSelect={(mealPlan) => {

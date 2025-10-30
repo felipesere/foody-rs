@@ -35,7 +35,7 @@ export function Button({ onClick, value, className, style }: ButtonProps) {
 }
 
 export function Divider() {
-  return <hr className="h-0.5 my-0.5 w-full bg-black border-0" />;
+  return <hr className="h-0.5 my-0.5lh w-full bg-black border-0" />;
 }
 KebabMenu.Button = Button;
 KebabMenu.Divider = Divider;

@@ -51,7 +51,7 @@ function InnerSelectStorage(props: Props) {
     <Popup>
       <Popup.OpenButton label={"Stored-in"} />
       <Popup.Pane>
-        <ol className={"space-y-2"}>
+        <ol className={"space-y-1lh"}>
           <form.Subscribe
             selector={(state) => [state.values.selected]}
             children={([selected]) => {
@@ -88,7 +88,7 @@ function InnerSelectStorage(props: Props) {
           />
         </ol>
         <Divider />
-        <div className={"space-y-2"}>
+        <div className={"space-y-1lh"}>
           <ButtonGroup>
             <Popup.CloseButton
               label="Save"

@@ -178,12 +178,12 @@ function Overview(props: { ingredients: Ingredient[]; token: string }) {
   sections.sort((a, b) => a.items.length - b.items.length);
 
   return (
-    <ul className="gap-4 columns-xs space-y-10 mt-4">
+    <ul className="gap-x-4ch gap-y-5lh columns-xs space-y-5lh mt-2lh">
       {sections.map((section) => {
         return (
           <div key={section.name} className={"flex flex-col"}>
             <p className={"font-black"}>{section.name}</p>
-            <ol className="space-y-2">
+            <ol className="space-y-1lh">
               {section.items.map((ingredient) => {
                 return (
                   <IngredientView
@@ -220,7 +220,7 @@ function IngredientView(props: IngredientViewProps) {
   const addIngredient = addIngredientToShoppinglist(props.token);
   return (
     <li
-      className={classnames("p-2 border-solid border-2", {
+      className={classnames("px-2ch py-1lh border-solid border-2", {
         "border-black": !props.selected,
         "border-yellow-400": props.selected,
       })}
@@ -339,7 +339,7 @@ function MassEditTags(props: { token: string; ingredients: Ingredient[] }) {
   let knownTags = new Set([...tags, ...newTags]);
 
   return (
-    <div className={"mt-4"}>
+    <div className={"mt-2lh"}>
       <input
         placeholder={"Additional Tag"}
         className={"px-2ch border-2"}
@@ -388,7 +388,7 @@ function MassEditStoredIn(props: { token: string; ingredients: Ingredient[] }) {
   );
 
   return (
-    <div className={"mt-4"}>
+    <div className={"mt-2lh"}>
       <StoredInTable
         batchEdit={true}
         items={ingredients}
@@ -424,7 +424,7 @@ export function StoredInTable(props: {
     () => [
       helper.accessor("name", {
         header: "Name",
-        cell: (cell) => <td className={"p-2"}>{cell.row.original.name}</td>,
+        cell: (cell) => <td className={"px-2ch py-1lh"}>{cell.row.original.name}</td>,
       }),
       helper.accessor("tags", {
         header: "Tags",
@@ -453,7 +453,7 @@ export function StoredInTable(props: {
               </span>
             );
           return (
-            <td className={"p-2 flex flex-row gap-2 flex-wrap"}>
+            <td className={"px-2ch py-1lh flex flex-row gapx-2ch py-1lh flex-wrap"}>
               {batchEdit ? togglableStorageLocations : ownStorageLocation}
             </td>
           );
@@ -473,8 +473,8 @@ export function StoredInTable(props: {
     <table className={"w-full border-spacing-2 border-collapse text-left"}>
       <thead>
         <tr>
-          <th className={"p-2"}>Name</th>
-          <th className={"p-2"}>Stored In</th>
+          <th className={"px-2ch py-1lh"}>Name</th>
+          <th className={"px-2ch py-1lh"}>Stored In</th>
         </tr>
       </thead>
       <tbody>

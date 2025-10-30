@@ -9,7 +9,7 @@ import { Button } from "./button.tsx";
 
 export function Tags(props: { tags: string[] }) {
   return (
-    <ol className={"flex flex-row flex-wrap gap-2ch"}>
+    <ol className={"flex flex-row flex-wrap gapx-2ch py-1lhch"}>
       {props.tags.map((tag) => (
         <li key={tag}>#{tag}</li>
       ))}
@@ -62,7 +62,7 @@ function EditTags(props: Props & EditableProps) {
     );
   });
   return (
-    <div className={"flex flex-row gap-2ch flex-wrap"}>
+    <div className={"flex flex-row gapx-2ch py-1lhch flex-wrap"}>
       {batchTags}
       <div>
         <input
@@ -115,7 +115,7 @@ export function TagsTable(props: {
     () => [
       helper.accessor("name", {
         header: "Name",
-        cell: (cell) => <td className={"p-2"}>{cell.row.original.name}</td>,
+        cell: (cell) => <td className={"px-2ch py-1lh"}>{cell.row.original.name}</td>,
       }),
       helper.accessor("tags", {
         header: "Tags",
@@ -141,7 +141,7 @@ export function TagsTable(props: {
             return <span className={`bg-white border-2 px-2ch mr-2ch`}>{t}</span>;
           });
           return (
-            <td className={"p-2 flex flex-row gap-2ch flex-wrap"}>
+            <td className={"px-2ch py-1lh flex flex-row gapx-2ch py-1lhch flex-wrap"}>
               {batchEdit ? batchTags : ownTags}
             </td>
           );
@@ -161,8 +161,8 @@ export function TagsTable(props: {
     <table className={"w-full border-spacing-2 border-collapse text-left"}>
       <thead>
         <tr>
-          <th className={"p-2"}>Name</th>
-          <th className={"p-2"}>Tags</th>
+          <th className={"px-2ch py-1lh"}>Name</th>
+          <th className={"px-2ch py-1lh"}>Tags</th>
         </tr>
       </thead>
       <tbody>
