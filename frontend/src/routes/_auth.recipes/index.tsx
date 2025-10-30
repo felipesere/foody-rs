@@ -107,7 +107,7 @@ export function RecipesPage() {
               });
             }}
           />
-          <ul className={"flex flex-row gap-2"}>
+          <ul className={"flex flex-row gap-2ch"}>
             {(search?.tags || []).map((tag) => (
               <Pill
                 key={"tag"}
@@ -148,7 +148,7 @@ export function RecipesPage() {
             }}
           />
 
-          <ul className={"flex flex-row gap-2"}>
+          <ul className={"flex flex-row gap-2ch"}>
             {(search?.books || []).map((book) => (
               <Pill
                 key={book}
@@ -253,7 +253,7 @@ function Search(props: SearchProps) {
     <div className={"flex flex-row"}>
       <input
         type="text"
-        className={"pl-2 bg-gray-200"}
+        className={"pl-2ch bg-gray-200"}
         placeholder={"anything..."}
         onChange={(e) => setTerm(e.target.value)}
         onKeyDown={(e) => {
@@ -325,7 +325,7 @@ function RecipeView(props: RecipeProps) {
       {props.recipe.tags.length > 0 && (
         <>
           {props.recipe.tags.map((tag) => (
-            <p className={"inline-block mr-2"} key={tag}>
+            <p className={"inline-block mr-2ch"} key={tag}>
               #{tag}
             </p>
           ))}
@@ -334,7 +334,7 @@ function RecipeView(props: RecipeProps) {
       )}
       <ButtonGroup>
         <button
-          className={classnames("px-2", {
+          className={classnames("px-2ch", {
             "double-border": open,
             shadow: !open,
           })}
@@ -349,7 +349,7 @@ function RecipeView(props: RecipeProps) {
           View
         </button>
         <button
-          className={classnames("px-2", {
+          className={classnames("px-2ch", {
             "double-border": open,
             shadow: !open,
           })}
@@ -363,7 +363,7 @@ function RecipeView(props: RecipeProps) {
         <AddtoEither recipeId={recipeId} token={token} />
         <button
           type="submit"
-          className="px-2 text-white bg-gray-700 shadow"
+          className="px-2ch text-white bg-gray-700 shadow"
           onClick={() => deleteRecipe.mutate(recipeId)}
         >
           Delete
@@ -402,7 +402,7 @@ function ShowSource(props: { details: Source }) {
     case "book":
       return (
         <div className="flex flex-row">
-          <p className="mr-4">{props.details.title}</p>
+          <p className="mr-4ch">{props.details.title}</p>
           <p>{`p.${props.details.page}`}</p>
         </div>
       );
@@ -436,12 +436,12 @@ function MassEditTags(props: { token: string; recipes: Recipe[] }) {
     <div>
       <input
         placeholder={"Additional Tag"}
-        className={"px-2 border-2"}
+        className={"px-2ch border-2"}
         type={"text"}
         ref={inputRef}
       />
       <button
-        className={"px-2 ml-2"}
+        className={"px-2ch ml-2ch"}
         type={"button"}
         onClick={() => {
           let newTag = inputRef.current?.value;

@@ -82,7 +82,7 @@ function NewShoppinglist(props: { token: string }) {
         selector={(state) => [state.canSubmit]}
         children={([canSubmit]) => (
           <button
-            className={"px-2 ml-2 bg-gray-300 shadow"}
+            className={"px-2ch ml-2ch bg-gray-300 shadow"}
             type={"submit"}
             id={"submit"}
             disabled={!canSubmit}
@@ -119,7 +119,7 @@ function Shoppinglist({
       <Link
         to={"/shoppinglist/$shoppinglistId"}
         params={{ shoppinglistId: list.id.toString() }}
-        className={"block capitalize ml-2 font-black tracking-wider"}
+        className={"block capitalize ml-2ch font-black tracking-wider"}
       >
         {list.name}
       </Link>

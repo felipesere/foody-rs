@@ -9,7 +9,7 @@ import { Button } from "./button.tsx";
 
 export function Tags(props: { tags: string[] }) {
   return (
-    <ol className={"flex flex-row flex-wrap gap-2"}>
+    <ol className={"flex flex-row flex-wrap gap-2ch"}>
       {props.tags.map((tag) => (
         <li key={tag}>#{tag}</li>
       ))}
@@ -62,18 +62,18 @@ function EditTags(props: Props & EditableProps) {
     );
   });
   return (
-    <div className={"flex flex-row gap-2 flex-wrap"}>
+    <div className={"flex flex-row gap-2ch flex-wrap"}>
       {batchTags}
       <div>
         <input
           type={"text"}
           placeholder={"New tag"}
-          className={"border-2 px-2"}
+          className={"border-2 px-2ch"}
           ref={ref}
         />
         <Button
           label={"Add"}
-          className={"ml-2"}
+          className={"ml-2ch"}
           onClick={() => {
             if (ref.current) {
               const tag = ref.current.value;
@@ -131,17 +131,17 @@ export function TagsTable(props: {
             return (
               <span
                 onClick={() => toggleTags(ingredient.id, tags)}
-                className={`bg-white border-2 px-2 mr-2 ${color}`}
+                className={`bg-white border-2 px-2ch mr-2ch ${color}`}
               >
                 {t}
               </span>
             );
           });
           let ownTags = ingredient.tags.map((t) => {
-            return <span className={`bg-white border-2 px-2 mr-2`}>{t}</span>;
+            return <span className={`bg-white border-2 px-2ch mr-2ch`}>{t}</span>;
           });
           return (
-            <td className={"p-2 flex flex-row gap-2 flex-wrap"}>
+            <td className={"p-2 flex flex-row gap-2ch flex-wrap"}>
               {batchEdit ? batchTags : ownTags}
             </td>
           );

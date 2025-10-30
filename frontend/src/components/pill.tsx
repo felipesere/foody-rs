@@ -10,14 +10,14 @@ export function Pill(props: PillProps) {
       className={classnames(
         "flex flex-row items-center border-solid border-black border-2",
         {
-          "pr-2": props.onClose,
-          "px-2": !props.onClose,
+          "pr-2ch": props.onClose,
+          "px-2ch": !props.onClose,
         },
       )}
     >
       {props.onClose && (
         <span
-          className={"hover:bg-gray-300 px-2 cursor-pointer mr-2 max"}
+          className={"hover:bg-gray-300 px-2ch cursor-pointer mr-2ch max"}
           onClick={() => props.onClose?.(props.value)}
         >
           &#x2715;

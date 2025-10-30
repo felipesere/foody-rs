@@ -88,7 +88,7 @@ function MealPlanPage() {
                         search={{
                           mealPlan: mealPlan.id,
                         }}
-                        className={"pl-2"}
+                        className={"pl-2ch"}
                       >
                         {mealPlan.name}
                         {selected && selected.id === mealPlan.id && "* "}
@@ -151,7 +151,7 @@ function ViewMealPlan(props: {
         legend={mealPlan.name}
         className={{ fieldSet: "flex flex-col items-start gap-2" }}
       >
-        <div className={"flex flex-row gap-2"}>
+        <div className={"flex flex-row gap-2ch"}>
           <Button
             classNames={"whitespace-nowrap flex-shrink"}
             label={"Clear"}
@@ -167,7 +167,7 @@ function ViewMealPlan(props: {
             }}
           />
         </div>
-        <div className={"flex flex-row gap-2"}>
+        <div className={"flex flex-row gap-2ch"}>
           <p>Add recipe or thing</p>
           <FindRecipe
             token={props.token}
@@ -235,7 +235,7 @@ function NewSection(props: { onNewValue: (v: string) => void }) {
     >
       <input
         type={"text"}
-        className={"border-2 border-solid border-black px-2"}
+        className={"border-2 border-solid border-black px-2ch"}
         placeholder={"New section..."}
         value={value}
         onChange={(e) => setValue(e.target.value)}
@@ -262,15 +262,15 @@ function SectionOfMeals(props: {
       <table className={"table-fixed w-full border-collapse"}>
         <thead>
           <tr>
-            <th className={"border-2 border-black text-left align-top pl-2"}>
+            <th className={"border-2 border-black text-left align-top pl-2ch"}>
               Meal
             </th>
             <th
-              className={"border-2 border-black w-24 text-left align-top pl-2"}
+              className={"border-2 border-black w-24 text-left align-top pl-2ch"}
             >
               Cooked?
             </th>
-            <th className="border-2 border-black w-8 text-left align-top pl-2" />
+            <th className="border-2 border-black w-8 text-left align-top pl-2ch" />
           </tr>
         </thead>
         <tbody>
@@ -283,13 +283,13 @@ function SectionOfMeals(props: {
             >
               <td
                 className={
-                  "border-2 border-black text-left align-top pl-2 capitalize"
+                  "border-2 border-black text-left align-top pl-2ch capitalize"
                 }
               >
                 <MealLink details={meal.details} allRecipes={props.recipes} />
               </td>
               <td
-                className={"border-2 border-black text-left align-middle pl-2"}
+                className={"border-2 border-black text-left align-middle pl-2ch"}
               >
                 <input
                   type={"checkbox"}
@@ -302,7 +302,7 @@ function SectionOfMeals(props: {
                   }
                 />
               </td>
-              <td className={"border-2 border-black text-left my-auto pl-2"}>
+              <td className={"border-2 border-black text-left my-auto pl-2ch"}>
                 <KebabMenu>
                   <KebabMenu.Button
                     value={"Delete"}
@@ -426,7 +426,7 @@ function NewMealPlan(props: { token: string }) {
           selector={(state) => [state.canSubmit]}
           children={([canSubmit]) => (
             <button
-              className={"px-2 ml-2 bg-gray-300 shadow"}
+              className={"px-2ch ml-2ch bg-gray-300 shadow"}
               type={"submit"}
               id={"submit"}
               disabled={!canSubmit}
@@ -444,11 +444,11 @@ function NewMealPlan(props: { token: string }) {
             <input
               id={"keepUncooked"}
               type={"checkbox"}
-              className={"px-2 bg-white shadow"}
+              className={"px-2ch bg-white shadow"}
               checked={field.state.value}
               onChange={() => field.handleChange(!field.state.value)}
             />
-            <label className={"no-colon ml-2"} htmlFor={"groupByAisle"}>
+            <label className={"no-colon ml-2ch"} htmlFor={"groupByAisle"}>
               Keep previous uncooked items
             </label>
             <FieldInfo field={field} />

@@ -139,7 +139,7 @@ function Choice({
 }) {
   const [first, ...remaining] = item;
   return (
-    <li className={"flex flex-row gap-2"} key={item}>
+    <li className={"flex flex-row gap-2ch"} key={item}>
       <input
         type={"radio"}
         className={"bg-white shadow w-5 h-5"}

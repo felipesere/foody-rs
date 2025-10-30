@@ -65,14 +65,14 @@ export function RecipeView(props: RecipeViewProps) {
     <div className="content-grid space-y-4 pb-20">
       <div className={"grid gap-4 grid-cols-1 sm:grid-cols-2"}>
         {/* left or top */}
-        <div className={"flex flex-col gap-2"}>
+        <div className={"flex flex-col gap-2ch"}>
           <Name value={recipe.name} onBlur={props.onSetName} />
           <ShowSource
             token={token}
             recipe={recipe}
             onBlur={props.onSetSource}
           />
-          <div className={"flex flex-row gap-2"}>
+          <div className={"flex flex-row gap-2ch"}>
             <p>Rating:</p>{" "}
             <Stars rating={recipe.rating} setRating={props.onSetRating} />
           </div>
@@ -186,7 +186,7 @@ function Ingredients(props: {
 
   const sections = orderByAisles(props.ingredients);
   return (
-    <div className={"flex flex-col gap-2"}>
+    <div className={"flex flex-col gap-2ch"}>
       <p className="uppercase">Ingredients:</p>
       <ul className={"space-y-4"}>
         {Object.entries(sections).map(([name, ingredients]) => {
@@ -295,7 +295,7 @@ function IngredientView(props: IngredientViewProps) {
   const { editing } = useContext(RecipeContext);
   return (
     <li className="flex flex-row justify-between">
-      {editing && <DeleteButton className={"mr-2"} onClick={props.onRemove} />}
+      {editing && <DeleteButton className={"mr-2ch"} onClick={props.onRemove} />}
       <p className="font-light text-gray-700 whitespace-nowrap overflow-hidden overflow-ellipsis">
         {props.ingredient}
       </p>
@@ -392,7 +392,7 @@ function ShowSource(props: {
   if (editing) {
     return (
       <div>
-        <div className={"flex flex-row gap-2"}>
+        <div className={"flex flex-row gap-2ch"}>
           <Labeled label={"Book"} htmlFor={"book"}>
             <input
               type="radio"
@@ -426,7 +426,7 @@ function ShowSource(props: {
           />
         )}
         {sourceChoice === "book" && (
-          <div className={"flex gap-2 flex-row"}>
+          <div className={"flex gap-2ch flex-row"}>
             <BookSource
               token={props.token}
               source={source}
@@ -462,8 +462,8 @@ function ShowSource(props: {
     }
     case "book": {
       return (
-        <div className="flex gap-2 flex-row">
-          <p className="mr-4">{source.title}</p>
+        <div className="flex gap-2ch flex-row">
+          <p className="mr-4ch">{source.title}</p>
           <p>{`p.${source.page}`}</p>
         </div>
       );

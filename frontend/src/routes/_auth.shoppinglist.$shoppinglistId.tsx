@@ -147,7 +147,7 @@ export function ShoppingPage() {
           legend={"Filter and Sort"}
           className={{ fieldSet: "mt-4 flex flex-col" }}
         >
-          <div className={"flex flex-row gap-6"}>
+          <div className={"flex flex-row gap-6ch"}>
             {Object.values(Grouping).map((option) => (
               <Labeled
                 key={option}
@@ -168,11 +168,11 @@ export function ShoppingPage() {
             ))}
           </div>
         </FieldSet>
-        <div className={"p-2 flex flex-row gap-2"}>
+        <div className={"p-2 flex flex-row gap-2ch"}>
           <input
             id={"groupByAisle"}
             type={"checkbox"}
-            className={"px-2 bg-white shadow"}
+            className={"px-2ch bg-white shadow"}
             checked={showProgressBar}
             onChange={() => setShowProgressBar((b) => !b)}
           />
@@ -180,7 +180,7 @@ export function ShoppingPage() {
             Show progress bar
           </label>
         </div>
-        <div className={"p-2 flex flex-row gap-2"}>
+        <div className={"p-2 flex flex-row gap-2ch"}>
           <Button
             label={"Clear checked items"}
             onClick={() => removeCheckedItems.mutate()}
@@ -278,7 +278,7 @@ function CompactIngredientView({
             // setChecked((checked) => !checked);
           }}
           className={classnames(
-            "flex-grow inline capitalize ml-2 font-black tracking-wider",
+            "flex-grow inline capitalize ml-2ch font-black tracking-wider",
           )}
         >
           {item.ingredient.name}{" "}
@@ -372,7 +372,7 @@ function EditIngredient({
       <Divider />
       {(item.note || newNote) && (
         <>
-          <div className={"flex flex-row gap-2"}>
+          <div className={"flex flex-row gap-2ch"}>
             <span>Note:</span>
             <Editable
               isEditing={isEditing}
@@ -387,7 +387,7 @@ function EditIngredient({
       )}
       {item.ingredient.tags && (
         <>
-          <div className={"flex flex-row gap-2"}>
+          <div className={"flex flex-row gap-2ch"}>
             <TagsAndAisle
               token={token}
               ingredientId={item.ingredient.id}
@@ -420,7 +420,7 @@ function EditIngredient({
               />
             ) : null}
           </div>
-          <p className={"ml-2"}>
+          <p className={"ml-2ch"}>
             {quantity.recipe_id ? (
               <LinkToRecipe
                 recipeId={quantity.recipe_id}
@@ -461,7 +461,7 @@ function EditIngredient({
       <ButtonGroup>
         <button
           type={"button"}
-          className={"px-2"}
+          className={"px-2ch"}
           disabled={!isEditing}
           onClick={() => {
             setModifiedIngredient(structuredClone(item));
@@ -473,7 +473,7 @@ function EditIngredient({
         </button>
         <button
           type={"button"}
-          className={"px-2"}
+          className={"px-2ch"}
           onClick={() => {
             if (isEditing) {
               applyModifications(changes);
@@ -485,7 +485,7 @@ function EditIngredient({
         </button>
         <button
           type={"button"}
-          className={"px-2"}
+          className={"px-2ch"}
           disabled={item.note !== null}
           onClick={() => {
             setNewNote("...");
@@ -495,7 +495,7 @@ function EditIngredient({
         </button>
         <button
           type={"button"}
-          className={"px-2 bg-gray-700 text-white"}
+          className={"px-2ch bg-gray-700 text-white"}
           onClick={() =>
             deleteIngredient.mutate({ ingredient: item.ingredient.name })
           }

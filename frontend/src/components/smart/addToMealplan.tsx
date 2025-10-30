@@ -48,7 +48,7 @@ export function PickMealplan(props: Props) {
               e?.preventDefault();
               props.onSelect(list);
             }}
-            className={"px-2 bg-white shadow"}
+            className={"px-2ch bg-white shadow"}
           />
         </li>
       ))}

@@ -227,7 +227,7 @@ function IngredientView(props: IngredientViewProps) {
     >
       <div
         onClick={props.onClick}
-        className={"flex flex-row gap-1 font-black align-middle"}
+        className={"flex flex-row gap-1ch font-black align-middle"}
       >
         <ToggleButton
           onToggle={() => {
@@ -271,7 +271,7 @@ function IngredientView(props: IngredientViewProps) {
       {open && (
         <>
           <Divider />
-          <div className={"flex flex-row gap-4"}>
+          <div className={"flex flex-row gap-4ch"}>
             <p>Tags:</p>
             {anyTags
               ? props.ingredient.tags.map((t) => <p key={t}>{t}</p>)
@@ -342,12 +342,12 @@ function MassEditTags(props: { token: string; ingredients: Ingredient[] }) {
     <div className={"mt-4"}>
       <input
         placeholder={"Additional Tag"}
-        className={"px-2 border-2"}
+        className={"px-2ch border-2"}
         type={"text"}
         ref={inputRef}
       />
       <button
-        className={"px-2 ml-2"}
+        className={"px-2ch ml-2ch"}
         type={"button"}
         onClick={() => {
           let newTag = inputRef.current?.value;
@@ -438,7 +438,7 @@ export function StoredInTable(props: {
             return (
               <span
                 onClick={() => toggleStorage(ingredient.id, newStorageId)}
-                className={`bg-white border-2 px-2 mr-2 ${color}`}
+                className={`bg-white border-2 px-2ch mr-2ch ${color}`}
               >
                 {t.name}
               </span>
@@ -448,7 +448,7 @@ export function StoredInTable(props: {
             ingredient.stored_in === null ? (
               ""
             ) : (
-              <span className={`bg-white border-2 px-2 mr-2`}>
+              <span className={`bg-white border-2 px-2ch mr-2ch`}>
                 {ingredient.stored_in.name}
               </span>
             );

@@ -17,7 +17,7 @@ export function AddToShoppinglist(props: Props) {
     <Popup>
       <Popup.OpenButton
         label={label}
-        className="px-2 text-black bg-gray-300 shadow"
+        className="px-2ch text-black bg-gray-300 shadow"
       />
       <Popup.Pane>
         <PickShoppinglist
@@ -51,7 +51,7 @@ export function PickShoppinglist(props: Props) {
               e?.preventDefault();
               props.onSelect(list);
             }}
-            className={"px-2 bg-white shadow"}
+            className={"px-2ch bg-white shadow"}
           />
         </li>
       ))}

@@ -15,7 +15,7 @@ export function Button(props: ButtonProps) {
       className={classnames(
         className,
         classNames,
-        "px-2 text-black bg-gray-300 shadow",
+        "px-2ch text-black bg-gray-300 shadow",
       )}
     >
       {label}

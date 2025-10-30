@@ -25,7 +25,7 @@ export function Button({ onClick, value, className, style }: ButtonProps) {
     <button
       onClick={onClick}
       type="submit"
-      className={classnames("px-2", className, {
+      className={classnames("px-2ch", className, {
         "text-white bg-gray-700": style === "dark",
       })}
     >

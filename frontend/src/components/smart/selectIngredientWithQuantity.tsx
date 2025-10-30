@@ -53,7 +53,7 @@ export function SelectIngredientWithQuantity(
         ref={ingredientRef}
       />
       <input
-        className={"ml-2 w-1/3 border-gray-500 border-solid border-2"}
+        className={"ml-2ch w-1/3 border-gray-500 border-solid border-2"}
         type={"text"}
         name={"new_quantity"}
         data-testid="new-quantity"
@@ -69,7 +69,7 @@ export function SelectIngredientWithQuantity(
         }}
       />
       <button
-        className={"ml-2 px-2"}
+        className={"ml-2ch px-2ch"}
         type={"button"}
         disabled={!((selectedIngredient || newIngredientName) && quantity)}
         onClick={() => {

@@ -68,10 +68,10 @@ export function MultiSelect(props: Props) {
               }}
             />
             {props.onNewItem && (
-              <div className={"flex flex-row gap-2"} key={"new-item"}>
+              <div className={"flex flex-row gap-2ch"} key={"new-item"}>
                 <input
                   type={"text"}
-                  className={"bg-white border-2 border-solid border-black px-2"}
+                  className={"bg-white border-2 border-solid border-black px-2ch"}
                   id={"new-item"}
                   placeholder={props.newItemPlaceholder || "New..."}
                   onBlur={(e) => {
@@ -115,10 +115,10 @@ function Checkbox(props: {
   const [first, ...remaining] = name;
 
   return (
-    <div className={"flex flex-row gap-2"} key={name}>
+    <div className={"flex flex-row gap-2ch"} key={name}>
       <input
         type={"checkbox"}
-        className={"px-2 bg-white shadow"}
+        className={"px-2ch bg-white shadow"}
         id={name}
         key={name}
         checked={checked}

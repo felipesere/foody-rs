@@ -22,7 +22,7 @@ export function AddtoEither(props: Props) {
     <Popup>
       <Popup.OpenButton
         label={label}
-        className="px-2 text-black bg-gray-300 shadow"
+        className="px-2ch text-black bg-gray-300 shadow"
       />
       <Popup.Pane>
         <p className={"pb-2 font-bold"}>Shoppinglist</p>

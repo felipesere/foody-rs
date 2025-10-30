@@ -20,7 +20,7 @@ export function Toggle(props: ToggleProps) {
       >
         <ToggleButton onToggle={() => setOpen((v) => !v)} open={open} />
         <button
-          className={"px-2 border-0"}
+          className={"px-2ch border-0"}
           type={"button"}
           onClick={() => setOpen((v) => !v)}
         >
@@ -41,7 +41,7 @@ export function ToggleButton(props: ToggleButtonProps) {
   return (
     <div
       onClick={props.onToggle}
-      className={classnames("mx-2 transition-transform ease-linear", {
+      className={classnames("mx-2ch transition-transform ease-linear", {
         "rotate-90": props.open,
       })}
       style={{ maxHeight: "24px", verticalAlign: "text-top" }}

@@ -42,12 +42,12 @@ function UserDetails(props: { token: string }) {
   );
 
   return (
-    <div className={"content-grid gap-4"}>
+    <div className={"content-grid gap-4ch"}>
       <div>
         {greeting}
         <button
           disabled={!user.data}
-          className={"px-2"}
+          className={"px-2ch"}
           type={"submit"}
           onClick={async () => {
             await logout();
@@ -143,7 +143,7 @@ function Login() {
           selector={(state) => [state.canSubmit, state.isPristine]}
           children={([canSubmit, isPristine]) => (
             <button
-              className={"px-2"}
+              className={"px-2ch"}
               type={"submit"}
               id={"submit"}
               disabled={!canSubmit || isPristine}
@@ -165,7 +165,7 @@ function AdminPanel(props: { token: string }) {
   }
 
   return (
-    <div className={"flex flex-col gap-4"}>
+    <div className={"flex flex-col gap-4ch"}>
       <Divider />
       <EditAislesForm token={props.token} aisles={aisles.data} />
       <Divider />
@@ -190,7 +190,7 @@ function EditAislesForm(props: { token: string; aisles: Aisle[] }) {
 
       <form
         id="aisles"
-        className={"grid gap-4"}
+        className={"grid gap-4ch"}
         onSubmit={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -200,8 +200,8 @@ function EditAislesForm(props: { token: string; aisles: Aisle[] }) {
         <table className={"table-auto border-collapse mt-2"}>
           <thead>
             <tr>
-              <th className={"pr-4 text-left border-black border-r-2"}>Name</th>
-              <th className={"px-4 text-left"}>Order</th>
+              <th className={"pr-4ch text-left border-black border-r-2"}>Name</th>
+              <th className={"px-4ch text-left"}>Order</th>
             </tr>
           </thead>
           <tbody>
@@ -212,10 +212,10 @@ function EditAislesForm(props: { token: string; aisles: Aisle[] }) {
                 return aislesField.state.value.map((aisle, idx) => {
                   return (
                     <tr key={aisle.name}>
-                      <td className={"pr-4 border-black border-r-2"}>
+                      <td className={"pr-4ch border-black border-r-2"}>
                         {aisle.name}
                       </td>
-                      <td className={"px-4"}>
+                      <td className={"px-4ch"}>
                         <form.Field
                           name={`aisles[${idx}].order`}
                           children={(orderField) => (
@@ -299,7 +299,7 @@ function MergeIngredients(props: { token: string }) {
           }}
           children={(fieldApi) => {
             return (
-              <div className={"flex flex-row gap-4"}>
+              <div className={"flex flex-row gap-4ch"}>
                 <div className={"flex flex-row"}>
                   <p>Ingredients to merge:</p>
                   <FindIngredient
@@ -308,7 +308,7 @@ function MergeIngredients(props: { token: string }) {
                     onIngredient={(i) => fieldApi.pushValue(i)}
                   />
                 </div>
-                <ul className={"flex flex-row gap-2"}>
+                <ul className={"flex flex-row gap-2ch"}>
                   {fieldApi.state.value.map((ingredient, idx) => (
                     <li key={ingredient.id}>
                       <Pill
@@ -329,7 +329,7 @@ function MergeIngredients(props: { token: string }) {
               v === null ? "Need an ingredient to merge into" : undefined,
           }}
           children={(fieldApi) => (
-            <div className={"flex flex-row gap-2"}>
+            <div className={"flex flex-row gap-2ch"}>
               <p>Merge into</p>
               {fieldApi.state.value === null ? (
                 <FindIngredient
@@ -351,7 +351,7 @@ function MergeIngredients(props: { token: string }) {
           children={([canSubmit, isPristine]) => {
             return (
               <button
-                className={"px-2"}
+                className={"px-2ch"}
                 type={"submit"}
                 id={"submit"}
                 disabled={!canSubmit || isPristine}
