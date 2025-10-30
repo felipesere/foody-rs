@@ -1,13 +1,45 @@
 @import "tailwindcss";
 
-@tailwind utilities;
+@theme {
+  /* Custom spacing values for monospace grid */
+  --spacing-1ch: 1ch;
+  --spacing-2ch: 2ch;
+  --spacing-3ch: 3ch;
+  --spacing-4ch: 4ch;
+  --spacing-5ch: 5ch;
+  --spacing-6ch: 6ch;
+  --spacing-8ch: 8ch;
+  --spacing-10ch: 10ch;
+  --spacing-12ch: 12ch;
+  --spacing-16ch: 16ch;
+  --spacing-20ch: 20ch;
+  --spacing-24ch: 24ch;
+  --spacing-32ch: 32ch;
+  --spacing-40ch: 40ch;
+  --spacing-48ch: 48ch;
+  --spacing-60ch: 60ch;
+  --spacing-80ch: 80ch;
+
+  --spacing-0\.5lh: calc(var(--line-height) * 0.5);
+  --spacing-1lh: var(--line-height);
+  --spacing-2lh: calc(var(--line-height) * 2);
+  --spacing-3lh: calc(var(--line-height) * 3);
+  --spacing-4lh: calc(var(--line-height) * 4);
+  --spacing-5lh: calc(var(--line-height) * 5);
+  --spacing-6lh: calc(var(--line-height) * 6);
+  --spacing-8lh: calc(var(--line-height) * 8);
+  --spacing-10lh: calc(var(--line-height) * 10);
+
+  /* Font family */
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", "Menlo", "Monaco", "Consolas", monospace;
+}
 
 :root {
   --line-height: 1.2rem;
 }
 
 body {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: var(--font-mono);
   line-height: 1.2;
   font-weight: 400;
   font-variant-numeric: tabular-nums lining-nums;
