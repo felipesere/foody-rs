@@ -13,6 +13,7 @@ import {
 import {
   type Shoppinglist,
   type ShoppinglistItem,
+  ShoppingListItemQuantity,
   useRemoveInBasketItemsFromShoppinglist,
   useRemoveIngredientFromShoppinglist,
   useRemoveQuantityFromShoppinglist,
@@ -313,6 +314,49 @@ type Changes = {
   modifications: Array<{ value: string; quantity: StoredQuantity["id"] }>;
 };
 
+function RecipeAndQuantity(props: {
+  editing: boolean;
+  onClick: () => void;
+  quantity: ShoppingListItemQuantity;
+  allRecipes: Record<number, string>;
+  onBlur: (v: string) => void;
+}) {
+  return (
+    <div className={"flex flex-row"}>
+      {props.editing ? (
+        <DeleteButton className={"text-red-700"} onClick={props.onClick} />
+      ) : null}
+      <p>
+        {props.quantity.recipe_id ? (
+          <LinkToRecipe
+            recipeId={props.quantity.recipe_id}
+            name={props.allRecipes[props.quantity.recipe_id] || "Manual"}
+          />
+        ) : (
+          "Manual"
+        )}
+      </p>
+      <DottedLine />
+      <Editable
+        isEditing={props.editing}
+        value={humanize(props.quantity.quantity)}
+        onBlur={props.onBlur}
+      />
+    </div>
+  );
+}
+
+function LinkToRecipe(props: { recipeId: Recipe["id"]; name: Recipe["name"] }) {
+  return (
+    <Link
+      to={"/recipes/$recipeId"}
+      params={{ recipeId: props.recipeId.toString() }}
+    >
+      {props.name}
+    </Link>
+  );
+}
+
 function EditIngredient({
   item,
   token,
@@ -355,20 +399,6 @@ function EditIngredient({
     }
   }
 
-  function LinkToRecipe(props: {
-    recipeId: Recipe["id"];
-    name: Recipe["name"];
-  }) {
-    return (
-      <Link
-        to={"/recipes/$recipeId"}
-        params={{ recipeId: props.recipeId.toString() }}
-      >
-        {props.name}
-      </Link>
-    );
-  }
-
   return (
     <div>
       <Divider />
@@ -402,60 +432,42 @@ function EditIngredient({
         </>
       )}
       {modifiedIngredient.quantities.map((quantity) => (
-        <div key={quantity.quantity.id} className={"flex flex-row"}>
-          {isEditing ? (
-            <DeleteButton
-              className={"text-red-700"}
-              onClick={() => {
-                setChanges((previous) => ({
-                  ...previous,
-                  removals: [...previous.removals, quantity.quantity.id],
-                }));
-                setModifiedIngredient((previous) => ({
-                  ...previous,
-                  quantities: previous.quantities.filter(
-                    (q) => q.quantity.id !== quantity.quantity.id,
-                  ),
-                }));
-              }}
-            />
-          ) : null}
-          <p>
-            {quantity.recipe_id ? (
-              <LinkToRecipe
-                recipeId={quantity.recipe_id}
-                name={allRecipes[quantity.recipe_id] || "Manual"}
-              />
-            ) : (
-              "Manual"
-            )}
-          </p>
-          <DottedLine />
-          <Editable
-            isEditing={isEditing}
-            value={humanize(quantity.quantity)}
-            onBlur={(v) => {
-              console.log(`Edited value: ${v}: ${JSON.stringify(parse(v))}`);
-              setChanges((previous) => ({
-                ...previous,
-                modifications: [
-                  ...previous.modifications,
-                  { value: v, quantity: quantity.quantity.id },
-                ],
-              }));
-              setModifiedIngredient((previous) => ({
-                ...previous,
-                quantities: previous.quantities.map((q) => {
-                  if (q.quantity.id === quantity.quantity.id) {
-                    return { ...q, ...parse(v) };
-                  }
-                  return q;
-                }),
-              }));
-            }}
-          />
-          <span className={"w-7"} />
-        </div>
+        <RecipeAndQuantity
+          key={quantity.quantity.id}
+          quantity={quantity}
+          allRecipes={allRecipes}
+          editing={isEditing}
+          onClick={() => {
+            setChanges((previous) => ({
+              ...previous,
+              removals: [...previous.removals, quantity.quantity.id],
+            }));
+            setModifiedIngredient((previous) => ({
+              ...previous,
+              quantities: previous.quantities.filter(
+                (q) => q.quantity.id !== quantity.quantity.id,
+              ),
+            }));
+          }}
+          onBlur={(v) => {
+            setChanges((previous) => ({
+              ...previous,
+              modifications: [
+                ...previous.modifications,
+                { value: v, quantity: quantity.quantity.id },
+              ],
+            }));
+            setModifiedIngredient((previous) => ({
+              ...previous,
+              quantities: previous.quantities.map((q) => {
+                if (q.quantity.id === quantity.quantity.id) {
+                  return { ...q, ...parse(v) };
+                }
+                return q;
+              }),
+            }));
+          }}
+        />
       ))}
       <Divider />
       <ButtonGroup>

@@ -49,6 +49,11 @@ const ShoppinglistItemQuantitySchema = z.object({
   in_basket: z.boolean(),
   recipe_id: z.number().nullable(),
 });
+
+export type ShoppingListItemQuantity = z.infer<
+  typeof ShoppinglistItemQuantitySchema
+>;
+
 const ShoppinglistItem = z.object({
   ingredient: IngredientSchema,
   note: z.string().nullable(),
