@@ -12,7 +12,7 @@ type ToggleProps = PropsWithChildren<Props>;
 export function Toggle(props: ToggleProps) {
   const [open, setOpen] = useState(false);
   return (
-    <div className={"px-2ch py-1lh border-black border-solid border-2"}>
+    <div className={"px-1ch py-1lh border-black border-solid border-2"}>
       <div
         className={classNames("flex flex-row items-center", {
           "pb-1lh": open,
@@ -20,7 +20,7 @@ export function Toggle(props: ToggleProps) {
       >
         <ToggleButton onToggle={() => setOpen((v) => !v)} open={open} />
         <button
-          className={"px-2ch border-0"}
+          className={"px-1ch border-0"}
           type={"button"}
           onClick={() => setOpen((v) => !v)}
         >
@@ -41,7 +41,7 @@ export function ToggleButton(props: ToggleButtonProps) {
   return (
     <div
       onClick={props.onToggle}
-      className={classnames("mx-2ch transition-transform ease-linear", {
+      className={classnames("mx-1ch transition-transform ease-linear", {
         "rotate-90": props.open,
       })}
       style={{ maxHeight: "24px", verticalAlign: "text-top" }}

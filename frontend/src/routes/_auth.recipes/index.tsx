@@ -168,7 +168,8 @@ export function RecipesPage() {
               />
             ))}
           </ul>
-          <FieldSet legend={"Rating"}>
+          <div className={"flex flex-row"}>
+            <p>Rating:</p>
             <Stars
               rating={search?.rating || 0}
               setRating={(r) => {
@@ -185,7 +186,7 @@ export function RecipesPage() {
                 });
               }}
             />
-          </FieldSet>
+          </div>
         </FieldSet>
         <FieldSet legend={"Word Search"}>
           <Search
@@ -253,7 +254,7 @@ function Search(props: SearchProps) {
     <div className={"flex flex-row"}>
       <input
         type="text"
-        className={"pl-2ch bg-gray-200"}
+        className={"pl-1ch bg-gray-200"}
         placeholder={"anything..."}
         onChange={(e) => setTerm(e.target.value)}
         onKeyDown={(e) => {
@@ -264,7 +265,7 @@ function Search(props: SearchProps) {
       />
       <button
         type={"button"}
-        className={"borderless hover:bg-gray-300 px-2ch py-1lh"}
+        className={"borderless hover:bg-gray-300 pl-1ch"}
         onClick={() => props.onSubmit(term)}
       >
         <img
@@ -290,7 +291,7 @@ function RecipeView(props: RecipeProps) {
   const navigate = useNavigate({ from: "/recipes" });
 
   return (
-    <li className="px-2ch py-1lh border-black border-solid border-2">
+    <li className="px-1ch py-1lh border-black border-solid border-2">
       <p className="font-black uppercase tracking-wider">{props.recipe.name}</p>
       <ShowSource details={props.recipe} />
       <Stars
@@ -300,15 +301,15 @@ function RecipeView(props: RecipeProps) {
         }
       />
       {props.recipe.duration && <p>⏲ {props.recipe.duration}</p>}
+      {props.recipe.tags.length > 0 && (
+        <>
+          <Divider />
+          <Tags tags={props.recipe.tags} />
+        </>
+      )}
 
       {open ? (
         <div>
-          {props.recipe.tags.length > 0 && (
-            <>
-              <Divider />
-              <Tags tags={props.recipe.tags} />
-            </>
-          )}
           <Divider />
           <p className="uppercase">Ingredients:</p>
           <ul>
@@ -322,16 +323,6 @@ function RecipeView(props: RecipeProps) {
         </div>
       ) : null}
       <Divider />
-      {props.recipe.tags.length > 0 && (
-        <>
-          {props.recipe.tags.map((tag) => (
-            <p className={"inline-block mr-2ch"} key={tag}>
-              #{tag}
-            </p>
-          ))}
-          <Divider />
-        </>
-      )}
       <ButtonGroup>
         <button
           className={classnames("px-2ch", {

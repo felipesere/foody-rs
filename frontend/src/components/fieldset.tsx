@@ -15,13 +15,11 @@ export function FieldSet(props: FieldsetProps) {
     <fieldset
       className={classnames(
         props.className?.fieldSet,
-        "border-black border-2 px-2ch py-1lh flex flex-row gap-4ch",
+        "border-black border-2 px-1ch py-0.5lh flex flex-row gap-2ch",
       )}
     >
       {props.legend && (
-        <legend className={classnames(props.className?.legend, "px-2ch")}>
-          {props.legend}
-        </legend>
+        <legend className={props.className?.legend}>{props.legend}</legend>
       )}
       {props.children}
     </fieldset>

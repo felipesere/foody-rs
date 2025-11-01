@@ -38,6 +38,7 @@ import { Toggle, ToggleButton } from "../components/toggle.tsx";
 import { orderByAisles } from "../domain/orderByAisle.ts";
 import { orderByRecipe, type Section } from "../domain/orderByRecipe.ts";
 import { combineQuantities, humanize, parse } from "../quantities.ts";
+import { Tags } from "../components/tags.tsx";
 
 export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId")({
   component: ShoppingPage,
@@ -129,7 +130,7 @@ export function ShoppingPage() {
     (inBasket.length / (shoppinglist.data?.ingredients.length || 1)) * 100;
 
   return (
-    <div className="content-grid space-y-2lh max-w-md pb-10lh">
+    <div className="content-grid space-y-1lh max-w-md pb-10lh">
       <Toggle buttonLabel={"More..."}>
         <FieldSet legend={"Add ingredient"}>
           <SelectIngredientWithQuantity
@@ -168,19 +169,19 @@ export function ShoppingPage() {
             ))}
           </div>
         </FieldSet>
-        <div className={"px-2ch py-1lh flex flex-row gapx-2ch py-1lhch"}>
+        <div className={"px-1ch py-1lh flex flex-row gapx-2ch py-1lhch"}>
           <input
             id={"groupByAisle"}
             type={"checkbox"}
-            className={"px-2ch bg-white shadow"}
+            className={"bg-white shadow"}
             checked={showProgressBar}
             onChange={() => setShowProgressBar((b) => !b)}
           />
-          <label className={"no-colon"} htmlFor={"groupByAisle"}>
+          <label className={"no-colon pl-1ch"} htmlFor={"groupByAisle"}>
             Show progress bar
           </label>
         </div>
-        <div className={"px-2ch py-1lh flex flex-row gapx-2ch py-1lhch"}>
+        <div className={"px-1ch py-1lh flex flex-row gapx-2ch py-1lhch"}>
           <Button
             label={"Clear checked items"}
             onClick={() => removeCheckedItems.mutate()}
@@ -213,7 +214,7 @@ export function ShoppingPage() {
         </FieldSet>
       </Toggle>
       {showProgressBar && <Progressbar fraction={fraction} sticky={true} />}
-      <ul className="grid max-w-md gap-x-2ch gap-y-2lh">
+      <ul className="grid max-w-md gap-x-1ch gap-y-1lh">
         {sections.map((section) => (
           <Fragment key={section.name}>
             <Divider
@@ -256,15 +257,14 @@ function CompactIngredientView({
   const [open, setOpen] = useState(false);
   return (
     <li
-      className={classnames("border-black border-solid border-2 px-2ch py-1lh", {
-        "bg-gray-200 text-gray-500": checked,
-      })}
+      className={classnames(
+        "border-black border-solid border-2 px-1ch py-0.5lh",
+        {
+          "bg-gray-200 text-gray-500": checked,
+        },
+      )}
     >
-      <div
-        className={classnames("flex flex-row", {
-          "line-through": checked,
-        })}
-      >
+      <div className={classnames("flex flex-row")}>
         <input
           type="checkbox"
           checked={checked}
@@ -275,10 +275,12 @@ function CompactIngredientView({
         <p
           onClick={() => {
             onToggle(item.ingredient.id, !checked);
-            // setChecked((checked) => !checked);
           }}
           className={classnames(
             "flex-grow inline capitalize ml-2ch font-black tracking-wider",
+            {
+              "line-through": checked,
+            },
           )}
         >
           {item.ingredient.name}{" "}
@@ -387,7 +389,7 @@ function EditIngredient({
       )}
       {item.ingredient.tags && (
         <>
-          <div className={"flex flex-row gapx-2ch py-1lhch"}>
+          <div className={"flex flex-row gapx-2ch"}>
             <TagsAndAisle
               token={token}
               ingredientId={item.ingredient.id}
@@ -401,26 +403,24 @@ function EditIngredient({
       )}
       {modifiedIngredient.quantities.map((quantity) => (
         <div key={quantity.quantity.id} className={"flex flex-row"}>
-          <div className={"w-5"}>
-            {isEditing ? (
-              <DeleteButton
-                className={"text-red-700"}
-                onClick={() => {
-                  setChanges((previous) => ({
-                    ...previous,
-                    removals: [...previous.removals, quantity.quantity.id],
-                  }));
-                  setModifiedIngredient((previous) => ({
-                    ...previous,
-                    quantities: previous.quantities.filter(
-                      (q) => q.quantity.id !== quantity.quantity.id,
-                    ),
-                  }));
-                }}
-              />
-            ) : null}
-          </div>
-          <p className={"ml-2ch"}>
+          {isEditing ? (
+            <DeleteButton
+              className={"text-red-700"}
+              onClick={() => {
+                setChanges((previous) => ({
+                  ...previous,
+                  removals: [...previous.removals, quantity.quantity.id],
+                }));
+                setModifiedIngredient((previous) => ({
+                  ...previous,
+                  quantities: previous.quantities.filter(
+                    (q) => q.quantity.id !== quantity.quantity.id,
+                  ),
+                }));
+              }}
+            />
+          ) : null}
+          <p>
             {quantity.recipe_id ? (
               <LinkToRecipe
                 recipeId={quantity.recipe_id}
@@ -518,12 +518,8 @@ function TagsAndAisle(props: {
   isEditing?: boolean;
 }) {
   return (
-    <div className={"flex flex-row gapx-2ch py-1lh"}>
-      {props.tags.map((t) => (
-        <p className={"lowercase"} key={t}>
-          #{t}
-        </p>
-      ))}
+    <div className={"flex flex-row gapx-2ch"}>
+      <Tags tags={props.tags} />
       {props.isEditing && (
         <>
           <SelectTags

@@ -7,9 +7,9 @@ export function Divider(props: DividerProps) {
   if (props.label) {
     return (
       <div className={"flex flex-row"}>
-        <hr className="h-0.5 my-1lh w-6ch bg-black border-0 mr-2ch translate-y-1" />
+        <hr className="h-0.5 my-0.5lh w-6ch bg-black border-0 mr-2ch  -translate-y-0.5lh" />
         <span className={props.className}>{props.label}</span>
-        <hr className="h-0.5 my-1lh w-full bg-black border-0 ml-2ch translate-y-1" />
+        <hr className="h-0.5 my-0.5lh w-full bg-black border-0 ml-2ch -translate-y-0.5lh" />
       </div>
     );
   }

@@ -31,7 +31,9 @@
   --spacing-10lh: calc(var(--line-height) * 10);
 
   /* Font family */
-  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", "Menlo", "Monaco", "Consolas", monospace;
+  --font-mono:
+    "JetBrains Mono", ui-monospace, "SFMono-Regular", "Menlo", "Monaco",
+    "Consolas", monospace;
 }
 
 :root {
@@ -147,7 +149,7 @@ input[type="radio"] {
 /* If we follow an actual label we have
 to nudge the checkbox down for visual balance
  */
-input[type="checkbox"]:has(~ label),
+/*input[type="checkbox"]:has(~ label),*/
 input[type="radio"]:has(~ label) {
   transform: translateY(+0.1em);
 }

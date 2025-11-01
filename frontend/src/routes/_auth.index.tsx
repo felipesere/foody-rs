@@ -20,7 +20,7 @@ export function ShoppingPage() {
   return (
     <div className="content-grid space-y-2lh">
       <NewShoppinglist token={token} />
-      <ul className="grid max-w-md gap-x-2ch gap-y-2lh">
+      <ul className="grid max-w-md gap-x-1ch gap-y-1lh">
         {!data.data || data.isLoading
           ? "Loading"
           : data.data.shoppinglists
@@ -66,7 +66,9 @@ function NewShoppinglist(props: { token: string }) {
             <input
               placeholder={"New shoppinglist"}
               type={"text"}
-              className={"px-2ch py-1lh outline-0 border-black border-2 border-solid"}
+              className={
+                "px-1ch py-0.5lh outline-0 border-black border-2 border-solid"
+              }
               name={field.name}
               id={field.name}
               value={field.state.value}
@@ -82,7 +84,7 @@ function NewShoppinglist(props: { token: string }) {
         selector={(state) => [state.canSubmit]}
         children={([canSubmit]) => (
           <button
-            className={"px-2ch ml-2ch bg-gray-300 shadow"}
+            className={"px-1ch ml-1ch bg-gray-300 shadow"}
             type={"submit"}
             id={"submit"}
             disabled={!canSubmit}
@@ -115,11 +117,11 @@ function Shoppinglist({
 }) {
   const removeShoppinglist = useRemoveShoppinglist(token);
   return (
-    <li className="flex flex-row justify-between shadow border-black border-solid border-2 px-2ch py-1lh col-span-2">
+    <li className="flex flex-row justify-between shadow border-black border-solid border-2 px-1ch py-0.5lh col-span-2">
       <Link
         to={"/shoppinglist/$shoppinglistId"}
         params={{ shoppinglistId: list.id.toString() }}
-        className={"block capitalize ml-2ch font-black tracking-wider"}
+        className={"block capitalize ml-1ch font-black tracking-wider"}
       >
         {list.name}
       </Link>

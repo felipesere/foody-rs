@@ -63,9 +63,9 @@ export function RecipeView(props: RecipeViewProps) {
 
   return (
     <div className="content-grid space-y-2lh pb-10lh">
-      <div className={"grid gap-x-4ch gap-y-2lh grid-cols-1 sm:grid-cols-2"}>
+      <div className={"grid gap-x-2ch gap-y-1lh grid-cols-1 sm:grid-cols-2"}>
         {/* left or top */}
-        <div className={"flex flex-col gap-2ch"}>
+        <div className={"flex flex-col gap-1ch"}>
           <Name value={recipe.name} onBlur={props.onSetName} />
           <ShowSource
             token={token}
@@ -186,9 +186,9 @@ function Ingredients(props: {
 
   const sections = orderByAisles(props.ingredients);
   return (
-    <div className={"flex flex-col gap-2ch"}>
+    <div className={"flex flex-col gap-1ch"}>
       <p className="uppercase">Ingredients:</p>
-      <ul className={"space-y-2lh"}>
+      <ul className={"space-y-1lh"}>
         {Object.entries(sections).map(([name, ingredients]) => {
           return (
             <ul key={name}>
@@ -295,7 +295,9 @@ function IngredientView(props: IngredientViewProps) {
   const { editing } = useContext(RecipeContext);
   return (
     <li className="flex flex-row justify-between">
-      {editing && <DeleteButton className={"mr-2ch"} onClick={props.onRemove} />}
+      {editing && (
+        <DeleteButton className={"mr-2ch"} onClick={props.onRemove} />
+      )}
       <p className="font-light text-gray-700 whitespace-nowrap overflow-hidden overflow-ellipsis">
         {props.ingredient}
       </p>

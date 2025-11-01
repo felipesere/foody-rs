@@ -9,7 +9,7 @@ import { Button } from "./button.tsx";
 
 export function Tags(props: { tags: string[] }) {
   return (
-    <ol className={"flex flex-row flex-wrap gapx-2ch py-1lhch"}>
+    <ol className={"flex flex-row flex-wrap gap-1ch py-1lhch"}>
       {props.tags.map((tag) => (
         <li key={tag}>#{tag}</li>
       ))}
@@ -115,7 +115,9 @@ export function TagsTable(props: {
     () => [
       helper.accessor("name", {
         header: "Name",
-        cell: (cell) => <td className={"px-2ch py-1lh"}>{cell.row.original.name}</td>,
+        cell: (cell) => (
+          <td className={"px-2ch py-1lh"}>{cell.row.original.name}</td>
+        ),
       }),
       helper.accessor("tags", {
         header: "Tags",
@@ -138,10 +140,16 @@ export function TagsTable(props: {
             );
           });
           let ownTags = ingredient.tags.map((t) => {
-            return <span className={`bg-white border-2 px-2ch mr-2ch`}>{t}</span>;
+            return (
+              <span className={`bg-white border-2 px-2ch mr-2ch`}>{t}</span>
+            );
           });
           return (
-            <td className={"px-2ch py-1lh flex flex-row gapx-2ch py-1lhch flex-wrap"}>
+            <td
+              className={
+                "px-2ch py-1lh flex flex-row gapx-2ch py-1lhch flex-wrap"
+              }
+            >
               {batchEdit ? batchTags : ownTags}
             </td>
           );
