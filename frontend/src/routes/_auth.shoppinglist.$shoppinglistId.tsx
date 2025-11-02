@@ -258,7 +258,7 @@ function CompactIngredientView({
   return (
     <li
       className={classnames(
-        "border-black border-solid border-2 px-1ch py-0.5lh max-w-md",
+        "border-black border-solid border-2 px-1ch py-0.5lh max-w-md overflow-hidden",
         {
           "bg-gray-200 text-gray-500": checked,
         },
@@ -321,11 +321,11 @@ function RecipeAndQuantity(props: {
   onBlur: (v: string) => void;
 }) {
   return (
-    <div className={"flex flex-row items-end"}>
+    <div className={"flex flex-row items-end gap-1ch"}>
       {props.editing ? (
         <DeleteButton className={"text-red-700"} onClick={props.onClick} />
       ) : null}
-      <p className="flex-grow min-w-0 overflow-hidden">
+      <p className="flex-shrink-0 min-w-0 max-w-[60%] truncate">
         {props.quantity.recipe_id ? (
           <LinkToRecipe
             recipeId={props.quantity.recipe_id}
@@ -334,11 +334,9 @@ function RecipeAndQuantity(props: {
         ) : (
           "Manual"
         )}
-        <span className="mx-1ch whitespace-nowrap">
-          ......................................................................
-        </span>
       </p>
-      <span className={"flex-shrink-0 whitespace-nowrap ml-1ch"}>
+      <span className="flex-grow border-b-[3px] border-dotted border-gray-600 min-w-4ch self-end mb-[0.3em]" />
+      <span className={"flex-shrink-0 whitespace-nowrap"}>
         <Editable
           isEditing={props.editing}
           value={humanize(props.quantity.quantity)}
@@ -403,7 +401,7 @@ function EditIngredient({
   }
 
   return (
-    <div>
+    <div className="max-w-full overflow-hidden">
       <Divider />
       {(item.note || newNote) && (
         <>
