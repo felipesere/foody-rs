@@ -27,7 +27,6 @@ import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { DeleteButton } from "../components/deleteButton.tsx";
 import { Divider } from "../components/divider.tsx";
-import { DottedLine } from "../components/dottedLine.tsx";
 import { Editable } from "../components/editable.tsx";
 import { FieldSet } from "../components/fieldset.tsx";
 import { Labeled } from "../components/Labeled.tsx";
@@ -259,7 +258,7 @@ function CompactIngredientView({
   return (
     <li
       className={classnames(
-        "border-black border-solid border-2 px-1ch py-0.5lh",
+        "border-black border-solid border-2 px-1ch py-0.5lh max-w-md",
         {
           "bg-gray-200 text-gray-500": checked,
         },
