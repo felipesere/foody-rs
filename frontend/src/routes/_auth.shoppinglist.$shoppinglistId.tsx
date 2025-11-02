@@ -132,60 +132,62 @@ export function ShoppingPage() {
   return (
     <div className="content-grid space-y-1lh max-w-md pb-10lh">
       <Toggle buttonLabel={"More..."}>
-        <FieldSet legend={"Add ingredient"}>
-          <SelectIngredientWithQuantity
-            token={token}
-            onIngredient={(ingredient, quantity) => {
-              addIngredient.mutate({
-                shoppinglistId: shoppinglistId,
-                ingredient: ingredient.name,
-                quantity: [quantity],
-              });
-            }}
-          />
-        </FieldSet>
-        <FieldSet
-          legend={"Filter and Sort"}
-          className={{ fieldSet: "mt-2lh flex flex-col" }}
-        >
-          <div className={"flex flex-row gap-6ch"}>
-            {Object.values(Grouping).map((option) => (
-              <Labeled
-                key={option}
-                label={GroupingLabel(option)}
-                htmlFor={option}
-              >
-                <input
-                  type={"radio"}
-                  name={"grouping"}
-                  id={option}
-                  value={option}
-                  checked={option === grouping}
-                  onChange={() => {
-                    setGrouping(option);
-                  }}
-                />
-              </Labeled>
-            ))}
+        <div className={"mb-1lh"}>
+          <FieldSet legend={"Add ingredient"}>
+            <SelectIngredientWithQuantity
+              token={token}
+              onIngredient={(ingredient, quantity) => {
+                addIngredient.mutate({
+                  shoppinglistId: shoppinglistId,
+                  ingredient: ingredient.name,
+                  quantity: [quantity],
+                });
+              }}
+            />
+          </FieldSet>
+          <FieldSet
+            legend={"Filter and Sort"}
+            className={{ fieldSet: "mt-1lh flex flex-col" }}
+          >
+            <div>
+              {Object.values(Grouping).map((option) => (
+                <Labeled
+                  key={option}
+                  label={GroupingLabel(option)}
+                  htmlFor={option}
+                >
+                  <input
+                    type={"radio"}
+                    name={"grouping"}
+                    id={option}
+                    value={option}
+                    checked={option === grouping}
+                    onChange={() => {
+                      setGrouping(option);
+                    }}
+                  />
+                </Labeled>
+              ))}
+            </div>
+          </FieldSet>
+          <div className={"px-1ch py-1lh flex flex-row gapx-2ch"}>
+            <input
+              id={"groupByAisle"}
+              type={"checkbox"}
+              className={"bg-white shadow"}
+              checked={showProgressBar}
+              onChange={() => setShowProgressBar((b) => !b)}
+            />
+            <label className={"no-colon pl-1ch"} htmlFor={"groupByAisle"}>
+              Show progress bar
+            </label>
           </div>
-        </FieldSet>
-        <div className={"px-1ch py-1lh flex flex-row gapx-2ch py-1lhch"}>
-          <input
-            id={"groupByAisle"}
-            type={"checkbox"}
-            className={"bg-white shadow"}
-            checked={showProgressBar}
-            onChange={() => setShowProgressBar((b) => !b)}
-          />
-          <label className={"no-colon pl-1ch"} htmlFor={"groupByAisle"}>
-            Show progress bar
-          </label>
-        </div>
-        <div className={"px-1ch py-1lh flex flex-row gapx-2ch py-1lhch"}>
-          <Button
-            label={"Clear checked items"}
-            onClick={() => removeCheckedItems.mutate()}
-          />
+          <div className={"px-1ch flex flex-row gapx-2ch py-1lhch"}>
+            <Button
+              label={"Clear checked items"}
+              onClick={() => removeCheckedItems.mutate()}
+            />
+          </div>
         </div>
         <FieldSet legend={"Recipes"}>
           <ul className={"space-y-1lh "}>
@@ -325,7 +327,7 @@ function RecipeAndQuantity(props: {
       {props.editing ? (
         <DeleteButton className={"text-red-700"} onClick={props.onClick} />
       ) : null}
-      <p className="flex-shrink-0 min-w-0 max-w-[60%] truncate">
+      <p className="flex-shrink-0 min-w-0 max-w-[85%] overflow-hidden whitespace-nowrap">
         {props.quantity.recipe_id ? (
           <LinkToRecipe
             recipeId={props.quantity.recipe_id}
@@ -335,7 +337,7 @@ function RecipeAndQuantity(props: {
           "Manual"
         )}
       </p>
-      <span className="flex-grow border-b-[3px] border-dotted border-gray-600 min-w-4ch self-end mb-[0.3em]" />
+      <span className="flex-grow border-b-[3px] border-dotted border-gray-600 min-w-1ch self-end mb-[0.3em]" />
       <span className={"flex-shrink-0 whitespace-nowrap"}>
         <Editable
           isEditing={props.editing}
