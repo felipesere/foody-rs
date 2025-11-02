@@ -322,11 +322,11 @@ function RecipeAndQuantity(props: {
   onBlur: (v: string) => void;
 }) {
   return (
-    <div className={"flex flex-row"}>
+    <div className={"flex flex-row items-end"}>
       {props.editing ? (
         <DeleteButton className={"text-red-700"} onClick={props.onClick} />
       ) : null}
-      <p>
+      <p className="flex-grow min-w-0 overflow-hidden">
         {props.quantity.recipe_id ? (
           <LinkToRecipe
             recipeId={props.quantity.recipe_id}
@@ -335,13 +335,17 @@ function RecipeAndQuantity(props: {
         ) : (
           "Manual"
         )}
+        <span className="mx-1ch whitespace-nowrap">
+          ......................................................................
+        </span>
       </p>
-      <DottedLine />
-      <Editable
-        isEditing={props.editing}
-        value={humanize(props.quantity.quantity)}
-        onBlur={props.onBlur}
-      />
+      <span className={"flex-shrink-0 whitespace-nowrap ml-1ch"}>
+        <Editable
+          isEditing={props.editing}
+          value={humanize(props.quantity.quantity)}
+          onBlur={props.onBlur}
+        />
+      </span>
     </div>
   );
 }
