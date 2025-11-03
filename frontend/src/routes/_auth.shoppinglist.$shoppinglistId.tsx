@@ -192,25 +192,13 @@ export function ShoppingPage() {
         <FieldSet legend={"Recipes"}>
           <ul className={"space-y-1lh "}>
             {Object.entries(presentRecipes).map(([id, name]) => (
-              <li
+              <RecipeRow
                 key={id}
-                className={"flex flex-row gap-4ch hover:bg-slate-200"}
-              >
-                <Link
-                  className={"block flex-grow"}
-                  to={"/recipes/$recipeId"}
-                  params={{ recipeId: id }}
-                >
-                  {name}
-                </Link>
-                <Button
-                  label={"Delete"}
-                  onClick={() => {
-                    // TODO/WARN: Annoying when the ID types don't line up!
-                    deleteRecipe.mutate({ recipeId: Number(id) });
-                  }}
-                />
-              </li>
+                id={id}
+                name={name}
+                // TODO/WARN: Annoying when the ID types don't line up!
+                onDelete={() => deleteRecipe.mutate({ recipeId: Number(id) })}
+              />
             ))}
           </ul>
         </FieldSet>
@@ -239,6 +227,25 @@ export function ShoppingPage() {
         ))}
       </ul>
     </div>
+  );
+}
+
+function RecipeRow(props: { id: string; name: string; onDelete: () => void }) {
+  return (
+    <li className={"flex flex-row gap-4ch hover:bg-slate-200"}>
+      <Link
+        className={"block flex-grow"}
+        to={"/recipes/$recipeId"}
+        params={{ recipeId: props.id }}
+      >
+        {props.name}
+      </Link>
+      <Button
+        label={"Delete"}
+        className={"self-end"}
+        onClick={props.onDelete}
+      />
+    </li>
   );
 }
 
