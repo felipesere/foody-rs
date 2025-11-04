@@ -141,15 +141,11 @@ export function TagsTable(props: {
           });
           let ownTags = ingredient.tags.map((t) => {
             return (
-              <span className={`bg-white border-2 px-2ch mr-2ch`}>{t}</span>
+              <span className={`bg-white border-2 px-1ch mr-2ch`}>{t}</span>
             );
           });
           return (
-            <td
-              className={
-                "px-2ch py-1lh flex flex-row gapx-2ch py-1lhch flex-wrap"
-              }
-            >
+            <td className={"flex flex-row flex-wrap gap-y-0.5lh my-0.5lh"}>
               {batchEdit ? batchTags : ownTags}
             </td>
           );

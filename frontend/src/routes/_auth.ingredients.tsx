@@ -428,21 +428,21 @@ export function StoredInTable(props: {
           <td className={"px-2ch py-1lh"}>{cell.row.original.name}</td>
         ),
       }),
-      helper.accessor("tags", {
-        header: "Tags",
+      helper.accessor("stored_in.name", {
+        header: "Stored In",
         cell: (cell) => {
           const ingredient = cell.row.original;
-          let togglableStorageLocations = knownStorageLocations.map((t) => {
-            const isStoredIn = ingredient.stored_in?.id === t.id;
+          let togglableStorageLocations = knownStorageLocations.map((s) => {
+            const isStoredIn = ingredient.stored_in?.id === s.id;
             const color = isStoredIn ? `text-black` : `text-gray-400`;
-            const newStorageId = isStoredIn ? null : t.id;
+            const newStorageId = isStoredIn ? null : s.id;
 
             return (
               <span
                 onClick={() => toggleStorage(ingredient.id, newStorageId)}
                 className={`bg-white border-2 px-2ch mr-2ch ${color}`}
               >
-                {t.name}
+                {s.name}
               </span>
             );
           });
@@ -455,11 +455,7 @@ export function StoredInTable(props: {
               </span>
             );
           return (
-            <td
-              className={
-                "px-2ch py-1lh flex flex-row gapx-2ch py-1lh flex-wrap"
-              }
-            >
+            <td className={"flex flex-row flex-wrap gap-y-0.5lh my-0.5lh"}>
               {batchEdit ? togglableStorageLocations : ownStorageLocation}
             </td>
           );
