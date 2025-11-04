@@ -79,7 +79,7 @@ function Login() {
     <div className="content-grid">
       <h3>Login</h3>
       <form
-        className={"space-y-2lh"}
+        className={"space-y-1lh"}
         onSubmit={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -98,7 +98,9 @@ function Login() {
               </label>
               <input
                 type={"text"}
-                className={"px-2ch py-1lh outline-0 border-black border-2 border-solid"}
+                className={
+                  "px-1ch py-0.5lh outline-0 border-black border-2 border-solid"
+                }
                 autoComplete={"username"}
                 name={emailField.name}
                 id={emailField.name}
@@ -129,7 +131,9 @@ function Login() {
               </label>
               <input
                 type={"password"}
-                className={"px-2ch py-1lh outline-0 border-black border-2 border-solid"}
+                className={
+                  "px-1ch py-0.5lh outline-0 border-black border-2 border-solid"
+                }
                 autoComplete={"current-password"}
                 name={passwordField.name}
                 id={passwordField.name}
@@ -200,7 +204,9 @@ function EditAislesForm(props: { token: string; aisles: Aisle[] }) {
         <table className={"table-auto border-collapse mt-1lh"}>
           <thead>
             <tr>
-              <th className={"pr-4ch text-left border-black border-r-2"}>Name</th>
+              <th className={"pr-4ch text-left border-black border-r-2"}>
+                Name
+              </th>
               <th className={"px-4ch text-left"}>Order</th>
             </tr>
           </thead>
