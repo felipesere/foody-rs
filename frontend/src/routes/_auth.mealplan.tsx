@@ -151,7 +151,7 @@ function ViewMealPlan(props: {
         legend={mealPlan.name}
         className={{ fieldSet: "flex flex-col items-start gapx-2ch py-1lh" }}
       >
-        <div className={"flex flex-row gapx-2ch py-1lhch"}>
+        <div className={"flex flex-wrap gap-1ch"}>
           <Button
             classNames={"whitespace-nowrap flex-shrink"}
             label={"Clear"}
@@ -166,12 +166,9 @@ function ViewMealPlan(props: {
               addToShoppinglist.mutate({ shoppinglist: list.id });
             }}
           />
-        </div>
-        <div className={"flex flex-row gapx-2ch py-1lhch"}>
-          <p>Add recipe or thing</p>
           <FindRecipe
             token={props.token}
-            placeholder={"Recipe..."}
+            placeholder={"Recipe or thing..."}
             onRecipe={(r) => {
               addMeal.mutate({
                 mealPlan: mealPlan.id,
@@ -194,7 +191,6 @@ function ViewMealPlan(props: {
         </div>
       </FieldSet>
       <p>Meals</p>
-
       {unnamed.length > 0 && (
         <SectionOfMeals
           token={token}
@@ -266,7 +262,9 @@ function SectionOfMeals(props: {
               Meal
             </th>
             <th
-              className={"border-2 border-black w-24 text-left align-top pl-2ch"}
+              className={
+                "border-2 border-black w-24 text-left align-top pl-2ch"
+              }
             >
               Cooked?
             </th>
@@ -289,7 +287,9 @@ function SectionOfMeals(props: {
                 <MealLink details={meal.details} allRecipes={props.recipes} />
               </td>
               <td
-                className={"border-2 border-black text-left align-middle pl-2ch"}
+                className={
+                  "border-2 border-black text-left align-middle pl-2ch"
+                }
               >
                 <input
                   type={"checkbox"}
@@ -410,7 +410,9 @@ function NewMealPlan(props: { token: string }) {
             <>
               <input
                 type={"text"}
-                className={"px-2ch py-1lh outline-0 border-black border-2 border-solid"}
+                className={
+                  "px-2ch py-1lh outline-0 border-black border-2 border-solid"
+                }
                 name={field.name}
                 id={field.name}
                 value={field.state.value}
