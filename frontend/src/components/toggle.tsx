@@ -41,7 +41,7 @@ export function ToggleButton(props: ToggleButtonProps) {
   return (
     <div
       onClick={props.onToggle}
-      className={classnames("mx-1ch transition-transform ease-linear", {
+      className={classnames("max-w-1ch transition-transform ease-linear", {
         "rotate-90": props.open,
       })}
       style={{ maxHeight: "24px", verticalAlign: "text-top" }}

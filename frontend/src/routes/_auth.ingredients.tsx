@@ -178,7 +178,7 @@ function Overview(props: { ingredients: Ingredient[]; token: string }) {
   sections.sort((a, b) => a.items.length - b.items.length);
 
   return (
-    <ul className="gap-x-4ch gap-y-5lh columns-xs space-y-5lh mt-2lh">
+    <ul className="gap-x-4ch columns-xs space-y-2lh mt-2lh">
       {sections.map((section) => {
         return (
           <div key={section.name} className={"flex flex-col"}>
@@ -220,7 +220,7 @@ function IngredientView(props: IngredientViewProps) {
   const addIngredient = addIngredientToShoppinglist(props.token);
   return (
     <li
-      className={classnames("px-2ch py-1lh border-solid border-2", {
+      className={classnames("px-1ch py-0.5lh border-solid border-2", {
         "border-black": !props.selected,
         "border-yellow-400": props.selected,
       })}
@@ -424,7 +424,9 @@ export function StoredInTable(props: {
     () => [
       helper.accessor("name", {
         header: "Name",
-        cell: (cell) => <td className={"px-2ch py-1lh"}>{cell.row.original.name}</td>,
+        cell: (cell) => (
+          <td className={"px-2ch py-1lh"}>{cell.row.original.name}</td>
+        ),
       }),
       helper.accessor("tags", {
         header: "Tags",
@@ -453,7 +455,11 @@ export function StoredInTable(props: {
               </span>
             );
           return (
-            <td className={"px-2ch py-1lh flex flex-row gapx-2ch py-1lh flex-wrap"}>
+            <td
+              className={
+                "px-2ch py-1lh flex flex-row gapx-2ch py-1lh flex-wrap"
+              }
+            >
               {batchEdit ? togglableStorageLocations : ownStorageLocation}
             </td>
           );
