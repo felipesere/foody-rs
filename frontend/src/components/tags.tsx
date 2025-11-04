@@ -62,7 +62,7 @@ function EditTags(props: Props & EditableProps) {
     );
   });
   return (
-    <div className={"flex flex-row gapx-2ch py-1lhch flex-wrap"}>
+    <div className={"flex flex-row gap-x-2ch py-1lhch flex-wrap"}>
       {batchTags}
       <div>
         <input
