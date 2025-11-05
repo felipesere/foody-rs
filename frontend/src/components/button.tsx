@@ -1,13 +1,18 @@
 import classnames from "classnames";
 import { type ButtonHTMLAttributes } from "react";
 
-type ButtonProps = ButtonHTMLAttributes<never> & {
+export type ButtonProps = ButtonHTMLAttributes<never> & {
   label: string;
   classNames?: Record<string, boolean> | string;
+  shadow?: boolean;
 };
 
 export function Button(props: ButtonProps) {
-  const { className, classNames, label, ...restProps } = props;
+  const { className, classNames, label, shadow, ...restProps } = props;
+
+  console.log(shadow);
+
+  const useShadow = shadow ?? true;
 
   return (
     <button
@@ -15,7 +20,10 @@ export function Button(props: ButtonProps) {
       className={classnames(
         className,
         classNames,
-        "px-1ch min-h-1lh text-black bg-gray-300 shadow",
+        "px-1ch min-h-1lh text-black bg-gray-300",
+        {
+          shadow: useShadow,
+        },
       )}
     >
       {label}

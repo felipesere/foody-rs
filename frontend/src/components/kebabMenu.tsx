@@ -6,7 +6,12 @@ interface KebabMenuProps {}
 export function KebabMenu(props: PropsWithChildren<KebabMenuProps>) {
   return (
     <Popup>
-      <Popup.OpenButton label={"⋮"} type={"submit"} />
+      <Popup.OpenButton
+        label={"≡"}
+        className={"bg-transparent borderless font-extrabold hover:bg-gray-300"}
+        type={"submit"}
+        shadow={false}
+      />
       <Popup.Pane>{props.children}</Popup.Pane>
     </Popup>
   );

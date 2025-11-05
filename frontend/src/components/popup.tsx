@@ -8,6 +8,7 @@ import {
   useRef,
 } from "react";
 import { Button as InnerButton } from "./button";
+import type { ButtonProps as InnerButtonProps } from "./button";
 
 export const PopupContext = createContext({
   targetId: "",
@@ -30,12 +31,12 @@ export function Popup(props: PropsWithChildren<{}>) {
   );
 }
 
-interface ButtonProps {
+type ButtonProps = {
   label: string;
   className?: string;
   onClick?: MouseEventHandler<HTMLButtonElement> | undefined;
   type?: "button" | "submit" | "reset";
-}
+} & InnerButtonProps;
 
 function OpenButton(props: ButtonProps) {
   const { targetId } = useContext(PopupContext);
@@ -49,6 +50,7 @@ function OpenButton(props: ButtonProps) {
       onClick={(ev) => {
         props.onClick?.(ev);
       }}
+      shadow={props.shadow}
     />
   );
 }

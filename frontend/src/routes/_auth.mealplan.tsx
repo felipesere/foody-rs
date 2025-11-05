@@ -190,7 +190,6 @@ function ViewMealPlan(props: {
           />
         </div>
       </FieldSet>
-      <p>Meals</p>
       {unnamed.length > 0 && (
         <SectionOfMeals
           token={token}
@@ -198,6 +197,7 @@ function ViewMealPlan(props: {
           meals={unnamed}
           sections={sections}
           recipes={recipes}
+          title={"Meals"}
         />
       )}
 
@@ -275,20 +275,20 @@ function SectionOfMeals(props: {
           {props.meals.map((meal) => (
             <tr
               key={meal.id}
-              className={classNames({
+              className={classNames("", {
                 "bg-gray-200 text-gray-500": meal.is_cooked,
               })}
             >
               <td
                 className={
-                  "border-2 border-black text-left align-top pl-2ch capitalize"
+                  "border-2 border-black text-left align-top pl-1ch py-0.5lh capitalize"
                 }
               >
                 <MealLink details={meal.details} allRecipes={props.recipes} />
               </td>
               <td
                 className={
-                  "border-2 border-black text-left align-middle pl-2ch"
+                  "border-2 border-black text-left align-middle py-0.5lh pl-2ch"
                 }
               >
                 <input
@@ -302,7 +302,7 @@ function SectionOfMeals(props: {
                   }
                 />
               </td>
-              <td className={"border-2 border-black text-left my-auto pl-2ch"}>
+              <td className={"border-2 border-black text-left my-auto"}>
                 <KebabMenu>
                   <KebabMenu.Button
                     value={"Delete"}
