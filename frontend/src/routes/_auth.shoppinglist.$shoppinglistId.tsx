@@ -11,9 +11,9 @@ import {
   useAllRecipes,
 } from "../apis/recipes.ts";
 import {
+  ShoppingListItemQuantity,
   type Shoppinglist,
   type ShoppinglistItem,
-  ShoppingListItemQuantity,
   useRemoveInBasketItemsFromShoppinglist,
   useRemoveIngredientFromShoppinglist,
   useRemoveQuantityFromShoppinglist,
@@ -34,11 +34,11 @@ import { Progressbar } from "../components/progressbar.tsx";
 import { SelectAisle } from "../components/smart/selectAisle.tsx";
 import { SelectIngredientWithQuantity } from "../components/smart/selectIngredientWithQuantity.tsx";
 import { SelectTags } from "../components/smart/selectTags.tsx";
+import { Tags } from "../components/tags.tsx";
 import { Toggle, ToggleButton } from "../components/toggle.tsx";
 import { orderByAisles } from "../domain/orderByAisle.ts";
 import { orderByRecipe, type Section } from "../domain/orderByRecipe.ts";
 import { combineQuantities, humanize, parse } from "../quantities.ts";
-import { Tags } from "../components/tags.tsx";
 
 export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId")({
   component: ShoppingPage,

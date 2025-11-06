@@ -7,8 +7,8 @@ import {
   useId,
   useRef,
 } from "react";
-import { Button as InnerButton } from "./button";
 import type { ButtonProps as InnerButtonProps } from "./button";
+import { Button as InnerButton } from "./button";
 
 export const PopupContext = createContext({
   targetId: "",

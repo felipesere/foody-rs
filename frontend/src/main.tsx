@@ -65,7 +65,8 @@ if (rootElement && !rootElement.innerHTML) {
         <Toaster
           toastOptions={{
             classNames: {
-              toast: "bg-white border-solid border-black border-2 px-2ch py-2lh",
+              toast:
+                "bg-white border-solid border-black border-2 px-2ch py-2lh",
               closeButton: "bg-white",
             },
           }}
