@@ -168,8 +168,8 @@ export function RecipesPage() {
               />
             ))}
           </ul>
-          <div className={"flex flex-row"}>
-            <p>Rating:</p>
+          <div>
+            <p>Rating</p>
             <Stars
               rating={search?.rating || 0}
               setRating={(r) => {
