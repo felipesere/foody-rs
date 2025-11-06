@@ -231,7 +231,7 @@ function NewSection(props: { onNewValue: (v: string) => void }) {
     >
       <input
         type={"text"}
-        className={"border-2 border-solid border-black px-2ch"}
+        className={"border-2 border-solid border-black px-1ch mt-1lh"}
         placeholder={"New section..."}
         value={value}
         onChange={(e) => setValue(e.target.value)}
@@ -310,16 +310,19 @@ function SectionOfMeals(props: {
                     style={"dark"}
                   />
                   <KebabMenu.Divider />
-                  {Array.from(props.sections).map((section) => (
-                    <KebabMenu.Button
-                      key={section}
-                      value={section}
-                      style={"plain"}
-                      onClick={() =>
-                        setSection.mutate({ id: meal.id, section })
-                      }
-                    />
-                  ))}
+                  <ol className={"space-y-0.5lh"}>
+                    {Array.from(props.sections).map((section) => (
+                      <li key={section}>
+                        <KebabMenu.Button
+                          value={section}
+                          style={"plain"}
+                          onClick={() =>
+                            setSection.mutate({ id: meal.id, section })
+                          }
+                        />
+                      </li>
+                    ))}
+                  </ol>
                   <NewSection
                     onNewValue={(newSection) => {
                       setSection.mutate({ id: meal.id, section: newSection });
