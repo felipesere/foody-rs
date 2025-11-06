@@ -51,7 +51,7 @@ function NavLink(props: {
         className: "bg-white hover:bg-gray-100",
       }}
       className={
-        "px-1ch text-black border-black border-2 border-solid uppercase"
+        "px-1ch py-0.5lh text-black border-black border-2 border-solid uppercase"
       }
       to={props.to}
     >

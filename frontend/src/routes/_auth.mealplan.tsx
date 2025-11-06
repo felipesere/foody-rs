@@ -263,10 +263,10 @@ function SectionOfMeals(props: {
             </th>
             <th
               className={
-                "border-2 border-black w-24 text-left align-top pl-2ch"
+                "border-2 border-black w-6ch text-left align-top pl-1ch"
               }
             >
-              Cooked?
+              Done
             </th>
             <th className="border-2 border-black w-8 text-left align-top pl-2ch" />
           </tr>
@@ -281,7 +281,7 @@ function SectionOfMeals(props: {
             >
               <td
                 className={
-                  "border-2 border-black text-left align-top pl-1ch py-0.5lh capitalize"
+                  "border-2 border-black text-left align-top px-1ch py-0.5lh capitalize"
                 }
               >
                 <MealLink details={meal.details} allRecipes={props.recipes} />
@@ -366,7 +366,9 @@ export function FindRecipe(props: FindRecipeProps) {
     <Dropdown
       placeholder={props.placeholder}
       items={recipes.data.recipes}
-      dropdownClassnames={"border-gray-500 border-solid border-2"}
+      dropdownClassnames={
+        "border-gray-500 border-solid border-2 px-1ch py-0.5lh"
+      }
       onSelectedItem={props.onRecipe}
       onNewItem={props.onNonRecipe}
     />
@@ -411,7 +413,7 @@ function NewMealPlan(props: { token: string }) {
               <input
                 type={"text"}
                 className={
-                  "px-2ch py-1lh outline-0 border-black border-2 border-solid"
+                  "px-1ch py-0.5lh outline-0 border-black border-2 border-solid"
                 }
                 name={field.name}
                 id={field.name}
@@ -428,7 +430,7 @@ function NewMealPlan(props: { token: string }) {
           selector={(state) => [state.canSubmit]}
           children={([canSubmit]) => (
             <button
-              className={"px-2ch ml-2ch bg-gray-300 shadow"}
+              className={"px-1ch ml-2ch bg-gray-300 shadow"}
               type={"submit"}
               id={"submit"}
               disabled={!canSubmit}

@@ -130,7 +130,7 @@ export function ShoppingPage() {
     (inBasket.length / (shoppinglist.data?.ingredients.length || 1)) * 100;
 
   return (
-    <div className="content-grid space-y-1lh max-w-md pb-10lh">
+    <div className="content-grid space-y-1lh pb-10lh">
       <Toggle buttonLabel={"More..."}>
         <div className={"mb-1lh"}>
           <FieldSet legend={"Add ingredient"}>
@@ -204,7 +204,7 @@ export function ShoppingPage() {
         </FieldSet>
       </Toggle>
       {showProgressBar && <Progressbar fraction={fraction} sticky={true} />}
-      <ul className="grid max-w-md gap-x-1ch gap-y-1lh">
+      <ul className="grid max-w-md gap-y-1lh">
         {sections.map((section) => (
           <Fragment key={section.name}>
             <Divider

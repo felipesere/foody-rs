@@ -254,7 +254,7 @@ function Search(props: SearchProps) {
     <div className={"flex flex-row"}>
       <input
         type="text"
-        className={"pl-1ch bg-gray-200"}
+        className={"pl-1ch py-0.5lh bg-gray-200"}
         placeholder={"anything..."}
         onChange={(e) => setTerm(e.target.value)}
         onKeyDown={(e) => {
