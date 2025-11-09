@@ -38,7 +38,7 @@ export function SelectIngredientWithQuantity(
   const ingredientRef = useRef<HTMLInputElement | null>(null);
 
   return (
-    <div className={classnames(props.className, "flex flex-row")}>
+    <div className={classnames(props.className, "flex flex-wrap gap-1ch")}>
       <FindIngredient
         token={props.token}
         placeholder={"ingredient..."}
@@ -53,7 +53,7 @@ export function SelectIngredientWithQuantity(
         ref={ingredientRef}
       />
       <input
-        className={"ml-2ch w-1/3 border-gray-500 border-solid border-2"}
+        className={"border-gray-500 border-solid border-2"}
         type={"text"}
         name={"new_quantity"}
         data-testid="new-quantity"
@@ -69,7 +69,7 @@ export function SelectIngredientWithQuantity(
         }}
       />
       <button
-        className={"ml-2ch px-2ch"}
+        className={"px-1ch"}
         type={"button"}
         disabled={!((selectedIngredient || newIngredientName) && quantity)}
         onClick={() => {
