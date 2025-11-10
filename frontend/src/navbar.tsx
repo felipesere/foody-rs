@@ -7,7 +7,7 @@ export function Navbar() {
 
   return (
     <nav className="content-grid py-1lh border-solid border-black border-b-2 dotted-bg">
-      <ul className="flex flex-wrap gap-5ch justify-start items-center">
+      <ul className="flex flex-wrap gap-x-1ch gap-y-2lh">
         <li>
           <NavLink name={"Meal plan"} to={"/mealplan"} />
         </li>
