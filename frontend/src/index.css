@@ -64,6 +64,9 @@ body {
   inset: auto;
   top: anchor(bottom);
   right: anchor(right);
+
+  position-try-fallbacks: flip-inline, flip-start;
+  position-try-order: most-width;
 }
 .new-single-select:popover-open {
 }
