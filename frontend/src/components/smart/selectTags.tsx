@@ -18,7 +18,7 @@ export function SelectTags(props: {
   if (!tags.data) {
     return <p>Loading...</p>;
   }
-  const knownTags = tags.data.tags;
+  const knownTags = tags.data;
   return (
     <MultiSelect
       label={"Select tags"}

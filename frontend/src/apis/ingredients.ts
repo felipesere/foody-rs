@@ -155,7 +155,9 @@ export function useAllIngredientTags(token: string) {
         })
         .json();
 
-      return IngredientTagsSchema.parse(body);
+      let ingredientTags = IngredientTagsSchema.parse(body);
+
+      return ingredientTags.tags.sort();
     },
   });
 }

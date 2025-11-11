@@ -135,7 +135,7 @@ function IngredientsPage() {
           <MultiSelect
             label={"Select tags"}
             selected={search?.tags || []}
-            items={allTags.data.tags}
+            items={allTags.data}
             onItemsSelected={(items) => {
               navigate({
                 to: ".",
