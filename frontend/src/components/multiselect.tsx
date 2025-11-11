@@ -40,69 +40,61 @@ export function MultiSelect(props: Props) {
         type={"button"}
       />
       <Popup.Pane>
-        <div id="multiselect">
-          <ol className={"space-y-1lh"}>
-            <form.Field
-              name={"items"}
-              children={(itemsField) => {
-                return itemsField.state.value.map((item, idx) => (
-                  <form.Field
-                    key={item.name}
-                    name={`items[${idx}].value`}
-                    children={(itemField) => {
-                      function update() {
-                        itemField.handleChange((p) => !p);
-                      }
-                      const name = item.name;
-                      const checked: boolean = itemField.state.value;
-                      return (
-                        <Checkbox
-                          name={name}
-                          update={update}
-                          checked={checked}
-                        />
-                      );
-                    }}
-                  />
-                ));
-              }}
-            />
-            {props.onNewItem && (
-              <div className={"flex flex-row gap-2ch"} key={"new-item"}>
-                <input
-                  type={"text"}
-                  className={
-                    "bg-white border-2 border-solid border-black px-2ch"
-                  }
-                  id={"new-item"}
-                  placeholder={props.newItemPlaceholder || "New..."}
-                  onBlur={(e) => {
-                    if (e.target.value) {
-                      props.onNewItem?.(e.target.value);
+        <ol className={"space-y-1lh max-h-96 overflow-scroll"}>
+          <form.Field
+            name={"items"}
+            children={(itemsField) => {
+              return itemsField.state.value.map((item, idx) => (
+                <form.Field
+                  key={item.name}
+                  name={`items[${idx}].value`}
+                  children={(itemField) => {
+                    function update() {
+                      itemField.handleChange((p) => !p);
                     }
+                    const name = item.name;
+                    const checked: boolean = itemField.state.value;
+                    return (
+                      <Checkbox name={name} update={update} checked={checked} />
+                    );
                   }}
                 />
-              </div>
-            )}
-          </ol>
-          <Divider />
-          <ButtonGroup>
-            <Popup.CloseButton
-              label="Save"
-              type="submit"
-              onClick={() => {
-                void form.handleSubmit();
-              }}
-            />
-            <Button
-              label={"Reset"}
-              type="button"
-              onClick={() => {
-                form.reset();
-              }}
-            />
-          </ButtonGroup>
-        </div>
+              ));
+            }}
+          />
+          {props.onNewItem && (
+            <div className={"flex flex-row gap-2ch"} key={"new-item"}>
+              <input
+                type={"text"}
+                className={"bg-white border-2 border-solid border-black px-2ch"}
+                id={"new-item"}
+                placeholder={props.newItemPlaceholder || "New..."}
+                onBlur={(e) => {
+                  if (e.target.value) {
+                    props.onNewItem?.(e.target.value);
+                  }
+                }}
+              />
+            </div>
+          )}
+        </ol>
+        <Divider />
+        <ButtonGroup>
+          <Popup.CloseButton
+            label="Save"
+            type="submit"
+            onClick={() => {
+              void form.handleSubmit();
+            }}
+          />
+          <Button
+            label={"Reset"}
+            type="button"
+            onClick={() => {
+              form.reset();
+            }}
+          />
+        </ButtonGroup>
       </Popup.Pane>
     </Popup>
   );
@@ -117,10 +109,10 @@ function Checkbox(props: {
   const [first, ...remaining] = name;
 
   return (
-    <div className={"flex flex-row gap-2ch"} key={name}>
+    <div className={"flex flex-row gap-1ch"} key={name}>
       <input
         type={"checkbox"}
-        className={"px-2ch bg-white shadow"}
+        className={"bg-white shadow"}
         id={name}
         key={name}
         checked={checked}
