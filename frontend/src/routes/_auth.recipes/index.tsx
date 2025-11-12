@@ -107,7 +107,7 @@ export function RecipesPage() {
               });
             }}
           />
-          <ul className={"flex flex-row gapx-2ch py-1lhch"}>
+          <div className={"flex flex-row flex-wrap gap-x-1ch gap-y-0.5lh"}>
             {(search?.tags || []).map((tag) => (
               <Pill
                 key={"tag"}
@@ -126,7 +126,7 @@ export function RecipesPage() {
                 }}
               />
             ))}
-          </ul>
+          </div>
 
           <MultiSelect
             key={(search?.books || ["book"]).toString()} // force to re-render when tags change...

@@ -451,11 +451,10 @@ function NewMealPlan(props: { token: string }) {
             <input
               id={"keepUncooked"}
               type={"checkbox"}
-              className={"px-2ch bg-white shadow"}
               checked={field.state.value}
               onChange={() => field.handleChange(!field.state.value)}
             />
-            <label className={"no-colon ml-2ch"} htmlFor={"groupByAisle"}>
+            <label className={"no-colon ml-1ch"} htmlFor={"groupByAisle"}>
               Keep previous uncooked items
             </label>
             <FieldInfo field={field} />

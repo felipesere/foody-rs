@@ -17,7 +17,7 @@ export function AddToShoppinglist(props: Props) {
     <Popup>
       <Popup.OpenButton
         label={label}
-        className="px-2ch text-black bg-gray-300 shadow"
+        className="px-1ch text-black bg-gray-300 shadow"
       />
       <Popup.Pane>
         <PickShoppinglist
