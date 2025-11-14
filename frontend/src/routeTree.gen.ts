@@ -15,9 +15,10 @@ import { Route as AuthIndexRouteImport } from './routes/_auth.index'
 import { Route as AuthMealplanRouteImport } from './routes/_auth.mealplan'
 import { Route as AuthIngredientsRouteImport } from './routes/_auth.ingredients'
 import { Route as AuthRecipesIndexRouteImport } from './routes/_auth.recipes/index'
-import { Route as AuthShoppinglistShoppinglistIdRouteImport } from './routes/_auth.shoppinglist.$shoppinglistId'
 import { Route as AuthRecipesNewRouteImport } from './routes/_auth.recipes/new'
 import { Route as AuthRecipesRecipeIdRouteImport } from './routes/_auth.recipes/$recipeId'
+import { Route as AuthShoppinglistShoppinglistIdIndexRouteImport } from './routes/_auth.shoppinglist.$shoppinglistId.index'
+import { Route as AuthShoppinglistShoppinglistIdFullscreenRouteImport } from './routes/_auth.shoppinglist.$shoppinglistId.fullscreen'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -48,12 +49,6 @@ const AuthRecipesIndexRoute = AuthRecipesIndexRouteImport.update({
   path: '/recipes/',
   getParentRoute: () => AuthRoute,
 } as any)
-const AuthShoppinglistShoppinglistIdRoute =
-  AuthShoppinglistShoppinglistIdRouteImport.update({
-    id: '/shoppinglist/$shoppinglistId',
-    path: '/shoppinglist/$shoppinglistId',
-    getParentRoute: () => AuthRoute,
-  } as any)
 const AuthRecipesNewRoute = AuthRecipesNewRouteImport.update({
   id: '/recipes/new',
   path: '/recipes/new',
@@ -64,6 +59,18 @@ const AuthRecipesRecipeIdRoute = AuthRecipesRecipeIdRouteImport.update({
   path: '/recipes/$recipeId',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthShoppinglistShoppinglistIdIndexRoute =
+  AuthShoppinglistShoppinglistIdIndexRouteImport.update({
+    id: '/shoppinglist/$shoppinglistId/',
+    path: '/shoppinglist/$shoppinglistId/',
+    getParentRoute: () => AuthRoute,
+  } as any)
+const AuthShoppinglistShoppinglistIdFullscreenRoute =
+  AuthShoppinglistShoppinglistIdFullscreenRouteImport.update({
+    id: '/shoppinglist/$shoppinglistId/fullscreen',
+    path: '/shoppinglist/$shoppinglistId/fullscreen',
+    getParentRoute: () => AuthRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
@@ -72,8 +79,9 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthIndexRoute
   '/recipes/$recipeId': typeof AuthRecipesRecipeIdRoute
   '/recipes/new': typeof AuthRecipesNewRoute
-  '/shoppinglist/$shoppinglistId': typeof AuthShoppinglistShoppinglistIdRoute
   '/recipes': typeof AuthRecipesIndexRoute
+  '/shoppinglist/$shoppinglistId/fullscreen': typeof AuthShoppinglistShoppinglistIdFullscreenRoute
+  '/shoppinglist/$shoppinglistId': typeof AuthShoppinglistShoppinglistIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -82,8 +90,9 @@ export interface FileRoutesByTo {
   '/': typeof AuthIndexRoute
   '/recipes/$recipeId': typeof AuthRecipesRecipeIdRoute
   '/recipes/new': typeof AuthRecipesNewRoute
-  '/shoppinglist/$shoppinglistId': typeof AuthShoppinglistShoppinglistIdRoute
   '/recipes': typeof AuthRecipesIndexRoute
+  '/shoppinglist/$shoppinglistId/fullscreen': typeof AuthShoppinglistShoppinglistIdFullscreenRoute
+  '/shoppinglist/$shoppinglistId': typeof AuthShoppinglistShoppinglistIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -94,8 +103,9 @@ export interface FileRoutesById {
   '/_auth/': typeof AuthIndexRoute
   '/_auth/recipes/$recipeId': typeof AuthRecipesRecipeIdRoute
   '/_auth/recipes/new': typeof AuthRecipesNewRoute
-  '/_auth/shoppinglist/$shoppinglistId': typeof AuthShoppinglistShoppinglistIdRoute
   '/_auth/recipes/': typeof AuthRecipesIndexRoute
+  '/_auth/shoppinglist/$shoppinglistId/fullscreen': typeof AuthShoppinglistShoppinglistIdFullscreenRoute
+  '/_auth/shoppinglist/$shoppinglistId/': typeof AuthShoppinglistShoppinglistIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -106,8 +116,9 @@ export interface FileRouteTypes {
     | '/'
     | '/recipes/$recipeId'
     | '/recipes/new'
-    | '/shoppinglist/$shoppinglistId'
     | '/recipes'
+    | '/shoppinglist/$shoppinglistId/fullscreen'
+    | '/shoppinglist/$shoppinglistId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -116,8 +127,9 @@ export interface FileRouteTypes {
     | '/'
     | '/recipes/$recipeId'
     | '/recipes/new'
-    | '/shoppinglist/$shoppinglistId'
     | '/recipes'
+    | '/shoppinglist/$shoppinglistId/fullscreen'
+    | '/shoppinglist/$shoppinglistId'
   id:
     | '__root__'
     | '/_auth'
@@ -127,8 +139,9 @@ export interface FileRouteTypes {
     | '/_auth/'
     | '/_auth/recipes/$recipeId'
     | '/_auth/recipes/new'
-    | '/_auth/shoppinglist/$shoppinglistId'
     | '/_auth/recipes/'
+    | '/_auth/shoppinglist/$shoppinglistId/fullscreen'
+    | '/_auth/shoppinglist/$shoppinglistId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -180,13 +193,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRecipesIndexRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/shoppinglist/$shoppinglistId': {
-      id: '/_auth/shoppinglist/$shoppinglistId'
-      path: '/shoppinglist/$shoppinglistId'
-      fullPath: '/shoppinglist/$shoppinglistId'
-      preLoaderRoute: typeof AuthShoppinglistShoppinglistIdRouteImport
-      parentRoute: typeof AuthRoute
-    }
     '/_auth/recipes/new': {
       id: '/_auth/recipes/new'
       path: '/recipes/new'
@@ -201,6 +207,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRecipesRecipeIdRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/shoppinglist/$shoppinglistId/': {
+      id: '/_auth/shoppinglist/$shoppinglistId/'
+      path: '/shoppinglist/$shoppinglistId'
+      fullPath: '/shoppinglist/$shoppinglistId'
+      preLoaderRoute: typeof AuthShoppinglistShoppinglistIdIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/shoppinglist/$shoppinglistId/fullscreen': {
+      id: '/_auth/shoppinglist/$shoppinglistId/fullscreen'
+      path: '/shoppinglist/$shoppinglistId/fullscreen'
+      fullPath: '/shoppinglist/$shoppinglistId/fullscreen'
+      preLoaderRoute: typeof AuthShoppinglistShoppinglistIdFullscreenRouteImport
+      parentRoute: typeof AuthRoute
+    }
   }
 }
 
@@ -210,8 +230,9 @@ interface AuthRouteChildren {
   AuthIndexRoute: typeof AuthIndexRoute
   AuthRecipesRecipeIdRoute: typeof AuthRecipesRecipeIdRoute
   AuthRecipesNewRoute: typeof AuthRecipesNewRoute
-  AuthShoppinglistShoppinglistIdRoute: typeof AuthShoppinglistShoppinglistIdRoute
   AuthRecipesIndexRoute: typeof AuthRecipesIndexRoute
+  AuthShoppinglistShoppinglistIdFullscreenRoute: typeof AuthShoppinglistShoppinglistIdFullscreenRoute
+  AuthShoppinglistShoppinglistIdIndexRoute: typeof AuthShoppinglistShoppinglistIdIndexRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
@@ -220,8 +241,11 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthIndexRoute: AuthIndexRoute,
   AuthRecipesRecipeIdRoute: AuthRecipesRecipeIdRoute,
   AuthRecipesNewRoute: AuthRecipesNewRoute,
-  AuthShoppinglistShoppinglistIdRoute: AuthShoppinglistShoppinglistIdRoute,
   AuthRecipesIndexRoute: AuthRecipesIndexRoute,
+  AuthShoppinglistShoppinglistIdFullscreenRoute:
+    AuthShoppinglistShoppinglistIdFullscreenRoute,
+  AuthShoppinglistShoppinglistIdIndexRoute:
+    AuthShoppinglistShoppinglistIdIndexRoute,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)

@@ -40,7 +40,7 @@ import { orderByAisles } from "../domain/orderByAisle.ts";
 import { orderByRecipe, type Section } from "../domain/orderByRecipe.ts";
 import { combineQuantities, humanize, parse } from "../quantities.ts";
 
-export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId")({
+export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId/")({
   component: ShoppingPage,
 });
 
@@ -132,6 +132,13 @@ export function ShoppingPage() {
   return (
     <div className="content-grid space-y-1lh pb-10lh">
       <Toggle buttonLabel={"More..."}>
+        <Link
+          to={"/shoppinglist/$shoppinglistId/fullscreen"}
+          params={{ shoppinglistId: shoppinglistId.toString() }}
+        >
+          Fullscreen
+        </Link>
+
         <div className={"mb-1lh"}>
           <FieldSet legend={"Add ingredient"}>
             <SelectIngredientWithQuantity
