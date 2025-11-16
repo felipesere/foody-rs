@@ -26,37 +26,12 @@ export function FullscreenPage() {
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
-  if (shoppinglist.isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-4xl">Loading...</p>
-      </div>
-    );
-  }
-
-  if (shoppinglist.isError) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-4xl text-red-600">Failed to load shoppinglist</p>
-      </div>
-    );
-  }
-
   const ingredients = shoppinglist.data?.ingredients || [];
-
-  if (ingredients.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-4xl">No ingredients in this shopping list</p>
-      </div>
-    );
-  }
-
-  // Ensure index is within bounds
   const safeIndex = Math.min(index, ingredients.length - 1);
   const currentIngredient = ingredients[safeIndex];
 
   const handleSpeak = () => {
+    if (!currentIngredient) return;
     const utterance = new SpeechSynthesisUtterance(
       currentIngredient.ingredient.name,
     );
@@ -85,6 +60,7 @@ export function FullscreenPage() {
   };
 
   const handleCheck = () => {
+    if (!currentIngredient) return;
     console.log(`Checked ingredient: ${currentIngredient.ingredient.name}`);
     // Move to next ingredient after checking
     const nextIndex = safeIndex + 1;
@@ -96,6 +72,7 @@ export function FullscreenPage() {
   };
 
   const handleAgain = () => {
+    if (!currentIngredient) return;
     const utterance = new SpeechSynthesisUtterance(
       currentIngredient.ingredient.name,
     );
@@ -113,21 +90,31 @@ export function FullscreenPage() {
 
   // Initialize speech recognition
   useEffect(() => {
-    if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
+    if (
+      !("webkitSpeechRecognition" in window) &&
+      !("SpeechRecognition" in window)
+    ) {
       console.warn("Speech recognition not supported");
       return;
     }
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition: Speech =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
 
-    recognition.continuous = true;
+    recognition.continuous = false;
     recognition.interimResults = false;
     recognition.lang = "en-US";
+    recognition.maxAlternatives = 1;
 
     recognition.onresult = (event) => {
-      const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
+      const transcript = event.results[event.results.length - 1][0].transcript
+        .toLowerCase()
+        .trim();
       console.log("Heard:", transcript);
+
+      // Stop listening immediately after receiving a command
+      setIsListening(false);
 
       if (transcript.includes("stop") || transcript.includes("pause")) {
         handleStop();
@@ -162,11 +149,16 @@ export function FullscreenPage() {
 
   // Auto-play effect with speech recognition
   useEffect(() => {
-    if (!autoplay) {
+    if (!autoplay || !currentIngredient) {
       // Stop listening when autoplay is off
       if (recognitionRef.current && isListening) {
         recognitionRef.current.stop();
       }
+      return;
+    }
+
+    // Don't speak again if we're already listening
+    if (isListening) {
       return;
     }
 
@@ -175,12 +167,22 @@ export function FullscreenPage() {
       currentIngredient.ingredient.name,
     );
 
+    let listeningTimer: number | null = null;
+
     utterance.onend = () => {
-      // Start listening after speaking
+      // Start listening after speaking and wait for voice command
       if (recognitionRef.current) {
         try {
           recognitionRef.current.start();
           setIsListening(true);
+
+          // Stop listening after 10 seconds
+          listeningTimer = window.setTimeout(() => {
+            if (recognitionRef.current) {
+              recognitionRef.current.stop();
+            }
+            setIsListening(false);
+          }, 10000);
         } catch (error) {
           console.error("Error starting recognition:", error);
         }
@@ -189,33 +191,39 @@ export function FullscreenPage() {
 
     window.speechSynthesis.speak(utterance);
 
-    // Navigate to next ingredient after 3 seconds
-    const timer = setTimeout(() => {
-      // Stop listening before navigating
-      if (recognitionRef.current && isListening) {
-        recognitionRef.current.stop();
-      }
-
-      const nextIndex = safeIndex + 1;
-      if (nextIndex < ingredients.length) {
-        navigate({
-          search: { index: nextIndex, autoplay: true },
-        });
-      } else {
-        // Stop autoplay when reaching the end
-        navigate({
-          search: { index: safeIndex, autoplay: false },
-        });
-      }
-    }, 3000);
-
     return () => {
-      clearTimeout(timer);
+      if (listeningTimer) {
+        clearTimeout(listeningTimer);
+      }
       if (recognitionRef.current && isListening) {
         recognitionRef.current.stop();
       }
     };
-  }, [autoplay, safeIndex, currentIngredient, ingredients.length, navigate, isListening]);
+  }, [autoplay, safeIndex, currentIngredient, isListening]);
+
+  if (shoppinglist.isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-4xl">Loading...</p>
+      </div>
+    );
+  }
+
+  if (shoppinglist.isError) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-4xl text-red-600">Failed to load shoppinglist</p>
+      </div>
+    );
+  }
+
+  if (ingredients.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-4xl">No ingredients in this shopping list</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-center bg-white p-8">
