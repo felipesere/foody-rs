@@ -10,8 +10,6 @@ export type ButtonProps = ButtonHTMLAttributes<never> & {
 export function Button(props: ButtonProps) {
   const { className, classNames, label, shadow, ...restProps } = props;
 
-  console.log(shadow);
-
   const useShadow = shadow ?? true;
 
   return (
