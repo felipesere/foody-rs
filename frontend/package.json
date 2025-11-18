@@ -49,6 +49,7 @@
     "@types/node": "^24.3.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/react-speech-recognition": "^3.9.6",
     "@vitejs/plugin-react": "^5",
     "autoprefixer": "^10.4.21",
     "jsdom": "^26.1.0",

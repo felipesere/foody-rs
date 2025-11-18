@@ -135,6 +135,7 @@ export function ShoppingPage() {
         <Link
           to={"/shoppinglist/$shoppinglistId/fullscreen"}
           params={{ shoppinglistId: shoppinglistId.toString() }}
+          search={{ index: 0 }}
         >
           Fullscreen
         </Link>

@@ -1,15 +1,19 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { z } from "zod";
-import { useShoppinglist } from "../apis/shoppinglists.ts";
-import { Button } from "../components/button.tsx";
+import { useEffect } from "react";
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
-import { useMemo } from "react";
+import { z } from "zod";
+import {
+  useRemoveIngredientFromShoppinglist,
+  useShoppinglist,
+  useToggleIngredientInShoppinglist,
+} from "../apis/shoppinglists.ts";
+import { Button } from "../components/button.tsx";
+import { Progressbar } from "../components/progressbar.tsx";
 
 const fullscreenSearchSchema = z.object({
   index: z.number().int().nonnegative().catch(0),
-  autoplay: z.boolean().catch(false),
 });
 
 export const Route = createFileRoute(
@@ -19,25 +23,54 @@ export const Route = createFileRoute(
   validateSearch: fullscreenSearchSchema,
 });
 
+const speak = (text: string) => {
+  const synth = window.speechSynthesis;
+  const utterance = new SpeechSynthesisUtterance(text);
+
+  synth.speak(utterance);
+};
+
 export function FullscreenPage() {
   const params = Route.useParams();
   const shoppinglistId = Number(params.shoppinglistId);
-  const { index, autoplay } = Route.useSearch();
+  const { index } = Route.useSearch();
   const { token } = Route.useRouteContext();
   const shoppinglist = useShoppinglist(token, shoppinglistId);
+  const checkItem = useToggleIngredientInShoppinglist(token, shoppinglistId);
+  const deleteItem = useRemoveIngredientFromShoppinglist(token, shoppinglistId);
 
   const ingredients = shoppinglist.data?.ingredients || [];
   const safeIndex = Math.min(index, ingredients.length - 1);
   const currentIngredient = ingredients[safeIndex];
   const navigate = useNavigate({ from: Route.path });
+  const next = safeIndex + 1;
+  const isLast = next >= ingredients.length;
 
-  const handleNext = () => {
-    console.log("Calling next");
-    navigate({
-      search: (prev) => {
-        return { ...prev, index: safeIndex + 1 };
-      },
+  const goToNext = () => {
+    if (isLast) {
+      navigate({ to: ".." });
+    } else {
+      navigate({
+        search: (prev) => {
+          return { ...prev, index: next };
+        },
+      });
+    }
+  };
+
+  const handleCheck = () => {
+    checkItem.mutate({
+      ingredientId: currentIngredient.ingredient.id,
+      inBasket: true,
     });
+    goToNext();
+  };
+
+  const handleDelete = () => {
+    deleteItem.mutate({
+      ingredient: currentIngredient.ingredient.id.toString(),
+    });
+    goToNext();
   };
 
   const {
@@ -49,11 +82,31 @@ export function FullscreenPage() {
     transcribing: true,
     commands: [
       {
-        callback: handleNext,
+        callback: goToNext,
         command: ["next", "skip"],
+      },
+      {
+        callback: handleCheck,
+        command: ["check"],
+      },
+
+      {
+        callback: handleDelete,
+        command: ["delete", "remove"],
       },
     ],
   });
+
+  useEffect(() => {
+    if (listening && currentIngredient) {
+      let t = setTimeout(() => {
+        speak(currentIngredient.ingredient.name);
+      }, 500);
+      return () => {
+        clearTimeout(t);
+      };
+    }
+  }, [listening, currentIngredient]);
 
   if (!browserSupportsSpeechRecognition) {
     return <span>Browser doesn't support speech recognition.</span>;
@@ -100,6 +153,9 @@ export function FullscreenPage() {
       </div>
 
       <div className="pb-6 flex flex-col gap-4 items-center">
+        <div className="w-full">
+          <Progressbar fraction={(100 * (index + 1)) / ingredients.length} />
+        </div>
         <div className="flex gap-4">
           <Button
             label={listening ? "⏹ Stop" : "⏺ Start"}
@@ -112,10 +168,19 @@ export function FullscreenPage() {
             }}
             className="text-2xl px-8 py-4"
           />
-          <Button label={"✓ Check"} className="text-lg px-6 py-3" />
           <Button
-            label={"⏭ Skip"}
-            onClick={handleNext}
+            label={"✓ Check"}
+            onClick={handleCheck}
+            className="text-lg px-6 py-3"
+          />
+          <Button
+            label={"✓ Delete"}
+            onClick={handleDelete}
+            className="text-lg px-6 py-3"
+          />
+          <Button
+            label={isLast ? "⬕ Back" : "⏭ Skip"}
+            onClick={goToNext}
             className="text-lg px-6 py-3"
           />
         </div>
