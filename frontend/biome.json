@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.2.0/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.3.6/schema.json",
   "files": {
     "includes": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.css", "!**/*.gen.ts"]
   },
@@ -17,6 +17,11 @@
       "a11y": {
         "useKeyWithClickEvents": "off"
       }
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
     }
   }
 }
