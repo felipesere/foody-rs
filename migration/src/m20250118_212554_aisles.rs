@@ -10,7 +10,11 @@ impl MigrationTrait for Migration {
         create_table(
             m,
             "aisles",
-            &[("name", ColType::String), ("order", ColType::SmallInteger)],
+            &[
+                ("id", ColType::PkAuto),
+                ("name", ColType::String),
+                ("order", ColType::SmallInteger),
+            ],
             &[],
         )
         .await
