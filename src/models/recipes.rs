@@ -76,10 +76,9 @@ pub(crate) async fn find_one(
     db: &DatabaseConnection,
     id: i32,
 ) -> Result<Option<FullRecipe>, ModelError> {
-    let recipe = _entities::recipes::Entity::find_by_id(id)
-        .one(db)
-        .await?
-        .ok_or_else(|| loco_rs::model::ModelError::EntityNotFound)?;
+    let Some(recipe) = _entities::recipes::Entity::find_by_id(id).one(db).await? else {
+        return Ok(None);
+    };
 
     let backend = db.get_database_backend();
 

@@ -3,8 +3,10 @@ mod user;
 
 pub mod ingredients;
 
-pub mod shoppinglists;
+pub mod mealplans;
 
 pub mod recipes;
+
+pub mod shoppinglists;
 
 pub mod storage;

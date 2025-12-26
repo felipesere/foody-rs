@@ -131,6 +131,7 @@ pub async fn recipe(
             .collect(),
     })
 }
+
 pub async fn delete_recipe(
     auth: auth::JWT,
     Path(recipe_id): Path<i32>,
