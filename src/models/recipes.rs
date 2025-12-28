@@ -15,9 +15,9 @@ impl ActiveModelBehavior for ActiveModel {
 }
 
 // TODO: Turn this into an actual struct with proper names
-type FullRecipe = (Recipes, Vec<(Ingredient, Quantity, Option<PartialAisle>)>);
+pub type FullRecipe = (Recipes, Vec<(Ingredient, Quantity, Option<PartialAisle>)>);
 
-pub(crate) async fn find_all(db: &DatabaseConnection) -> Result<Vec<FullRecipe>, ModelError> {
+pub async fn find_all(db: &DatabaseConnection) -> Result<Vec<FullRecipe>, ModelError> {
     let backend = db.get_database_backend();
 
     let ingredients_with_quantities = Statement::from_string(
@@ -72,7 +72,7 @@ pub(crate) async fn find_all(db: &DatabaseConnection) -> Result<Vec<FullRecipe>,
     Ok(full_recipes)
 }
 
-pub(crate) async fn find_one(
+pub async fn find_one(
     db: &DatabaseConnection,
     id: i32,
 ) -> Result<Option<FullRecipe>, ModelError> {
