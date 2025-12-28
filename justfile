@@ -65,7 +65,8 @@ pg-reset environment:
 
 pg-snapshot environment:
   #!/usr/bin/env bash
-  export PATH=/opt/homebrew/Cellar/libpq/18.0/bin:$PATH
+  libpq_version=$(brew list --version | rg libpq | choose 1)
+  export PATH=/opt/homebrew/Cellar/libpq/${libpq_version}/bin:$PATH
 
   set -euxo pipefail
   
@@ -75,7 +76,8 @@ pg-snapshot environment:
   else
     PORT=5433
   fi
-  pg_dump -d "postgres://loco:loco@localhost:${PORT}/foody_{{environment}}" -f db-snapshots/latest.sql
+  DB_URL="${DATABASE_URL:-postgres://loco:loco@localhost:${PORT}/foody_{{environment}}}"
+  pg_dump -d $DB_URL -f db-snapshots/latest.sql
 
 pg-snapshot-restore environment:
   #!/usr/bin/env bash
