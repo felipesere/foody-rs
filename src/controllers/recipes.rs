@@ -94,9 +94,12 @@ pub async fn recipe(
     // check auth
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
-    let (recipe, ingredients) = crate::models::recipes::find_one(&ctx.db, id)
+    let (recipe, mut ingredients) = crate::models::recipes::find_one(&ctx.db, id)
         .await?
         .ok_or_else(|| Error::NotFound)?;
+
+    // Stable order makes it easier for tests
+    ingredients.sort_by_key(|i| i.0.name.clone());
 
     format::json(RecipeResponse {
         id: recipe.id,
