@@ -37,10 +37,7 @@ async fn create_mealplan(request: &loco_rs::TestServer, name: &str) -> i64 {
 }
 
 /// Find a meal plan by name and return it as JSON
-async fn find_mealplan_by_name<'a>(
-    request: &loco_rs::TestServer,
-    name: &str,
-) -> serde_json::Value {
+async fn find_mealplan_by_name<'a>(request: &loco_rs::TestServer, name: &str) -> serde_json::Value {
     let res = request.get("/api/mealplans").await;
     let plans: serde_json::Value = res.json();
     plans

@@ -20,7 +20,10 @@ async fn can_list_all_ingredients() {
         let ingredients_array = ingredients.as_array().unwrap();
 
         // Verify we have ingredients from seed data
-        assert!(!ingredients_array.is_empty(), "Should have seeded ingredients");
+        assert!(
+            !ingredients_array.is_empty(),
+            "Should have seeded ingredients"
+        );
 
         // Verify structure of first ingredient
         let first = &ingredients_array[0];
@@ -99,7 +102,10 @@ async fn creating_duplicate_ingredient_returns_existing() {
         let second_id = second.get("id").and_then(|v| v.as_i64()).unwrap();
 
         // Should return the same ingredient
-        assert_eq!(first_id, second_id, "Should return existing ingredient, not create a duplicate");
+        assert_eq!(
+            first_id, second_id,
+            "Should return existing ingredient, not create a duplicate"
+        );
     })
     .await;
 }
@@ -229,12 +235,12 @@ async fn can_get_all_ingredient_tags() {
         let tags_array = tags.get("tags").and_then(|t| t.as_array()).unwrap();
 
         // Verify our tags are in the list
-        let tag_strings: Vec<&str> = tags_array
-            .iter()
-            .filter_map(|t| t.as_str())
-            .collect();
+        let tag_strings: Vec<&str> = tags_array.iter().filter_map(|t| t.as_str()).collect();
 
-        assert!(tag_strings.contains(&"vegetable"), "Should contain 'vegetable' tag");
+        assert!(
+            tag_strings.contains(&"vegetable"),
+            "Should contain 'vegetable' tag"
+        );
         assert!(tag_strings.contains(&"fruit"), "Should contain 'fruit' tag");
     })
     .await;
@@ -338,7 +344,10 @@ async fn can_merge_ingredients_updates_all_references() {
             .and_then(|i| i.as_array())
             .unwrap();
 
-        assert!(!ingredients.is_empty(), "Recipe should still have ingredients");
+        assert!(
+            !ingredients.is_empty(),
+            "Recipe should still have ingredients"
+        );
         let ingredient_id = ingredients[0]
             .get("ingredient")
             .and_then(|i| i.get("id"))
@@ -358,7 +367,10 @@ async fn can_merge_ingredients_updates_all_references() {
             .and_then(|i| i.as_array())
             .unwrap();
 
-        assert!(!list_ingredients.is_empty(), "Shopping list should still have ingredients");
+        assert!(
+            !list_ingredients.is_empty(),
+            "Shopping list should still have ingredients"
+        );
         let list_ingredient_id = list_ingredients[0]
             .get("ingredient")
             .and_then(|i| i.get("id"))

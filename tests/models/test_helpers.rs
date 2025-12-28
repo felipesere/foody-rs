@@ -1,5 +1,7 @@
 use foody::models::_entities;
-use sea_orm::{ActiveModelTrait, ActiveValue, ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter};
+use sea_orm::{
+    ActiveModelTrait, ActiveValue, ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter,
+};
 
 pub async fn create_ingredient(
     db: &sea_orm::DatabaseConnection,
@@ -98,7 +100,10 @@ pub async fn set_ingredient_aisle(
 
     let mut active = ingredient.into_active_model();
     active.aisle = ActiveValue::Set(Some(aisle_id));
-    active.update(db).await.expect("Failed to update ingredient");
+    active
+        .update(db)
+        .await
+        .expect("Failed to update ingredient");
 }
 
 pub async fn link_ingredient_to_recipe(

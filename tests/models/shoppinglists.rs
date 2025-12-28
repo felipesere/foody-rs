@@ -42,12 +42,19 @@ async fn find_one_returns_list_with_basic_items() {
     add_ingredient_to_shoppinglist(db, list.id, milk.id, qty_milk.id, false, None, None).await;
     add_ingredient_to_shoppinglist(db, list.id, bread.id, qty_bread.id, false, None, None).await;
 
-    let full_list = Shoppinglist::find_one(db, list.id as u32).await.unwrap().unwrap();
+    let full_list = Shoppinglist::find_one(db, list.id as u32)
+        .await
+        .unwrap()
+        .unwrap();
 
     assert_eq!(full_list.list.name, "Weekly Groceries");
     assert_eq!(full_list.items.len(), 2);
 
-    let item_names: Vec<&str> = full_list.items.iter().map(|i| i.ingredient.name.as_str()).collect();
+    let item_names: Vec<&str> = full_list
+        .items
+        .iter()
+        .map(|i| i.ingredient.name.as_str())
+        .collect();
     assert!(item_names.contains(&"milk"));
     assert!(item_names.contains(&"bread"));
 }
@@ -88,7 +95,10 @@ async fn find_one_returns_complete_item_data() {
     add_ingredient_to_shoppinglist(db, list.id, mystery.id, qty_mystery.id, false, None, None)
         .await;
 
-    let full_list = Shoppinglist::find_one(db, list.id as u32).await.unwrap().unwrap();
+    let full_list = Shoppinglist::find_one(db, list.id as u32)
+        .await
+        .unwrap()
+        .unwrap();
     assert_eq!(full_list.items.len(), 2);
 
     for item in &full_list.items {
@@ -136,7 +146,10 @@ async fn find_one_aggregates_multiple_quantities_for_same_ingredient() {
     add_ingredient_to_shoppinglist(db, list.id, flour.id, qty_flour_1.id, false, None, None).await;
     add_ingredient_to_shoppinglist(db, list.id, flour.id, qty_flour_2.id, false, None, None).await;
 
-    let full_list = Shoppinglist::find_one(db, list.id as u32).await.unwrap().unwrap();
+    let full_list = Shoppinglist::find_one(db, list.id as u32)
+        .await
+        .unwrap()
+        .unwrap();
 
     assert_eq!(full_list.items.len(), 1);
     let flour_item = &full_list.items[0];

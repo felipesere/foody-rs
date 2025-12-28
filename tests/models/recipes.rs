@@ -144,7 +144,9 @@ async fn find_one_returns_recipe_without_ingredients() {
 
     let recipe = create_recipe(&boot.app_context.db, "Lonely Recipe").await;
 
-    let result = recipes::find_one(&boot.app_context.db, recipe.id).await.unwrap();
+    let result = recipes::find_one(&boot.app_context.db, recipe.id)
+        .await
+        .unwrap();
     assert!(result.is_some());
 
     let (found_recipe, ingredients) = result.unwrap();

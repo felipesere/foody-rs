@@ -72,10 +72,7 @@ pub async fn find_all(db: &DatabaseConnection) -> Result<Vec<FullRecipe>, ModelE
     Ok(full_recipes)
 }
 
-pub async fn find_one(
-    db: &DatabaseConnection,
-    id: i32,
-) -> Result<Option<FullRecipe>, ModelError> {
+pub async fn find_one(db: &DatabaseConnection, id: i32) -> Result<Option<FullRecipe>, ModelError> {
     let Some(recipe) = _entities::recipes::Entity::find_by_id(id).one(db).await? else {
         return Ok(None);
     };
