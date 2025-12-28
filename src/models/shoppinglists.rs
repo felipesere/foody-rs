@@ -37,7 +37,7 @@ pub struct FullShoppinglist {
 }
 
 impl Shoppinglist {
-    pub(crate) async fn find_one(
+    pub async fn find_one(
         db: &DatabaseConnection,
         id: u32,
     ) -> Result<Option<FullShoppinglist>, ModelError> {
@@ -136,7 +136,7 @@ impl Shoppinglist {
         Ok(Some(result.remove(0)))
     }
 
-    /// Retrieves all possible shoppinglists
+    /// Retrieves all shoppinglists with their items
     ///
     /// # Errors
     /// See [`ModelError`]
