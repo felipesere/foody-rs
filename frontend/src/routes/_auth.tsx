@@ -1,11 +1,14 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
+// Set VITE_REQUIRE_AUTH=false at build time to disable the login gate.
+const REQUIRE_AUTH = import.meta.env.VITE_REQUIRE_AUTH !== "false";
+
 export const Route = createFileRoute("/_auth")({
   // Before loading, authenticate the user via data in the query cache
   // This will also happen during prefetching (e.g. hovering over links, etc.)
   beforeLoad: ({ context, location }) => {
     const token = context.token;
-    if (!token) {
+    if (REQUIRE_AUTH && !token) {
       throw redirect({
         to: "/login",
         search: {
@@ -14,7 +17,7 @@ export const Route = createFileRoute("/_auth")({
       });
     }
     return {
-      token,
+      token: token ?? "",
     };
   },
 });

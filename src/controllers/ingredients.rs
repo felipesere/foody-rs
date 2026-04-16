@@ -18,6 +18,7 @@ use crate::models::{
 };
 
 use super::TagsResponse;
+use crate::auth_gate::MaybeAuth;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct AisleResponse {
@@ -69,7 +70,7 @@ impl From<(Ingredient, Option<AisleRef>, Option<Storage>)> for IngredientRespons
     }
 }
 
-pub async fn index(auth: auth::JWT, State(ctx): State<AppContext>) -> Result<Response> {
+pub async fn index(auth: MaybeAuth, State(ctx): State<AppContext>) -> Result<Response> {
     // check auth
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
@@ -95,7 +96,7 @@ pub struct NewIngredient {
 }
 
 pub async fn create(
-    auth: auth::JWT,
+    auth: MaybeAuth,
     State(ctx): State<AppContext>,
     extract::Json(params): extract::Json<NewIngredient>,
 ) -> Result<Response> {
@@ -144,7 +145,7 @@ struct MergeIngredientsParams {
 }
 
 async fn merge_ingredients(
-    auth: auth::JWT,
+    auth: MaybeAuth,
     State(ctx): State<AppContext>,
     extract::Json(params): extract::Json<MergeIngredientsParams>,
 ) -> Result<StatusCode> {
@@ -183,7 +184,7 @@ async fn merge_ingredients(
 }
 
 pub async fn all_ingredients_tags(
-    auth: auth::JWT,
+    auth: MaybeAuth,
     State(ctx): State<AppContext>,
 ) -> Result<Response> {
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
@@ -222,7 +223,7 @@ pub struct EditIngredientParams {
 }
 
 pub async fn edit(
-    auth: auth::JWT,
+    auth: MaybeAuth,
     Path(id): Path<i32>,
     State(ctx): State<AppContext>,
     extract::Json(params): extract::Json<EditIngredientParams>,

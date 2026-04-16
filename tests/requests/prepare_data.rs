@@ -12,11 +12,17 @@ pub struct LoggedInUser {
 }
 
 pub async fn authenticated(request: &mut TestServer, ctx: &AppContext) {
-    let logged_in_user = init_user_login(request, ctx).await;
+    #[cfg(feature = "require-auth")]
+    {
+        let logged_in_user = init_user_login(request, ctx).await;
+        let (auth_key, auth_value) = auth_header(&logged_in_user.token);
+        request.add_header(auth_key, auth_value);
+    }
 
-    let (auth_key, auth_value) = auth_header(&logged_in_user.token);
-
-    request.add_header(auth_key, auth_value)
+    // In no-auth mode, find_by_pid short-circuits before hitting the DB,
+    // so no anonymous user row is needed.
+    #[cfg(not(feature = "require-auth"))]
+    let _ = ctx;
 }
 
 pub async fn init_user_login(request: &TestServer, ctx: &AppContext) -> LoggedInUser {

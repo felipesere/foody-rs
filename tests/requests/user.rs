@@ -16,6 +16,7 @@ macro_rules! configure_insta {
     };
 }
 
+#[cfg(feature = "require-auth")]
 #[tokio::test]
 #[serial]
 async fn can_get_current_user() {

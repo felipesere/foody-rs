@@ -2,6 +2,7 @@ use axum::{body::Body, extract::State, http::Request, routing::post};
 use loco_rs::{app::AppContext, prelude::*};
 
 use crate::{
+    auth_gate::MaybeAuth,
     graphql::{self},
     models::users::{self},
 };
@@ -11,7 +12,7 @@ pub fn routes() -> Routes {
 }
 
 pub async fn gql_handler(
-    auth: auth::JWT,
+    auth: MaybeAuth,
     State(ctx): State<AppContext>,
     req: Request<Body>,
 ) -> Result<Response> {
