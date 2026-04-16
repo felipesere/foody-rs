@@ -204,23 +204,6 @@ impl Hooks for App {
 
         db::seed::<users::ActiveModel>(db, &base.join("users.yaml").display().to_string()).await?;
 
-        // In no-auth mode a single anonymous user must exist in the database so
-        // that the `find_by_pid` gate inside every handler succeeds.
-        #[cfg(not(feature = "require-auth"))]
-        {
-            use crate::auth_gate::ANONYMOUS_PID;
-            db.execute(Statement::from_string(
-                DbBackend::Postgres,
-                format!(
-                    "INSERT INTO users \
-                        (pid, email, password, api_key, name, created_at, updated_at) \
-                     VALUES \
-                        ('{ANONYMOUS_PID}', 'anonymous@foody.local', 'noop', 'lo-anonymous', 'Anonymous', NOW(), NOW()) \
-                     ON CONFLICT DO NOTHING"
-                ),
-            ))
-            .await?;
-        }
         for table in ["users"] {
             db.query_one(Statement::from_string(
                 DbBackend::Postgres,

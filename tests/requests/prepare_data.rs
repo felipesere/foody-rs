@@ -19,26 +19,10 @@ pub async fn authenticated(request: &mut TestServer, ctx: &AppContext) {
         request.add_header(auth_key, auth_value);
     }
 
-    // In no-auth mode no token is needed, but handlers still call find_by_pid,
-    // so we ensure the anonymous user row exists in the test database.
+    // In no-auth mode, find_by_pid short-circuits before hitting the DB,
+    // so no anonymous user row is needed.
     #[cfg(not(feature = "require-auth"))]
-    {
-        use foody::auth_gate::ANONYMOUS_PID;
-        use sea_orm::{ConnectionTrait, DbBackend, Statement};
-        ctx.db
-            .execute(Statement::from_string(
-                DbBackend::Postgres,
-                format!(
-                    "INSERT INTO users \
-                        (pid, email, password, api_key, name, created_at, updated_at) \
-                     VALUES \
-                        ('{ANONYMOUS_PID}', 'anonymous@foody.local', 'noop', 'lo-anonymous', 'Anonymous', NOW(), NOW()) \
-                     ON CONFLICT DO NOTHING"
-                ),
-            ))
-            .await
-            .expect("failed to create anonymous user");
-    }
+    let _ = ctx;
 }
 
 pub async fn init_user_login(request: &TestServer, ctx: &AppContext) -> LoggedInUser {
