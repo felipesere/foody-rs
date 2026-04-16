@@ -3,6 +3,7 @@ use loco_rs::prelude::*;
 use serde::Serialize;
 
 use crate::{
+    auth_gate::MaybeAuth,
     controllers::ingredients::StorageResponse,
     models::{storages, users},
 };
@@ -13,7 +14,7 @@ pub struct ListStorageResponse {
 }
 
 #[debug_handler]
-pub async fn index(auth: auth::JWT, State(ctx): State<AppContext>) -> Result<Response> {
+pub async fn index(auth: MaybeAuth, State(ctx): State<AppContext>) -> Result<Response> {
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
     let storage_locations = storages::Entity::find().all(&ctx.db).await?;

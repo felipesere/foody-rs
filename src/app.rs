@@ -49,16 +49,22 @@ impl Hooks for App {
     }
 
     fn routes(_ctx: &AppContext) -> AppRoutes {
-        AppRoutes::with_default_routes()
+        let routes = AppRoutes::with_default_routes()
             .add_route(controllers::storage::routes())
             .add_route(controllers::recipes::routes())
             .add_route(controllers::shoppinglists::routes())
             .add_route(controllers::ingredients::routes())
             .add_route(controllers::mealplans::routes())
             .add_route(controllers::ailes::routes())
+            .add_route(controllers::graphql::routes());
+
+        // Login and current-user endpoints are only meaningful when auth is required.
+        #[cfg(feature = "require-auth")]
+        let routes = routes
             .add_route(controllers::auth::routes())
-            .add_route(controllers::user::routes())
-            .add_route(controllers::graphql::routes())
+            .add_route(controllers::user::routes());
+
+        routes
     }
 
     async fn connect_workers(_ctx: &AppContext, _queue: &loco_rs::prelude::Queue) -> Result<()> {
@@ -197,6 +203,24 @@ impl Hooks for App {
         }
 
         db::seed::<users::ActiveModel>(db, &base.join("users.yaml").display().to_string()).await?;
+
+        // In no-auth mode a single anonymous user must exist in the database so
+        // that the `find_by_pid` gate inside every handler succeeds.
+        #[cfg(not(feature = "require-auth"))]
+        {
+            use crate::auth_gate::ANONYMOUS_PID;
+            db.execute(Statement::from_string(
+                DbBackend::Postgres,
+                format!(
+                    "INSERT INTO users \
+                        (pid, email, password, api_key, name, created_at, updated_at) \
+                     VALUES \
+                        ('{ANONYMOUS_PID}', 'anonymous@foody.local', 'noop', 'lo-anonymous', 'Anonymous', NOW(), NOW()) \
+                     ON CONFLICT DO NOTHING"
+                ),
+            ))
+            .await?;
+        }
         for table in ["users"] {
             db.query_one(Statement::from_string(
                 DbBackend::Postgres,

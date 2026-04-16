@@ -15,6 +15,7 @@ use crate::models::{
 use super::ingredients::{AisleResponse, IngredientResponse};
 use super::shoppinglists::QuantityResponse;
 use super::TagsResponse;
+use crate::auth_gate::MaybeAuth;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RecipesResponse {
@@ -42,7 +43,7 @@ pub struct IngredientWithQuantityResponse {
     quantity: Vec<QuantityResponse>,
 }
 
-pub async fn all_recipes(auth: auth::JWT, State(ctx): State<AppContext>) -> Result<Response> {
+pub async fn all_recipes(auth: MaybeAuth, State(ctx): State<AppContext>) -> Result<Response> {
     // check auth
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
@@ -87,7 +88,7 @@ pub async fn all_recipes(auth: auth::JWT, State(ctx): State<AppContext>) -> Resu
 }
 
 pub async fn recipe(
-    auth: auth::JWT,
+    auth: MaybeAuth,
     Path(id): Path<i32>,
     State(ctx): State<AppContext>,
 ) -> Result<Response> {
@@ -136,7 +137,7 @@ pub async fn recipe(
 }
 
 pub async fn delete_recipe(
-    auth: auth::JWT,
+    auth: MaybeAuth,
     Path(recipe_id): Path<i32>,
     State(ctx): State<AppContext>,
 ) -> Result<()> {
@@ -227,7 +228,7 @@ pub struct CreateRecipe {
 }
 
 pub async fn create_recipe(
-    auth: auth::JWT,
+    auth: MaybeAuth,
     State(ctx): State<AppContext>,
     extract::Json(params): extract::Json<CreateRecipe>,
 ) -> Result<Response> {
@@ -317,7 +318,7 @@ pub async fn create_recipe(
     })
 }
 
-pub async fn all_recipe_tags(auth: auth::JWT, State(ctx): State<AppContext>) -> Result<Response> {
+pub async fn all_recipe_tags(auth: MaybeAuth, State(ctx): State<AppContext>) -> Result<Response> {
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
     let db = ctx.db;
@@ -347,7 +348,7 @@ pub struct AddIngredientParams {
 }
 
 pub async fn add_ingredient(
-    auth: auth::JWT,
+    auth: MaybeAuth,
     Path(id): Path<i32>,
     State(ctx): State<AppContext>,
     extract::Json(params): extract::Json<AddIngredientParams>,
@@ -414,7 +415,7 @@ pub struct EditRecipeParameters {
 }
 
 pub async fn edit_recipe(
-    auth: auth::JWT,
+    auth: MaybeAuth,
     Path(id): Path<i32>,
     State(ctx): State<AppContext>,
     extract::Json(params): extract::Json<EditRecipeParameters>,
@@ -537,7 +538,7 @@ pub async fn edit_recipe(
 }
 
 pub async fn delete_ingredient(
-    auth: auth::JWT,
+    auth: MaybeAuth,
     State(ctx): State<AppContext>,
     Path((id, ingredient)): Path<(i32, i32)>,
 ) -> Result<()> {

@@ -20,13 +20,15 @@ export function Navbar() {
         <li>
           <NavLink name={"Recipes"} to={"/recipes"} />
         </li>
-        <li>
-          {token ? (
-            <UserOrLogin token={token} />
-          ) : (
-            <NavLink name={"Login"} to={"/login"} />
-          )}
-        </li>
+        {import.meta.env.VITE_REQUIRE_AUTH !== "false" && (
+          <li>
+            {token ? (
+              <UserOrLogin token={token} />
+            ) : (
+              <NavLink name={"Login"} to={"/login"} />
+            )}
+          </li>
+        )}
       </ul>
     </nav>
   );

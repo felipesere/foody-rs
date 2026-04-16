@@ -124,7 +124,27 @@ impl super::_entities::users::Model {
     /// # Errors
     ///
     /// When could not find user  or DB query error
+    #[cfg_attr(not(feature = "require-auth"), allow(unreachable_code))]
     pub async fn find_by_pid(db: &DatabaseConnection, pid: &str) -> ModelResult<Self> {
+        #[cfg(not(feature = "require-auth"))]
+        {
+            let _ = (db, pid);
+            return Ok(Self {
+                id: 0,
+                pid: Uuid::nil(),
+                email: String::new(),
+                password: String::new(),
+                api_key: String::new(),
+                name: String::new(),
+                created_at: Default::default(),
+                updated_at: Default::default(),
+                reset_token: None,
+                reset_sent_at: None,
+                email_verification_token: None,
+                email_verification_sent_at: None,
+                email_verified_at: None,
+            });
+        }
         let parse_uuid = Uuid::parse_str(pid).map_err(|e| ModelError::Any(e.into()))?;
         let user = users::Entity::find()
             .filter(users::Column::Pid.eq(parse_uuid))

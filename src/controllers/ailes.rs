@@ -6,6 +6,7 @@ use loco_rs::prelude::*;
 use sea_orm::{QueryOrder, QuerySelect};
 use serde::{Deserialize, Serialize};
 
+use crate::auth_gate::MaybeAuth;
 use crate::models::{_entities::aisles, users};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -20,7 +21,7 @@ struct AislesResponse {
     aisles: Vec<FullAisleResponse>,
 }
 
-pub async fn all_ailes(auth: auth::JWT, State(ctx): State<AppContext>) -> Result<Response> {
+pub async fn all_ailes(auth: MaybeAuth, State(ctx): State<AppContext>) -> Result<Response> {
     let _user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
 
     let ailes = aisles::Entity::find().all(&ctx.db).await?;
@@ -43,7 +44,7 @@ pub struct NewAisle {
 }
 
 pub async fn create_aisle(
-    auth: auth::JWT,
+    auth: MaybeAuth,
     State(ctx): State<AppContext>,
     extract::Json(params): extract::Json<NewAisle>,
 ) -> Result<Response> {

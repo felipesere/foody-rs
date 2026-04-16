@@ -12,11 +12,33 @@ pub struct LoggedInUser {
 }
 
 pub async fn authenticated(request: &mut TestServer, ctx: &AppContext) {
-    let logged_in_user = init_user_login(request, ctx).await;
+    #[cfg(feature = "require-auth")]
+    {
+        let logged_in_user = init_user_login(request, ctx).await;
+        let (auth_key, auth_value) = auth_header(&logged_in_user.token);
+        request.add_header(auth_key, auth_value);
+    }
 
-    let (auth_key, auth_value) = auth_header(&logged_in_user.token);
-
-    request.add_header(auth_key, auth_value)
+    // In no-auth mode no token is needed, but handlers still call find_by_pid,
+    // so we ensure the anonymous user row exists in the test database.
+    #[cfg(not(feature = "require-auth"))]
+    {
+        use foody::auth_gate::ANONYMOUS_PID;
+        use sea_orm::{ConnectionTrait, DbBackend, Statement};
+        ctx.db
+            .execute(Statement::from_string(
+                DbBackend::Postgres,
+                format!(
+                    "INSERT INTO users \
+                        (pid, email, password, api_key, name, created_at, updated_at) \
+                     VALUES \
+                        ('{ANONYMOUS_PID}', 'anonymous@foody.local', 'noop', 'lo-anonymous', 'Anonymous', NOW(), NOW()) \
+                     ON CONFLICT DO NOTHING"
+                ),
+            ))
+            .await
+            .expect("failed to create anonymous user");
+    }
 }
 
 pub async fn init_user_login(request: &TestServer, ctx: &AppContext) -> LoggedInUser {
