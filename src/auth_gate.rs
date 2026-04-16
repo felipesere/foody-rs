@@ -1,8 +1,8 @@
 use axum::extract::{FromRef, FromRequestParts};
 use axum::http::request::Parts;
-use loco_rs::{app::AppContext, errors::Error};
 #[cfg(feature = "require-auth")]
 use loco_rs::prelude::auth;
+use loco_rs::{app::AppContext, errors::Error};
 
 /// The PID used for the anonymous user when the `require-auth` feature is disabled.
 pub const ANONYMOUS_PID: &str = "00000000-0000-0000-0000-000000000000";
