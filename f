@@ -1,0 +1,18 @@
+rails new . \
+  --name=foody \
+  --api \
+  --database=sqlite3 \
+  --skip-action-mailer \
+  --skip-action-mailbox \
+  --skip-action-cable \
+  --skip-asset-pipeline \
+  --skip-javascript \
+  --skip-hotwire \
+  --skip-jbuilder \
+  --skip-system-test \
+  --skip-devcontainer \
+  --skip-keeps \
+  --skip-brakeman \
+  --skip-rubocop \
+  --skip-kamal \
+  --skip-ci

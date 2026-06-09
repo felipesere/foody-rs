@@ -1,0 +1,6 @@
+[tools]
+ruby = "latest"
+
+[env]
+# RUBY_CONFIGURE_OPTS="--with-libyaml-dir=$(brew --prefix libyaml)"
+
