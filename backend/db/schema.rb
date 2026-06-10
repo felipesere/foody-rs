@@ -10,7 +10,16 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_10_122957) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_10_220616) do
+  create_table "aisles", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name"
+    t.integer "order"
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_aisles_on_name", unique: true
+    t.index ["order"], name: "index_aisles_on_order", unique: true
+  end
+
   create_table "articles", force: :cascade do |t|
     t.text "body"
     t.datetime "created_at", null: false
