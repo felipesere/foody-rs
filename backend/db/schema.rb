@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_11_201644) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_12_212906) do
   create_table "aisles", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name"
@@ -36,5 +36,34 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_11_201644) do
     t.index ["aisle_id"], name: "index_ingredients_on_aisle_id"
   end
 
+  create_table "recipe_ingredients", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "ingredient_id", null: false
+    t.integer "recipe_id", null: false
+    t.string "text"
+    t.string "unit", null: false
+    t.datetime "updated_at", null: false
+    t.float "value"
+    t.index ["ingredient_id"], name: "index_recipe_ingredients_on_ingredient_id"
+    t.index ["recipe_id", "ingredient_id"], name: "index_recipe_ingredients_on_recipe_id_and_ingredient_id", unique: true
+    t.index ["recipe_id"], name: "index_recipe_ingredients_on_recipe_id"
+  end
+
+  create_table "recipes", force: :cascade do |t|
+    t.integer "book_page"
+    t.string "book_title"
+    t.datetime "created_at", null: false
+    t.string "duration"
+    t.string "name", null: false
+    t.text "notes", default: "", null: false
+    t.integer "rating", default: 0, null: false
+    t.string "source", null: false
+    t.json "tags", default: []
+    t.datetime "updated_at", null: false
+    t.string "website_url"
+  end
+
   add_foreign_key "ingredients", "aisles"
+  add_foreign_key "recipe_ingredients", "ingredients"
+  add_foreign_key "recipe_ingredients", "recipes"
 end
