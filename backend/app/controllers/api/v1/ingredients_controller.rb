@@ -36,6 +36,10 @@ class Api::V1::IngredientsController < ApplicationController
 
   private
 
+  # TODO: collapse to a single `ingredient_params` and move `name` presence
+  # into the model (`validates :name, presence: true`). Strong params should
+  # gate *what's allowed in*, not *what's required* — that's a model concern,
+  # and a model validation naturally makes name optional on partial updates.
   def create_ingredient_params
     params.expect(ingredient: [:name])
       .merge(params.fetch(:ingredient, {}).permit(:aisle_id, tags: []))
