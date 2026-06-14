@@ -3,6 +3,14 @@ Rails.application.routes.draw do
     namespace :v1 do
       resources :aisles, only: [:index, :create, :update, :destroy]
       resources :ingredients, only: [:index, :show, :create, :update, :destroy]
+      resources :recipes, only: [:index, :show, :create, :update, :destroy] do
+        collection do
+          get :tags
+        end
+        resources :ingredients,
+                  only: [:create, :destroy],
+                  controller: "recipe_ingredients"
+      end
     end
   end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
