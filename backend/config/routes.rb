@@ -11,6 +11,13 @@ Rails.application.routes.draw do
                   only: [:create, :destroy],
                   controller: "recipe_ingredients"
       end
+      resources :mealplans, only: [:index, :show, :create, :destroy] do
+        post :clear, on: :member
+        resources :meals,
+                  only: [:create, :update, :destroy],
+                  controller: "mealplan_meals"
+        post   "shoppinglists/:id", to: "mealplan_shoppinglists#create", as: :shoppinglist
+      end
       resources :shoppinglists, only: [:index, :show, :create, :destroy] do
         post :clear, on: :member
         resources :items,
