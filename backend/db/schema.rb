@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_12_212906) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_16_201104) do
   create_table "aisles", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name"
@@ -63,7 +63,41 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_12_212906) do
     t.string "website_url"
   end
 
+  create_table "shoppinglist_items", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.boolean "in_basket", default: false, null: false
+    t.integer "ingredient_id", null: false
+    t.text "note"
+    t.integer "shoppinglist_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ingredient_id"], name: "index_shoppinglist_items_on_ingredient_id"
+    t.index ["shoppinglist_id", "ingredient_id"], name: "index_shoppinglist_items_on_shoppinglist_id_and_ingredient_id", unique: true
+    t.index ["shoppinglist_id"], name: "index_shoppinglist_items_on_shoppinglist_id"
+  end
+
+  create_table "shoppinglist_quantities", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "recipe_id"
+    t.integer "shoppinglist_item_id", null: false
+    t.string "text"
+    t.string "unit", null: false
+    t.datetime "updated_at", null: false
+    t.float "value"
+    t.index ["recipe_id"], name: "index_shoppinglist_quantities_on_recipe_id"
+    t.index ["shoppinglist_item_id"], name: "index_shoppinglist_quantities_on_shoppinglist_item_id"
+  end
+
+  create_table "shoppinglists", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+  end
+
   add_foreign_key "ingredients", "aisles"
   add_foreign_key "recipe_ingredients", "ingredients"
   add_foreign_key "recipe_ingredients", "recipes"
+  add_foreign_key "shoppinglist_items", "ingredients"
+  add_foreign_key "shoppinglist_items", "shoppinglists"
+  add_foreign_key "shoppinglist_quantities", "recipes"
+  add_foreign_key "shoppinglist_quantities", "shoppinglist_items"
 end
