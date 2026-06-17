@@ -12,7 +12,7 @@ class Api::V1::IngredientsController < ApplicationController
   end
 
   def create
-    ingredient = Ingredient.new(create_ingredient_params)
+    ingredient = Ingredient.new(ingredient_params)
     if ingredient.save
       render json: ingredient, status: :created
     else
@@ -35,15 +35,6 @@ class Api::V1::IngredientsController < ApplicationController
   end
 
   private
-
-  # TODO: collapse to a single `ingredient_params` and move `name` presence
-  # into the model (`validates :name, presence: true`). Strong params should
-  # gate *what's allowed in*, not *what's required* — that's a model concern,
-  # and a model validation naturally makes name optional on partial updates.
-  def create_ingredient_params
-    params.expect(ingredient: [:name])
-      .merge(params.fetch(:ingredient, {}).permit(:aisle_id, tags: []))
-  end
 
   def ingredient_params
     params.require(:ingredient).permit(:name, :aisle_id, tags: [])
