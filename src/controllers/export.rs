@@ -2,8 +2,12 @@ use std::collections::HashMap;
 
 use axum::{extract::State, routing::get};
 use loco_rs::prelude::*;
-use sea_orm::QueryOrder;
+use sea_orm::{QueryOrder, prelude::DateTimeWithTimeZone};
 use serde::{Deserialize, Serialize};
+
+fn to_tz(naive: chrono::NaiveDateTime) -> DateTimeWithTimeZone {
+    naive.and_utc().fixed_offset()
+}
 
 use crate::models::{
     _entities::{
@@ -28,12 +32,14 @@ struct Export {
 struct AisleExport {
     name: String,
     order: i16,
+    created_at: DateTimeWithTimeZone,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 struct StorageExport {
     name: String,
     order: i16,
+    created_at: DateTimeWithTimeZone,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -42,6 +48,7 @@ struct IngredientExport {
     tags: Vec<String>,
     aisle: Option<String>,
     stored_in: Option<String>,
+    created_at: DateTimeWithTimeZone,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -57,6 +64,7 @@ struct QuantityExport {
 struct RecipeIngredientExport {
     name: String,
     quantity: QuantityExport,
+    created_at: DateTimeWithTimeZone,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -71,6 +79,7 @@ struct RecipeExport {
     notes: String,
     duration: Option<String>,
     ingredients: Vec<RecipeIngredientExport>,
+    created_at: DateTimeWithTimeZone,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -81,12 +90,14 @@ struct MealExport {
     untracked_meal_name: Option<String>,
     section: Option<String>,
     is_cooked: bool,
+    created_at: DateTimeWithTimeZone,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 struct MealPlanExport {
     name: String,
     meals: Vec<MealExport>,
+    created_at: DateTimeWithTimeZone,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -96,12 +107,14 @@ struct ShoppinglistItemExport {
     in_basket: bool,
     from_recipe: Option<String>,
     note: Option<String>,
+    created_at: DateTimeWithTimeZone,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 struct ShoppinglistExport {
     name: String,
     items: Vec<ShoppinglistItemExport>,
+    created_at: DateTimeWithTimeZone,
 }
 
 pub async fn export(auth: auth::JWT, State(ctx): State<AppContext>) -> Result<Response> {
@@ -120,6 +133,7 @@ pub async fn export(auth: auth::JWT, State(ctx): State<AppContext>) -> Result<Re
         .map(|a| AisleExport {
             name: a.name,
             order: a.order,
+            created_at: a.created_at,
         })
         .collect();
 
@@ -134,6 +148,7 @@ pub async fn export(auth: auth::JWT, State(ctx): State<AppContext>) -> Result<Re
         .map(|s| StorageExport {
             name: s.name,
             order: s.order,
+            created_at: s.created_at,
         })
         .collect();
 
@@ -154,6 +169,7 @@ pub async fn export(auth: auth::JWT, State(ctx): State<AppContext>) -> Result<Re
             stored_in: i
                 .stored_in
                 .and_then(|id| storage_name_by_id.get(&(id as i32)).cloned()),
+            created_at: to_tz(i.created_at),
         })
         .collect();
 
@@ -192,7 +208,11 @@ pub async fn export(auth: auth::JWT, State(ctx): State<AppContext>) -> Result<Re
         recipe_ingredients_by_recipe
             .entry(row.recipes_id)
             .or_default()
-            .push(RecipeIngredientExport { name, quantity });
+            .push(RecipeIngredientExport {
+                name,
+                quantity,
+                created_at: to_tz(row.created_at),
+            });
     }
     for items in recipe_ingredients_by_recipe.values_mut() {
         items.sort_by(|a, b| a.name.cmp(&b.name));
@@ -213,6 +233,7 @@ pub async fn export(auth: auth::JWT, State(ctx): State<AppContext>) -> Result<Re
                 notes: r.notes,
                 duration: r.duration,
                 ingredients,
+                created_at: to_tz(r.created_at),
             }
         })
         .collect();
@@ -238,6 +259,7 @@ pub async fn export(auth: auth::JWT, State(ctx): State<AppContext>) -> Result<Re
                 untracked_meal_name: m.untracked_meal_name,
                 section: m.section,
                 is_cooked: m.is_cooked,
+                created_at: to_tz(m.created_at),
             });
     }
     let meal_plans_out: Vec<MealPlanExport> = meal_plan_rows
@@ -245,6 +267,7 @@ pub async fn export(auth: auth::JWT, State(ctx): State<AppContext>) -> Result<Re
         .map(|mp| MealPlanExport {
             meals: meals_by_plan.remove(&mp.id).unwrap_or_default(),
             name: mp.name,
+            created_at: to_tz(mp.created_at),
         })
         .collect();
 
@@ -276,6 +299,7 @@ pub async fn export(auth: auth::JWT, State(ctx): State<AppContext>) -> Result<Re
                 in_basket: row.in_basket,
                 from_recipe,
                 note: row.note,
+                created_at: to_tz(row.created_at),
             });
     }
     let shoppinglists_out: Vec<ShoppinglistExport> = shoppinglist_rows
@@ -283,6 +307,7 @@ pub async fn export(auth: auth::JWT, State(ctx): State<AppContext>) -> Result<Re
         .map(|sl| ShoppinglistExport {
             items: items_by_list.remove(&sl.id).unwrap_or_default(),
             name: sl.name,
+            created_at: to_tz(sl.created_at),
         })
         .collect();
 
