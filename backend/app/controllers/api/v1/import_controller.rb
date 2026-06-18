@@ -41,7 +41,8 @@ class Api::V1::ImportController < ApplicationController
   def import_aisles(rows)
     Array(rows).each_with_object({}) do |attrs, map|
       aisle = Aisle.find_or_initialize_by(name: attrs["name"])
-      aisle.order = attrs["order"]
+      aisle.order      = attrs["order"]
+      aisle.created_at = attrs["created_at"] if attrs["created_at"]
       aisle.save!
       map[aisle.name] = aisle
     end
@@ -50,8 +51,9 @@ class Api::V1::ImportController < ApplicationController
   def import_ingredients(rows, aisles)
     Array(rows).each_with_object({}) do |attrs, map|
       ingredient = Ingredient.find_or_initialize_by(name: attrs["name"])
-      ingredient.tags  = attrs["tags"] || []
-      ingredient.aisle = aisles[attrs["aisle"]]
+      ingredient.tags       = attrs["tags"] || []
+      ingredient.aisle      = aisles[attrs["aisle"]]
+      ingredient.created_at = attrs["created_at"] if attrs["created_at"]
       ingredient.save!
       map[ingredient.name] = ingredient
     end
@@ -60,9 +62,11 @@ class Api::V1::ImportController < ApplicationController
   def import_recipes(rows, ingredients)
     Array(rows).each_with_object({}) do |attrs, map|
       recipe = Recipe.find_or_initialize_by(name: attrs["name"])
+      book_title = attrs["book_title"]
+      book_title = "No book" if attrs["source"] == "book" && book_title == ""
       recipe.assign_attributes(
         source:      attrs["source"],
-        book_title:  attrs["book_title"],
+        book_title:  book_title,
         book_page:   attrs["book_page"],
         website_url: attrs["website_url"],
         tags:        attrs["tags"] || [],
@@ -70,6 +74,7 @@ class Api::V1::ImportController < ApplicationController
         notes:       attrs["notes"] || "",
         duration:    attrs["duration"]
       )
+      recipe.created_at = attrs["created_at"] if attrs["created_at"]
       recipe.save!
       recipe.recipe_ingredients.destroy_all
 
@@ -83,6 +88,7 @@ class Api::V1::ImportController < ApplicationController
           value: quantity["value"],
           text:  quantity["text"]
         )
+        recipe_ingredient.created_at = ri["created_at"] if ri["created_at"]
         recipe_ingredient.save!
       end
 
@@ -93,6 +99,7 @@ class Api::V1::ImportController < ApplicationController
   def import_mealplans(rows, recipes)
     Array(rows).each do |attrs|
       plan = Mealplan.find_or_initialize_by(name: attrs["name"])
+      plan.created_at = attrs["created_at"] if attrs["created_at"]
       plan.save!
       plan.mealplan_meals.destroy_all
 
@@ -104,7 +111,8 @@ class Api::V1::ImportController < ApplicationController
           recipe:              recipe,
           untracked_meal_name: recipe ? nil : meal["untracked_meal_name"],
           section:             meal["section"],
-          is_cooked:           meal.fetch("is_cooked", false)
+          is_cooked:           meal.fetch("is_cooked", false),
+          created_at:          meal["created_at"]
         )
       end
     end
@@ -113,6 +121,7 @@ class Api::V1::ImportController < ApplicationController
   def import_shoppinglists(rows, ingredients, recipes)
     Array(rows).each do |attrs|
       list = Shoppinglist.find_or_initialize_by(name: attrs["name"])
+      list.created_at = attrs["created_at"] if attrs["created_at"]
       list.save!
       list.shoppinglist_items.destroy_all
 
@@ -124,16 +133,18 @@ class Api::V1::ImportController < ApplicationController
         item = list.shoppinglist_items.create!(
           ingredient: ingredient,
           in_basket:  item_rows.any? { |r| r["in_basket"] },
-          note:       item_rows.map { |r| r["note"] }.compact.first
+          note:       item_rows.map { |r| r["note"] }.compact.first,
+          created_at: item_rows.map { |r| r["created_at"] }.compact.min
         )
 
         item_rows.each do |row|
           quantity = row["quantity"] || {}
           item.shoppinglist_quantities.create!(
-            recipe: recipes[row["from_recipe"]],
-            unit:   quantity["unit"] || "arbitrary",
-            value:  quantity["value"],
-            text:   quantity["text"]
+            recipe:     recipes[row["from_recipe"]],
+            unit:       quantity["unit"] || "arbitrary",
+            value:      quantity["value"],
+            text:       quantity["text"],
+            created_at: row["created_at"]
           )
         end
       end

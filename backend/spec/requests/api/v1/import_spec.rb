@@ -122,9 +122,61 @@ RSpec.describe "Api::V1::Import", type: :request do
       expect(response.parsed_body["errors"].first).to include("Book title can't be blank", "recipe: Shortbread")
     end
 
+    it "fills in 'No book' when a book recipe has an empty book_title" do
+      payload["recipes"][0]["book_title"] = ""
+
+      post "/api/v1/import", params: payload.to_json, headers: { "Content-Type" => "application/json" }
+
+      expect(response).to have_http_status(:success)
+      expect(Recipe.find_by(name: "Shortbread").book_title).to eq("No book")
+    end
+
     it "rejects malformed JSON with 400" do
       post "/api/v1/import", params: "not json", headers: { "Content-Type" => "application/json" }
       expect(response).to have_http_status(:bad_request)
+    end
+
+    it "honors created_at on top-level and nested records when provided" do
+      aisle_ts        = "2025-01-28T22:34:43.835478Z"
+      ingredient_ts   = "2025-02-01T10:00:00Z"
+      recipe_ts       = "2025-03-01T10:00:00Z"
+      recipe_ing_ts   = "2025-03-02T10:00:00Z"
+      mealplan_ts     = "2025-04-01T10:00:00Z"
+      meal_ts         = "2025-04-02T10:00:00Z"
+      shoppinglist_ts = "2025-05-01T10:00:00Z"
+      item_early_ts   = "2025-05-02T10:00:00Z"
+      item_late_ts    = "2025-05-02T11:00:00Z"
+
+      payload["aisles"][0]["created_at"]                          = aisle_ts
+      payload["ingredients"][0]["created_at"]                     = ingredient_ts
+      payload["recipes"][0]["created_at"]                         = recipe_ts
+      payload["recipes"][0]["ingredients"][0]["created_at"]       = recipe_ing_ts
+      payload["meal_plans"][0]["created_at"]                      = mealplan_ts
+      payload["meal_plans"][0]["meals"][0]["created_at"]          = meal_ts
+      payload["shoppinglists"][0]["created_at"]                   = shoppinglist_ts
+      payload["shoppinglists"][0]["items"][0]["created_at"]       = item_late_ts
+      payload["shoppinglists"][0]["items"][1]["created_at"]       = item_early_ts
+
+      post "/api/v1/import", params: payload.to_json, headers: { "Content-Type" => "application/json" }
+      expect(response).to have_http_status(:success)
+
+      expect(Aisle.find_by(name: "vegetable").created_at).to eq(Time.parse(aisle_ts))
+      expect(Ingredient.find_by(name: "Flour").created_at).to eq(Time.parse(ingredient_ts))
+
+      shortbread = Recipe.find_by(name: "Shortbread")
+      expect(shortbread.created_at).to eq(Time.parse(recipe_ts))
+      flour_ri = shortbread.recipe_ingredients.find_by(ingredient: Ingredient.find_by(name: "Flour"))
+      expect(flour_ri.created_at).to eq(Time.parse(recipe_ing_ts))
+
+      plan = Mealplan.find_by(name: "Week 1")
+      expect(plan.created_at).to eq(Time.parse(mealplan_ts))
+      expect(plan.mealplan_meals.find_by(recipe: shortbread).created_at).to eq(Time.parse(meal_ts))
+
+      list = Shoppinglist.find_by(name: "Saturday")
+      expect(list.created_at).to eq(Time.parse(shoppinglist_ts))
+      flour_item = list.shoppinglist_items.find_by(ingredient: Ingredient.find_by(name: "Flour"))
+      expect(flour_item.created_at).to eq(Time.parse(item_early_ts))
+      expect(flour_item.shoppinglist_quantities.map(&:created_at)).to contain_exactly(Time.parse(item_late_ts), Time.parse(item_early_ts))
     end
   end
 end

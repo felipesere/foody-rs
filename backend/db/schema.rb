@@ -20,13 +20,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_16_223047) do
     t.index ["order"], name: "index_aisles_on_order", unique: true
   end
 
-  create_table "articles", force: :cascade do |t|
-    t.text "body"
-    t.datetime "created_at", null: false
-    t.string "title"
-    t.datetime "updated_at", null: false
-  end
-
   create_table "ingredients", force: :cascade do |t|
     t.integer "aisle_id"
     t.datetime "created_at", null: false

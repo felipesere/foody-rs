@@ -1,6 +1,6 @@
 class Api::V1::RecipesController < ApplicationController
   def index
-    recipes = Recipe.with_full_ingredients
+    recipes = Recipe.with_full_ingredients.order(created_at: :desc, id: :desc)
     render json: { recipes: recipes.map { |r| RecipeSerializer.new(r).as_json } }
   end
 

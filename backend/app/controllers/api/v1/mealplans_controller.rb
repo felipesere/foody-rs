@@ -1,6 +1,6 @@
 class Api::V1::MealplansController < ApplicationController
   def index
-    plans = Mealplan.with_full_meals.order(:id)
+    plans = Mealplan.with_full_meals.order(created_at: :desc, id: :desc)
     render json: { mealplans: plans.map { |p| MealplanSerializer.new(p).as_json } }
   end
 

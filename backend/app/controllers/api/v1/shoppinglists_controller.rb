@@ -1,6 +1,6 @@
 class Api::V1::ShoppinglistsController < ApplicationController
   def index
-    lists = Shoppinglist.order(:id)
+    lists = Shoppinglist.order(created_at: :desc, id: :desc)
     render json: {
       shoppinglists: lists.map { |l| ShoppinglistSerializer.new(l, minimal: true).as_json }
     }
