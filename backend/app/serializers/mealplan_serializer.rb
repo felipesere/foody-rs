@@ -7,6 +7,7 @@ class MealplanSerializer
 
   def as_json(*)
     {
+      kind:       "mealplan",
       id:         @mealplan.id,
       name:       @mealplan.name,
       created_at: @mealplan.created_at.utc.strftime(TIMESTAMP_FORMAT),
@@ -18,6 +19,7 @@ class MealplanSerializer
 
   def meal_payload(meal)
     {
+      kind:       "mealplan_meal",
       id:         meal.id,
       details:    meal_details(meal),
       section:    meal.section,
@@ -28,9 +30,9 @@ class MealplanSerializer
 
   def meal_details(meal)
     if meal.recipe_id
-      { type: "from_recipe", id: meal.recipe_id }
+      { kind: "from_recipe", id: meal.recipe_id }
     else
-      { type: "untracked", name: meal.untracked_meal_name }
+      { kind: "untracked", name: meal.untracked_meal_name }
     end
   end
 end

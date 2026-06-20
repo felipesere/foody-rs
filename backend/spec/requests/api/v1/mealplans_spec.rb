@@ -12,7 +12,7 @@ RSpec.describe "Api::V1::Mealplans", type: :request do
       expect(response).to have_http_status(:success)
       first = response.parsed_body["mealplans"].first
       expect(first).to include("name" => "This week")
-      expect(first["meals"].first["details"]).to eq("type" => "from_recipe", "id" => recipe.id)
+      expect(first["meals"].first["details"]).to eq("kind" => "from_recipe", "id" => recipe.id)
     end
   end
 
@@ -47,7 +47,7 @@ RSpec.describe "Api::V1::Mealplans", type: :request do
 
       expect(response).to have_http_status(:created)
       details = response.parsed_body["meals"].map { |m| m["details"] }
-      expect(details).to eq([{ "type" => "from_recipe", "id" => recipe.id }])
+      expect(details).to eq([{ "kind" => "from_recipe", "id" => recipe.id }])
     end
 
     it "returns 422 when name is blank" do

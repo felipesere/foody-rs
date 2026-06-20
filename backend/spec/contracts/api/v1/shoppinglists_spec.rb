@@ -43,4 +43,14 @@ RSpec.describe "api/v1/shoppinglists contract", type: :request do
     expect(response).to have_http_status(:ok)
     FixtureWriter.assert_or_write("shoppinglists/show", response.body)
   end
+
+  it "matches shoppinglists/index.json" do
+    create(:shoppinglist, name: "This week")
+    create(:shoppinglist, name: "Last week")
+
+    get "/api/v1/shoppinglists"
+
+    expect(response).to have_http_status(:ok)
+    FixtureWriter.assert_or_write("shoppinglists/index", response.body)
+  end
 end

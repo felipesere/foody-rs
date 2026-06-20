@@ -29,4 +29,25 @@ RSpec.describe "api/v1/recipes contract", type: :request do
     expect(response).to have_http_status(:ok)
     FixtureWriter.assert_or_write("recipes/show", response.body)
   end
+
+  it "matches recipes/show--website.json" do
+    aisle = create(:aisle, name: "Pantry", order: 1)
+    pasta = create(:ingredient, name: "Pasta", aisle: aisle, tags: [])
+
+    recipe = create(:recipe, :website,
+      name:        "Weeknight Pasta",
+      website_url: "https://example.com/pasta",
+      tags:        ["dinner", "quick"],
+      rating:      3,
+      notes:       "30 minutes flat",
+      duration:    30
+    )
+    create(:recipe_ingredient, recipe: recipe, ingredient: pasta, unit: "gram", value: 200.0)
+
+    get "/api/v1/recipes/#{recipe.id}"
+
+    expect(response).to have_http_status(:ok)
+    FixtureWriter.assert_or_write("recipes/show--website", response.body)
+  end
+
 end

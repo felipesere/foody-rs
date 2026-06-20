@@ -1,4 +1,5 @@
 {
+  "kind": "recipe",
   "id": 1,
   "name": "Apple Pie",
   "source": "book",
@@ -13,7 +14,10 @@
   "duration": "60",
   "ingredients": [
     {
+      "kind": "recipe_ingredient",
+      "id": 1,
       "ingredient": {
+        "kind": "ingredient",
         "id": 1,
         "name": "Apples",
         "tags": [
@@ -25,17 +29,21 @@
           "order": 1
         }
       },
-      "quantity": [
+      "quantities": [
         {
-          "id": 1,
+          "id": null,
           "unit": "gram",
           "value": 500.0,
-          "text": null
+          "text": null,
+          "recipe_id": null
         }
       ]
     },
     {
+      "kind": "recipe_ingredient",
+      "id": 2,
       "ingredient": {
+        "kind": "ingredient",
         "id": 2,
         "name": "Flour",
         "tags": [],
@@ -45,12 +53,13 @@
           "order": 1
         }
       },
-      "quantity": [
+      "quantities": [
         {
-          "id": 2,
+          "id": null,
           "unit": "gram",
           "value": 300.0,
-          "text": "sifted"
+          "text": "sifted",
+          "recipe_id": null
         }
       ]
     }

@@ -1,11 +1,14 @@
 {
+  "kind": "shoppinglist",
   "id": 1,
   "name": "Saturday shop",
   "last_updated": "2026-01-01T12:00:00Z",
   "ingredients": [
     {
+      "kind": "shoppinglist_item",
       "id": 1,
       "ingredient": {
+        "kind": "ingredient",
         "id": 1,
         "name": "Apples",
         "tags": [
@@ -17,8 +20,6 @@
           "order": 1
         }
       },
-      "note": "ripe ones",
-      "in_basket": false,
       "quantities": [
         {
           "id": 1,
@@ -27,11 +28,15 @@
           "text": null,
           "recipe_id": 1
         }
-      ]
+      ],
+      "note": "ripe ones",
+      "in_basket": false
     },
     {
+      "kind": "shoppinglist_item",
       "id": 2,
       "ingredient": {
+        "kind": "ingredient",
         "id": 2,
         "name": "Flour",
         "tags": [],
@@ -41,8 +46,6 @@
           "order": 1
         }
       },
-      "note": null,
-      "in_basket": true,
       "quantities": [
         {
           "id": 2,
@@ -51,7 +54,9 @@
           "text": null,
           "recipe_id": null
         }
-      ]
+      ],
+      "note": null,
+      "in_basket": true
     }
   ]
 }

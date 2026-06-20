@@ -1,18 +1,28 @@
 {
   "ingredients": [
     {
+      "kind": "ingredient",
       "id": 1,
       "name": "Apples",
       "tags": [
         "fruit"
       ],
-      "aisle_id": 1
+      "aisle": {
+        "id": 1,
+        "name": "Produce",
+        "order": 1
+      }
     },
     {
+      "kind": "ingredient",
       "id": 2,
       "name": "Flour",
       "tags": [],
-      "aisle_id": 1
+      "aisle": {
+        "id": 1,
+        "name": "Produce",
+        "order": 1
+      }
     }
   ]
 }

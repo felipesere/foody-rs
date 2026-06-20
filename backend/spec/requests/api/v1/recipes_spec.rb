@@ -68,7 +68,7 @@ RSpec.describe "Api::V1::Recipes", type: :request do
       expect(response).to have_http_status(:created)
       body = response.parsed_body
       expect(body).to include("name" => "Apple Pie", "title" => "Joy of Cooking", "page" => 12)
-      expect(body["ingredients"].first["quantity"].first).to include("unit" => "gram", "value" => 500.0)
+      expect(body["ingredients"].first["quantities"].first).to include("unit" => "gram", "value" => 500.0)
     end
 
     it "creates a website recipe" do

@@ -5,6 +5,7 @@ class RecipeSerializer
 
   def as_json(*)
     {
+      kind:     "recipe",
       id:       @recipe.id,
       name:     @recipe.name,
       source:   @recipe.source,
@@ -27,28 +28,18 @@ class RecipeSerializer
 
   def ingredient_with_quantity(recipe_ingredient)
     {
-      ingredient: ingredient_payload(recipe_ingredient.ingredient),
-      quantity: [
+      kind:       "recipe_ingredient",
+      id:         recipe_ingredient.id,
+      ingredient: Payloads.ingredient(recipe_ingredient.ingredient),
+      quantities: [
         {
-          id:    recipe_ingredient.id,
-          unit:  recipe_ingredient.unit,
-          value: recipe_ingredient.value,
-          text:  recipe_ingredient.text
+          id:        nil,
+          unit:      recipe_ingredient.unit,
+          value:     recipe_ingredient.value,
+          text:      recipe_ingredient.text,
+          recipe_id: nil
         }
       ]
-    }
-  end
-
-  def ingredient_payload(ingredient)
-    {
-      id:   ingredient.id,
-      name: ingredient.name,
-      tags: ingredient.tags || [],
-      aisle: ingredient.aisle && {
-        id:    ingredient.aisle.id,
-        name:  ingredient.aisle.name,
-        order: ingredient.aisle.order
-      }
     }
   end
 end

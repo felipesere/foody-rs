@@ -1,0 +1,42 @@
+{
+  "kind": "recipe",
+  "id": 1,
+  "name": "Weeknight Pasta",
+  "source": "website",
+  "url": "https://example.com/pasta",
+  "title": null,
+  "page": null,
+  "tags": [
+    "dinner",
+    "quick"
+  ],
+  "rating": 3,
+  "notes": "30 minutes flat",
+  "duration": "30",
+  "ingredients": [
+    {
+      "kind": "recipe_ingredient",
+      "id": 1,
+      "ingredient": {
+        "kind": "ingredient",
+        "id": 1,
+        "name": "Pasta",
+        "tags": [],
+        "aisle": {
+          "id": 1,
+          "name": "Pantry",
+          "order": 1
+        }
+      },
+      "quantities": [
+        {
+          "id": null,
+          "unit": "gram",
+          "value": 200.0,
+          "text": null,
+          "recipe_id": null
+        }
+      ]
+    }
+  ]
+}

@@ -6,6 +6,7 @@ class ShoppinglistSerializer
 
   def as_json(*)
     base = {
+      kind:         "shoppinglist",
       id:           @shoppinglist.id,
       name:         @shoppinglist.name,
       last_updated: @shoppinglist.updated_at.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -23,11 +24,12 @@ class ShoppinglistSerializer
 
   def item_payload(item)
     {
+      kind:       "shoppinglist_item",
       id:         item.id,
-      ingredient: ingredient_payload(item.ingredient),
+      ingredient: Payloads.ingredient(item.ingredient),
+      quantities: item.shoppinglist_quantities.map { |q| quantity_payload(q) },
       note:       item.note,
-      in_basket:  item.in_basket,
-      quantities: item.shoppinglist_quantities.map { |q| quantity_payload(q) }
+      in_basket:  item.in_basket
     }
   end
 
@@ -38,19 +40,6 @@ class ShoppinglistSerializer
       value:     quantity.value,
       text:      quantity.text,
       recipe_id: quantity.recipe_id
-    }
-  end
-
-  def ingredient_payload(ingredient)
-    {
-      id:   ingredient.id,
-      name: ingredient.name,
-      tags: ingredient.tags || [],
-      aisle: ingredient.aisle && {
-        id:    ingredient.aisle.id,
-        name:  ingredient.aisle.name,
-        order: ingredient.aisle.order
-      }
     }
   end
 end

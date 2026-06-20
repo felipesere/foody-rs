@@ -35,6 +35,7 @@
     "react-speech-recognition": "^4.0.1",
     "sonner": "^2.0.7",
     "use-editable": "^2.3.3",
+    "valibot": "^1.4.1",
     "zod": "^4.1.12"
   },
   "devDependencies": {

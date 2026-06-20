@@ -1,12 +1,14 @@
 {
+  "kind": "mealplan",
   "id": 1,
   "name": "Week 1",
   "created_at": "2026-01-01T12:00:00Z",
   "meals": [
     {
+      "kind": "mealplan_meal",
       "id": 1,
       "details": {
-        "type": "from_recipe",
+        "kind": "from_recipe",
         "id": 1
       },
       "section": "dinner",
@@ -14,9 +16,10 @@
       "created_at": "2026-01-01T12:00:00Z"
     },
     {
+      "kind": "mealplan_meal",
       "id": 2,
       "details": {
-        "type": "untracked",
+        "kind": "untracked",
         "name": "Leftovers"
       },
       "section": "lunch",

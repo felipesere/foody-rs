@@ -1,0 +1,16 @@
+{
+  "shoppinglists": [
+    {
+      "kind": "shoppinglist",
+      "id": 2,
+      "name": "Last week",
+      "last_updated": "2026-01-01T12:00:00Z"
+    },
+    {
+      "kind": "shoppinglist",
+      "id": 1,
+      "name": "This week",
+      "last_updated": "2026-01-01T12:00:00Z"
+    }
+  ]
+}

@@ -9,7 +9,10 @@ RSpec.describe "Api::V1::Ingredients", type: :request do
       get "/api/v1/ingredients"
 
       ingredients = response.parsed_body["ingredients"]
-      expect(ingredients).to eq([{"id" => 1, "name" => "Apples", "tags" => ["fruit"], "aisle_id" => nil}, {"id" => 2, "name" => "Bananas", "tags" => [], "aisle_id" => nil}])
+      expect(ingredients).to eq([
+        {"kind" => "ingredient", "id" => 1, "name" => "Apples",  "tags" => ["fruit"], "aisle" => nil},
+        {"kind" => "ingredient", "id" => 2, "name" => "Bananas", "tags" => [],        "aisle" => nil}
+      ])
     end
   end
 
@@ -19,7 +22,7 @@ RSpec.describe "Api::V1::Ingredients", type: :request do
 
       get "/api/v1/ingredients/#{apples.id}"
       expect(response).to have_http_status(:success)
-      expect(response.parsed_body).to eq({"id" => 1, "name" => "Apples", "tags" => ["fruit"], "aisle_id" => nil})
+      expect(response.parsed_body).to eq({"kind" => "ingredient", "id" => 1, "name" => "Apples", "tags" => ["fruit"], "aisle" => nil})
     end
   end
 
@@ -53,7 +56,11 @@ RSpec.describe "Api::V1::Ingredients", type: :request do
 
       get "/api/v1/ingredients/#{ingredient["id"]}"
       ingredient = response.parsed_body
-      expect(ingredient).to match a_hash_including( "name" => "orange", "tags" => ["foo"], "aisle_id" => aisle.id)
+      expect(ingredient).to match a_hash_including(
+        "name"  => "orange",
+        "tags"  => ["foo"],
+        "aisle" => a_hash_including("id" => aisle.id, "name" => "Fruit")
+      )
     end
   end
 

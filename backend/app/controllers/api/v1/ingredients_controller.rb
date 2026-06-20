@@ -1,20 +1,20 @@
 class Api::V1::IngredientsController < ApplicationController
   def index
-    ingredients = Ingredient.all
+    ingredients = Ingredient.includes(:aisle).all
     render json: {
-      ingredients: ingredients.as_json(only: [:id, :name, :tags, :aisle_id])
+      ingredients: ingredients.map { |i| Payloads.ingredient(i) }
     }
   end
 
   def show
-   ingredient = Ingredient.find_by(params[:id])
-   render json: ingredient.as_json(only: [:id, :name, :tags, :aisle_id])
+    ingredient = Ingredient.includes(:aisle).find_by(id: params[:id])
+    render json: Payloads.ingredient(ingredient)
   end
 
   def create
     ingredient = Ingredient.new(ingredient_params)
     if ingredient.save
-      render json: ingredient, status: :created
+      render json: Payloads.ingredient(ingredient), status: :created
     else
       render json: { errors: ingredient.errors.full_messages }, status: :unprocessable_entity
     end
@@ -23,7 +23,7 @@ class Api::V1::IngredientsController < ApplicationController
   def update
     ingredient = Ingredient.find_by(id: params["id"])
     if ingredient.update(ingredient_params)
-      render json: ingredient, status: :ok
+      render json: Payloads.ingredient(ingredient), status: :ok
     else
       render status: :unprocessable_entity
     end
