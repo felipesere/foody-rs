@@ -1,6 +1,7 @@
 import * as v from "valibot";
-import { TimestampSchema } from "./global.ts";
+import { http, TimestampSchema } from "./index.ts";
 import { AisleSchema } from "./aisles.ts";
+import { useQuery } from "@tanstack/react-query";
 
 export const QuantitySchema = v.object({
   id: v.nullable(v.number()),
@@ -27,9 +28,41 @@ export const ShoppinglistItem = v.object({
   quantities: v.array(QuantitySchema),
 });
 
-export const ShoppinglistsSchema = v.object({
+export const ShoppinglistSchema = v.object({
   id: v.number(),
   kind: v.literal("shoppinglist"),
   last_updated: TimestampSchema,
   ingredients: v.array(ShoppinglistItem),
 });
+
+export const SmallShoppinglist = v.object({
+  kind: v.literal("shoppinglist"),
+  id: v.number(),
+  name: v.string(),
+  last_updated: TimestampSchema,
+});
+
+export const ShoppinglistsSchema = v.object({
+  shoppinglists: v.array(SmallShoppinglist),
+});
+
+export const client = function () {
+  return {
+    index: (token: string) => {
+      return useQuery({
+        queryKey: ["ingredients"],
+        queryFn: async () => {
+          const body = await http
+            .get("api/v1/shoppinglists", {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            })
+            .json();
+
+          return v.parse(ShoppinglistsSchema, body);
+        },
+      });
+    },
+  };
+};

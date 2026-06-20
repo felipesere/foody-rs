@@ -3,7 +3,7 @@ import { expect, test } from "vitest";
 import ingredientIndexFixtures from "../../../test-fixtures/api/v1/ingredients/index.json";
 import ingredientShowFixtures from "../../../test-fixtures/api/v1/ingredients/show.json";
 import ingredientWithoutAisleFixtures from "../../../test-fixtures/api/v1/ingredients/show--no-aisle.json";
-import { printIssues } from "./global.ts";
+import { printIssues } from "./index.ts";
 import { IngredientSchema, IngredientsSchema } from "./ingredient.ts";
 
 test("index ingredient schema", () => {

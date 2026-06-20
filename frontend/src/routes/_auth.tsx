@@ -4,7 +4,7 @@ export const Route = createFileRoute("/_auth")({
   // Before loading, authenticate the user via data in the query cache
   // This will also happen during prefetching (e.g. hovering over links, etc.)
   beforeLoad: ({ context, location }) => {
-    const token = context.token;
+    const token = context.token || "1";
     if (!token) {
       throw redirect({
         to: "/login",

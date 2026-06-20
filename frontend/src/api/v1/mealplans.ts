@@ -1,5 +1,5 @@
 import * as v from "valibot";
-import { TimestampSchema } from "./global.ts";
+import { TimestampSchema } from "./index.ts";
 
 const FromRecipe = v.object({
   kind: v.literal("from_recipe"),

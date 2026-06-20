@@ -1,10 +1,20 @@
 import * as v from "valibot";
+import ky from "ky";
 
 export const TimestampSchema = v.pipe(
   v.string(),
   v.isoTimestamp(),
   v.transform((input) => new Date(input)),
 );
+
+const prefixUrl =
+  import.meta.env.MODE === "development" || import.meta.env.MODE === "test"
+    ? "http://localhost:3000"
+    : "/";
+
+export const http = ky.create({
+  prefixUrl,
+});
 
 // Test helper
 export function printIssues(result: v.SafeParseResult<any>) {
@@ -16,3 +26,5 @@ export function printIssues(result: v.SafeParseResult<any>) {
     })
     .join("\n");
 }
+
+export const client = function () {};
