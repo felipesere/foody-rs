@@ -1,7 +1,7 @@
 import * as v from "valibot";
 import { http, TimestampSchema } from "./index.ts";
 import { AisleSchema } from "./aisles.ts";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const QuantitySchema = v.object({
   unit: v.string(),
@@ -43,6 +43,8 @@ export const ShoppinglistSchema = v.object({
   last_updated: TimestampSchema,
   ingredients: v.array(ShoppinglistItemSchema),
 });
+
+export type Shoppinglist = v.InferOutput<typeof ShoppinglistSchema>;
 
 export const SmallShoppinglist = v.object({
   kind: v.literal("shoppinglist"),
@@ -88,6 +90,73 @@ export const client = function () {
             .json();
 
           return v.parse(ShoppinglistSchema, body);
+        },
+      });
+    },
+    update: (token: string, shoppinglistId: number) => {
+      let queryClient = useQueryClient();
+      return useMutation({
+        mutationFn: async (params: {
+          item_id: number;
+          fields: {
+            in_basket?: boolean;
+            note?: string;
+          };
+        }) => {
+          await http.put(
+            `api/v1/shoppinglists/${shoppinglistId}/items/${params.item_id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+              json: params.fields,
+            },
+          );
+        },
+        onMutate: async (params) => {
+          const previousShoppinglist = queryClient.getQueryData<Shoppinglist>([
+            "shoppinglist",
+            shoppinglistId,
+          ]);
+
+          if (previousShoppinglist) {
+            const updatedShoppinglist = structuredClone(previousShoppinglist);
+            updatedShoppinglist.ingredients =
+              updatedShoppinglist.ingredients.map((item) => {
+                if (item.id == params.item_id) {
+                  return { ...item, ...params.fields };
+                } else {
+                  return item;
+                }
+              });
+            queryClient.setQueryData(
+              ["shoppinglist", shoppinglistId],
+              updatedShoppinglist,
+            );
+          }
+
+          return { previousShoppinglist };
+        },
+        onError: (_err, _params, context) => {
+          queryClient.setQueryData(
+            ["shoppinglist", shoppinglistId],
+            context?.previousShoppinglist,
+          );
+        },
+        onSettled: async () => {
+          // If we have mutations "bottled up" because we've been offline for a bit,
+          // then only invalidate the 'shoppinglists' on the last mutation...
+          if (queryClient.isMutating() === 1) {
+            console.log("Invalidating after last mutation...");
+            await queryClient.invalidateQueries({
+              queryKey: ["shoppinglist", shoppinglistId],
+            });
+          }
+        },
+        onSuccess: () => {
+          return queryClient.invalidateQueries({
+            queryKey: ["shoppinglist", shoppinglistId],
+          });
         },
       });
     },

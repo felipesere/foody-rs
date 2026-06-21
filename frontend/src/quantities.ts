@@ -46,8 +46,6 @@ export function parse(raw: string): Quantity {
     return {
       unit: "arbitrary",
       text: raw,
-      id: null,
-      recipe_id: null,
       value: null,
     };
   }
@@ -62,8 +60,6 @@ export function parse(raw: string): Quantity {
     return {
       value,
       unit: "count",
-      id: null,
-      recipe_id: null,
       text: null,
     };
   }
@@ -74,16 +70,12 @@ export function parse(raw: string): Quantity {
       unit: "arbitrary",
       text: raw,
       value: null,
-      id: null,
-      recipe_id: null,
     };
   }
 
   return {
     value,
     unit: properUnit,
-    id: null,
-    recipe_id: null,
     text: null,
   };
 }

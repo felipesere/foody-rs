@@ -12,8 +12,6 @@ import {
   useRemoveIngredientFromShoppinglist,
   useRemoveQuantityFromShoppinglist,
   useRemoveRecipeFromShoppinglist,
-  useSetNoteOnIngredient,
-  useToggleIngredientInShoppinglist,
   useUpdateQuantityOnShoppinglist,
 } from "../apis/shoppinglists.ts";
 import { Button } from "../components/button.tsx";
@@ -64,14 +62,9 @@ export function ShoppingPage() {
   const params = Route.useParams();
   const shoppinglistId = Number(params.shoppinglistId);
   const { token } = Route.useRouteContext();
-  //const shoppinglist = useShoppinglist(token, shoppinglistId);
   const shoppinglist = client().show(token, shoppinglistId);
-  // const recipes = useAllRecipes(token);
   const recipes = recipeClient.index(token);
-  const toggleIngredient = useToggleIngredientInShoppinglist(
-    token,
-    shoppinglistId,
-  );
+  const updateShoppinglist = client().update(token, shoppinglistId);
   const addIngredient = addIngredientToShoppinglist(token);
   const [grouping, setGrouping] = useState<Grouping>(Grouping.ByAisle);
   const [showProgressBar, setShowProgressBar] = useState(false);
@@ -225,9 +218,14 @@ export function ShoppingPage() {
                 shoppinglistId={shoppinglistId}
                 item={item}
                 allRecipes={allRecipes}
-                onToggle={(ingredientId, inBasket) =>
-                  toggleIngredient.mutate({ ingredientId, inBasket })
-                }
+                onToggle={(_ingredientId, inBasket) => {
+                  updateShoppinglist.mutate({
+                    item_id: item.id,
+                    fields: {
+                      in_basket: inBasket,
+                    },
+                  });
+                }}
               />
             ))}
           </Fragment>
@@ -382,11 +380,7 @@ function EditIngredient({
 }: EditIngredientProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [newNote, setNewNote] = useState<string | undefined>(undefined);
-  const useAddNote = useSetNoteOnIngredient(
-    token,
-    shoppinglistId,
-    item.ingredient.id,
-  );
+  const updateIngredient = client().update(token, shoppinglistId);
 
   const [changes, setChanges] = useState<Changes>({
     removals: [],
@@ -427,7 +421,10 @@ function EditIngredient({
               isEditing={isEditing}
               value={newNote || item.note || ""}
               onBlur={(v) => {
-                useAddNote.mutate({ note: v });
+                updateIngredient.mutate({
+                  item_id: item.id,
+                  fields: { note: v },
+                });
               }}
             />
           </div>
