@@ -25,7 +25,6 @@ import { MultiSelect } from "../components/multiselect.tsx";
 import { ResizingInput } from "../components/resizeableInput.tsx";
 import { AddToShoppinglist } from "../components/smart/addToShoppinglist.tsx";
 import { SelectAisle } from "../components/smart/selectAisle.tsx";
-import { SelectStoredIn } from "../components/smart/selectStoredIn.tsx";
 import { SelectTags } from "../components/smart/selectTags.tsx";
 import { TagsTable } from "../components/tags.tsx";
 import { ToggleButton } from "../components/toggle.tsx";
@@ -296,17 +295,17 @@ function IngredientView(props: IngredientViewProps) {
             )}
           </div>
           <Divider />
-          <div className={"flex flex-row justify-between"}>
-            <p>Stored in: {props.ingredient.stored_in?.name || "None"} </p>
-            {edit && (
-              <SelectStoredIn
-                token={props.token}
-                ingredientId={props.ingredient.id}
-                currentStoredIn={props.ingredient.stored_in?.name ?? null}
-              />
-            )}
-          </div>
-          <Divider />
+          {/*<div className={"flex flex-row justify-between"}>*/}
+          {/*  <p>Stored in: {props.ingredient.stored_in?.name || "None"} </p>*/}
+          {/*  {edit && (*/}
+          {/*    <SelectStoredIn*/}
+          {/*      token={props.token}*/}
+          {/*      ingredientId={props.ingredient.id}*/}
+          {/*      currentStoredIn={props.ingredient.stored_in?.name ?? null}*/}
+          {/*    />*/}
+          {/*  )}*/}
+          {/*</div>*/}
+          {/*<Divider />*/}
           <ButtonGroup>
             <Button
               label={"Edit"}

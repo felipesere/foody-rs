@@ -1,12 +1,15 @@
 import { useForm } from "@tanstack/react-form";
-import { useAllAisles, useCreateAisle } from "../../apis/aisles.ts";
-import { type Ingredient, useEditIngredient } from "../../apis/ingredients.ts";
-import type { Shoppinglist } from "../../apis/shoppinglists.ts";
 import { Button } from "../button.tsx";
 import { ButtonGroup } from "../buttonGroup.tsx";
 import { Divider } from "../divider.tsx";
 import { InputWithButton } from "../inputWithButton.tsx";
 import { Popup } from "../popup.tsx";
+import { client as aisleClient } from "../../api/v1/aisles.ts";
+import {
+  client as ingredientsClient,
+  Ingredient,
+} from "../../api/v1/ingredient.ts";
+import { Shoppinglist } from "../../api/v1/shoppinglists.ts";
 
 export function SelectAisle(props: {
   token: string;
@@ -14,26 +17,25 @@ export function SelectAisle(props: {
   currentAisle: string | null;
   shoppinglistId?: Shoppinglist["id"];
 }) {
-  const aisles = useAllAisles(props.token);
-  // const setAisle = useSetIngredientAisle(props.token, props.ingredientId);
-
-  const editIngredient = useEditIngredient(props.token);
-  const newAisle = useCreateAisle(props.token);
+  const aisles = aisleClient().index(props.token);
+  const newAisle = aisleClient().create(props.token);
+  const editIngredient = ingredientsClient().update(props.token);
 
   if (!aisles.data || aisles.error) {
-    return <p>Loading...</p>;
+    return <p>Loading Aisles...</p>;
   }
 
   return (
     <InnerSelectAisle
-      items={aisles.data.map((a) => a.name)}
+      items={aisles.data.aisles.map((a) => a.name)}
       selected={props.currentAisle}
-      onItemsSelected={(item) =>
+      onItemsSelected={(item) => {
+        console.log(item);
         editIngredient.mutate({
-          id: props.ingredientId,
-          changes: [{ type: "aisle", value: item }],
-        })
-      }
+          ingredient_id: props.ingredientId,
+          fields: {},
+        });
+      }}
       onNewItem={(item) => {
         newAisle.mutate({ name: item });
       }}

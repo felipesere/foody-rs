@@ -1,5 +1,7 @@
 import * as v from "valibot";
 import { AisleSchema } from "./aisles.ts";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { http } from "./index.ts";
 
 export const IngredientSchema = v.object({
   id: v.number(),
@@ -9,6 +11,51 @@ export const IngredientSchema = v.object({
   aisle: v.nullable(AisleSchema),
 });
 
+export type Ingredient = v.InferOutput<typeof IngredientSchema>;
+
+const TagsSchema = v.object({
+  tags: v.array(v.string()),
+});
+
 export const IngredientsSchema = v.object({
   ingredients: v.array(IngredientSchema),
 });
+
+export const client = function () {
+  return {
+    tags: function (token: string) {
+      return useQuery({
+        queryKey: ["tags"],
+        queryFn: async () => {
+          const body = await http
+            .get(`api/v1/ingredients/tags`, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            })
+            .json();
+
+          return v.parse(TagsSchema, body);
+        },
+      });
+    },
+    update: function (token: string) {
+      return useMutation({
+        mutationFn: async (params: {
+          ingredient_id: number;
+          fields: {
+            tags?: string[];
+            aisle_id?: number;
+          };
+        }) => {
+          await http.put(`api/v1/ingredients/${params.ingredient_id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            json: params.fields,
+          });
+        },
+      });
+    },
+  };
+};

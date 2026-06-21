@@ -34,6 +34,10 @@ class Api::V1::IngredientsController < ApplicationController
     ingredient.destroy
   end
 
+  def tags
+    render json: { tags: Ingredient.all_tags }
+  end
+
   private
 
   def ingredient_params

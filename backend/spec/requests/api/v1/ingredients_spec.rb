@@ -64,6 +64,19 @@ RSpec.describe "Api::V1::Ingredients", type: :request do
     end
   end
 
+  describe "GET /tags" do
+    it "returns sorted, deduplicated tags from all ingredients" do
+      create(:ingredient, name: "Apples",  tags: ["fruit", "vegan"])
+      create(:ingredient, name: "Bananas", tags: ["vegan", "fruit"])
+      create(:ingredient, name: "Bread",   tags: ["bakery"])
+
+      get "/api/v1/ingredients/tags"
+
+      expect(response).to have_http_status(:success)
+      expect(response.parsed_body["tags"]).to eq(["bakery", "fruit", "vegan"])
+    end
+  end
+
   describe "DELETE /:id" do
     it "deletes the ingredient" do
       ingredient = Ingredient.create!(name: "Apples", tags: ["fruit"])

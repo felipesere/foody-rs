@@ -25,6 +25,23 @@ RSpec.describe "Api::V1::Aisles", type: :request do
     end
   end
 
+  describe "POST / without order" do
+    it "defaults to 1 when no aisles exist yet" do
+      post "/api/v1/aisles", params: { aisle: { name: "Frozen" } }, as: :json
+      expect(response).to have_http_status(:success)
+      expect(response.parsed_body).to include("name" => "Frozen", "order" => 1)
+    end
+
+    it "defaults to one past the current max" do
+      Aisle.create!(name: "A", order: 3)
+      Aisle.create!(name: "B", order: 7)
+
+      post "/api/v1/aisles", params: { aisle: { name: "C" } }, as: :json
+      expect(response).to have_http_status(:success)
+      expect(response.parsed_body).to include("name" => "C", "order" => 8)
+    end
+  end
+
   describe "PUT /:id" do
     it "updates an aisle" do
       aisle = Aisle.create!(name: "X", order: 1)
