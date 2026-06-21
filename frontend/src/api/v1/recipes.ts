@@ -1,5 +1,7 @@
 import * as v from "valibot";
 import { IngredientSchema, QuantitySchema } from "./shoppinglists.ts";
+import { useQuery } from "@tanstack/react-query";
+import { http } from "./index.ts";
 
 const RecipeIngredientSchema = v.object({
   kind: v.literal("recipe_ingredient"),
@@ -33,3 +35,26 @@ const WebsiteSchema = v.object({
 });
 
 export const RecipeSchema = v.union([BookSchema, WebsiteSchema]);
+
+export const RecipesSchema = v.object({
+  recipes: v.array(RecipeSchema),
+});
+
+export const client = {
+  index: (token: string) => {
+    return useQuery({
+      queryKey: ["recipes"],
+      queryFn: async () => {
+        const body = await http
+          .get("api/v1/recipes", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+          .json();
+
+        return v.parse(RecipesSchema, body);
+      },
+    });
+  },
+};

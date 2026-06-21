@@ -5,7 +5,7 @@ import {
   addIngredientToShoppinglist,
   type Ingredient,
 } from "../apis/ingredients.ts";
-import { type Recipe, useAllRecipes } from "../apis/recipes.ts";
+import { type Recipe } from "../apis/recipes.ts";
 import {
   type Shoppinglist,
   useRemoveInBasketItemsFromShoppinglist,
@@ -32,6 +32,7 @@ import { Toggle, ToggleButton } from "../components/toggle.tsx";
 import { orderByAisles } from "../domain/orderByAisle.ts";
 import { orderByRecipe, type Section } from "../domain/orderByRecipe.ts";
 import { combineQuantities, humanize, parse } from "../quantities.ts";
+import { client as recipeClient } from "../api/v1/recipes.ts";
 import {
   client,
   ShoppinglistItem,
@@ -65,7 +66,8 @@ export function ShoppingPage() {
   const { token } = Route.useRouteContext();
   //const shoppinglist = useShoppinglist(token, shoppinglistId);
   const shoppinglist = client().show(token, shoppinglistId);
-  const recipes = useAllRecipes(token);
+  // const recipes = useAllRecipes(token);
+  const recipes = recipeClient.index(token);
   const toggleIngredient = useToggleIngredientInShoppinglist(
     token,
     shoppinglistId,
