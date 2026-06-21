@@ -1,9 +1,6 @@
 import type { Recipe } from "../apis/recipes.ts";
-import type {
-  Quantity,
-  ShoppinglistItem,
-  ShoppinglistQuantity,
-} from "../apis/shoppinglists.ts";
+import type { Quantity, ShoppinglistQuantity } from "../apis/shoppinglists.ts";
+import { ShoppinglistItem } from "../api/v1/shoppinglists.ts";
 
 export type Section<Item = ShoppinglistItem> = {
   name: string;

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { http } from "./http.ts";
 import type { Quantity } from "./recipes.ts";
 import type { Shoppinglist } from "./shoppinglists.ts";
-import { StorageSchema } from "./storage.ts";
+// import { StorageSchema } from "./storage.ts";
 
 const AisleSchema = z.object({
   name: z.string(),
@@ -16,7 +16,7 @@ export const IngredientSchema = z.object({
   name: z.string(),
   tags: z.array(z.string()),
   aisle: z.nullable(AisleSchema),
-  stored_in: z.nullable(StorageSchema),
+  // stored_in: z.nullable(StorageSchema),
 });
 
 export type Ingredient = z.infer<typeof IngredientSchema>;

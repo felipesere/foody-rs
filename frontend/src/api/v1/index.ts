@@ -1,5 +1,5 @@
-import * as v from "valibot";
 import ky from "ky";
+import * as v from "valibot";
 
 export const TimestampSchema = v.pipe(
   v.string(),
@@ -26,5 +26,3 @@ export function printIssues(result: v.SafeParseResult<any>) {
     })
     .join("\n");
 }
-
-export const client = function () {};

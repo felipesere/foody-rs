@@ -5,21 +5,14 @@ import {
   addIngredientToShoppinglist,
   type Ingredient,
 } from "../apis/ingredients.ts";
+import { type Recipe, useAllRecipes } from "../apis/recipes.ts";
 import {
-  type Recipe,
-  type StoredQuantity,
-  useAllRecipes,
-} from "../apis/recipes.ts";
-import {
-  ShoppingListItemQuantity,
   type Shoppinglist,
-  type ShoppinglistItem,
   useRemoveInBasketItemsFromShoppinglist,
   useRemoveIngredientFromShoppinglist,
   useRemoveQuantityFromShoppinglist,
   useRemoveRecipeFromShoppinglist,
   useSetNoteOnIngredient,
-  useShoppinglist,
   useToggleIngredientInShoppinglist,
   useUpdateQuantityOnShoppinglist,
 } from "../apis/shoppinglists.ts";
@@ -39,6 +32,11 @@ import { Toggle, ToggleButton } from "../components/toggle.tsx";
 import { orderByAisles } from "../domain/orderByAisle.ts";
 import { orderByRecipe, type Section } from "../domain/orderByRecipe.ts";
 import { combineQuantities, humanize, parse } from "../quantities.ts";
+import {
+  client,
+  ShoppinglistItem,
+  StoredQuantity,
+} from "../api/v1/shoppinglists.ts";
 
 export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId/")({
   component: ShoppingPage,
@@ -65,7 +63,8 @@ export function ShoppingPage() {
   const params = Route.useParams();
   const shoppinglistId = Number(params.shoppinglistId);
   const { token } = Route.useRouteContext();
-  const shoppinglist = useShoppinglist(token, shoppinglistId);
+  //const shoppinglist = useShoppinglist(token, shoppinglistId);
+  const shoppinglist = client().show(token, shoppinglistId);
   const recipes = useAllRecipes(token);
   const toggleIngredient = useToggleIngredientInShoppinglist(
     token,
@@ -122,9 +121,7 @@ export function ShoppingPage() {
   }
 
   const inBasket =
-    shoppinglist.data?.ingredients.filter((i) =>
-      i.quantities.some((q) => q.in_basket),
-    ) || [];
+    shoppinglist.data?.ingredients.filter((i) => i.in_basket) || [];
 
   const fraction =
     (inBasket.length / (shoppinglist.data?.ingredients.length || 1)) * 100;
@@ -270,7 +267,7 @@ function CompactIngredientView({
   allRecipes: Record<number, string>;
   onToggle: (ingredient: Ingredient["id"], inBasket: boolean) => void;
 }) {
-  const checked = item.quantities.some((q) => q.in_basket);
+  const checked = item.in_basket;
   const [open, setOpen] = useState(false);
   return (
     <li
@@ -303,7 +300,7 @@ function CompactIngredientView({
           {item.ingredient.name}{" "}
           {item.note && <span className={"font-light text-gray-600"}>Ⓝ</span>}
         </p>
-        <p>{combineQuantities(item.quantities.map((p) => p.quantity))}</p>
+        <p>{combineQuantities(item.quantities)}</p>
         <ToggleButton onToggle={() => setOpen((v) => !v)} open={open} />
       </div>
       {open && (
@@ -333,7 +330,7 @@ type Changes = {
 function RecipeAndQuantity(props: {
   editing: boolean;
   onClick: () => void;
-  quantity: ShoppingListItemQuantity;
+  quantity: StoredQuantity;
   allRecipes: Record<number, string>;
   onBlur: (v: string) => void;
 }) {
@@ -356,7 +353,7 @@ function RecipeAndQuantity(props: {
       <span className={"flex-shrink-0 whitespace-nowrap"}>
         <Editable
           isEditing={props.editing}
-          value={humanize(props.quantity.quantity)}
+          value={humanize(props.quantity)}
           onBlur={props.onBlur}
         />
       </span>
@@ -451,19 +448,19 @@ function EditIngredient({
       )}
       {modifiedIngredient.quantities.map((quantity) => (
         <RecipeAndQuantity
-          key={quantity.quantity.id}
+          key={quantity.id}
           quantity={quantity}
           allRecipes={allRecipes}
           editing={isEditing}
           onClick={() => {
             setChanges((previous) => ({
               ...previous,
-              removals: [...previous.removals, quantity.quantity.id],
+              removals: [...previous.removals, quantity.id],
             }));
             setModifiedIngredient((previous) => ({
               ...previous,
               quantities: previous.quantities.filter(
-                (q) => q.quantity.id !== quantity.quantity.id,
+                (q) => q.id !== quantity.id,
               ),
             }));
           }}
@@ -472,13 +469,13 @@ function EditIngredient({
               ...previous,
               modifications: [
                 ...previous.modifications,
-                { value: v, quantity: quantity.quantity.id },
+                { value: v, quantity: quantity.id },
               ],
             }));
             setModifiedIngredient((previous) => ({
               ...previous,
               quantities: previous.quantities.map((q) => {
-                if (q.quantity.id === quantity.quantity.id) {
+                if (q.id === quantity.id) {
                   return { ...q, ...parse(v) };
                 }
                 return q;

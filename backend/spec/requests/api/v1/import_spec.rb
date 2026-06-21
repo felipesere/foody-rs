@@ -174,6 +174,7 @@ RSpec.describe "Api::V1::Import", type: :request do
 
       list = Shoppinglist.find_by(name: "Saturday")
       expect(list.created_at).to eq(Time.parse(shoppinglist_ts))
+      expect(list.updated_at).to eq(Time.parse(shoppinglist_ts))
       flour_item = list.shoppinglist_items.find_by(ingredient: Ingredient.find_by(name: "Flour"))
       expect(flour_item.created_at).to eq(Time.parse(item_early_ts))
       expect(flour_item.shoppinglist_quantities.map(&:created_at)).to contain_exactly(Time.parse(item_late_ts), Time.parse(item_early_ts))

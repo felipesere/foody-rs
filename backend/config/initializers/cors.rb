@@ -1,16 +1,17 @@
-# Be sure to restart your server when you modify this file.
+# Same-origin in production (Rails serves the JS bundle). In development the
+# Vite dev server runs on a different port, so we open CORS for it explicitly.
+# Credentials are allowed so cookie-based sessions can ride along once auth
+# lands (see zzz-felipe/AUTH_DESIGN.md).
 
-# Avoid CORS issues when API is called from the frontend app.
-# Handle Cross-Origin Resource Sharing (CORS) in order to accept cross-origin Ajax requests.
+if Rails.env.development?
+  Rails.application.config.middleware.insert_before 0, Rack::Cors do
+    allow do
+      origins "http://localhost:5173"
 
-# Read more: https://github.com/cyu/rack-cors
-
-# Rails.application.config.middleware.insert_before 0, Rack::Cors do
-#   allow do
-#     origins "example.com"
-#
-#     resource "*",
-#       headers: :any,
-#       methods: [:get, :post, :put, :patch, :delete, :options, :head]
-#   end
-# end
+      resource "*",
+        headers:     :any,
+        credentials: true,
+        methods:     [:get, :post, :put, :delete, :options, :head]
+    end
+  end
+end
