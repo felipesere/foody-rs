@@ -57,5 +57,21 @@ export const client = function () {
         },
       });
     },
+    index: function (token: string) {
+      return useQuery({
+        queryKey: ["ingredients"],
+        queryFn: async () => {
+          const body = await http
+            .get(`api/v1/ingredients`, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            })
+            .json();
+
+          return v.parse(IngredientsSchema, body);
+        },
+      });
+    },
   };
 };

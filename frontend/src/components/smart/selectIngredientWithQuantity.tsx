@@ -4,13 +4,13 @@ import {
   type Ingredient,
   useCreateNewIngredient,
 } from "../../apis/ingredients.ts";
-import type { Quantity } from "../../apis/recipes.ts";
 import { parse } from "../../quantities.ts";
 import { FindIngredient } from "./findIngredient.tsx";
+import { Quantity } from "../../api/v1/shoppinglists.ts";
 
 export type SelectIngredientWithQuantityProps = {
   token: string;
-  onIngredient: (i: Ingredient, q: Quantity) => void;
+  onIngredient: (i: Ingredient, q: Quantity, raw: string) => void;
   className?: string;
 };
 
@@ -78,7 +78,11 @@ export function SelectIngredientWithQuantity(
           }
 
           if (selectedIngredient) {
-            props.onIngredient(selectedIngredient, quantity.quantity);
+            props.onIngredient(
+              selectedIngredient,
+              quantity.quantity,
+              quantity.raw,
+            );
           }
 
           if (newIngredientName) {
@@ -88,7 +92,7 @@ export function SelectIngredientWithQuantity(
                 tags: [],
               })
               .then((ingredient) => {
-                props.onIngredient(ingredient, quantity.quantity);
+                props.onIngredient(ingredient, quantity.quantity, quantity.raw);
               });
           }
 

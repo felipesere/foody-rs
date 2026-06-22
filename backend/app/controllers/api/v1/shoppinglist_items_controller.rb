@@ -7,7 +7,7 @@ class Api::V1::ShoppinglistItemsController < ApplicationController
     )
 
     if item.save
-      render json: serialize(item), status: :created
+      render json: Payloads.shoppinglist_item(item), status: :created
     else
       render json: { errors: item.errors.full_messages }, status: :unprocessable_entity
     end
@@ -17,7 +17,7 @@ class Api::V1::ShoppinglistItemsController < ApplicationController
     item = ShoppinglistItem.where(shoppinglist_id: params[:shoppinglist_id])
                           .find(params[:id])
     if item.update(item_params)
-      render json: serialize(item)
+      render json: Payloads.shoppinglist_item(item)
     else
       render json: { errors: item.errors.full_messages }, status: :unprocessable_entity
     end
@@ -34,17 +34,5 @@ class Api::V1::ShoppinglistItemsController < ApplicationController
 
   def item_params
     params.permit(:in_basket, :note)
-  end
-
-  def serialize(item)
-    {
-      id:         item.id,
-      ingredient: { id: item.ingredient.id, name: item.ingredient.name },
-      in_basket:  item.in_basket,
-      note:       item.note,
-      quantities: item.shoppinglist_quantities.map { |q|
-        { id: q.id, unit: q.unit, value: q.value, text: q.text, recipe_id: q.recipe_id }
-      }
-    }
   end
 end

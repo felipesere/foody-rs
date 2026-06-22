@@ -23,23 +23,6 @@ class ShoppinglistSerializer
   end
 
   def item_payload(item)
-    {
-      kind:       "shoppinglist_item",
-      id:         item.id,
-      ingredient: Payloads.ingredient(item.ingredient),
-      quantities: item.shoppinglist_quantities.map { |q| quantity_payload(q) },
-      note:       item.note,
-      in_basket:  item.in_basket
-    }
-  end
-
-  def quantity_payload(quantity)
-    {
-      id:        quantity.id,
-      unit:      quantity.unit,
-      value:     quantity.value,
-      text:      quantity.text,
-      recipe_id: quantity.recipe_id
-    }
+    Payloads.shoppinglist_item(item)
   end
 end

@@ -93,7 +93,53 @@ export const client = function () {
         },
       });
     },
-    update: (token: string, shoppinglistId: number) => {
+    createItem: (token: string, shoppinglistId: number) => {
+      let queryClient = useQueryClient();
+      return useMutation({
+        mutationFn: async (params: {
+          ingredient_id: number;
+          quantity: string;
+        }) => {
+          const body = await http.post(
+            `api/v1/shoppinglists/${shoppinglistId}/items`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+              json: params,
+            },
+          );
+
+          return v.parse(ShoppinglistItemSchema, body);
+        },
+        onSettled: async () => {
+          await queryClient.invalidateQueries({
+            queryKey: ["shoppinglist", shoppinglistId],
+          });
+        },
+      });
+    },
+    deleteItem: (token: string, shoppinglistId: number) => {
+      let queryClient = useQueryClient();
+      return useMutation({
+        mutationFn: async (params: { item_id: number }) => {
+          return http.delete(
+            `api/v1/shoppinglists/${shoppinglistId}/items/${params.item_id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
+        },
+        onSettled: async () => {
+          await queryClient.invalidateQueries({
+            queryKey: ["shoppinglist", shoppinglistId],
+          });
+        },
+      });
+    },
+    updateItem: (token: string, shoppinglistId: number) => {
       let queryClient = useQueryClient();
       return useMutation({
         mutationFn: async (params: {

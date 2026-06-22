@@ -1,15 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import classnames from "classnames";
 import { Fragment, useState } from "react";
+import { client as recipeClient } from "../api/v1/recipes.ts";
 import {
-  addIngredientToShoppinglist,
-  type Ingredient,
-} from "../apis/ingredients.ts";
+  client,
+  ShoppinglistItem,
+  StoredQuantity,
+} from "../api/v1/shoppinglists.ts";
+import { type Ingredient } from "../apis/ingredients.ts";
 import { type Recipe } from "../apis/recipes.ts";
 import {
   type Shoppinglist,
   useRemoveInBasketItemsFromShoppinglist,
-  useRemoveIngredientFromShoppinglist,
   useRemoveQuantityFromShoppinglist,
   useRemoveRecipeFromShoppinglist,
   useUpdateQuantityOnShoppinglist,
@@ -30,12 +32,6 @@ import { Toggle, ToggleButton } from "../components/toggle.tsx";
 import { orderByAisles } from "../domain/orderByAisle.ts";
 import { orderByRecipe, type Section } from "../domain/orderByRecipe.ts";
 import { combineQuantities, humanize, parse } from "../quantities.ts";
-import { client as recipeClient } from "../api/v1/recipes.ts";
-import {
-  client,
-  ShoppinglistItem,
-  StoredQuantity,
-} from "../api/v1/shoppinglists.ts";
 
 export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId/")({
   component: ShoppingPage,
@@ -64,8 +60,8 @@ export function ShoppingPage() {
   const { token } = Route.useRouteContext();
   const shoppinglist = client().show(token, shoppinglistId);
   const recipes = recipeClient.index(token);
-  const updateShoppinglist = client().update(token, shoppinglistId);
-  const addIngredient = addIngredientToShoppinglist(token);
+  const updateShoppinglist = client().updateItem(token, shoppinglistId);
+  const addIngredient = client().createItem(token, shoppinglistId);
   const [grouping, setGrouping] = useState<Grouping>(Grouping.ByAisle);
   const [showProgressBar, setShowProgressBar] = useState(false);
   const removeCheckedItems = useRemoveInBasketItemsFromShoppinglist(
@@ -136,12 +132,17 @@ export function ShoppingPage() {
           <FieldSet legend={"Add ingredient"}>
             <SelectIngredientWithQuantity
               token={token}
-              onIngredient={(ingredient, quantity) => {
+              onIngredient={(ingredient, _, raw) => {
+                // TODO: Do this better, consider accepting the param pre-parsed in the backend?
                 addIngredient.mutate({
-                  shoppinglistId: shoppinglistId,
-                  ingredient: ingredient.name,
-                  quantity: [quantity],
+                  ingredient_id: ingredient.id,
+                  quantity: raw,
                 });
+                // addIngredient.mutate({
+                //   shoppinglistId: shoppinglistId,
+                //   ingredient: ingredient.name,
+                //   quantity: [quantity],
+                // });
               }}
             />
           </FieldSet>
@@ -380,7 +381,7 @@ function EditIngredient({
 }: EditIngredientProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [newNote, setNewNote] = useState<string | undefined>(undefined);
-  const updateIngredient = client().update(token, shoppinglistId);
+  const updateIngredient = client().updateItem(token, shoppinglistId);
 
   const [changes, setChanges] = useState<Changes>({
     removals: [],
@@ -389,10 +390,7 @@ function EditIngredient({
   const [modifiedIngredient, setModifiedIngredient] = useState(
     structuredClone(item),
   );
-  const deleteIngredient = useRemoveIngredientFromShoppinglist(
-    token,
-    shoppinglistId,
-  );
+  const deleteIngredient = client().deleteItem(token, shoppinglistId);
 
   const removeQuantity = useRemoveQuantityFromShoppinglist(
     token,
@@ -522,9 +520,7 @@ function EditIngredient({
         <button
           type={"button"}
           className={"px-2ch bg-gray-700 text-white"}
-          onClick={() =>
-            deleteIngredient.mutate({ ingredient: item.ingredient.name })
-          }
+          onClick={() => deleteIngredient.mutate({ item_id: item.id })}
         >
           Delete
         </button>
