@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_auth/")({
 export function ShoppingPage() {
   const { token } = Route.useRouteContext();
   // const data = useAllShoppinglists(token);
-  const data = client().index(token);
+  const data = client(token).index(token);
 
   return (
     <div className="content-grid space-y-2lh">

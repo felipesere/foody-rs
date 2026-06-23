@@ -57,9 +57,9 @@ export const ShoppinglistsSchema = v.object({
   shoppinglists: v.array(SmallShoppinglist),
 });
 
-export const client = function () {
+export const client = function (token: string) {
   return {
-    index: (token: string) => {
+    index: () => {
       return useQuery({
         queryKey: ["ingredients"],
         queryFn: async () => {
@@ -75,7 +75,7 @@ export const client = function () {
         },
       });
     },
-    show: (token: string, shoppinglistId: number) => {
+    show: (shoppinglistId: number) => {
       return useQuery({
         queryKey: ["shoppinglist", shoppinglistId],
         refetchInterval: 2000, // ms
@@ -93,118 +93,173 @@ export const client = function () {
         },
       });
     },
-    createItem: (token: string, shoppinglistId: number) => {
-      let queryClient = useQueryClient();
-      return useMutation({
-        mutationFn: async (params: {
-          ingredient_id: number;
-          quantity: string;
-        }) => {
-          const body = await http.post(
-            `api/v1/shoppinglists/${shoppinglistId}/items`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-              json: params,
-            },
-          );
-
-          return v.parse(ShoppinglistItemSchema, body);
-        },
-        onSettled: async () => {
-          await queryClient.invalidateQueries({
-            queryKey: ["shoppinglist", shoppinglistId],
-          });
-        },
-      });
-    },
-    deleteItem: (token: string, shoppinglistId: number) => {
-      let queryClient = useQueryClient();
-      return useMutation({
-        mutationFn: async (params: { item_id: number }) => {
-          return http.delete(
-            `api/v1/shoppinglists/${shoppinglistId}/items/${params.item_id}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            },
-          );
-        },
-        onSettled: async () => {
-          await queryClient.invalidateQueries({
-            queryKey: ["shoppinglist", shoppinglistId],
-          });
-        },
-      });
-    },
-    updateItem: (token: string, shoppinglistId: number) => {
-      let queryClient = useQueryClient();
-      return useMutation({
-        mutationFn: async (params: {
-          item_id: number;
-          fields: {
-            in_basket?: boolean;
-            note?: string;
-          };
-        }) => {
-          await http.put(
-            `api/v1/shoppinglists/${shoppinglistId}/items/${params.item_id}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-              json: params.fields,
-            },
-          );
-        },
-        onMutate: async (params) => {
-          const previousShoppinglist = queryClient.getQueryData<Shoppinglist>([
-            "shoppinglist",
-            shoppinglistId,
-          ]);
-
-          if (previousShoppinglist) {
-            const updatedShoppinglist = structuredClone(previousShoppinglist);
-            updatedShoppinglist.ingredients =
-              updatedShoppinglist.ingredients.map((item) => {
-                if (item.id == params.item_id) {
-                  return { ...item, ...params.fields };
-                } else {
-                  return item;
-                }
+    list: function (shoppinglistId: number) {
+      return {
+        clear: () => {
+          let queryClient = useQueryClient();
+          return useMutation({
+            mutationFn: async () => {
+              return http.post(`api/v1/shoppinglists/${shoppinglistId}/clear`, {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
               });
-            queryClient.setQueryData(
-              ["shoppinglist", shoppinglistId],
-              updatedShoppinglist,
-            );
-          }
-
-          return { previousShoppinglist };
-        },
-        onError: (_err, _params, context) => {
-          queryClient.setQueryData(
-            ["shoppinglist", shoppinglistId],
-            context?.previousShoppinglist,
-          );
-        },
-        onSettled: async () => {
-          // If we have mutations "bottled up" because we've been offline for a bit,
-          // then only invalidate the 'shoppinglists' on the last mutation...
-          if (queryClient.isMutating() === 1) {
-            console.log("Invalidating after last mutation...");
-            await queryClient.invalidateQueries({
-              queryKey: ["shoppinglist", shoppinglistId],
-            });
-          }
-        },
-        onSuccess: () => {
-          return queryClient.invalidateQueries({
-            queryKey: ["shoppinglist", shoppinglistId],
+            },
+            onSettled: async () => {
+              await queryClient.invalidateQueries({
+                queryKey: ["shoppinglist", shoppinglistId],
+              });
+            },
           });
         },
-      });
+        items: () => {
+          return {
+            item: (itemId: number) => {
+              return {
+                quantity: () => {
+                  return {
+                    delete: () => {
+                      let queryClient = useQueryClient();
+                      return useMutation({
+                        mutationFn: async (params: { quantity_id: number }) => {
+                          return http.delete(
+                            `api/v1/shoppinglists/${shoppinglistId}/items/${itemId}/quantities/${params.quantity_id}`,
+                            {
+                              headers: {
+                                Authorization: `Bearer ${token}`,
+                              },
+                            },
+                          );
+                        },
+                        onSettled: async () => {
+                          await queryClient.invalidateQueries({
+                            queryKey: ["shoppinglist", shoppinglistId],
+                          });
+                        },
+                      });
+                    },
+                  };
+                },
+              };
+            },
+            create: () => {
+              let queryClient = useQueryClient();
+              return useMutation({
+                mutationFn: async (params: {
+                  ingredient_id: number;
+                  quantity: string;
+                }) => {
+                  const body = await http.post(
+                    `api/v1/shoppinglists/${shoppinglistId}/items`,
+                    {
+                      headers: {
+                        Authorization: `Bearer ${token}`,
+                      },
+                      json: params,
+                    },
+                  );
+
+                  return v.parse(ShoppinglistItemSchema, body);
+                },
+                onSettled: async () => {
+                  await queryClient.invalidateQueries({
+                    queryKey: ["shoppinglist", shoppinglistId],
+                  });
+                },
+              });
+            },
+            delete: () => {
+              let queryClient = useQueryClient();
+              return useMutation({
+                mutationFn: async (params: { item_id: number }) => {
+                  return http.delete(
+                    `api/v1/shoppinglists/${shoppinglistId}/items/${params.item_id}`,
+                    {
+                      headers: {
+                        Authorization: `Bearer ${token}`,
+                      },
+                    },
+                  );
+                },
+                onSettled: async () => {
+                  await queryClient.invalidateQueries({
+                    queryKey: ["shoppinglist", shoppinglistId],
+                  });
+                },
+              });
+            },
+            update: () => {
+              let queryClient = useQueryClient();
+              return useMutation({
+                mutationFn: async (params: {
+                  item_id: number;
+                  fields: {
+                    in_basket?: boolean;
+                    note?: string;
+                  };
+                }) => {
+                  await http.put(
+                    `api/v1/shoppinglists/${shoppinglistId}/items/${params.item_id}`,
+                    {
+                      headers: {
+                        Authorization: `Bearer ${token}`,
+                      },
+                      json: params.fields,
+                    },
+                  );
+                },
+                onMutate: async (params) => {
+                  const previousShoppinglist =
+                    queryClient.getQueryData<Shoppinglist>([
+                      "shoppinglist",
+                      shoppinglistId,
+                    ]);
+
+                  if (previousShoppinglist) {
+                    const updatedShoppinglist =
+                      structuredClone(previousShoppinglist);
+                    updatedShoppinglist.ingredients =
+                      updatedShoppinglist.ingredients.map((item) => {
+                        if (item.id == params.item_id) {
+                          return { ...item, ...params.fields };
+                        } else {
+                          return item;
+                        }
+                      });
+                    queryClient.setQueryData(
+                      ["shoppinglist", shoppinglistId],
+                      updatedShoppinglist,
+                    );
+                  }
+
+                  return { previousShoppinglist };
+                },
+                onError: (_err, _params, context) => {
+                  queryClient.setQueryData(
+                    ["shoppinglist", shoppinglistId],
+                    context?.previousShoppinglist,
+                  );
+                },
+                onSettled: async () => {
+                  // If we have mutations "bottled up" because we've been offline for a bit,
+                  // then only invalidate the 'shoppinglists' on the last mutation...
+                  if (queryClient.isMutating() === 1) {
+                    console.log("Invalidating after last mutation...");
+                    await queryClient.invalidateQueries({
+                      queryKey: ["shoppinglist", shoppinglistId],
+                    });
+                  }
+                },
+                onSuccess: () => {
+                  return queryClient.invalidateQueries({
+                    queryKey: ["shoppinglist", shoppinglistId],
+                  });
+                },
+              });
+            },
+          };
+        },
+      };
     },
   };
 };

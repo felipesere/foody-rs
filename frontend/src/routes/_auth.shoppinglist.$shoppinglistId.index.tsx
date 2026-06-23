@@ -11,8 +11,6 @@ import { type Ingredient } from "../apis/ingredients.ts";
 import { type Recipe } from "../apis/recipes.ts";
 import {
   type Shoppinglist,
-  useRemoveInBasketItemsFromShoppinglist,
-  useRemoveQuantityFromShoppinglist,
   useRemoveRecipeFromShoppinglist,
   useUpdateQuantityOnShoppinglist,
 } from "../apis/shoppinglists.ts";
@@ -58,16 +56,14 @@ export function ShoppingPage() {
   const params = Route.useParams();
   const shoppinglistId = Number(params.shoppinglistId);
   const { token } = Route.useRouteContext();
-  const shoppinglist = client().show(token, shoppinglistId);
+  const listClient = client(token);
+  const shoppinglist = listClient.show(shoppinglistId);
   const recipes = recipeClient.index(token);
-  const updateShoppinglist = client().updateItem(token, shoppinglistId);
-  const addIngredient = client().createItem(token, shoppinglistId);
+  const updateShoppinglist = listClient.list(shoppinglistId).items().update();
+  const addIngredient = client(token).list(shoppinglistId).items().create();
   const [grouping, setGrouping] = useState<Grouping>(Grouping.ByAisle);
   const [showProgressBar, setShowProgressBar] = useState(false);
-  const removeCheckedItems = useRemoveInBasketItemsFromShoppinglist(
-    token,
-    shoppinglistId,
-  );
+  const removeCheckedItems = client(token).list(shoppinglistId).clear();
 
   const deleteRecipe = useRemoveRecipeFromShoppinglist(token, shoppinglistId);
 
@@ -381,7 +377,7 @@ function EditIngredient({
 }: EditIngredientProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [newNote, setNewNote] = useState<string | undefined>(undefined);
-  const updateIngredient = client().updateItem(token, shoppinglistId);
+  const updateIngredient = client(token).list(shoppinglistId).items().update();
 
   const [changes, setChanges] = useState<Changes>({
     removals: [],
@@ -390,12 +386,14 @@ function EditIngredient({
   const [modifiedIngredient, setModifiedIngredient] = useState(
     structuredClone(item),
   );
-  const deleteIngredient = client().deleteItem(token, shoppinglistId);
+  const deleteIngredient = client(token).list(shoppinglistId).items().delete();
 
-  const removeQuantity = useRemoveQuantityFromShoppinglist(
-    token,
-    shoppinglistId,
-  );
+  const removeQuantity = client(token)
+    .list(shoppinglistId)
+    .items()
+    .item(item.id)
+    .quantity()
+    .delete();
   const updateQuantity = useUpdateQuantityOnShoppinglist(token, shoppinglistId);
 
   function applyModifications(changesToIngredient: Changes) {
@@ -404,7 +402,7 @@ function EditIngredient({
     }
 
     for (const id of changesToIngredient.removals) {
-      removeQuantity.mutate({ id });
+      removeQuantity.mutate({ quantity_id: id });
     }
   }
 
