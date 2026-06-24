@@ -1,7 +1,7 @@
-import * as v from "valibot";
-import { http, TimestampSchema } from "./index.ts";
-import { AisleSchema } from "./aisles.ts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import * as v from "valibot";
+import { AisleSchema } from "./aisles.ts";
+import { http, TimestampSchema } from "./index.ts";
 
 export const QuantitySchema = v.object({
   unit: v.string(),
@@ -75,26 +75,46 @@ export const client = function (token: string) {
         },
       });
     },
-    show: (shoppinglistId: number) => {
-      return useQuery({
-        queryKey: ["shoppinglist", shoppinglistId],
-        refetchInterval: 2000, // ms
-        refetchIntervalInBackground: true,
-        queryFn: async () => {
-          const body = await http
-            .get(`api/v1/shoppinglists/${shoppinglistId}`, {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            })
-            .json();
-
-          return v.parse(ShoppinglistSchema, body);
-        },
-      });
-    },
     list: function (shoppinglistId: number) {
       return {
+        show: () => {
+          return useQuery({
+            queryKey: ["shoppinglist", shoppinglistId],
+            refetchInterval: 2000, // ms
+            refetchIntervalInBackground: true,
+            queryFn: async () => {
+              const body = await http
+                .get(`api/v1/shoppinglists/${shoppinglistId}`, {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                })
+                .json();
+
+              return v.parse(ShoppinglistSchema, body);
+            },
+          });
+        },
+        removeRecipe: () => {
+          let queryClient = useQueryClient();
+          return useMutation({
+            mutationFn: async (params: { recipeId: number }) => {
+              return http.delete(
+                `api/v1/shoppinglists/${shoppinglistId}/recipes/${params.recipeId}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                },
+              );
+            },
+            onSettled: async () => {
+              await queryClient.invalidateQueries({
+                queryKey: ["shoppinglist", shoppinglistId],
+              });
+            },
+          });
+        },
         clear: () => {
           let queryClient = useQueryClient();
           return useMutation({
@@ -118,6 +138,32 @@ export const client = function (token: string) {
               return {
                 quantity: () => {
                   return {
+                    update: () => {
+                      let queryClient = useQueryClient();
+                      return useMutation({
+                        mutationFn: async (params: {
+                          quantity_id: number;
+                          quantity: string;
+                        }) => {
+                          return http.put(
+                            `api/v1/shoppinglists/${shoppinglistId}/items/${itemId}/quantities/${params.quantity_id}`,
+                            {
+                              headers: {
+                                Authorization: `Bearer ${token}`,
+                              },
+                              json: {
+                                quantity: params.quantity,
+                              },
+                            },
+                          );
+                        },
+                        onSettled: async () => {
+                          await queryClient.invalidateQueries({
+                            queryKey: ["shoppinglist", shoppinglistId],
+                          });
+                        },
+                      });
+                    },
                     delete: () => {
                       let queryClient = useQueryClient();
                       return useMutation({

@@ -1,19 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import classnames from "classnames";
 import { Fragment, useState } from "react";
-import { client as recipeClient } from "../api/v1/recipes.ts";
+import { Ingredient } from "../api/v1/ingredient.ts";
+import { Recipe, client as recipeClient } from "../api/v1/recipes.ts";
 import {
   client,
+  Shoppinglist,
   ShoppinglistItem,
   StoredQuantity,
 } from "../api/v1/shoppinglists.ts";
-import { type Ingredient } from "../apis/ingredients.ts";
-import { type Recipe } from "../apis/recipes.ts";
-import {
-  type Shoppinglist,
-  useRemoveRecipeFromShoppinglist,
-  useUpdateQuantityOnShoppinglist,
-} from "../apis/shoppinglists.ts";
 import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { DeleteButton } from "../components/deleteButton.tsx";
@@ -57,7 +52,7 @@ export function ShoppingPage() {
   const shoppinglistId = Number(params.shoppinglistId);
   const { token } = Route.useRouteContext();
   const listClient = client(token);
-  const shoppinglist = listClient.show(shoppinglistId);
+  const shoppinglist = listClient.list(shoppinglistId).show();
   const recipes = recipeClient.index(token);
   const updateShoppinglist = listClient.list(shoppinglistId).items().update();
   const addIngredient = client(token).list(shoppinglistId).items().create();
@@ -65,7 +60,7 @@ export function ShoppingPage() {
   const [showProgressBar, setShowProgressBar] = useState(false);
   const removeCheckedItems = client(token).list(shoppinglistId).clear();
 
-  const deleteRecipe = useRemoveRecipeFromShoppinglist(token, shoppinglistId);
+  const deleteRecipe = client(token).list(shoppinglistId).removeRecipe();
 
   if (shoppinglist.isLoading || !recipes.data) {
     return <p>Loading</p>;
@@ -134,11 +129,6 @@ export function ShoppingPage() {
                   ingredient_id: ingredient.id,
                   quantity: raw,
                 });
-                // addIngredient.mutate({
-                //   shoppinglistId: shoppinglistId,
-                //   ingredient: ingredient.name,
-                //   quantity: [quantity],
-                // });
               }}
             />
           </FieldSet>
@@ -394,11 +384,16 @@ function EditIngredient({
     .item(item.id)
     .quantity()
     .delete();
-  const updateQuantity = useUpdateQuantityOnShoppinglist(token, shoppinglistId);
+  const updateQuantity = client(token)
+    .list(shoppinglistId)
+    .items()
+    .item(item.id)
+    .quantity()
+    .update();
 
   function applyModifications(changesToIngredient: Changes) {
     for (const m of changesToIngredient.modifications) {
-      updateQuantity.mutate({ id: m.quantity, rawQuantity: m.value });
+      updateQuantity.mutate({ quantity_id: m.quantity, quantity: m.value });
     }
 
     for (const id of changesToIngredient.removals) {

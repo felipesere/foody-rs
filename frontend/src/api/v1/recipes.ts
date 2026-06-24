@@ -36,6 +36,8 @@ const WebsiteSchema = v.object({
 
 export const RecipeSchema = v.union([BookSchema, WebsiteSchema]);
 
+export type Recipe = v.InferOutput<typeof RecipeSchema>;
+
 export const RecipesSchema = v.object({
   recipes: v.array(RecipeSchema),
 });
