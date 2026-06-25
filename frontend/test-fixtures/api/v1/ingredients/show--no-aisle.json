@@ -3,5 +3,6 @@
   "id": 1,
   "name": "Salt",
   "tags": [],
-  "aisle": null
+  "aisle": null,
+  "storage": null
 }

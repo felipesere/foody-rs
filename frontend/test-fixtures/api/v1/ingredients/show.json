@@ -9,5 +9,10 @@
     "id": 1,
     "name": "Produce",
     "order": 1
+  },
+  "storage": {
+    "id": 1,
+    "name": "Fridge",
+    "order": 1
   }
 }

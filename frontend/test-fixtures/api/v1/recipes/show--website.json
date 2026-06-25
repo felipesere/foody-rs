@@ -26,7 +26,8 @@
           "id": 1,
           "name": "Pantry",
           "order": 1
-        }
+        },
+        "storage": null
       },
       "quantities": [
         {

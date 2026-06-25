@@ -6,8 +6,9 @@ module Payloads
       kind:  "ingredient",
       id:    ingredient.id,
       name:  ingredient.name,
-      tags:  ingredient.tags || [],
-      aisle: ingredient.aisle && aisle(ingredient.aisle)
+      tags:    ingredient.tags || [],
+      aisle:   ingredient.aisle && aisle(ingredient.aisle),
+      storage: ingredient.storage && storage(ingredient.storage)
     }
   end
 
@@ -16,6 +17,14 @@ module Payloads
       id:    aisle.id,
       name:  aisle.name,
       order: aisle.order
+    }
+  end
+
+  def storage(storage)
+    {
+      id:    storage.id,
+      name:  storage.name,
+      order: storage.order
     }
   end
 

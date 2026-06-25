@@ -1,13 +1,13 @@
 class Api::V1::IngredientsController < ApplicationController
   def index
-    ingredients = Ingredient.includes(:aisle).all
+    ingredients = Ingredient.includes(:aisle, :storage).all
     render json: {
       ingredients: ingredients.map { |i| Payloads.ingredient(i) }
     }
   end
 
   def show
-    ingredient = Ingredient.includes(:aisle).find_by(id: params[:id])
+    ingredient = Ingredient.includes(:aisle, :storage).find_by(id: params[:id])
     render json: Payloads.ingredient(ingredient)
   end
 
@@ -41,6 +41,6 @@ class Api::V1::IngredientsController < ApplicationController
   private
 
   def ingredient_params
-    params.require(:ingredient).permit(:name, :aisle_id, tags: [])
+    params.require(:ingredient).permit(:name, :aisle_id, :storage_id, tags: [])
   end
 end

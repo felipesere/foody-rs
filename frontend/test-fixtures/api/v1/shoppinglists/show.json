@@ -18,7 +18,8 @@
           "id": 1,
           "name": "Produce",
           "order": 1
-        }
+        },
+        "storage": null
       },
       "quantities": [
         {
@@ -44,7 +45,8 @@
           "id": 1,
           "name": "Produce",
           "order": 1
-        }
+        },
+        "storage": null
       },
       "quantities": [
         {

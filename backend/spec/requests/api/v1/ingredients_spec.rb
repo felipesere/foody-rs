@@ -10,8 +10,8 @@ RSpec.describe "Api::V1::Ingredients", type: :request do
 
       ingredients = response.parsed_body["ingredients"]
       expect(ingredients).to eq([
-        {"kind" => "ingredient", "id" => 1, "name" => "Apples",  "tags" => ["fruit"], "aisle" => nil},
-        {"kind" => "ingredient", "id" => 2, "name" => "Bananas", "tags" => [],        "aisle" => nil}
+        {"kind" => "ingredient", "id" => 1, "name" => "Apples",  "tags" => ["fruit"], "aisle" => nil, "storage" => nil},
+        {"kind" => "ingredient", "id" => 2, "name" => "Bananas", "tags" => [],        "aisle" => nil, "storage" => nil}
       ])
     end
   end
@@ -22,7 +22,7 @@ RSpec.describe "Api::V1::Ingredients", type: :request do
 
       get "/api/v1/ingredients/#{apples.id}"
       expect(response).to have_http_status(:success)
-      expect(response.parsed_body).to eq({"kind" => "ingredient", "id" => 1, "name" => "Apples", "tags" => ["fruit"], "aisle" => nil})
+      expect(response.parsed_body).to eq({"kind" => "ingredient", "id" => 1, "name" => "Apples", "tags" => ["fruit"], "aisle" => nil, "storage" => nil})
     end
   end
 
@@ -54,12 +54,17 @@ RSpec.describe "Api::V1::Ingredients", type: :request do
       put "/api/v1/ingredients/#{ingredient["id"]}", params: { aisle_id: aisle.id }, as: :json
       expect(response).to have_http_status(:success)
 
+      storage = StorageLocation.create!(name: "Fridge", order: 1)
+      put "/api/v1/ingredients/#{ingredient["id"]}", params: { storage_id: storage.id }, as: :json
+      expect(response).to have_http_status(:success)
+
       get "/api/v1/ingredients/#{ingredient["id"]}"
       ingredient = response.parsed_body
       expect(ingredient).to match a_hash_including(
-        "name"  => "orange",
-        "tags"  => ["foo"],
-        "aisle" => a_hash_including("id" => aisle.id, "name" => "Fruit")
+        "name"    => "orange",
+        "tags"    => ["foo"],
+        "aisle"   => a_hash_including("id" => aisle.id, "name" => "Fruit"),
+        "storage" => a_hash_including("id" => storage.id, "name" => "Fridge")
       )
     end
   end

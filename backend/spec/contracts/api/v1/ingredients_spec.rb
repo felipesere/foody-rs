@@ -19,7 +19,8 @@ RSpec.describe "api/v1/ingredients contract", type: :request do
 
   it "matches ingredients/show.json" do
     aisle = create(:aisle, name: "Produce", order: 1)
-    apples = create(:ingredient, name: "Apples", aisle: aisle, tags: ["fruit"])
+    storage = create(:storage_location, name: "Fridge", order: 1)
+    apples = create(:ingredient, name: "Apples", aisle: aisle, storage: storage, tags: ["fruit"])
 
     get "/api/v1/ingredients/#{apples.id}"
 

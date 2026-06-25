@@ -4,6 +4,7 @@ Rails.application.routes.draw do
       post "import", to: "import#create"
 
       resources :aisles, only: [:index, :create, :update, :destroy]
+      resources :storages, only: [:index, :create, :update, :destroy]
       resources :ingredients, only: [:index, :show, :create, :update, :destroy] do
         collection do
           get :tags

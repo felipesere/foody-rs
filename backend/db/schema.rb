@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_16_223047) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_25_120002) do
   create_table "aisles", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name"
@@ -24,9 +24,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_16_223047) do
     t.integer "aisle_id"
     t.datetime "created_at", null: false
     t.string "name"
+    t.integer "storage_id"
     t.json "tags", default: []
     t.datetime "updated_at", null: false
     t.index ["aisle_id"], name: "index_ingredients_on_aisle_id"
+    t.index ["storage_id"], name: "index_ingredients_on_storage_id"
   end
 
   create_table "mealplan_meals", force: :cascade do |t|
@@ -104,7 +106,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_16_223047) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "storage_locations", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name"
+    t.integer "order"
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_storage_locations_on_name", unique: true
+    t.index ["order"], name: "index_storage_locations_on_order", unique: true
+  end
+
   add_foreign_key "ingredients", "aisles"
+  add_foreign_key "ingredients", "storage_locations", column: "storage_id"
   add_foreign_key "mealplan_meals", "mealplans"
   add_foreign_key "mealplan_meals", "recipes"
   add_foreign_key "recipe_ingredients", "ingredients"
