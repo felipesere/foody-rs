@@ -33,11 +33,9 @@ class RecipeSerializer
       ingredient: Payloads.ingredient(recipe_ingredient.ingredient),
       quantities: [
         {
-          id:        nil,
-          unit:      recipe_ingredient.unit,
-          value:     recipe_ingredient.value,
-          text:      recipe_ingredient.text,
-          recipe_id: nil
+          unit:  recipe_ingredient.unit,
+          value: recipe_ingredient.value,
+          text:  recipe_ingredient.text
         }
       ]
     }

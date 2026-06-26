@@ -1,4 +1,4 @@
-import type { Ingredient } from "../apis/ingredients.ts";
+import { Ingredient } from "../api/v1/ingredient.ts";
 import type { Section } from "./orderByRecipe.ts";
 
 export function orderByTag(items: Ingredient[]): Section<Ingredient>[] {

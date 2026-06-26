@@ -7,7 +7,7 @@ import { printIssues } from "./index.ts";
 
 test("show recipe schema", () => {
   let outcome = v.safeParse(RecipeSchema, recipesFixture);
-  expect(outcome.success).toBe(true);
+  expect(outcome.success, printIssues(outcome)).toBe(true);
 });
 
 test("website recipe schema", () => {

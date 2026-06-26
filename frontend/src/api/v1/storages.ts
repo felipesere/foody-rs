@@ -2,13 +2,15 @@ import * as v from "valibot";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { http } from "./index.ts";
 
-export const StorageSchema = v.object({
+export const StorageSchema = v.strictObject({
   id: v.number(),
   name: v.string(),
   order: v.number(),
 });
 
-export const StoragesSchema = v.object({
+export type Storage = v.InferOutput<typeof StorageSchema>;
+
+export const StoragesSchema = v.strictObject({
   storages: v.array(StorageSchema),
 });
 

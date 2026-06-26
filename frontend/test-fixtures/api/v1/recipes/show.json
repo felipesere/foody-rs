@@ -32,11 +32,9 @@
       },
       "quantities": [
         {
-          "id": null,
           "unit": "gram",
           "value": 500.0,
-          "text": null,
-          "recipe_id": null
+          "text": null
         }
       ]
     },
@@ -57,11 +55,9 @@
       },
       "quantities": [
         {
-          "id": null,
           "unit": "gram",
           "value": 300.0,
-          "text": "sifted",
-          "recipe_id": null
+          "text": "sifted"
         }
       ]
     }

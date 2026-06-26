@@ -31,11 +31,9 @@
       },
       "quantities": [
         {
-          "id": null,
           "unit": "gram",
           "value": 200.0,
-          "text": null,
-          "recipe_id": null
+          "text": null
         }
       ]
     }

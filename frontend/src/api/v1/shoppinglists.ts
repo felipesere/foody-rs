@@ -2,14 +2,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as v from "valibot";
 import { AisleSchema } from "./aisles.ts";
 import { http, TimestampSchema } from "./index.ts";
+import { StorageSchema } from "./storages.ts";
 
-export const QuantitySchema = v.object({
+export const QuantitySchema = v.strictObject({
   unit: v.string(),
   value: v.nullable(v.number()),
   text: v.nullable(v.string()),
 });
 
-export const StoredQuantitySchema = v.object({
+export const StoredQuantitySchema = v.strictObject({
   id: v.number(),
   recipe_id: v.nullable(v.number()),
   ...QuantitySchema.entries,
@@ -18,15 +19,18 @@ export const StoredQuantitySchema = v.object({
 export type Quantity = v.InferOutput<typeof QuantitySchema>;
 export type StoredQuantity = v.InferOutput<typeof StoredQuantitySchema>;
 
-export const IngredientSchema = v.object({
+export type Placeholder = "placeholder";
+
+export const IngredientSchema = v.strictObject({
   id: v.number(),
   kind: v.literal("ingredient"),
   name: v.string(),
   tags: v.array(v.string()),
   aisle: v.nullable(AisleSchema),
+  storage: v.nullable(StorageSchema),
 });
 
-export const ShoppinglistItemSchema = v.object({
+export const ShoppinglistItemSchema = v.strictObject({
   kind: v.literal("shoppinglist_item"),
   id: v.number(),
   note: v.nullable(v.string()),
@@ -37,8 +41,9 @@ export const ShoppinglistItemSchema = v.object({
 
 export type ShoppinglistItem = v.InferOutput<typeof ShoppinglistItemSchema>;
 
-export const ShoppinglistSchema = v.object({
+export const ShoppinglistSchema = v.strictObject({
   id: v.number(),
+  name: v.string(),
   kind: v.literal("shoppinglist"),
   last_updated: TimestampSchema,
   ingredients: v.array(ShoppinglistItemSchema),
@@ -46,14 +51,14 @@ export const ShoppinglistSchema = v.object({
 
 export type Shoppinglist = v.InferOutput<typeof ShoppinglistSchema>;
 
-export const SmallShoppinglist = v.object({
+export const SmallShoppinglist = v.strictObject({
   kind: v.literal("shoppinglist"),
   id: v.number(),
   name: v.string(),
   last_updated: TimestampSchema,
 });
 
-export const ShoppinglistsSchema = v.object({
+export const ShoppinglistsSchema = v.strictObject({
   shoppinglists: v.array(SmallShoppinglist),
 });
 
@@ -75,7 +80,7 @@ export const client = function (token: string) {
         },
       });
     },
-    list: function (shoppinglistId: number) {
+    list: function (shoppinglistId: number | Placeholder) {
       return {
         show: () => {
           return useQuery({
@@ -194,22 +199,34 @@ export const client = function (token: string) {
                 mutationFn: async (params: {
                   ingredient_id: number;
                   quantity: string;
+                  shoppinglistId?: number;
                 }) => {
+                  const listId =
+                    shoppinglistId === "placeholder"
+                      ? params.shoppinglistId!
+                      : shoppinglistId;
                   const body = await http.post(
-                    `api/v1/shoppinglists/${shoppinglistId}/items`,
+                    `api/v1/shoppinglists/${listId}/items`,
                     {
                       headers: {
                         Authorization: `Bearer ${token}`,
                       },
-                      json: params,
+                      json: {
+                        ingredient_id: params.ingredient_id,
+                        quantity: params.quantity,
+                      },
                     },
                   );
 
                   return v.parse(ShoppinglistItemSchema, body);
                 },
-                onSettled: async () => {
+                onSettled: async (_a, _b, params) => {
+                  const listId =
+                    shoppinglistId === "placeholder"
+                      ? params.shoppinglistId!
+                      : shoppinglistId;
                   await queryClient.invalidateQueries({
-                    queryKey: ["shoppinglist", shoppinglistId],
+                    queryKey: ["shoppinglist", listId],
                   });
                 },
               });

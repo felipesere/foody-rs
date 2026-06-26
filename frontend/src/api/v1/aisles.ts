@@ -2,13 +2,13 @@ import * as v from "valibot";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { http } from "./index.ts";
 
-export const AisleSchema = v.object({
+export const AisleSchema = v.strictObject({
   id: v.number(),
   name: v.string(),
   order: v.number(),
 });
 
-export const AislesSchema = v.object({
+export const AislesSchema = v.strictObject({
   aisles: v.array(AisleSchema),
 });
 

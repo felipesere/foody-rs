@@ -3,14 +3,14 @@ import { IngredientSchema, QuantitySchema } from "./shoppinglists.ts";
 import { useQuery } from "@tanstack/react-query";
 import { http } from "./index.ts";
 
-const RecipeIngredientSchema = v.object({
+const RecipeIngredientSchema = v.strictObject({
   kind: v.literal("recipe_ingredient"),
   id: v.number(),
   ingredient: IngredientSchema,
   quantities: v.array(QuantitySchema),
 });
 
-export const RecipesBaseSchema = v.object({
+export const RecipesBaseSchema = v.strictObject({
   kind: v.literal("recipe"),
   id: v.number(),
   name: v.string(),
@@ -38,7 +38,7 @@ export const RecipeSchema = v.union([BookSchema, WebsiteSchema]);
 
 export type Recipe = v.InferOutput<typeof RecipeSchema>;
 
-export const RecipesSchema = v.object({
+export const RecipesSchema = v.strictObject({
   recipes: v.array(RecipeSchema),
 });
 
