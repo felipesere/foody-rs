@@ -8,7 +8,6 @@ import type { MealPlan } from "../../apis/mealplans.ts";
 import {
   type Source,
   type UnstoredIngredient,
-  type UnstoredRecipe,
   useAllRecipes,
   useRecipeTags,
 } from "../../apis/recipes.ts";
@@ -26,6 +25,7 @@ import { EditableTag } from "../tags.tsx";
 import { AddToMealPlan } from "./addToMealplan.tsx";
 import { AddToShoppinglist } from "./addToShoppinglist.tsx";
 import { SelectIngredientWithQuantity } from "./selectIngredientWithQuantity.tsx";
+import { UnstoredRecipe } from "../../api/v1/recipes.ts";
 
 export const RecipeContext = createContext({
   editing: false,
@@ -74,7 +74,7 @@ export function RecipeView(props: RecipeViewProps) {
           />
           <div className={"flex flex-row gap-2ch"}>
             <p>Rating:</p>{" "}
-            <Stars rating={recipe.rating} setRating={props.onSetRating} />
+            <Stars rating={recipe.rating || 0} setRating={props.onSetRating} />
           </div>
           <EditableTag
             tags={recipe.tags}
@@ -94,9 +94,11 @@ export function RecipeView(props: RecipeViewProps) {
             onChangeQuantity={props.onChangeQuantity}
           />
         </div>
-        <div className={"divider"}>
-          <Notes value={recipe.notes} onBlur={props.onSetNote} />
-        </div>
+        {recipe.notes ? (
+          <div className={"divider"}>
+            <Notes value={recipe.notes} onBlur={props.onSetNote} />
+          </div>
+        ) : null}
       </div>
       <Divider />
       <ButtonGroup>
@@ -364,13 +366,14 @@ function ShowSource(props: {
   recipe: UnstoredRecipe;
   onBlur: (details: Source) => void;
 }) {
+  const recipe = props.recipe;
   const { editing } = useContext(RecipeContext);
-  const [sourceChoice, setSourceChoice] = useState(props.recipe.source);
+  const [sourceChoice, setSourceChoice] = useState(recipe.source);
 
   const [source, setSource] = useState({
-    url: props.recipe.url,
-    page: props.recipe.page,
-    title: props.recipe.title,
+    url: recipe.source === "website" ? recipe.url : null,
+    page: recipe.source === "book" ? recipe.page : null,
+    title: recipe.source == "book" ? recipe.title : null,
   });
 
   const bubbleUpToParent = useCallback(() => {

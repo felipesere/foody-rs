@@ -2,8 +2,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { z } from "zod";
 import { http } from "./http.ts";
-import { type Ingredient, IngredientSchema } from "./ingredients.ts";
+import { IngredientSchema } from "./ingredients.ts";
 import type { Shoppinglist } from "./shoppinglists.ts";
+import { UnstoredRecipe } from "../api/v1/recipes.ts";
 
 export const WithIdSchema = z.object({
   id: z.number(),
@@ -54,14 +55,6 @@ export type UnstoredIngredient = {
     name: string;
   };
   quantity: Quantity[];
-};
-
-export type QuantifiedIngredient = {
-  ingredient: Ingredient;
-  quantity: Quantity[];
-};
-export type UnstoredRecipe = Omit<Recipe, "id" | "ingredients"> & {
-  ingredients: QuantifiedIngredient[];
 };
 
 export const RecipesSchema = z.object({
