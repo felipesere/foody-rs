@@ -42,7 +42,9 @@ const RecipeSchema = z.object({
 
 export type Recipe = z.infer<typeof RecipeSchema>;
 
-export type Source = Pick<Recipe, "source" | "title" | "page" | "url">;
+export type Source =
+  | { source: "book"; title: string; page: number; url: null }
+  | { source: "website"; title: null; page: null; url: string };
 
 export type IngredientWithQuantity = z.infer<
   typeof IngredientWithQuantitySchema

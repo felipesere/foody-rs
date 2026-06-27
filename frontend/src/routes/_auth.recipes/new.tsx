@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { useState } from "react";
-import { UnstoredRecipe } from "../../api/v1/recipes.ts";
-import { type Source, useCreateRecipe } from "../../apis/recipes.ts";
+import { Source, UnstoredRecipe } from "../../api/v1/recipes.ts";
+import { useCreateRecipe } from "../../apis/recipes.ts";
 import {
   RecipeContext,
   RecipeView,
@@ -50,7 +50,6 @@ function NewRecipePage() {
               source: "book",
               page: source.page,
               title: source.title,
-              ...fields,
             }));
           }
           if (source.source === "website") {

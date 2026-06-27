@@ -35,6 +35,10 @@ const WebsiteSchema = v.object({
   ...RecipesBaseSchema.entries,
 });
 
+export type Source =
+  | { source: "book"; title: string; page: number; url: null }
+  | { source: "website"; title: null; page: null; url: string };
+
 export const RecipeSchema = v.variant("source", [BookSchema, WebsiteSchema]);
 
 export type Recipe = v.InferOutput<typeof RecipeSchema>;
