@@ -2,14 +2,14 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import classnames from "classnames";
 import { useRef, useState } from "react";
 import { z } from "zod";
-import {
-  type IngredientWithQuantity,
-  type Recipe,
-  useAllRecipes,
-  useChangeRecipe,
-  useDeleteRecipe,
-  useRecipeTags,
-} from "../../apis/recipes.ts";
+// import {
+//   type IngredientWithQuantity,
+//   type Recipe,
+//   useAllRecipes,
+//   useChangeRecipe,
+//   useDeleteRecipe,
+//   useRecipeTags,
+// } from "../../apis/recipes.ts";
 import searchIcon from "../../assets/search.png";
 import { Button } from "../../components/button.tsx";
 import { ButtonGroup } from "../../components/buttonGroup.tsx";
@@ -26,6 +26,7 @@ import {
   RecipeSearchSchemaParams,
   updateSearchParams,
 } from "../../domain/search.ts";
+import { client, Recipe, Source } from "../../api/v1/recipes.ts";
 
 const recipeUrlParams = z.object({
   search: RecipeSearchSchemaParams.optional(),
@@ -40,10 +41,10 @@ export const Route = createFileRoute("/_auth/recipes/")({
 export function RecipesPage() {
   const { token } = Route.useRouteContext();
   const { search, massEditTags } = Route.useSearch();
-  const { data, isLoading, isError } = useAllRecipes(token);
+  const { data, isLoading, isError } = client.index(token);
   const navigate = useNavigate({ from: Route.path });
 
-  const allTags = useRecipeTags(token);
+  const allTags = client.tags(token);
   if (isError) {
     return <p>Error</p>;
   }
@@ -294,7 +295,7 @@ function RecipeView(props: RecipeProps) {
       <p className="font-black uppercase tracking-wider">{props.recipe.name}</p>
       <ShowSource details={props.recipe} />
       <Stars
-        rating={props.recipe.rating}
+        rating={props.recipe.rating || 0}
         setRating={(n) =>
           changeRecipe.mutate({ changes: [{ type: "rating", value: n }] })
         }

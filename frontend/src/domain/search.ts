@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Recipe } from "../apis/recipes.ts";
+import { Recipe } from "../api/v1/recipes.ts";
 
 export const RecipeSearchSchemaParams = z.object({
   tags: z.array(z.string()).optional(),
@@ -93,18 +93,23 @@ export function filterRecipes(
   function booksMatch(recipe: Recipe) {
     if (params.books) {
       const books = params.books || [];
-      if (books.length > 0 && recipe.source === "website") {
+
+      if (books.length > 0) {
         return false;
       }
-
-      return books.some((b) => recipe.title === b);
+      switch (recipe.source) {
+        case "book":
+          return books.some((b) => recipe.title === b);
+        case "website":
+          return false;
+      }
     }
 
     return true;
   }
 
   function ratingsMatch(recipe: Recipe) {
-    if (params.rating) {
+    if (params.rating && recipe.rating) {
       let rating = params.rating;
       return recipe.rating >= rating;
     }

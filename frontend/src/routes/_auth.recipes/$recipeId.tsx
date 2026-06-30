@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { z } from "zod";
+import * as v from "valibot";
 import { type Ingredient, useAllIngredients } from "../../apis/ingredients.ts";
 import { useAddRecipeToMealplan } from "../../apis/mealplans.ts";
 import {
@@ -17,8 +17,8 @@ import {
 } from "../../components/smart/recipeView.tsx";
 import { parse } from "../../quantities.ts";
 
-const RecipeSearch = z.object({
-  editing: z.boolean().optional(),
+const RecipeSearch = v.object({
+  editing: v.optional(v.boolean()),
 });
 
 export const Route = createFileRoute("/_auth/recipes/$recipeId")({

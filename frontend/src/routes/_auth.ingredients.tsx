@@ -256,7 +256,7 @@ function IngredientView(props: IngredientViewProps) {
             addIngredient.mutate({
               shoppinglistId: shoppinglist.id,
               ingredient_id: props.ingredient.id,
-              quantity: "1x",
+              quantity: "1x", // TODO
             });
             toast(
               `Added "${props.ingredient.name}" to shoppinglist "${shoppinglist.name}"`,

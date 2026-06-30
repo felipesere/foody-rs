@@ -15,7 +15,7 @@ export const IngredientSchema = v.strictObject({
 
 export type Ingredient = v.InferOutput<typeof IngredientSchema>;
 
-const TagsSchema = v.strictObject({
+export const TagsSchema = v.strictObject({
   tags: v.array(v.string()),
 });
 

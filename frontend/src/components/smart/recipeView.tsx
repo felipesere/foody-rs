@@ -1,5 +1,6 @@
 import classNames from "classnames";
 import { createContext, useCallback, useContext, useState } from "react";
+import { client, UnstoredRecipe } from "../../api/v1/recipes.ts";
 import type {
   Ingredient,
   Ingredient as OnlyIngredient,
@@ -8,7 +9,6 @@ import type { MealPlan } from "../../apis/mealplans.ts";
 import {
   type Source,
   type UnstoredIngredient,
-  useAllRecipes,
   useRecipeTags,
 } from "../../apis/recipes.ts";
 import type { Shoppinglist } from "../../apis/shoppinglists.ts";
@@ -25,7 +25,6 @@ import { EditableTag } from "../tags.tsx";
 import { AddToMealPlan } from "./addToMealplan.tsx";
 import { AddToShoppinglist } from "./addToShoppinglist.tsx";
 import { SelectIngredientWithQuantity } from "./selectIngredientWithQuantity.tsx";
-import { UnstoredRecipe } from "../../api/v1/recipes.ts";
 
 export const RecipeContext = createContext({
   editing: false,
@@ -327,13 +326,14 @@ function BookSource(props: {
   onPageChange: (page: number) => void;
   onBlur: () => void;
 }) {
-  const recipes = useAllRecipes(props.token);
+  const recipes = client.index(props.token);
+  // const recipes = useAllRecipes(props.token);
   if (recipes.error || !recipes.data) {
     return <p>Loading...</p>;
   }
 
   const names = recipes.data.recipes.flatMap((recipe) =>
-    recipe.title ? [recipe.title] : [],
+    recipe.name ? [recipe.name] : [],
   );
   const uniqueNames = [...new Set(names)];
 
