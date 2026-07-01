@@ -1,5 +1,7 @@
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import * as v from "valibot";
-import { TimestampSchema } from "./index.ts";
+import { authed, TimestampSchema, useApiMutation } from "./index.ts";
 
 const FromRecipe = v.strictObject({
   kind: v.literal("from_recipe"),
@@ -13,6 +15,8 @@ const Untracked = v.strictObject({
 
 const MealKind = v.union([FromRecipe, Untracked]);
 
+export type MealDetails = v.InferOutput<typeof MealKind>;
+
 const MealSchema = v.strictObject({
   kind: v.literal("mealplan_meal"),
   id: v.number(),
@@ -22,7 +26,9 @@ const MealSchema = v.strictObject({
   created_at: TimestampSchema,
 });
 
-export const MealplansSchema = v.strictObject({
+export type Meal = v.InferOutput<typeof MealSchema>;
+
+export const MealplanSchema = v.strictObject({
   kind: v.literal("mealplan"),
   id: v.number(),
   name: v.string(),
@@ -30,4 +36,114 @@ export const MealplansSchema = v.strictObject({
   meals: v.array(MealSchema),
 });
 
-export type Mealplan = v.InferOutput<typeof MealplansSchema>;
+export type Mealplan = v.InferOutput<typeof MealplanSchema>;
+
+export const MealplansSchema = v.strictObject({
+  mealplans: v.array(MealplanSchema),
+});
+
+export function useMealplans(token: string) {
+  return useQuery({
+    queryKey: ["mealplans"],
+    queryFn: async () => {
+      const parsed = v.parse(
+        MealplansSchema,
+        await authed(token).get("api/v1/mealplans").json(),
+      );
+      for (const plan of parsed.mealplans) {
+        plan.meals.sort((a, b) => a.id - b.id);
+      }
+      return parsed;
+    },
+  });
+}
+
+export function useCreateMealplan(token: string) {
+  return useApiMutation({
+    mutationFn: async (vars: { name: string; keepUncooked: boolean }) =>
+      v.parse(
+        MealplanSchema,
+        await authed(token)
+          .post("api/v1/mealplans", {
+            json: { name: vars.name, keep_uncooked: vars.keepUncooked },
+          })
+          .json(),
+      ),
+    invalidates: ["mealplans"],
+  });
+}
+
+export function useDeleteMealplan(token: string) {
+  return useApiMutation({
+    mutationFn: (vars: { mealplanId: number }) =>
+      authed(token).delete(`api/v1/mealplans/${vars.mealplanId}`),
+    invalidates: ["mealplans"],
+  });
+}
+
+export function useClearMealplan(token: string) {
+  return useApiMutation({
+    mutationFn: (vars: { mealplanId: number }) =>
+      authed(token).post(`api/v1/mealplans/${vars.mealplanId}/clear`),
+    invalidates: ["mealplans"],
+  });
+}
+
+export function useAddMeal(token: string) {
+  return useApiMutation({
+    mutationFn: (vars: {
+      mealplanId: number;
+      details: MealDetails;
+      section?: string;
+    }) =>
+      authed(token).post(`api/v1/mealplans/${vars.mealplanId}/meals`, {
+        json: { details: vars.details, section: vars.section },
+      }),
+    invalidates: ["mealplans"],
+    onSuccess: (_data, vars) => {
+      const what =
+        vars.details.kind === "from_recipe"
+          ? vars.details.id
+          : vars.details.name;
+      toast.info(`Added ${what} to mealplan ${vars.mealplanId}`);
+    },
+  });
+}
+
+export function useUpdateMeal(token: string) {
+  return useApiMutation({
+    mutationFn: (vars: {
+      mealplanId: number;
+      mealId: number;
+      fields: { is_cooked?: boolean; section?: string };
+    }) =>
+      authed(token).put(
+        `api/v1/mealplans/${vars.mealplanId}/meals/${vars.mealId}`,
+        { json: vars.fields },
+      ),
+    invalidates: ["mealplans"],
+  });
+}
+
+export function useDeleteMeal(token: string) {
+  return useApiMutation({
+    mutationFn: (vars: { mealplanId: number; mealId: number }) =>
+      authed(token).delete(
+        `api/v1/mealplans/${vars.mealplanId}/meals/${vars.mealId}`,
+      ),
+    invalidates: ["mealplans"],
+  });
+}
+
+export function useAddPlanToShoppinglist(token: string) {
+  return useApiMutation({
+    mutationFn: (vars: { mealplanId: number; shoppinglistId: number }) =>
+      authed(token).post(
+        `api/v1/mealplans/${vars.mealplanId}/shoppinglists/${vars.shoppinglistId}`,
+      ),
+    invalidates: (vars) => [["mealplans"], ["shoppinglist", vars.shoppinglistId]],
+    onSuccess: (_data, vars) => {
+      toast.info(`Added ${vars.mealplanId} to ${vars.shoppinglistId}`);
+    },
+  });
+}

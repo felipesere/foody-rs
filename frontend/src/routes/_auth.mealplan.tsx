@@ -5,19 +5,17 @@ import { useState } from "react";
 import { z } from "zod";
 import {
   type Meal,
-  type MealPlan,
-  type StoredMeal,
+  type Mealplan,
+  useAddMeal,
   useAddPlanToShoppinglist,
-  useAddRecipeToMealplan,
-  useAllMealPlans,
   useClearMealplan,
-  useCreateMealPlan,
-  useDeleteMealFromMealPlan,
-  useRemoveMealplan,
-  useSetSectionOfMeal,
-  useToggleMealIsCooked,
-} from "../apis/mealplans.ts";
-import { type Recipe, useAllRecipes } from "../apis/recipes.ts";
+  useCreateMealplan,
+  useDeleteMeal,
+  useDeleteMealplan,
+  useMealplans,
+  useUpdateMeal,
+} from "../api/v1/mealplans.ts";
+import { type Recipe, useRecipes } from "../api/v1/recipes.ts";
 import { Button } from "../components/button.tsx";
 import { Dropdown, type DropdownProps } from "../components/dropdown.tsx";
 import { FieldSet } from "../components/fieldset.tsx";
@@ -38,9 +36,9 @@ function MealPlanPage() {
   const { token } = Route.useRouteContext();
   const search = Route.useSearch();
 
-  const all = useAllMealPlans(token);
-  const recipes = useAllRecipes(token);
-  const remove = useRemoveMealplan(token);
+  const all = useMealplans(token);
+  const recipes = useRecipes(token);
+  const remove = useDeleteMealplan(token);
 
   if (all.isPending || recipes.isPending) {
     return "Loading...";
@@ -51,8 +49,8 @@ function MealPlanPage() {
   }
 
   const selected =
-    all.data.meal_plans.find((plan) => plan.id === search.mealPlan) ||
-    all.data.meal_plans[0];
+    all.data.mealplans.find((plan) => plan.id === search.mealPlan) ||
+    all.data.mealplans[0];
 
   return (
     <div className="content-grid gapx-2ch py-1lh pb-20">
@@ -74,7 +72,7 @@ function MealPlanPage() {
         <div className={"divider"}>
           <table className={"w-full"}>
             <tbody className={"table-auto"}>
-              {all.data.meal_plans.map((mealPlan: MealPlan) => {
+              {all.data.mealplans.map((mealPlan: Mealplan) => {
                 return (
                   <tr
                     key={mealPlan.id}
@@ -100,7 +98,7 @@ function MealPlanPage() {
                         onClick={(ev) => {
                           ev.preventDefault();
                           ev.stopPropagation();
-                          remove.mutate({ id: mealPlan.id });
+                          remove.mutate({ mealplanId: mealPlan.id });
                         }}
                       />
                     </td>
@@ -117,21 +115,21 @@ function MealPlanPage() {
 
 function ViewMealPlan(props: {
   token: string;
-  mealPlan: MealPlan;
+  mealPlan: Mealplan;
   recipes: Recipe[];
 }) {
   const { mealPlan, token, recipes } = props;
 
-  const addMeal = useAddRecipeToMealplan(token);
-  const clearPlan = useClearMealplan(token, mealPlan.id);
-  const addToShoppinglist = useAddPlanToShoppinglist(token, mealPlan.id);
+  const addMeal = useAddMeal(token);
+  const clearPlan = useClearMealplan(token);
+  const addToShoppinglist = useAddPlanToShoppinglist(token);
 
   const sections = new Set(
     mealPlan.meals.map((meal) => meal.section).filter((s) => s !== null),
   );
 
-  const namedSection: Record<string, StoredMeal[]> = {};
-  const unnamed: StoredMeal[] = [];
+  const namedSection: Record<string, Meal[]> = {};
+  const unnamed: Meal[] = [];
 
   for (const meal of mealPlan.meals) {
     if (meal.section) {
@@ -156,14 +154,17 @@ function ViewMealPlan(props: {
             classNames={"whitespace-nowrap flex-shrink"}
             label={"Clear"}
             onClick={() => {
-              clearPlan.mutate();
+              clearPlan.mutate({ mealplanId: mealPlan.id });
             }}
           />
           <AddToShoppinglist
             label={"Add to Shoppinglist"}
             token={props.token}
             onSelect={(list) => {
-              addToShoppinglist.mutate({ shoppinglist: list.id });
+              addToShoppinglist.mutate({
+                mealplanId: mealPlan.id,
+                shoppinglistId: list.id,
+              });
             }}
           />
           <FindRecipe
@@ -171,18 +172,18 @@ function ViewMealPlan(props: {
             placeholder={"Recipe or thing..."}
             onRecipe={(r) => {
               addMeal.mutate({
-                mealPlan: mealPlan.id,
+                mealplanId: mealPlan.id,
                 details: {
-                  type: "from_recipe",
+                  kind: "from_recipe",
                   id: r.id,
                 },
               });
             }}
             onNonRecipe={(name) => {
               addMeal.mutate({
-                mealPlan: mealPlan.id,
+                mealplanId: mealPlan.id,
                 details: {
-                  type: "untracked",
+                  kind: "untracked",
                   name,
                 },
               });
@@ -244,13 +245,12 @@ function SectionOfMeals(props: {
   token: string;
   title?: string;
   mealPlanId: number;
-  meals: StoredMeal[];
+  meals: Meal[];
   sections: Set<string>;
   recipes: Recipe[];
 }) {
-  const toggleIsCooked = useToggleMealIsCooked(props.token, props.mealPlanId);
-  const deleteMeal = useDeleteMealFromMealPlan(props.token, props.mealPlanId);
-  const setSection = useSetSectionOfMeal(props.token, props.mealPlanId);
+  const updateMeal = useUpdateMeal(props.token);
+  const deleteMeal = useDeleteMeal(props.token);
 
   return (
     <div>
@@ -295,9 +295,10 @@ function SectionOfMeals(props: {
                   type={"checkbox"}
                   defaultChecked={meal.is_cooked}
                   onClick={() =>
-                    toggleIsCooked.mutate({
-                      id: meal.id,
-                      is_cooked: !meal.is_cooked,
+                    updateMeal.mutate({
+                      mealplanId: props.mealPlanId,
+                      mealId: meal.id,
+                      fields: { is_cooked: !meal.is_cooked },
                     })
                   }
                 />
@@ -306,7 +307,12 @@ function SectionOfMeals(props: {
                 <KebabMenu>
                   <KebabMenu.Button
                     value={"Delete"}
-                    onClick={() => deleteMeal.mutate({ id: meal.id })}
+                    onClick={() =>
+                      deleteMeal.mutate({
+                        mealplanId: props.mealPlanId,
+                        mealId: meal.id,
+                      })
+                    }
                     style={"dark"}
                   />
                   <KebabMenu.Divider />
@@ -317,7 +323,11 @@ function SectionOfMeals(props: {
                           value={section}
                           style={"plain"}
                           onClick={() =>
-                            setSection.mutate({ id: meal.id, section })
+                            updateMeal.mutate({
+                              mealplanId: props.mealPlanId,
+                              mealId: meal.id,
+                              fields: { section },
+                            })
                           }
                         />
                       </li>
@@ -325,7 +335,11 @@ function SectionOfMeals(props: {
                   </ol>
                   <NewSection
                     onNewValue={(newSection) => {
-                      setSection.mutate({ id: meal.id, section: newSection });
+                      updateMeal.mutate({
+                        mealplanId: props.mealPlanId,
+                        mealId: meal.id,
+                        fields: { section: newSection },
+                      });
                     }}
                   />
                 </KebabMenu>
@@ -339,7 +353,7 @@ function SectionOfMeals(props: {
 }
 
 function MealLink(props: { details: Meal["details"]; allRecipes: Recipe[] }) {
-  if (props.details.type === "from_recipe") {
+  if (props.details.kind === "from_recipe") {
     const id = props.details.id;
     const name = props.allRecipes.find((r) => r.id === id)?.name || "Unknown";
     return (
@@ -359,7 +373,7 @@ type FindRecipeProps = {
 };
 
 export function FindRecipe(props: FindRecipeProps) {
-  const recipes = useAllRecipes(props.token);
+  const recipes = useRecipes(props.token);
 
   if (!recipes.data) {
     return null;
@@ -381,7 +395,7 @@ export function FindRecipe(props: FindRecipeProps) {
 // WARN: Stolen from `NewShoppinglist`
 // @ts-ignore We are bringingin this back in just a minute!
 function NewMealPlan(props: { token: string }) {
-  const createNewShoppinglist = useCreateMealPlan(props.token);
+  const createNewShoppinglist = useCreateMealplan(props.token);
   const navigate = useNavigate({ from: "/mealplan" });
 
   const defaultName = new Date().toISOString().split("T")[0];
