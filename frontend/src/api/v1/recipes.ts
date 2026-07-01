@@ -90,6 +90,17 @@ export function useRecipes(token: string) {
   });
 }
 
+export function useRecipe(token: string, id: number) {
+  return useQuery({
+    queryKey: ["recipe", id],
+    queryFn: async () =>
+      v.parse(
+        RecipeSchema,
+        await authed(token).get(`api/v1/recipes/${id}`).json(),
+      ),
+  });
+}
+
 export function useRecipeTags(token: string) {
   return useQuery({
     queryKey: ["recipes"],
@@ -118,23 +129,44 @@ export function useCreateRecipe(token: string, navigate: (id: number) => void) {
   });
 }
 
+export type RecipeUpdate = {
+  recipeId: number;
+  name?: string;
+  notes?: string;
+  tags?: string[];
+  rating?: number;
+  duration?: string;
+  source?:
+    | { source: "book"; title: string; page: number }
+    | { source: "website"; url: string };
+};
+
 export function useUpdateRecipe(token: string) {
   return useApiMutation({
-    mutationFn: async (vars: {
-      recipeId: number;
-      name?: string;
-      notes?: string;
-      tags?: string[];
-      rating?: number;
-    }) => {
-      const { recipeId, ...fields } = vars;
+    mutationFn: async (vars: RecipeUpdate) => {
+      const { recipeId, source, ...rest } = vars;
+      // Rails' recipes#update reads `params.require(:recipe)` and names the
+      // source columns book_title / book_page / website_url.
+      const recipe: Record<string, unknown> = { ...rest };
+      if (source?.source === "book") {
+        recipe.source = "book";
+        recipe.book_title = source.title;
+        recipe.book_page = source.page;
+        recipe.website_url = null;
+      } else if (source?.source === "website") {
+        recipe.source = "website";
+        recipe.website_url = source.url;
+        recipe.book_title = null;
+        recipe.book_page = null;
+      }
       return v.parse(
         RecipeSchema,
         await authed(token)
-          .put(`api/v1/recipes/${recipeId}`, { json: fields })
+          .put(`api/v1/recipes/${recipeId}`, { json: { recipe } })
           .json(),
       );
     },
+    invalidates: (vars) => [["recipe", vars.recipeId], ["recipes"]],
     onSuccess: (data) => {
       toast(`Updated "${data.name}"`);
     },
@@ -149,5 +181,29 @@ export function useDeleteRecipe(token: string) {
     onSuccess: (_data, recipeId) => {
       toast(`Deleted "${recipeId}"`);
     },
+  });
+}
+
+export function useAddRecipeIngredient(token: string) {
+  return useApiMutation({
+    mutationFn: (vars: {
+      recipeId: number;
+      ingredient_id: number;
+      quantity: string;
+    }) =>
+      authed(token).post(`api/v1/recipes/${vars.recipeId}/ingredients`, {
+        json: { ingredient_id: vars.ingredient_id, quantity: vars.quantity },
+      }),
+    invalidates: (vars) => [["recipe", vars.recipeId], ["recipes"]],
+  });
+}
+
+export function useRemoveRecipeIngredient(token: string) {
+  return useApiMutation({
+    mutationFn: (vars: { recipeId: number; ingredientId: number }) =>
+      authed(token).delete(
+        `api/v1/recipes/${vars.recipeId}/ingredients/${vars.ingredientId}`,
+      ),
+    invalidates: (vars) => [["recipe", vars.recipeId], ["recipes"]],
   });
 }
