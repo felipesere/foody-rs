@@ -1,7 +1,7 @@
 import * as v from "valibot";
 import { IngredientSchema, Quantity, QuantitySchema } from "./shoppinglists.ts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { http } from "./index.ts";
+import { authed, useApiMutation } from "./index.ts";
 import type { Ingredient } from "../../apis/ingredients.ts";
 import { toast } from "sonner";
 import { TagsSchema } from "./ingredient.ts";
@@ -12,6 +12,8 @@ const RecipeIngredientSchema = v.strictObject({
   ingredient: IngredientSchema,
   quantities: v.array(QuantitySchema),
 });
+
+export type RecipeIngredient = v.InferOutput<typeof RecipeIngredientSchema>;
 
 export const RecipesBaseSchema = v.strictObject({
   kind: v.literal("recipe"),
@@ -62,90 +64,60 @@ export type UnstoredRecipe = DistributiveOmit<Recipe, "id" | "ingredients"> & {
   ingredients: QuantifiedIngredient[];
 };
 
-export const client = {
-  index: (token: string) => {
-    return useQuery({
-      queryKey: ["recipes"],
-      queryFn: async () => {
-        const body = await http
-          .get("api/v1/recipes", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          })
-          .json();
+export function useRecipes(token: string) {
+  return useQuery({
+    queryKey: ["recipes"],
+    queryFn: async () =>
+      v.parse(RecipesSchema, await authed(token).get("api/v1/recipes").json()),
+  });
+}
 
-        return v.parse(RecipesSchema, body);
-      },
-    });
-  },
-  create: (token: string, navigate: (id: number) => void) => {
-    const client = useQueryClient();
-    return useMutation({
-      mutationFn: async (params: UnstoredRecipe) => {
-        const body = await http
-          .post("api/v1/recipes", {
-            method: "POST",
-            json: params,
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          })
-          .json();
-        return v.parse(RecipeSchema, body);
-      },
-      onSuccess: async (data, vars) => {
-        await client.invalidateQueries({ queryKey: ["recipes"] });
-        client.setQueryData(["recipe", data.id], data);
-        toast(`Created "${vars.name}"`);
-        navigate(data.id);
-      },
-    });
-  },
-  recipe: (recipeId: number) => {
-    return {
-      update: (token: string) => {
-        return useMutation({
-          mutationFn: async (params: {
-            name?: string;
-            notes?: string;
-            tags?: string[];
-          }) => {
-            const body = await http
-              .put(`api/v1/recipes/${recipeId}`, {
-                method: "POST",
-                json: params,
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              })
-              .json();
-            return v.parse(RecipeSchema, body);
-          },
-          onSuccess: async (data, _) => {
-            toast(`Updated "${data.name}"`);
-          },
-        });
-      },
-      ingredients: () => {
-        return {};
-      },
-    };
-  },
-  tags: (token: string) => {
-    return useQuery({
-      queryKey: ["recipes"],
-      queryFn: async () => {
-        const body = await http
-          .get("api/v1/recipes/tags", {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          })
-          .json();
+export function useRecipeTags(token: string) {
+  return useQuery({
+    queryKey: ["recipes"],
+    queryFn: async () =>
+      v.parse(
+        TagsSchema,
+        await authed(token).get("api/v1/recipes/tags").json(),
+      ),
+  });
+}
 
-        return v.parse(TagsSchema, body);
-      },
-    });
-  },
-};
+export function useCreateRecipe(token: string, navigate: (id: number) => void) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: UnstoredRecipe) =>
+      v.parse(
+        RecipeSchema,
+        await authed(token).post("api/v1/recipes", { json: vars }).json(),
+      ),
+    onSuccess: async (data, vars) => {
+      await queryClient.invalidateQueries({ queryKey: ["recipes"] });
+      queryClient.setQueryData(["recipe", data.id], data);
+      toast(`Created "${vars.name}"`);
+      navigate(data.id);
+    },
+  });
+}
+
+export function useUpdateRecipe(token: string) {
+  return useApiMutation({
+    mutationFn: async (vars: {
+      recipeId: number;
+      name?: string;
+      notes?: string;
+      tags?: string[];
+    }) => {
+      const { recipeId, ...fields } = vars;
+      return v.parse(
+        RecipeSchema,
+        await authed(token)
+          .put(`api/v1/recipes/${recipeId}`, { json: fields })
+          .json(),
+      );
+    },
+    onSuccess: (data) => {
+      toast(`Updated "${data.name}"`);
+    },
+  });
+}

@@ -7,7 +7,7 @@ import {
   useRemoveShoppinglist,
 } from "../apis/shoppinglists.ts";
 import { KebabMenu } from "../components/kebabMenu.tsx";
-import { client } from "../api/v1/shoppinglists.ts";
+import { useShoppinglists } from "../api/v1/shoppinglists.ts";
 
 export const Route = createFileRoute("/_auth/")({
   component: ShoppingPage,
@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_auth/")({
 export function ShoppingPage() {
   const { token } = Route.useRouteContext();
   // const data = useAllShoppinglists(token);
-  const data = client(token).index(token);
+  const data = useShoppinglists(token);
 
   return (
     <div className="content-grid space-y-2lh">

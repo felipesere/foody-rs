@@ -1,6 +1,10 @@
 import type { Shoppinglist } from "../../apis/shoppinglists.ts";
 import { MultiSelect } from "../multiselect.tsx";
-import { client, Ingredient } from "../../api/v1/ingredient.ts";
+import {
+  useIngredientTags,
+  useUpdateIngredient,
+  Ingredient,
+} from "../../api/v1/ingredient.ts";
 
 export function SelectTags(props: {
   token: string;
@@ -8,8 +12,8 @@ export function SelectTags(props: {
   currentTags: string[];
   shoppinglistId?: Shoppinglist["id"];
 }) {
-  const tags = client().tags(props.token);
-  const updateIngredient = client().update(props.token);
+  const tags = useIngredientTags(props.token);
+  const updateIngredient = useUpdateIngredient(props.token);
 
   console.log(tags);
 

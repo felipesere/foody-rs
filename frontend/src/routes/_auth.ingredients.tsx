@@ -9,9 +9,14 @@ import classnames from "classnames";
 import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import * as v from "valibot";
-import { client, Ingredient } from "../api/v1/ingredient.ts";
-import { client as shoppinglistClient } from "../api/v1/shoppinglists.ts";
-import { type Storage, client as storageClient } from "../api/v1/storages.ts";
+import {
+  Ingredient,
+  useIngredients,
+  useIngredientTags,
+  useUpdateIngredient,
+} from "../api/v1/ingredient.ts";
+import { useAddItem } from "../api/v1/shoppinglists.ts";
+import { type Storage, useStorages } from "../api/v1/storages.ts";
 import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
@@ -66,8 +71,8 @@ function IngredientsPage() {
   const { token } = Route.useRouteContext();
   const { search, massEdit } = Route.useSearch();
   const navigate = useNavigate({ from: Route.path });
-  const ingredients = client().index(token);
-  const allTags = client().tags(token);
+  const ingredients = useIngredients(token);
+  const allTags = useIngredientTags(token);
 
   if (!ingredients.data || !allTags.data) {
     return <p>Loading...</p>;
@@ -215,10 +220,7 @@ function IngredientView(props: IngredientViewProps) {
 
   const [isDirty, setIsDirty] = useState(false);
   const anyTags = props.ingredient.tags.length > 0;
-  const addIngredient = shoppinglistClient(props.token)
-    .list("placeholder")
-    .items()
-    .create();
+  const addIngredient = useAddItem(props.token);
   return (
     <li
       className={classnames("px-1ch py-0.5lh border-solid border-2", {
@@ -325,7 +327,7 @@ function MassEditTags(props: { token: string; ingredients: Ingredient[] }) {
   const [newTags, setNewTags] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const editIngredient = client().update(props.token);
+  const editIngredient = useUpdateIngredient(props.token);
 
   let tags = ingredients
     .flatMap((i) => i.tags)
@@ -374,8 +376,8 @@ function MassEditTags(props: { token: string; ingredients: Ingredient[] }) {
 function MassEditStoredIn(props: { token: string; ingredients: Ingredient[] }) {
   let ingredients = props.ingredients;
 
-  const knownStorageLocations = storageClient().index(props.token);
-  const editIngredient = client().update(props.token);
+  const knownStorageLocations = useStorages(props.token);
+  const editIngredient = useUpdateIngredient(props.token);
 
   if (!knownStorageLocations.data || knownStorageLocations.isLoading) {
     return "Loading";

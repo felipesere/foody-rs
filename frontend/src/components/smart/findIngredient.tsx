@@ -1,4 +1,4 @@
-import { client } from "../../api/v1/ingredient.ts";
+import { useIngredients } from "../../api/v1/ingredient.ts";
 import { type Ingredient } from "../../apis/ingredients.ts";
 import type { DropdownProps } from "../dropdown.tsx";
 import { Dropdown } from "../dropdown.tsx";
@@ -12,7 +12,7 @@ type FindIngredientProps = {
 };
 
 export function FindIngredient(props: FindIngredientProps) {
-  const ingredients = client().index(props.token);
+  const ingredients = useIngredients(props.token);
 
   if (!ingredients.data) {
     return null;

@@ -1,6 +1,6 @@
 import * as v from "valibot";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { http } from "./index.ts";
+import { useQuery } from "@tanstack/react-query";
+import { authed, useApiMutation } from "./index.ts";
 
 export const AisleSchema = v.strictObject({
   id: v.number(),
@@ -12,39 +12,18 @@ export const AislesSchema = v.strictObject({
   aisles: v.array(AisleSchema),
 });
 
-export const client = function () {
-  return {
-    index: (token: string) => {
-      return useQuery({
-        queryKey: ["aisles"],
-        queryFn: async () => {
-          const body = await http
-            .get("api/v1/aisles", {
-              headers: { Authorization: `Bearer ${token}` },
-            })
-            .json();
+export function useAisles(token: string) {
+  return useQuery({
+    queryKey: ["aisles"],
+    queryFn: async () =>
+      v.parse(AislesSchema, await authed(token).get("api/v1/aisles").json()),
+  });
+}
 
-          return v.parse(AislesSchema, body);
-        },
-      });
-    },
-    create: (token: string) => {
-      const queryClient = useQueryClient();
-      return useMutation({
-        mutationFn: async (params: { name: string }) => {
-          await http.post(`api/v1/aisles`, {
-            json: {
-              aisle: params,
-            },
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-        },
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ["mealplans"] });
-        },
-      });
-    },
-  };
-};
+export function useCreateAisle(token: string) {
+  return useApiMutation({
+    mutationFn: (vars: { name: string }) =>
+      authed(token).post("api/v1/aisles", { json: { aisle: vars } }),
+    invalidates: ["mealplans"],
+  });
+}

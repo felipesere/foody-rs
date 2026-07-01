@@ -1,9 +1,6 @@
 import { useForm } from "@tanstack/react-form";
-import { client as aisleClient } from "../../api/v1/aisles.ts";
-import {
-  Ingredient,
-  client as ingredientsClient,
-} from "../../api/v1/ingredient.ts";
+import { useAisles, useCreateAisle } from "../../api/v1/aisles.ts";
+import { Ingredient, useUpdateIngredient } from "../../api/v1/ingredient.ts";
 import { Shoppinglist } from "../../api/v1/shoppinglists.ts";
 import { Button } from "../button.tsx";
 import { ButtonGroup } from "../buttonGroup.tsx";
@@ -17,9 +14,9 @@ export function SelectAisle(props: {
   currentAisle: string | null;
   shoppinglistId?: Shoppinglist["id"];
 }) {
-  const aisles = aisleClient().index(props.token);
-  const newAisle = aisleClient().create(props.token);
-  const editIngredient = ingredientsClient().update(props.token);
+  const aisles = useAisles(props.token);
+  const newAisle = useCreateAisle(props.token);
+  const editIngredient = useUpdateIngredient(props.token);
 
   if (!aisles.data || aisles.error) {
     return <p>Loading Aisles...</p>;

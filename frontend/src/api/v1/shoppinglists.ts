@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as v from "valibot";
 import { AisleSchema } from "./aisles.ts";
-import { http, TimestampSchema } from "./index.ts";
+import { authed, TimestampSchema, useApiMutation } from "./index.ts";
 import { StorageSchema } from "./storages.ts";
 
 export const QuantitySchema = v.strictObject({
@@ -18,8 +18,6 @@ export const StoredQuantitySchema = v.strictObject({
 
 export type Quantity = v.InferOutput<typeof QuantitySchema>;
 export type StoredQuantity = v.InferOutput<typeof StoredQuantitySchema>;
-
-export type Placeholder = "placeholder";
 
 export const IngredientSchema = v.strictObject({
   id: v.number(),
@@ -62,267 +60,161 @@ export const ShoppinglistsSchema = v.strictObject({
   shoppinglists: v.array(SmallShoppinglist),
 });
 
-export const client = function (token: string) {
-  return {
-    index: () => {
-      return useQuery({
-        queryKey: ["ingredients"],
-        queryFn: async () => {
-          const body = await http
-            .get("api/v1/shoppinglists", {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            })
-            .json();
+const listKey = (shoppinglistId: number) => ["shoppinglist", shoppinglistId];
 
-          return v.parse(ShoppinglistsSchema, body);
-        },
-      });
+export function useShoppinglists(token: string) {
+  return useQuery({
+    queryKey: ["ingredients"],
+    queryFn: async () =>
+      v.parse(
+        ShoppinglistsSchema,
+        await authed(token).get("api/v1/shoppinglists").json(),
+      ),
+  });
+}
+
+export function useShoppinglist(token: string, shoppinglistId: number) {
+  return useQuery({
+    queryKey: listKey(shoppinglistId),
+    refetchInterval: 2000, // ms
+    refetchIntervalInBackground: true,
+    queryFn: async () =>
+      v.parse(
+        ShoppinglistSchema,
+        await authed(token).get(`api/v1/shoppinglists/${shoppinglistId}`).json(),
+      ),
+  });
+}
+
+export function useRemoveRecipe(token: string) {
+  return useApiMutation({
+    mutationFn: (vars: { shoppinglistId: number; recipeId: number }) =>
+      authed(token).delete(
+        `api/v1/shoppinglists/${vars.shoppinglistId}/recipes/${vars.recipeId}`,
+      ),
+    invalidates: (vars) => [listKey(vars.shoppinglistId)],
+  });
+}
+
+export function useClearList(token: string) {
+  return useApiMutation({
+    mutationFn: (vars: { shoppinglistId: number }) =>
+      authed(token).post(`api/v1/shoppinglists/${vars.shoppinglistId}/clear`),
+    invalidates: (vars) => [listKey(vars.shoppinglistId)],
+  });
+}
+
+export function useAddItem(token: string) {
+  return useApiMutation({
+    mutationFn: async (vars: {
+      shoppinglistId: number;
+      ingredient_id: number;
+      quantity: string;
+    }) =>
+      v.parse(
+        ShoppinglistItemSchema,
+        await authed(token)
+          .post(`api/v1/shoppinglists/${vars.shoppinglistId}/items`, {
+            json: {
+              ingredient_id: vars.ingredient_id,
+              quantity: vars.quantity,
+            },
+          })
+          .json(),
+      ),
+    invalidates: (vars) => [listKey(vars.shoppinglistId)],
+  });
+}
+
+export function useDeleteItem(token: string) {
+  return useApiMutation({
+    mutationFn: (vars: { shoppinglistId: number; item_id: number }) =>
+      authed(token).delete(
+        `api/v1/shoppinglists/${vars.shoppinglistId}/items/${vars.item_id}`,
+      ),
+    invalidates: (vars) => [listKey(vars.shoppinglistId)],
+  });
+}
+
+export function useUpdateQuantity(token: string) {
+  return useApiMutation({
+    mutationFn: (vars: {
+      shoppinglistId: number;
+      item_id: number;
+      quantity_id: number;
+      quantity: string;
+    }) =>
+      authed(token).put(
+        `api/v1/shoppinglists/${vars.shoppinglistId}/items/${vars.item_id}/quantities/${vars.quantity_id}`,
+        { json: { quantity: vars.quantity } },
+      ),
+    invalidates: (vars) => [listKey(vars.shoppinglistId)],
+  });
+}
+
+export function useDeleteQuantity(token: string) {
+  return useApiMutation({
+    mutationFn: (vars: {
+      shoppinglistId: number;
+      item_id: number;
+      quantity_id: number;
+    }) =>
+      authed(token).delete(
+        `api/v1/shoppinglists/${vars.shoppinglistId}/items/${vars.item_id}/quantities/${vars.quantity_id}`,
+      ),
+    invalidates: (vars) => [listKey(vars.shoppinglistId)],
+  });
+}
+
+export function useUpdateItem(token: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: {
+      shoppinglistId: number;
+      item_id: number;
+      fields: { in_basket?: boolean; note?: string };
+    }) => {
+      await authed(token).put(
+        `api/v1/shoppinglists/${vars.shoppinglistId}/items/${vars.item_id}`,
+        { json: vars.fields },
+      );
     },
-    list: function (shoppinglistId: number | Placeholder) {
-      return {
-        show: () => {
-          return useQuery({
-            queryKey: ["shoppinglist", shoppinglistId],
-            refetchInterval: 2000, // ms
-            refetchIntervalInBackground: true,
-            queryFn: async () => {
-              const body = await http
-                .get(`api/v1/shoppinglists/${shoppinglistId}`, {
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                  },
-                })
-                .json();
+    onMutate: async (vars) => {
+      const previousShoppinglist = queryClient.getQueryData<Shoppinglist>(
+        listKey(vars.shoppinglistId),
+      );
 
-              return v.parse(ShoppinglistSchema, body);
-            },
-          });
-        },
-        removeRecipe: () => {
-          let queryClient = useQueryClient();
-          return useMutation({
-            mutationFn: async (params: { recipeId: number }) => {
-              return http.delete(
-                `api/v1/shoppinglists/${shoppinglistId}/recipes/${params.recipeId}`,
-                {
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                  },
-                },
-              );
-            },
-            onSettled: async () => {
-              await queryClient.invalidateQueries({
-                queryKey: ["shoppinglist", shoppinglistId],
-              });
-            },
-          });
-        },
-        clear: () => {
-          let queryClient = useQueryClient();
-          return useMutation({
-            mutationFn: async () => {
-              return http.post(`api/v1/shoppinglists/${shoppinglistId}/clear`, {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              });
-            },
-            onSettled: async () => {
-              await queryClient.invalidateQueries({
-                queryKey: ["shoppinglist", shoppinglistId],
-              });
-            },
-          });
-        },
-        items: () => {
-          return {
-            item: (itemId: number) => {
-              return {
-                quantity: () => {
-                  return {
-                    update: () => {
-                      let queryClient = useQueryClient();
-                      return useMutation({
-                        mutationFn: async (params: {
-                          quantity_id: number;
-                          quantity: string;
-                        }) => {
-                          return http.put(
-                            `api/v1/shoppinglists/${shoppinglistId}/items/${itemId}/quantities/${params.quantity_id}`,
-                            {
-                              headers: {
-                                Authorization: `Bearer ${token}`,
-                              },
-                              json: {
-                                quantity: params.quantity,
-                              },
-                            },
-                          );
-                        },
-                        onSettled: async () => {
-                          await queryClient.invalidateQueries({
-                            queryKey: ["shoppinglist", shoppinglistId],
-                          });
-                        },
-                      });
-                    },
-                    delete: () => {
-                      let queryClient = useQueryClient();
-                      return useMutation({
-                        mutationFn: async (params: { quantity_id: number }) => {
-                          return http.delete(
-                            `api/v1/shoppinglists/${shoppinglistId}/items/${itemId}/quantities/${params.quantity_id}`,
-                            {
-                              headers: {
-                                Authorization: `Bearer ${token}`,
-                              },
-                            },
-                          );
-                        },
-                        onSettled: async () => {
-                          await queryClient.invalidateQueries({
-                            queryKey: ["shoppinglist", shoppinglistId],
-                          });
-                        },
-                      });
-                    },
-                  };
-                },
-              };
-            },
-            create: () => {
-              let queryClient = useQueryClient();
-              return useMutation({
-                mutationFn: async (params: {
-                  ingredient_id: number;
-                  quantity: string;
-                  shoppinglistId?: number;
-                }) => {
-                  const listId =
-                    shoppinglistId === "placeholder"
-                      ? params.shoppinglistId!
-                      : shoppinglistId;
-                  const body = await http.post(
-                    `api/v1/shoppinglists/${listId}/items`,
-                    {
-                      headers: {
-                        Authorization: `Bearer ${token}`,
-                      },
-                      json: {
-                        ingredient_id: params.ingredient_id,
-                        quantity: params.quantity,
-                      },
-                    },
-                  );
+      if (previousShoppinglist) {
+        const updatedShoppinglist = structuredClone(previousShoppinglist);
+        updatedShoppinglist.ingredients = updatedShoppinglist.ingredients.map(
+          (item) =>
+            item.id == vars.item_id ? { ...item, ...vars.fields } : item,
+        );
+        queryClient.setQueryData(
+          listKey(vars.shoppinglistId),
+          updatedShoppinglist,
+        );
+      }
 
-                  return v.parse(ShoppinglistItemSchema, body);
-                },
-                onSettled: async (_a, _b, params) => {
-                  const listId =
-                    shoppinglistId === "placeholder"
-                      ? params.shoppinglistId!
-                      : shoppinglistId;
-                  await queryClient.invalidateQueries({
-                    queryKey: ["shoppinglist", listId],
-                  });
-                },
-              });
-            },
-            delete: () => {
-              let queryClient = useQueryClient();
-              return useMutation({
-                mutationFn: async (params: { item_id: number }) => {
-                  return http.delete(
-                    `api/v1/shoppinglists/${shoppinglistId}/items/${params.item_id}`,
-                    {
-                      headers: {
-                        Authorization: `Bearer ${token}`,
-                      },
-                    },
-                  );
-                },
-                onSettled: async () => {
-                  await queryClient.invalidateQueries({
-                    queryKey: ["shoppinglist", shoppinglistId],
-                  });
-                },
-              });
-            },
-            update: () => {
-              let queryClient = useQueryClient();
-              return useMutation({
-                mutationFn: async (params: {
-                  item_id: number;
-                  fields: {
-                    in_basket?: boolean;
-                    note?: string;
-                  };
-                }) => {
-                  await http.put(
-                    `api/v1/shoppinglists/${shoppinglistId}/items/${params.item_id}`,
-                    {
-                      headers: {
-                        Authorization: `Bearer ${token}`,
-                      },
-                      json: params.fields,
-                    },
-                  );
-                },
-                onMutate: async (params) => {
-                  const previousShoppinglist =
-                    queryClient.getQueryData<Shoppinglist>([
-                      "shoppinglist",
-                      shoppinglistId,
-                    ]);
-
-                  if (previousShoppinglist) {
-                    const updatedShoppinglist =
-                      structuredClone(previousShoppinglist);
-                    updatedShoppinglist.ingredients =
-                      updatedShoppinglist.ingredients.map((item) => {
-                        if (item.id == params.item_id) {
-                          return { ...item, ...params.fields };
-                        } else {
-                          return item;
-                        }
-                      });
-                    queryClient.setQueryData(
-                      ["shoppinglist", shoppinglistId],
-                      updatedShoppinglist,
-                    );
-                  }
-
-                  return { previousShoppinglist };
-                },
-                onError: (_err, _params, context) => {
-                  queryClient.setQueryData(
-                    ["shoppinglist", shoppinglistId],
-                    context?.previousShoppinglist,
-                  );
-                },
-                onSettled: async () => {
-                  // If we have mutations "bottled up" because we've been offline for a bit,
-                  // then only invalidate the 'shoppinglists' on the last mutation...
-                  if (queryClient.isMutating() === 1) {
-                    console.log("Invalidating after last mutation...");
-                    await queryClient.invalidateQueries({
-                      queryKey: ["shoppinglist", shoppinglistId],
-                    });
-                  }
-                },
-                onSuccess: () => {
-                  return queryClient.invalidateQueries({
-                    queryKey: ["shoppinglist", shoppinglistId],
-                  });
-                },
-              });
-            },
-          };
-        },
-      };
+      return { previousShoppinglist };
     },
-  };
-};
+    onError: (_err, vars, context) => {
+      queryClient.setQueryData(
+        listKey(vars.shoppinglistId),
+        context?.previousShoppinglist,
+      );
+    },
+    onSettled: async (_data, _err, vars) => {
+      // If we have mutations "bottled up" because we've been offline for a bit,
+      // then only invalidate the 'shoppinglists' on the last mutation...
+      if (queryClient.isMutating() === 1) {
+        console.log("Invalidating after last mutation...");
+        await queryClient.invalidateQueries({
+          queryKey: listKey(vars.shoppinglistId),
+        });
+      }
+    },
+    onSuccess: (_data, vars) =>
+      queryClient.invalidateQueries({ queryKey: listKey(vars.shoppinglistId) }),
+  });
+}

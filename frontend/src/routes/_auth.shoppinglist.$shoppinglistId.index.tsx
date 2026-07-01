@@ -2,12 +2,19 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import classnames from "classnames";
 import { Fragment, useState } from "react";
 import { Ingredient } from "../api/v1/ingredient.ts";
-import { Recipe, client as recipeClient } from "../api/v1/recipes.ts";
+import { Recipe, useRecipes } from "../api/v1/recipes.ts";
 import {
-  client,
   Shoppinglist,
   ShoppinglistItem,
   StoredQuantity,
+  useAddItem,
+  useClearList,
+  useDeleteItem,
+  useDeleteQuantity,
+  useRemoveRecipe,
+  useShoppinglist,
+  useUpdateItem,
+  useUpdateQuantity,
 } from "../api/v1/shoppinglists.ts";
 import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
@@ -51,16 +58,15 @@ export function ShoppingPage() {
   const params = Route.useParams();
   const shoppinglistId = Number(params.shoppinglistId);
   const { token } = Route.useRouteContext();
-  const listClient = client(token);
-  const shoppinglist = listClient.list(shoppinglistId).show();
-  const recipes = recipeClient.index(token);
-  const updateShoppinglist = listClient.list(shoppinglistId).items().update();
-  const addIngredient = client(token).list(shoppinglistId).items().create();
+  const shoppinglist = useShoppinglist(token, shoppinglistId);
+  const recipes = useRecipes(token);
+  const updateShoppinglist = useUpdateItem(token);
+  const addIngredient = useAddItem(token);
   const [grouping, setGrouping] = useState<Grouping>(Grouping.ByAisle);
   const [showProgressBar, setShowProgressBar] = useState(false);
-  const removeCheckedItems = client(token).list(shoppinglistId).clear();
+  const removeCheckedItems = useClearList(token);
 
-  const deleteRecipe = client(token).list(shoppinglistId).removeRecipe();
+  const deleteRecipe = useRemoveRecipe(token);
 
   if (shoppinglist.isLoading || !recipes.data) {
     return <p>Loading</p>;
@@ -126,6 +132,7 @@ export function ShoppingPage() {
               onIngredient={(ingredient, _, raw) => {
                 // TODO: Do this better, consider accepting the param pre-parsed in the backend?
                 addIngredient.mutate({
+                  shoppinglistId,
                   ingredient_id: ingredient.id,
                   quantity: raw,
                 });
@@ -172,7 +179,7 @@ export function ShoppingPage() {
           <div className={"px-1ch flex flex-row gapx-2ch py-1lhch"}>
             <Button
               label={"Clear checked items"}
-              onClick={() => removeCheckedItems.mutate()}
+              onClick={() => removeCheckedItems.mutate({ shoppinglistId })}
             />
           </div>
         </div>
@@ -184,7 +191,9 @@ export function ShoppingPage() {
                 id={id}
                 name={name}
                 // TODO/WARN: Annoying when the ID types don't line up!
-                onDelete={() => deleteRecipe.mutate({ recipeId: Number(id) })}
+                onDelete={() =>
+                  deleteRecipe.mutate({ shoppinglistId, recipeId: Number(id) })
+                }
               />
             ))}
           </ul>
@@ -207,6 +216,7 @@ export function ShoppingPage() {
                 allRecipes={allRecipes}
                 onToggle={(_ingredientId, inBasket) => {
                   updateShoppinglist.mutate({
+                    shoppinglistId,
                     item_id: item.id,
                     fields: {
                       in_basket: inBasket,
@@ -367,7 +377,7 @@ function EditIngredient({
 }: EditIngredientProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [newNote, setNewNote] = useState<string | undefined>(undefined);
-  const updateIngredient = client(token).list(shoppinglistId).items().update();
+  const updateIngredient = useUpdateItem(token);
 
   const [changes, setChanges] = useState<Changes>({
     removals: [],
@@ -376,28 +386,27 @@ function EditIngredient({
   const [modifiedIngredient, setModifiedIngredient] = useState(
     structuredClone(item),
   );
-  const deleteIngredient = client(token).list(shoppinglistId).items().delete();
+  const deleteIngredient = useDeleteItem(token);
 
-  const removeQuantity = client(token)
-    .list(shoppinglistId)
-    .items()
-    .item(item.id)
-    .quantity()
-    .delete();
-  const updateQuantity = client(token)
-    .list(shoppinglistId)
-    .items()
-    .item(item.id)
-    .quantity()
-    .update();
+  const removeQuantity = useDeleteQuantity(token);
+  const updateQuantity = useUpdateQuantity(token);
 
   function applyModifications(changesToIngredient: Changes) {
     for (const m of changesToIngredient.modifications) {
-      updateQuantity.mutate({ quantity_id: m.quantity, quantity: m.value });
+      updateQuantity.mutate({
+        shoppinglistId,
+        item_id: item.id,
+        quantity_id: m.quantity,
+        quantity: m.value,
+      });
     }
 
     for (const id of changesToIngredient.removals) {
-      removeQuantity.mutate({ quantity_id: id });
+      removeQuantity.mutate({
+        shoppinglistId,
+        item_id: item.id,
+        quantity_id: id,
+      });
     }
   }
 
@@ -413,6 +422,7 @@ function EditIngredient({
               value={newNote || item.note || ""}
               onBlur={(v) => {
                 updateIngredient.mutate({
+                  shoppinglistId,
                   item_id: item.id,
                   fields: { note: v },
                 });
@@ -513,7 +523,9 @@ function EditIngredient({
         <button
           type={"button"}
           className={"px-2ch bg-gray-700 text-white"}
-          onClick={() => deleteIngredient.mutate({ item_id: item.id })}
+          onClick={() =>
+            deleteIngredient.mutate({ shoppinglistId, item_id: item.id })
+          }
         >
           Delete
         </button>

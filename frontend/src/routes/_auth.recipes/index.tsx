@@ -26,7 +26,13 @@ import {
   RecipeSearchSchemaParams,
   updateSearchParams,
 } from "../../domain/search.ts";
-import { client, Recipe, Source } from "../../api/v1/recipes.ts";
+import {
+  useRecipes,
+  useRecipeTags,
+  Recipe,
+  Source,
+  RecipeIngredient,
+} from "../../api/v1/recipes.ts";
 
 const recipeUrlParams = z.object({
   search: RecipeSearchSchemaParams.optional(),
@@ -41,10 +47,10 @@ export const Route = createFileRoute("/_auth/recipes/")({
 export function RecipesPage() {
   const { token } = Route.useRouteContext();
   const { search, massEditTags } = Route.useSearch();
-  const { data, isLoading, isError } = client.index(token);
+  const { data, isLoading, isError } = useRecipes(token);
   const navigate = useNavigate({ from: Route.path });
 
-  const allTags = client.tags(token);
+  const allTags = useRecipeTags(token);
   if (isError) {
     return <p>Error</p>;
   }
@@ -364,11 +370,8 @@ function RecipeView(props: RecipeProps) {
   );
 }
 
-function IngredientView({
-  ingredient: { ingredient, quantity },
-}: {
-  ingredient: IngredientWithQuantity;
-}) {
+function IngredientView(props: { ingredient: RecipeIngredient }) {
+  const { ingredient, quantities } = props.ingredient;
   return (
     <li className="flex flex-row justify-between">
       <p className="font-light text-gray-700 whitespace-nowrap overflow-hidden overflow-ellipsis">
@@ -376,7 +379,7 @@ function IngredientView({
       </p>
       <DottedLine />
       <p className="text-light" style={{ flex: "none" }}>
-        {quantity[0].value} {quantity[0].unit}
+        {quantities[0].value} {quantities[0].unit}
       </p>
     </li>
   );

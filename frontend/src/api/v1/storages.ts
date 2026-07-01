@@ -1,6 +1,6 @@
 import * as v from "valibot";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { http } from "./index.ts";
+import { useQuery } from "@tanstack/react-query";
+import { authed, useApiMutation } from "./index.ts";
 
 export const StorageSchema = v.strictObject({
   id: v.number(),
@@ -14,39 +14,18 @@ export const StoragesSchema = v.strictObject({
   storages: v.array(StorageSchema),
 });
 
-export const client = function () {
-  return {
-    index: (token: string) => {
-      return useQuery({
-        queryKey: ["storages"],
-        queryFn: async () => {
-          const body = await http
-            .get("api/v1/storages", {
-              headers: { Authorization: `Bearer ${token}` },
-            })
-            .json();
+export function useStorages(token: string) {
+  return useQuery({
+    queryKey: ["storages"],
+    queryFn: async () =>
+      v.parse(StoragesSchema, await authed(token).get("api/v1/storages").json()),
+  });
+}
 
-          return v.parse(StoragesSchema, body);
-        },
-      });
-    },
-    create: (token: string) => {
-      const queryClient = useQueryClient();
-      return useMutation({
-        mutationFn: async (params: { name: string }) => {
-          await http.post(`api/v1/storages`, {
-            json: {
-              aisle: params,
-            },
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-        },
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ["storages"] });
-        },
-      });
-    },
-  };
-};
+export function useCreateStorage(token: string) {
+  return useApiMutation({
+    mutationFn: (vars: { name: string }) =>
+      authed(token).post("api/v1/storages", { json: { aisle: vars } }),
+    invalidates: ["storages"],
+  });
+}

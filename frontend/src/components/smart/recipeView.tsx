@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import { createContext, useCallback, useContext, useState } from "react";
-import { client, UnstoredRecipe } from "../../api/v1/recipes.ts";
+import { useRecipes, UnstoredRecipe } from "../../api/v1/recipes.ts";
 import type {
   Ingredient,
   Ingredient as OnlyIngredient,
@@ -326,7 +326,7 @@ function BookSource(props: {
   onPageChange: (page: number) => void;
   onBlur: () => void;
 }) {
-  const recipes = client.index(props.token);
+  const recipes = useRecipes(props.token);
   // const recipes = useAllRecipes(props.token);
   if (recipes.error || !recipes.data) {
     return <p>Loading...</p>;

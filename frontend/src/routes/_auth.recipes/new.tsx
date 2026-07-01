@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { useState } from "react";
-import { client, Source, UnstoredRecipe } from "../../api/v1/recipes.ts";
+import { useCreateRecipe, Source, UnstoredRecipe } from "../../api/v1/recipes.ts";
 import {
   RecipeContext,
   RecipeView,
@@ -29,7 +29,7 @@ function NewRecipePage() {
   });
   const navigate = useNavigate({ from: "/recipes/new" });
 
-  const newRecipe = client.create(token, (id) =>
+  const newRecipe = useCreateRecipe(token, (id) =>
     navigate({ to: "/recipes/$recipeId", params: { recipeId: `${id}` } }),
   );
 

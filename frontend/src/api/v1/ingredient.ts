@@ -1,7 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import * as v from "valibot";
 import { AisleSchema } from "./aisles.ts";
-import { http } from "./index.ts";
+import { authed, useApiMutation } from "./index.ts";
 import { StorageSchema } from "./storages.ts";
 
 export const IngredientSchema = v.strictObject({
@@ -23,64 +23,41 @@ export const IngredientsSchema = v.strictObject({
   ingredients: v.array(IngredientSchema),
 });
 
-export const client = function () {
-  return {
-    tags: function (token: string) {
-      return useQuery({
-        queryKey: ["tags"],
-        queryFn: async () => {
-          const body = await http
-            .get(`api/v1/ingredients/tags`, {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            })
-            .json();
+export function useIngredients(token: string) {
+  return useQuery({
+    queryKey: ["ingredients"],
+    queryFn: async () =>
+      v.parse(
+        IngredientsSchema,
+        await authed(token).get("api/v1/ingredients").json(),
+      ),
+  });
+}
 
-          return v.parse(TagsSchema, body);
-        },
-      });
-    },
-    update: function (token: string) {
-      let queryClient = useQueryClient();
-      return useMutation({
-        mutationFn: async (params: {
-          ingredient_id: number;
-          fields: {
-            tags?: string[];
-            aisle_id?: number;
-            storage_id?: number | null;
-          };
-        }) => {
-          await http.put(`api/v1/ingredients/${params.ingredient_id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            json: params.fields,
-          });
-        },
-        onSettled: async () => {
-          await queryClient.invalidateQueries({
-            queryKey: ["ingredients"],
-          });
-        },
-      });
-    },
-    index: function (token: string) {
-      return useQuery({
-        queryKey: ["ingredients"],
-        queryFn: async () => {
-          const body = await http
-            .get(`api/v1/ingredients`, {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            })
-            .json();
+export function useIngredientTags(token: string) {
+  return useQuery({
+    queryKey: ["tags"],
+    queryFn: async () =>
+      v.parse(
+        TagsSchema,
+        await authed(token).get("api/v1/ingredients/tags").json(),
+      ),
+  });
+}
 
-          return v.parse(IngredientsSchema, body);
-        },
-      });
-    },
-  };
-};
+export function useUpdateIngredient(token: string) {
+  return useApiMutation({
+    mutationFn: (vars: {
+      ingredient_id: number;
+      fields: {
+        tags?: string[];
+        aisle_id?: number;
+        storage_id?: number | null;
+      };
+    }) =>
+      authed(token).put(`api/v1/ingredients/${vars.ingredient_id}`, {
+        json: vars.fields,
+      }),
+    invalidates: ["ingredients"],
+  });
+}
