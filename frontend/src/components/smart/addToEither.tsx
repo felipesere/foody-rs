@@ -1,6 +1,7 @@
 import { toast } from "sonner";
-import { useAddRecipeToMealplan } from "../../apis/mealplans.ts";
-import { addRecipeToShoppinglist, Recipe } from "../../apis/recipes.ts";
+import { useAddMeal } from "../../api/v1/mealplans.ts";
+import type { Recipe } from "../../api/v1/recipes.ts";
+import { useAddRecipe } from "../../api/v1/shoppinglists.ts";
 import { Divider } from "../divider.tsx";
 import { Popup } from "../popup.tsx";
 import { PickMealplan } from "./addToMealplan.tsx";
@@ -13,8 +14,8 @@ type Props = {
 
 export function AddtoEither(props: Props) {
   const recipeId = props.recipeId;
-  const addRecipe = addRecipeToShoppinglist(props.token);
-  const addMealToPlan = useAddRecipeToMealplan(props.token);
+  const addRecipe = useAddRecipe(props.token);
+  const addMealToPlan = useAddMeal(props.token);
 
   const label = "Add";
 
@@ -41,9 +42,9 @@ export function AddtoEither(props: Props) {
           token={props.token}
           onSelect={(mealPlan) => {
             addMealToPlan.mutate({
-              mealPlan: mealPlan.id,
+              mealplanId: mealPlan.id,
               details: {
-                type: "from_recipe",
+                kind: "from_recipe",
                 id: props.recipeId,
               },
             });

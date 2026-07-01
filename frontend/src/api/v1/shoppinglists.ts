@@ -86,6 +86,16 @@ export function useShoppinglist(token: string, shoppinglistId: number) {
   });
 }
 
+export function useAddRecipe(token: string) {
+  return useApiMutation({
+    mutationFn: (vars: { shoppinglistId: number; recipeId: number }) =>
+      authed(token).post(
+        `api/v1/shoppinglists/${vars.shoppinglistId}/recipes/${vars.recipeId}`,
+      ),
+    invalidates: (vars) => [listKey(vars.shoppinglistId)],
+  });
+}
+
 export function useRemoveRecipe(token: string) {
   return useApiMutation({
     mutationFn: (vars: { shoppinglistId: number; recipeId: number }) =>
