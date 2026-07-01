@@ -29,3 +29,5 @@ export const MealplansSchema = v.strictObject({
   created_at: TimestampSchema,
   meals: v.array(MealSchema),
 });
+
+export type Mealplan = v.InferOutput<typeof MealplansSchema>;

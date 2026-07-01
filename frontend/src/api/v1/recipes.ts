@@ -26,22 +26,40 @@ export const RecipesBaseSchema = v.strictObject({
   ingredients: v.array(RecipeIngredientSchema),
 });
 
-const BookSchema = v.object({
+// The source-discriminated fields, mirroring exactly what the backend
+// serializes (every recipe carries title/page/url, with nulls for the fields
+// that don't apply to its source). RecipeSchema and SourceSchema are both built
+// from these so the two can never drift apart.
+const BookSourceSchema = v.strictObject({
   source: v.literal("book"),
   title: v.string(),
   page: v.number(),
+  url: v.null(),
+});
+
+const WebsiteSourceSchema = v.strictObject({
+  source: v.literal("website"),
+  title: v.null(),
+  page: v.null(),
+  url: v.string(),
+});
+
+export const SourceSchema = v.variant("source", [
+  BookSourceSchema,
+  WebsiteSourceSchema,
+]);
+
+export type SourceDetails = v.InferOutput<typeof SourceSchema>;
+
+const BookSchema = v.object({
+  ...BookSourceSchema.entries,
   ...RecipesBaseSchema.entries,
 });
 
 const WebsiteSchema = v.object({
-  source: v.literal("website"),
-  url: v.string(),
+  ...WebsiteSourceSchema.entries,
   ...RecipesBaseSchema.entries,
 });
-
-export type Source =
-  | { source: "book"; title: string; page: number; url: null }
-  | { source: "website"; title: null; page: null; url: string };
 
 export const RecipeSchema = v.variant("source", [BookSchema, WebsiteSchema]);
 
@@ -107,6 +125,7 @@ export function useUpdateRecipe(token: string) {
       name?: string;
       notes?: string;
       tags?: string[];
+      rating?: number;
     }) => {
       const { recipeId, ...fields } = vars;
       return v.parse(

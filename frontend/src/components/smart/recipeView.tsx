@@ -1,17 +1,16 @@
 import classNames from "classnames";
 import { createContext, useCallback, useContext, useState } from "react";
-import { useRecipes, UnstoredRecipe } from "../../api/v1/recipes.ts";
-import type {
-  Ingredient,
-  Ingredient as OnlyIngredient,
-} from "../../apis/ingredients.ts";
-import type { MealPlan } from "../../apis/mealplans.ts";
 import {
-  type Source,
-  type UnstoredIngredient,
+  type SourceDetails,
+  useRecipes,
   useRecipeTags,
-} from "../../apis/recipes.ts";
-import type { Shoppinglist } from "../../apis/shoppinglists.ts";
+  UnstoredRecipe,
+} from "../../api/v1/recipes.ts";
+import type { Mealplan } from "../../api/v1/mealplans.ts";
+import type { Shoppinglist } from "../../api/v1/shoppinglists.ts";
+
+/** The ingredient shape carried by an unstored recipe's ingredient list. */
+type IngredientInput = UnstoredRecipe["ingredients"][number]["ingredient"];
 import { orderByAisles } from "../../domain/orderByAisle.ts";
 import { humanize } from "../../quantities.ts";
 import { Button } from "../button.tsx";
@@ -36,17 +35,17 @@ type RecipeViewProps = {
   onSave: (isEditing: boolean) => void;
   onCancel: () => void;
   onSetName: (name: string) => void;
-  onSetSource: (source: Source) => void;
+  onSetSource: (source: SourceDetails) => void;
   onSetRating: (rating: number) => void;
   onSetTags: (tags: string[]) => void;
   // TODO: string here sucks...
-  onAddedIngredient: (ingredient: OnlyIngredient, quantity: string) => void;
-  onRemoveIngredient: (name: Ingredient["name"]) => void;
-  onChangeQuantity: (name: Ingredient["name"], quantity: string) => void;
+  onAddedIngredient: (ingredient: IngredientInput, quantity: string) => void;
+  onRemoveIngredient: (name: IngredientInput["name"]) => void;
+  onChangeQuantity: (name: IngredientInput["name"], quantity: string) => void;
   onSetNote: (notes: string) => void;
   onSetDuration: (duration: string) => void;
   onAddToShoppinglist?: (shoppinglistId: Shoppinglist["id"]) => void;
-  onAddToMealPlan?: (mealplanId: MealPlan["id"]) => void;
+  onAddToMealPlan?: (mealplanId: Mealplan["id"]) => void;
 };
 
 export function RecipeView(props: RecipeViewProps) {
@@ -176,12 +175,9 @@ function Notes(props: { value: string; onBlur: (v: string) => void }) {
 
 function Ingredients(props: {
   ingredients: UnstoredRecipe["ingredients"];
-  onIngredient: (i: OnlyIngredient, quantity: string) => void;
-  onRemove: (name: UnstoredIngredient["ingredient"]["name"]) => void;
-  onChangeQuantity: (
-    name: UnstoredIngredient["ingredient"]["name"],
-    quantity: string,
-  ) => void;
+  onIngredient: (i: IngredientInput, quantity: string) => void;
+  onRemove: (name: IngredientInput["name"]) => void;
+  onChangeQuantity: (name: IngredientInput["name"], quantity: string) => void;
 }) {
   const { editing, token } = useContext(RecipeContext);
 
@@ -286,7 +282,7 @@ export function Stars(props: {
 }
 
 type IngredientViewProps = {
-  ingredient: UnstoredIngredient["ingredient"]["name"];
+  ingredient: IngredientInput["name"];
   quantity: string;
   onRemove: () => void;
   onChangeQuantity: (quantity: string) => void;
@@ -364,7 +360,7 @@ function BookSource(props: {
 function ShowSource(props: {
   token: string;
   recipe: UnstoredRecipe;
-  onBlur: (details: Source) => void;
+  onBlur: (details: SourceDetails) => void;
 }) {
   const recipe = props.recipe;
   const { editing } = useContext(RecipeContext);

@@ -30,9 +30,10 @@ import {
   useRecipes,
   useRecipeTags,
   Recipe,
-  Source,
   RecipeIngredient,
+  useUpdateRecipe,
 } from "../../api/v1/recipes.ts";
+import { useDeleteRecipe } from "../../apis/recipes.ts";
 
 const recipeUrlParams = z.object({
   search: RecipeSearchSchemaParams.optional(),
@@ -291,9 +292,10 @@ type RecipeProps = {
 function RecipeView(props: RecipeProps) {
   const { token } = Route.useRouteContext();
   const [open, setOpen] = useState(false);
+
   const deleteRecipe = useDeleteRecipe(token);
   const recipeId = props.recipe.id;
-  const changeRecipe = useChangeRecipe(token, recipeId);
+  const changeRecipe = useUpdateRecipe(token);
   const navigate = useNavigate({ from: "/recipes" });
 
   return (
@@ -303,7 +305,10 @@ function RecipeView(props: RecipeProps) {
       <Stars
         rating={props.recipe.rating || 0}
         setRating={(n) =>
-          changeRecipe.mutate({ changes: [{ type: "rating", value: n }] })
+          changeRecipe.mutate({
+            recipeId,
+            rating: n,
+          })
         }
       />
       {props.recipe.duration && <p>⏲ {props.recipe.duration}</p>}
@@ -385,7 +390,7 @@ function IngredientView(props: { ingredient: RecipeIngredient }) {
   );
 }
 
-function ShowSource(props: { details: Source }) {
+function ShowSource(props: { details: Recipe }) {
   switch (props.details.source) {
     case "website":
       return (
@@ -416,7 +421,7 @@ function MassEditTags(props: { token: string; recipes: Recipe[] }) {
   const [newTags, setNewTags] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const changeRecipe = useChangeRecipe(props.token);
+  const changeRecipe = useUpdateRecipe(props.token);
 
   let tags = recipes
     .flatMap((i) => i.tags)
@@ -452,7 +457,7 @@ function MassEditTags(props: { token: string; recipes: Recipe[] }) {
         knownTags={Array.from(knownTags.values())}
         toggleTags={(id, tags) =>
           changeRecipe.mutate({
-            changes: [{ type: "tags", value: tags }],
+            tags,
             recipeId: id,
           })
         }

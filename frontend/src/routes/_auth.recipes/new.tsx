@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { useState } from "react";
-import { useCreateRecipe, Source, UnstoredRecipe } from "../../api/v1/recipes.ts";
+import { useCreateRecipe, UnstoredRecipe } from "../../api/v1/recipes.ts";
 import {
   RecipeContext,
   RecipeView,
@@ -22,6 +22,7 @@ function NewRecipePage() {
     source: "book",
     title: "",
     page: 0,
+    url: null,
     rating: 0,
     tags: [],
     notes: "",
@@ -42,13 +43,14 @@ function NewRecipePage() {
         onCancel={() => navigate({ to: "/recipes" })}
         recipe={recipe}
         onSetName={(name) => setRecipe((prev) => ({ ...prev, name }))}
-        onSetSource={(source: Source) => {
+        onSetSource={(source) => {
           if (source.source === "book") {
             setRecipe((prev) => ({
               ...prev,
               source: "book",
               page: source.page,
               title: source.title,
+              url: null,
             }));
           }
           if (source.source === "website") {
