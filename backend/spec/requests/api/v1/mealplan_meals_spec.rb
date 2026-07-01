@@ -8,24 +8,33 @@ RSpec.describe "Api::V1::MealplanMeals", type: :request do
       recipe = create(:recipe, name: "Soup")
 
       post "/api/v1/mealplans/#{plan.id}/meals",
-           params: { details: { type: "from_recipe", id: recipe.id }, section: "Mon" },
+           params: { details: { kind: "from_recipe", id: recipe.id }, section: "Mon" },
            as: :json
 
       expect(response).to have_http_status(:created)
       meal = plan.mealplan_meals.last
       expect(meal.recipe_id).to eq(recipe.id)
       expect(meal.section).to eq("Mon")
+
+      body = response.parsed_body
+      expect(body).to include("kind" => "mealplan_meal", "id" => meal.id)
+      expect(body["details"]).to eq("kind" => "from_recipe", "id" => recipe.id)
+      expect(body).to have_key("created_at")
     end
 
     it "adds an untracked meal" do
       post "/api/v1/mealplans/#{plan.id}/meals",
-           params: { details: { type: "untracked", name: "Leftovers" } },
+           params: { details: { kind: "untracked", name: "Leftovers" } },
            as: :json
 
       expect(response).to have_http_status(:created)
       meal = plan.mealplan_meals.last
       expect(meal.recipe_id).to be_nil
       expect(meal.untracked_meal_name).to eq("Leftovers")
+
+      expect(response.parsed_body["details"]).to eq(
+        "kind" => "untracked", "name" => "Leftovers"
+      )
     end
 
     it "rejects a meal without details" do

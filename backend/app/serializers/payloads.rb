@@ -1,6 +1,31 @@
 module Payloads
   module_function
 
+  TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%SZ".freeze
+
+  def timestamp(time)
+    time.utc.strftime(TIMESTAMP_FORMAT)
+  end
+
+  def meal(meal)
+    {
+      kind:       "mealplan_meal",
+      id:         meal.id,
+      details:    meal_details(meal),
+      section:    meal.section,
+      is_cooked:  meal.is_cooked,
+      created_at: timestamp(meal.created_at)
+    }
+  end
+
+  def meal_details(meal)
+    if meal.recipe_id
+      { kind: "from_recipe", id: meal.recipe_id }
+    else
+      { kind: "untracked", name: meal.untracked_meal_name }
+    end
+  end
+
   def ingredient(ingredient)
     {
       kind:  "ingredient",

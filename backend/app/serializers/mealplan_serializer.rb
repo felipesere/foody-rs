@@ -1,6 +1,4 @@
 class MealplanSerializer
-  TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%SZ".freeze
-
   def initialize(mealplan)
     @mealplan = mealplan
   end
@@ -10,29 +8,8 @@ class MealplanSerializer
       kind:       "mealplan",
       id:         @mealplan.id,
       name:       @mealplan.name,
-      created_at: @mealplan.created_at.utc.strftime(TIMESTAMP_FORMAT),
-      meals:      @mealplan.mealplan_meals.map { |m| meal_payload(m) }
+      created_at: Payloads.timestamp(@mealplan.created_at),
+      meals:      @mealplan.mealplan_meals.map { |m| Payloads.meal(m) }
     }
-  end
-
-  private
-
-  def meal_payload(meal)
-    {
-      kind:       "mealplan_meal",
-      id:         meal.id,
-      details:    meal_details(meal),
-      section:    meal.section,
-      is_cooked:  meal.is_cooked,
-      created_at: meal.created_at.utc.strftime(TIMESTAMP_FORMAT)
-    }
-  end
-
-  def meal_details(meal)
-    if meal.recipe_id
-      { kind: "from_recipe", id: meal.recipe_id }
-    else
-      { kind: "untracked", name: meal.untracked_meal_name }
-    end
   end
 end
