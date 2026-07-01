@@ -140,3 +140,14 @@ export function useUpdateRecipe(token: string) {
     },
   });
 }
+
+export function useDeleteRecipe(token: string) {
+  return useApiMutation({
+    mutationFn: (recipeId: number) =>
+      authed(token).delete(`api/v1/recipes/${recipeId}`),
+    invalidates: (recipeId) => [["recipe", recipeId], ["recipes"]],
+    onSuccess: (_data, recipeId) => {
+      toast(`Deleted "${recipeId}"`);
+    },
+  });
+}

@@ -5,10 +5,10 @@ import SpeechRecognition, {
 } from "react-speech-recognition";
 import { z } from "zod";
 import {
-  useRemoveIngredientFromShoppinglist,
+  useDeleteItem,
   useShoppinglist,
-  useToggleIngredientInShoppinglist,
-} from "../apis/shoppinglists.ts";
+  useUpdateItem,
+} from "../api/v1/shoppinglists.ts";
 import { Button } from "../components/button.tsx";
 import { Progressbar } from "../components/progressbar.tsx";
 
@@ -36,8 +36,8 @@ export function FullscreenPage() {
   const { index } = Route.useSearch();
   const { token } = Route.useRouteContext();
   const shoppinglist = useShoppinglist(token, shoppinglistId);
-  const checkItem = useToggleIngredientInShoppinglist(token, shoppinglistId);
-  const deleteItem = useRemoveIngredientFromShoppinglist(token, shoppinglistId);
+  const checkItem = useUpdateItem(token);
+  const deleteItem = useDeleteItem(token);
 
   const ingredients = shoppinglist.data?.ingredients || [];
   const safeIndex = Math.min(index, ingredients.length - 1);
@@ -60,15 +60,17 @@ export function FullscreenPage() {
 
   const handleCheck = () => {
     checkItem.mutate({
-      ingredientId: currentIngredient.ingredient.id,
-      inBasket: true,
+      shoppinglistId,
+      item_id: currentIngredient.id,
+      fields: { in_basket: true },
     });
     goToNext();
   };
 
   const handleDelete = () => {
     deleteItem.mutate({
-      ingredient: currentIngredient.ingredient.id.toString(),
+      shoppinglistId,
+      item_id: currentIngredient.id,
     });
     goToNext();
   };
