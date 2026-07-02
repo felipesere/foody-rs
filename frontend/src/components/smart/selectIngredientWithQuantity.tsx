@@ -2,8 +2,8 @@ import classnames from "classnames";
 import { useRef, useState } from "react";
 import {
   type Ingredient,
-  useCreateNewIngredient,
-} from "../../apis/ingredients.ts";
+  useCreateIngredient,
+} from "../../api/v1/ingredient.ts";
 import { parse } from "../../quantities.ts";
 import { FindIngredient } from "./findIngredient.tsx";
 import { Quantity } from "../../api/v1/shoppinglists.ts";
@@ -33,7 +33,7 @@ export function SelectIngredientWithQuantity(
     | undefined
   >(undefined);
 
-  const newIngredient = useCreateNewIngredient(props.token);
+  const newIngredient = useCreateIngredient(props.token);
 
   const ingredientRef = useRef<HTMLInputElement | null>(null);
 

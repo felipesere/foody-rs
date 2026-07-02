@@ -55,7 +55,7 @@ function toUnstored(recipe: Recipe): UnstoredRecipe {
     ...rest,
     ingredients: ingredients.map((ri) => ({
       ingredient: ri.ingredient,
-      quantity: ri.quantities,
+      quantities: ri.quantities,
     })),
   };
 }
@@ -116,7 +116,7 @@ function applyChanges(
               ...copy,
               ingredients: [
                 ...copy.ingredients,
-                { ingredient, quantity: [parse(add.quantity)] },
+                { ingredient, quantities: [parse(add.quantity)] },
               ],
             };
           }

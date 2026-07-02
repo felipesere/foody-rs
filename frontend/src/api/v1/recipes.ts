@@ -1,8 +1,7 @@
 import * as v from "valibot";
-import { IngredientSchema, Quantity, QuantitySchema } from "./shoppinglists.ts";
+import { IngredientSchema, QuantitySchema } from "./shoppinglists.ts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { authed, useApiMutation } from "./index.ts";
-import type { Ingredient } from "../../apis/ingredients.ts";
 import { toast } from "sonner";
 import { humanize } from "../../quantities.ts";
 import { TagsSchema } from "./ingredient.ts";
@@ -70,10 +69,9 @@ export const RecipesSchema = v.strictObject({
   recipes: v.array(RecipeSchema),
 });
 
-export type QuantifiedIngredient = {
-  ingredient: Ingredient;
-  quantity: Quantity[];
-};
+// An ingredient + its quantities within a recipe that hasn't been stored yet:
+// a RecipeIngredient without the stored-only join fields.
+export type QuantifiedIngredient = Omit<RecipeIngredient, "id" | "kind">;
 
 type DistributiveOmit<T, K extends keyof T> = T extends any
   ? Omit<T, K>
@@ -133,7 +131,7 @@ export function useCreateRecipe(token: string, navigate: (id: number) => void) {
       // the parsed Quantity back into that form.
       const ingredients = vars.ingredients.map((qi) => ({
         ingredient_id: qi.ingredient.id,
-        quantity: humanize(qi.quantity[0]),
+        quantity: humanize(qi.quantities[0]),
       }));
       return v.parse(
         RecipeSchema,

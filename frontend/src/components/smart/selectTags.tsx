@@ -1,4 +1,4 @@
-import type { Shoppinglist } from "../../apis/shoppinglists.ts";
+import type { Shoppinglist } from "../../api/v1/shoppinglists.ts";
 import { MultiSelect } from "../multiselect.tsx";
 import {
   useIngredientTags,

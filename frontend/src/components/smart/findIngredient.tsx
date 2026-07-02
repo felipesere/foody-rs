@@ -1,5 +1,4 @@
-import { useIngredients } from "../../api/v1/ingredient.ts";
-import { type Ingredient } from "../../apis/ingredients.ts";
+import { type Ingredient, useIngredients } from "../../api/v1/ingredient.ts";
 import type { DropdownProps } from "../dropdown.tsx";
 import { Dropdown } from "../dropdown.tsx";
 

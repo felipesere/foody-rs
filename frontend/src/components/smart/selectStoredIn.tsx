@@ -1,7 +1,10 @@
 import { useForm } from "@tanstack/react-form";
-import { type Ingredient, useEditIngredient } from "../../apis/ingredients.ts";
-import type { Shoppinglist } from "../../apis/shoppinglists.ts";
-import { useAllStorages } from "../../apis/storage.ts";
+import {
+  type Ingredient,
+  useUpdateIngredient,
+} from "../../api/v1/ingredient.ts";
+import type { Shoppinglist } from "../../api/v1/shoppinglists.ts";
+import { useStorages } from "../../api/v1/storages.ts";
 import { Button } from "../button.tsx";
 import { ButtonGroup } from "../buttonGroup.tsx";
 import { Divider } from "../divider.tsx";
@@ -13,8 +16,8 @@ export function SelectStoredIn(props: {
   currentStoredIn: string | null;
   shoppinglistId?: Shoppinglist["id"];
 }) {
-  const storages = useAllStorages(props.token);
-  const editIngredient = useEditIngredient(props.token);
+  const storages = useStorages(props.token);
+  const editIngredient = useUpdateIngredient(props.token);
 
   if (!storages.data || storages.error) {
     return <p>Loading...</p>;
@@ -22,14 +25,14 @@ export function SelectStoredIn(props: {
 
   return (
     <InnerSelectStorage
-      items={storages.data.map((a) => a.name)}
+      items={storages.data.storages.map((a) => a.name)}
       selected={props.currentStoredIn}
       onItemsSelected={(item) => {
-        let storage = storages.data?.find((s) => s.name === item);
+        let storage = storages.data?.storages.find((s) => s.name === item);
         let value = storage?.id ?? null;
         editIngredient.mutate({
-          id: props.ingredientId,
-          changes: [{ type: "storedin", value }],
+          ingredient_id: props.ingredientId,
+          fields: { storage_id: value },
         });
       }}
     />

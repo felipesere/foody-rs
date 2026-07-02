@@ -190,7 +190,7 @@ function Ingredients(props: {
           return (
             <ul key={name}>
               {ingredients.items.map((ingredient) => {
-                const quantity = humanize(ingredient.quantity[0]);
+                const quantity = humanize(ingredient.quantities[0]);
                 const name = ingredient.ingredient.name;
                 return (
                   <IngredientView

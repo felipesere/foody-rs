@@ -45,6 +45,17 @@ export function useIngredientTags(token: string) {
   });
 }
 
+export function useCreateIngredient(token: string) {
+  return useApiMutation({
+    mutationFn: async (vars: { name: string; tags: string[] }) =>
+      v.parse(
+        IngredientSchema,
+        await authed(token).post("api/v1/ingredients", { json: vars }).json(),
+      ),
+    invalidates: ["ingredients"],
+  });
+}
+
 export function useUpdateIngredient(token: string) {
   return useApiMutation({
     mutationFn: (vars: {

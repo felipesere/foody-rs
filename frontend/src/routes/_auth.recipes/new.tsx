@@ -76,7 +76,7 @@ function NewRecipePage() {
               ...prev.ingredients,
               {
                 ingredient,
-                quantity: [parse(quantity)],
+                quantities: [parse(quantity)],
               },
             ],
           }));
@@ -95,7 +95,7 @@ function NewRecipePage() {
             ingredients: prev.ingredients.map((i) => {
               if (i.ingredient.name === name) {
                 const q = parse(quantity);
-                return { ...i, quantity: [q] };
+                return { ...i, quantities: [q] };
               }
               return i;
             }),
