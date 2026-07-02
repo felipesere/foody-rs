@@ -1,43 +1,38 @@
 import { expect, test } from "vitest";
-import type { Recipe } from "../apis/recipes.ts";
+import type { Recipe } from "../api/v1/recipes.ts";
 import { filterRecipes } from "./search.ts";
 
 const recipes: Recipe[] = [
   {
+    kind: "recipe",
     id: 1,
     name: "tartiflette",
     ingredients: [
       {
+        kind: "recipe_ingredient",
+        id: 1,
         ingredient: {
           id: 1,
+          kind: "ingredient",
           name: "potatoes",
           tags: [],
           aisle: null,
-          stored_in: null,
+          storage: null,
         },
-        quantity: [
-          {
-            id: 1,
-            unit: "kg",
-            value: 1,
-          },
-        ],
+        quantities: [{ unit: "kg", value: 1, text: null }],
       },
       {
+        kind: "recipe_ingredient",
+        id: 2,
         ingredient: {
           id: 2,
+          kind: "ingredient",
           name: "cheese",
           tags: [],
           aisle: null,
-          stored_in: null,
+          storage: null,
         },
-        quantity: [
-          {
-            id: 2,
-            unit: "g",
-            value: 500,
-          },
-        ],
+        quantities: [{ unit: "g", value: 500, text: null }],
       },
     ],
     tags: ["winter", "tasty", "cheesy"],
@@ -50,40 +45,35 @@ const recipes: Recipe[] = [
     duration: null,
   },
   {
+    kind: "recipe",
     id: 2,
     name: "blurb",
     ingredients: [
       {
+        kind: "recipe_ingredient",
+        id: 3,
         ingredient: {
           id: 3,
+          kind: "ingredient",
           name: "Strawberry",
           tags: [],
           aisle: null,
-          stored_in: null,
+          storage: null,
         },
-        quantity: [
-          {
-            id: 3,
-            unit: "kg",
-            value: 1,
-          },
-        ],
+        quantities: [{ unit: "kg", value: 1, text: null }],
       },
       {
+        kind: "recipe_ingredient",
+        id: 4,
         ingredient: {
           id: 4,
+          kind: "ingredient",
           name: "Sweet potato",
           tags: [],
           aisle: null,
-          stored_in: null,
+          storage: null,
         },
-        quantity: [
-          {
-            id: 1,
-            unit: "kg",
-            value: 1,
-          },
-        ],
+        quantities: [{ unit: "kg", value: 1, text: null }],
       },
     ],
     tags: ["winter", "weird"],
@@ -92,7 +82,7 @@ const recipes: Recipe[] = [
     source: "book",
     url: null,
     title: "simplissime",
-    page: null,
+    page: 1,
     duration: null,
   },
 ];

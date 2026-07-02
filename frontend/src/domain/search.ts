@@ -91,12 +91,8 @@ export function filterRecipes(
   }
 
   function booksMatch(recipe: Recipe) {
-    if (params.books) {
-      const books = params.books || [];
-
-      if (books.length > 0) {
-        return false;
-      }
+    if (params.books && params.books.length > 0) {
+      const books = params.books;
       switch (recipe.source) {
         case "book":
           return books.some((b) => recipe.title === b);

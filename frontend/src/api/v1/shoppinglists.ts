@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import * as v from "valibot";
 import { AisleSchema } from "./aisles.ts";
 import { authed, TimestampSchema, useApiMutation } from "./index.ts";
@@ -64,12 +65,39 @@ const listKey = (shoppinglistId: number) => ["shoppinglist", shoppinglistId];
 
 export function useShoppinglists(token: string) {
   return useQuery({
-    queryKey: ["ingredients"],
+    queryKey: ["shoppinglists"],
     queryFn: async () =>
       v.parse(
         ShoppinglistsSchema,
         await authed(token).get("api/v1/shoppinglists").json(),
       ),
+  });
+}
+
+export function useCreateShoppinglist(token: string) {
+  return useApiMutation({
+    mutationFn: async (vars: { name: string }) =>
+      v.parse(
+        ShoppinglistSchema,
+        await authed(token)
+          .post("api/v1/shoppinglists", { json: { name: vars.name } })
+          .json(),
+      ),
+    invalidates: ["shoppinglists"],
+    onSuccess: (_data, vars) => {
+      toast.success(`Created a new shoppinglist ${vars.name}`);
+    },
+  });
+}
+
+export function useRemoveShoppinglist(token: string) {
+  return useApiMutation({
+    mutationFn: (vars: { id: number }) =>
+      authed(token).delete(`api/v1/shoppinglists/${vars.id}`),
+    invalidates: (vars) => [["shoppinglists"], listKey(vars.id)],
+    onSuccess: (_data, vars) => {
+      toast.success(`Removed shoppinglist ${vars.id}`);
+    },
   });
 }
 

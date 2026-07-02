@@ -8,6 +8,8 @@ export const AisleSchema = v.strictObject({
   order: v.number(),
 });
 
+export type Aisle = v.InferOutput<typeof AisleSchema>;
+
 export const AislesSchema = v.strictObject({
   aisles: v.array(AisleSchema),
 });

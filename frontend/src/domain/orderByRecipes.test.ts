@@ -1,9 +1,9 @@
 import { expect, test } from "vitest";
-import type { Recipe } from "../apis/recipes.ts";
+import type { Recipe } from "../api/v1/recipes.ts";
 import type {
   ShoppinglistItem,
-  ShoppinglistQuantity,
-} from "../apis/shoppinglists.ts";
+  StoredQuantity,
+} from "../api/v1/shoppinglists.ts";
 import { orderByRecipe } from "./orderByRecipe.ts";
 
 function _ingredient(
@@ -11,32 +11,35 @@ function _ingredient(
   quantities: ShoppinglistItem["quantities"],
 ): ShoppinglistItem {
   return {
+    kind: "shoppinglist_item",
+    id: 1,
+    note: null,
+    in_basket: false,
     ingredient: {
       id: 1,
+      kind: "ingredient",
       name,
       tags: [],
       aisle: null,
-      stored_in: null,
+      storage: null,
     },
     quantities,
-    note: null,
   };
 }
 
-function _quantity(recipe_id: number): ShoppinglistQuantity {
+function _quantity(recipe_id: number): StoredQuantity {
   return {
-    quantity: {
-      id: 1,
-      unit: "grams",
-    },
-    in_basket: false,
+    id: 1,
     recipe_id,
+    unit: "grams",
+    value: null,
+    text: null,
   };
 }
 
 test("groups ingredients and quantities into by their recipes", () => {
   const recipeNames: Record<
-    NonNullable<ShoppinglistQuantity["recipe_id"]>,
+    NonNullable<StoredQuantity["recipe_id"]>,
     Recipe["name"]
   > = {
     1: "Foo",
@@ -52,12 +55,11 @@ test("groups ingredients and quantities into by their recipes", () => {
   const carrots = _ingredient("carrot", [_quantity(3)]);
   const manuallyAdded = _ingredient("flour", [
     {
-      quantity: {
-        id: 1,
-        unit: "grams",
-      },
-      in_basket: false,
+      id: 1,
       recipe_id: null, // <-- Makes this manually added!
+      unit: "grams",
+      value: null,
+      text: null,
     },
   ]);
 

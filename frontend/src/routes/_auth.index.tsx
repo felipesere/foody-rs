@@ -2,12 +2,12 @@ import type { AnyFieldApi } from "@tanstack/react-form";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
+import { KebabMenu } from "../components/kebabMenu.tsx";
 import {
   useCreateShoppinglist,
   useRemoveShoppinglist,
-} from "../apis/shoppinglists.ts";
-import { KebabMenu } from "../components/kebabMenu.tsx";
-import { useShoppinglists } from "../api/v1/shoppinglists.ts";
+  useShoppinglists,
+} from "../api/v1/shoppinglists.ts";
 
 export const Route = createFileRoute("/_auth/")({
   component: ShoppingPage,
