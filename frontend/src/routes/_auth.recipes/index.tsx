@@ -2,6 +2,14 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import classnames from "classnames";
 import { useRef, useState } from "react";
 import { z } from "zod";
+import {
+  Recipe,
+  RecipeIngredient,
+  useDeleteRecipe,
+  useRecipes,
+  useRecipeTags,
+  useUpdateRecipe,
+} from "../../api/v1/recipes.ts";
 import searchIcon from "../../assets/search.png";
 import { Button } from "../../components/button.tsx";
 import { ButtonGroup } from "../../components/buttonGroup.tsx";
@@ -18,14 +26,6 @@ import {
   RecipeSearchSchemaParams,
   updateSearchParams,
 } from "../../domain/search.ts";
-import {
-  useRecipes,
-  useRecipeTags,
-  Recipe,
-  RecipeIngredient,
-  useDeleteRecipe,
-  useUpdateRecipe,
-} from "../../api/v1/recipes.ts";
 
 const recipeUrlParams = z.object({
   search: RecipeSearchSchemaParams.optional(),
@@ -44,6 +44,7 @@ export function RecipesPage() {
   const navigate = useNavigate({ from: Route.path });
 
   const allTags = useRecipeTags(token);
+
   if (isError) {
     return <p>Error</p>;
   }

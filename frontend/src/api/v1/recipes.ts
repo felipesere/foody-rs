@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { authed, useApiMutation } from "./index.ts";
 import type { Ingredient } from "../../apis/ingredients.ts";
 import { toast } from "sonner";
+import { humanize } from "../../quantities.ts";
 import { TagsSchema } from "./ingredient.ts";
 
 const RecipeIngredientSchema = v.strictObject({
@@ -103,7 +104,7 @@ export function useRecipe(token: string, id: number) {
 
 export function useRecipeTags(token: string) {
   return useQuery({
-    queryKey: ["recipes"],
+    queryKey: ["recipes_tags"],
     queryFn: async () =>
       v.parse(
         TagsSchema,
@@ -115,11 +116,32 @@ export function useRecipeTags(token: string) {
 export function useCreateRecipe(token: string, navigate: (id: number) => void) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (vars: UnstoredRecipe) =>
-      v.parse(
+    mutationFn: async (vars: UnstoredRecipe) => {
+      const recipe = {
+        name: vars.name,
+        tags: vars.tags,
+        rating: vars.rating,
+        notes: vars.notes,
+        duration: vars.duration,
+        ...sourcePayload(
+          vars.source === "book"
+            ? { source: "book", title: vars.title, page: vars.page }
+            : { source: "website", url: vars.url },
+        ),
+      };
+      // Rails parses each quantity from a string (e.g. "500g"), so re-render
+      // the parsed Quantity back into that form.
+      const ingredients = vars.ingredients.map((qi) => ({
+        ingredient_id: qi.ingredient.id,
+        quantity: humanize(qi.quantity[0]),
+      }));
+      return v.parse(
         RecipeSchema,
-        await authed(token).post("api/v1/recipes", { json: vars }).json(),
-      ),
+        await authed(token)
+          .post("api/v1/recipes", { json: { recipe, ingredients } })
+          .json(),
+      );
+    },
     onSuccess: async (data, vars) => {
       await queryClient.invalidateQueries({ queryKey: ["recipes"] });
       queryClient.setQueryData(["recipe", data.id], data);
@@ -129,6 +151,33 @@ export function useCreateRecipe(token: string, navigate: (id: number) => void) {
   });
 }
 
+/**
+ * The source-discriminated portion of a recipe as callers express it (`title` /
+ * `page` / `url`). Rails names these columns differently, so all writes funnel
+ * through `sourcePayload` for one consistent translation.
+ */
+export type SourceInput =
+  | { source: "book"; title: string; page: number }
+  | { source: "website"; url: string };
+
+// Rails' recipes#create/#update read `params.require(:recipe)` and name the
+// source columns book_title / book_page / website_url.
+function sourcePayload(source: SourceInput) {
+  return source.source === "book"
+    ? {
+        source: "book",
+        book_title: source.title,
+        book_page: source.page,
+        website_url: null,
+      }
+    : {
+        source: "website",
+        website_url: source.url,
+        book_title: null,
+        book_page: null,
+      };
+}
+
 export type RecipeUpdate = {
   recipeId: number;
   name?: string;
@@ -136,29 +185,14 @@ export type RecipeUpdate = {
   tags?: string[];
   rating?: number;
   duration?: string;
-  source?:
-    | { source: "book"; title: string; page: number }
-    | { source: "website"; url: string };
+  source?: SourceInput;
 };
 
 export function useUpdateRecipe(token: string) {
   return useApiMutation({
     mutationFn: async (vars: RecipeUpdate) => {
       const { recipeId, source, ...rest } = vars;
-      // Rails' recipes#update reads `params.require(:recipe)` and names the
-      // source columns book_title / book_page / website_url.
-      const recipe: Record<string, unknown> = { ...rest };
-      if (source?.source === "book") {
-        recipe.source = "book";
-        recipe.book_title = source.title;
-        recipe.book_page = source.page;
-        recipe.website_url = null;
-      } else if (source?.source === "website") {
-        recipe.source = "website";
-        recipe.website_url = source.url;
-        recipe.book_title = null;
-        recipe.book_page = null;
-      }
+      const recipe = { ...rest, ...(source ? sourcePayload(source) : {}) };
       return v.parse(
         RecipeSchema,
         await authed(token)
