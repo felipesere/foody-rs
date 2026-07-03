@@ -22,7 +22,7 @@ class Api::V1::ImportController < ApplicationController
   rescue JSON::ParserError => e
     render json: { errors: ["invalid JSON: #{e.message}"] }, status: :bad_request
   rescue ActiveRecord::RecordInvalid => e
-    render json: { errors: [import_error_message(e)] }, status: :unprocessable_entity
+    render json: { errors: [import_error_message(e)] }, status: :unprocessable_content
   end
 
   private

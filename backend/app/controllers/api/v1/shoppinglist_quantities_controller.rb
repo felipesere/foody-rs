@@ -8,7 +8,7 @@ class Api::V1::ShoppinglistQuantitiesController < ApplicationController
     if quantity.save
       render json: serialize(quantity), status: :created
     else
-      render json: { errors: quantity.errors.full_messages }, status: :unprocessable_entity
+      render json: { errors: quantity.errors.full_messages }, status: :unprocessable_content
     end
   end
 
@@ -17,7 +17,7 @@ class Api::V1::ShoppinglistQuantitiesController < ApplicationController
     if quantity.update(**ShoppinglistQuantity.from_quantity_string(params[:quantity].to_s))
       render json: serialize(quantity)
     else
-      render json: { errors: quantity.errors.full_messages }, status: :unprocessable_entity
+      render json: { errors: quantity.errors.full_messages }, status: :unprocessable_content
     end
   end
 

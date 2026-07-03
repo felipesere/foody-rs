@@ -16,7 +16,7 @@ class Api::V1::RecipesController < ApplicationController
     if recipe.save
       render json: RecipeSerializer.new(recipe).as_json, status: :created
     else
-      render json: { errors: recipe.errors.full_messages }, status: :unprocessable_entity
+      render json: { errors: recipe.errors.full_messages }, status: :unprocessable_content
     end
   end
 
@@ -25,7 +25,7 @@ class Api::V1::RecipesController < ApplicationController
     if recipe.update(recipe_params)
       render json: RecipeSerializer.new(recipe.reload).as_json
     else
-      render json: { errors: recipe.errors.full_messages }, status: :unprocessable_entity
+      render json: { errors: recipe.errors.full_messages }, status: :unprocessable_content
     end
   end
 

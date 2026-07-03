@@ -6,7 +6,7 @@ class Api::V1::MealplanMealsController < ApplicationController
     if meal.save
       render json: Payloads.meal(meal), status: :created
     else
-      render json: { errors: meal.errors.full_messages }, status: :unprocessable_entity
+      render json: { errors: meal.errors.full_messages }, status: :unprocessable_content
     end
   end
 
@@ -15,7 +15,7 @@ class Api::V1::MealplanMealsController < ApplicationController
     if meal.update(meal_params)
       render json: Payloads.meal(meal)
     else
-      render json: { errors: meal.errors.full_messages }, status: :unprocessable_entity
+      render json: { errors: meal.errors.full_messages }, status: :unprocessable_content
     end
   end
 

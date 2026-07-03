@@ -39,7 +39,7 @@ RSpec.describe "Api::V1::MealplanMeals", type: :request do
 
     it "rejects a meal without details" do
       post "/api/v1/mealplans/#{plan.id}/meals", params: {}, as: :json
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
   end
 

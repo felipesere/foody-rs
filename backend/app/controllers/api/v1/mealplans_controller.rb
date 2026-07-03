@@ -19,7 +19,7 @@ class Api::V1::MealplansController < ApplicationController
 
     render json: MealplanSerializer.new(plan.reload).as_json, status: :created
   rescue ActiveRecord::RecordInvalid => e
-    render json: { errors: e.record.errors.full_messages }, status: :unprocessable_entity
+    render json: { errors: e.record.errors.full_messages }, status: :unprocessable_content
   end
 
   def destroy

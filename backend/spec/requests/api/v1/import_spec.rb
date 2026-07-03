@@ -118,7 +118,7 @@ RSpec.describe "Api::V1::Import", type: :request do
 
       post "/api/v1/import", params: payload.to_json, headers: { "Content-Type" => "application/json" }
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       expect(response.parsed_body["errors"].first).to include("Book title can't be blank", "recipe: Shortbread")
     end
 

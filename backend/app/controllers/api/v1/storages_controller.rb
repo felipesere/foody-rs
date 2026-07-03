@@ -12,7 +12,7 @@ class Api::V1::StoragesController < ApplicationController
     if storage.save
       render json: Payloads.storage(storage), status: :created
     else
-      render json: { errors: storage.errors.full_messages }, status: :unprocessable_entity
+      render json: { errors: storage.errors.full_messages }, status: :unprocessable_content
     end
   end
 
@@ -21,7 +21,7 @@ class Api::V1::StoragesController < ApplicationController
     if storage.update(storage_params)
       render json: Payloads.storage(storage), status: :ok
     else
-      render status: :unprocessable_entity
+      render status: :unprocessable_content
     end
   end
 

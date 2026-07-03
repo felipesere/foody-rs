@@ -12,7 +12,7 @@ class Api::V1::AislesController < ApplicationController
     if aisle.save
       render json: Payloads.aisle(aisle), status: :created
     else
-      render json: { errors: aisle.errors.full_messages }, status: :unprocessable_entity
+      render json: { errors: aisle.errors.full_messages }, status: :unprocessable_content
     end
   end
 
@@ -21,7 +21,7 @@ class Api::V1::AislesController < ApplicationController
     if aisle.update(aisle_params)
       render json: Payloads.aisle(aisle), status: :ok
     else
-      render status: :unprocessable_entity
+      render status: :unprocessable_content
     end
   end
 

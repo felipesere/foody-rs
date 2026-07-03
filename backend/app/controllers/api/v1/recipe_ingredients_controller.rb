@@ -9,7 +9,7 @@ class Api::V1::RecipeIngredientsController < ApplicationController
     if ri.save
       head :created
     else
-      render json: { errors: ri.errors.full_messages }, status: :unprocessable_entity
+      render json: { errors: ri.errors.full_messages }, status: :unprocessable_content
     end
   end
 

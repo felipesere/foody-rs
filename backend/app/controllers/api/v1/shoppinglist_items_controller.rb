@@ -9,7 +9,7 @@ class Api::V1::ShoppinglistItemsController < ApplicationController
     if item.save
       render json: Payloads.shoppinglist_item(item), status: :created
     else
-      render json: { errors: item.errors.full_messages }, status: :unprocessable_entity
+      render json: { errors: item.errors.full_messages }, status: :unprocessable_content
     end
   end
 
@@ -18,7 +18,7 @@ class Api::V1::ShoppinglistItemsController < ApplicationController
     if item.update(item_params)
       render json: Payloads.shoppinglist_item(item)
     else
-      render json: { errors: item.errors.full_messages }, status: :unprocessable_entity
+      render json: { errors: item.errors.full_messages }, status: :unprocessable_content
     end
   end
 

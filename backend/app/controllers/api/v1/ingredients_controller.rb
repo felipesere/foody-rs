@@ -16,7 +16,7 @@ class Api::V1::IngredientsController < ApplicationController
     if ingredient.save
       render json: Payloads.ingredient(ingredient), status: :created
     else
-      render json: { errors: ingredient.errors.full_messages }, status: :unprocessable_entity
+      render json: { errors: ingredient.errors.full_messages }, status: :unprocessable_content
     end
   end
 
@@ -25,7 +25,7 @@ class Api::V1::IngredientsController < ApplicationController
     if ingredient.update(ingredient_params)
       render json: Payloads.ingredient(ingredient), status: :ok
     else
-      render status: :unprocessable_entity
+      render status: :unprocessable_content
     end
   end
 

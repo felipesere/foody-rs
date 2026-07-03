@@ -91,7 +91,7 @@ RSpec.describe "Api::V1::Recipes", type: :request do
            params: { recipe: { name: "", source: "book" } },
            as: :json
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       expect(response.parsed_body["errors"]).to be_present
     end
   end

@@ -52,7 +52,7 @@ RSpec.describe "Api::V1::Mealplans", type: :request do
 
     it "returns 422 when name is blank" do
       post "/api/v1/mealplans", params: { name: "" }, as: :json
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
   end
 

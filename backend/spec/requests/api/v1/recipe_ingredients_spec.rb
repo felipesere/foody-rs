@@ -39,7 +39,7 @@ RSpec.describe "Api::V1::RecipeIngredients", type: :request do
            params: { ingredient_id: flour.id, quantity: "100g" },
            as: :json
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
   end
 

@@ -16,7 +16,7 @@ class Api::V1::ShoppinglistsController < ApplicationController
     if list.save
       render json: ShoppinglistSerializer.new(list).as_json, status: :created
     else
-      render json: { errors: list.errors.full_messages }, status: :unprocessable_entity
+      render json: { errors: list.errors.full_messages }, status: :unprocessable_content
     end
   end
 
