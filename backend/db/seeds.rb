@@ -1,9 +1,13 @@
-# This file should ensure the existence of records required to run the application in every environment (production,
-# development, test). The code here should be idempotent so that it can be executed at any point in every environment.
-# The data can then be loaded with the bin/rails db:seed command (or created alongside the database with db:setup).
-#
-# Example:
-#
-#   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
-#     MovieGenre.find_or_create_by!(name: genre_name)
-#   end
+# Idempotent seed data for local development. Creates a default group and a
+# couple of users with no oidc_subject yet (stamped on first real login).
+group = Group.find_or_create_by!(name: "Sere Family")
+
+[
+  { email: "felipe@example.com", name: "Felipe" },
+  { email: "charlotte@example.com", name: "Charlotte" },
+].each do |attrs|
+  User.find_or_create_by!(email: attrs[:email]) do |user|
+    user.name = attrs[:name]
+    user.group = group
+  end
+end

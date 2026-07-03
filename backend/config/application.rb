@@ -40,5 +40,9 @@ module Foody
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
+
+    # Auth uses a signed session cookie (same-origin), so re-add the cookies
+    # middleware that api_only mode omits.
+    config.middleware.use ActionDispatch::Cookies
   end
 end
