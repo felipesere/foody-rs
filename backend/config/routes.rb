@@ -41,6 +41,11 @@ Rails.application.routes.draw do
   end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
+  # Pocket ID OIDC login flow.
+  get    "auth/login",    to: "auth/sessions#new"
+  get    "auth/callback", to: "auth/sessions#callback"
+  delete "auth/session",  to: "auth/sessions#destroy"
+
   # Dev/test-only login bypass (see Dev::SessionsController). Never mounted in
   # production.
   if Rails.env.local?
