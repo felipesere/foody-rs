@@ -1,4 +1,6 @@
 class ShoppinglistQuantity < ApplicationRecord
+  include GroupScoped
+
   belongs_to :shoppinglist_item
   belongs_to :recipe, optional: true
 

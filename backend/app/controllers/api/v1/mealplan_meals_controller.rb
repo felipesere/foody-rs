@@ -1,6 +1,6 @@
 class Api::V1::MealplanMealsController < ApplicationController
   def create
-    plan = Mealplan.find(params[:mealplan_id])
+    plan = Current.group.mealplans.find(params[:mealplan_id])
     meal = plan.mealplan_meals.new(section: params[:section], **details_attributes)
 
     if meal.save
@@ -11,7 +11,7 @@ class Api::V1::MealplanMealsController < ApplicationController
   end
 
   def update
-    meal = MealplanMeal.where(mealplan_id: params[:mealplan_id]).find(params[:id])
+    meal = find_meal
     if meal.update(meal_params)
       render json: Payloads.meal(meal)
     else
@@ -20,13 +20,17 @@ class Api::V1::MealplanMealsController < ApplicationController
   end
 
   def destroy
-    MealplanMeal.where(mealplan_id: params[:mealplan_id])
-                .find(params[:id])
-                .destroy
+    find_meal.destroy
     head :no_content
   end
 
   private
+
+  def find_meal
+    Current.group.mealplans
+           .find(params[:mealplan_id])
+           .mealplan_meals.find(params[:id])
+  end
 
   def meal_params
     params.permit(:is_cooked, :section)

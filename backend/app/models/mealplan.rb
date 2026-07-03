@@ -1,4 +1,6 @@
 class Mealplan < ApplicationRecord
+  include GroupScoped
+
   has_many :mealplan_meals, dependent: :destroy
 
   validates :name, presence: true

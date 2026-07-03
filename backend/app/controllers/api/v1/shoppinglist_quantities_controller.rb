@@ -29,8 +29,9 @@ class Api::V1::ShoppinglistQuantitiesController < ApplicationController
   private
 
   def find_item
-    ShoppinglistItem.where(shoppinglist_id: params[:shoppinglist_id])
-                    .find(params[:item_id])
+    Current.group.shoppinglists
+           .find(params[:shoppinglist_id])
+           .shoppinglist_items.find(params[:item_id])
   end
 
   def serialize(quantity)

@@ -1,7 +1,7 @@
 class Api::V1::ShoppinglistRecipesController < ApplicationController
   def create
-    list = Shoppinglist.find(params[:shoppinglist_id])
-    recipe = Recipe.find(params[:id])
+    list = Current.group.shoppinglists.find(params[:shoppinglist_id])
+    recipe = Current.group.recipes.find(params[:id])
 
     ActiveRecord::Base.transaction do
       recipe.recipe_ingredients.each do |ri|
@@ -20,7 +20,7 @@ class Api::V1::ShoppinglistRecipesController < ApplicationController
   end
 
   def destroy
-    list = Shoppinglist.find(params[:shoppinglist_id])
+    list = Current.group.shoppinglists.find(params[:shoppinglist_id])
 
     ActiveRecord::Base.transaction do
       ShoppinglistQuantity

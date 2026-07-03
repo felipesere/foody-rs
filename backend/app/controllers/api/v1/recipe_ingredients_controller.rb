@@ -1,6 +1,6 @@
 class Api::V1::RecipeIngredientsController < ApplicationController
   def create
-    recipe = Recipe.find(params[:recipe_id])
+    recipe = Current.group.recipes.find(params[:recipe_id])
     ri = recipe.recipe_ingredients.new(
       ingredient_id: params[:ingredient_id],
       **RecipeIngredient.from_quantity_string(params[:quantity].to_s)
@@ -14,9 +14,8 @@ class Api::V1::RecipeIngredientsController < ApplicationController
   end
 
   def destroy
-    RecipeIngredient
-      .where(recipe_id: params[:recipe_id], ingredient_id: params[:id])
-      .delete_all
+    recipe = Current.group.recipes.find(params[:recipe_id])
+    recipe.recipe_ingredients.where(ingredient_id: params[:id]).delete_all
     head :no_content
   end
 end

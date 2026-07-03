@@ -1,16 +1,16 @@
 class Api::V1::MealplansController < ApplicationController
   def index
-    plans = Mealplan.with_full_meals.order(created_at: :desc, id: :desc)
+    plans = Current.group.mealplans.with_full_meals.order(created_at: :desc, id: :desc)
     render json: { mealplans: plans.map { |p| MealplanSerializer.new(p).as_json } }
   end
 
   def show
-    plan = Mealplan.with_full_meals.find(params[:id])
+    plan = Current.group.mealplans.with_full_meals.find(params[:id])
     render json: MealplanSerializer.new(plan).as_json
   end
 
   def create
-    plan = Mealplan.new(name: params[:name])
+    plan = Current.group.mealplans.new(name: params[:name])
 
     Mealplan.transaction do
       plan.save!
@@ -23,12 +23,12 @@ class Api::V1::MealplansController < ApplicationController
   end
 
   def destroy
-    Mealplan.find(params[:id]).destroy
+    Current.group.mealplans.find(params[:id]).destroy
     head :no_content
   end
 
   def clear
-    plan = Mealplan.find(params[:id])
+    plan = Current.group.mealplans.find(params[:id])
     plan.mealplan_meals.destroy_all
     head :no_content
   end
@@ -36,7 +36,7 @@ class Api::V1::MealplansController < ApplicationController
   private
 
   def copy_uncooked_meals_from_previous(plan)
-    previous = Mealplan.where.not(id: plan.id).order(created_at: :desc).first
+    previous = Current.group.mealplans.where.not(id: plan.id).order(created_at: :desc).first
     return unless previous
 
     previous.mealplan_meals.where(is_cooked: false).each do |meal|

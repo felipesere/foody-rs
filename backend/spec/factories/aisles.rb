@@ -1,6 +1,7 @@
 FactoryBot.define do
   factory :aisle do
-    name { "MyString" }
-    order { 1 }
+    sequence(:name) { |n| "Aisle #{n}" }
+    sequence(:order) { |n| n }
+    group { Current.group || association(:group) }
   end
 end

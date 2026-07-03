@@ -1,16 +1,16 @@
 class Api::V1::RecipesController < ApplicationController
   def index
-    recipes = Recipe.with_full_ingredients.order(created_at: :desc, id: :desc)
+    recipes = Current.group.recipes.with_full_ingredients.order(created_at: :desc, id: :desc)
     render json: { recipes: recipes.map { |r| RecipeSerializer.new(r).as_json } }
   end
 
   def show
-    recipe = Recipe.with_full_ingredients.find(params[:id])
+    recipe = Current.group.recipes.with_full_ingredients.find(params[:id])
     render json: RecipeSerializer.new(recipe).as_json
   end
 
   def create
-    recipe = Recipe.new(recipe_params)
+    recipe = Current.group.recipes.new(recipe_params)
     recipe.recipe_ingredients = build_recipe_ingredients(params[:ingredients])
 
     if recipe.save
@@ -21,7 +21,7 @@ class Api::V1::RecipesController < ApplicationController
   end
 
   def update
-    recipe = Recipe.find(params[:id])
+    recipe = Current.group.recipes.find(params[:id])
     if recipe.update(recipe_params)
       render json: RecipeSerializer.new(recipe.reload).as_json
     else
@@ -30,12 +30,12 @@ class Api::V1::RecipesController < ApplicationController
   end
 
   def destroy
-    Recipe.find(params[:id]).destroy
+    Current.group.recipes.find(params[:id]).destroy
     head :no_content
   end
 
   def tags
-    render json: { tags: Recipe.all_tags }
+    render json: { tags: Current.group.recipes.all_tags }
   end
 
   private

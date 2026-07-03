@@ -1,4 +1,6 @@
 class Recipe < ApplicationRecord
+  include GroupScoped
+
   SOURCES = %w[book website].freeze
 
   has_many :recipe_ingredients, dependent: :destroy

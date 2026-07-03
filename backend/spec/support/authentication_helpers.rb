@@ -3,9 +3,13 @@ module AuthenticationHelpers
   # path, so the signed cookie is set exactly like production. Called with no
   # argument, it signs in a default user; specs that care about a specific
   # user/group pass one in.
+  #
+  # It also sets Current in the test process so records built in the spec body
+  # (outside a request) are stamped with the signed-in user's group.
   def sign_in(user = nil)
     user ||= default_test_user
     post "/dev/login", params: { as: user.email }
+    Current.session = user.sessions.order(:created_at).last
     user
   end
 

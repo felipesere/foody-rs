@@ -1,6 +1,7 @@
 FactoryBot.define do
   factory :storage_location do
-    name { "MyString" }
-    order { 1 }
+    sequence(:name) { |n| "Storage #{n}" }
+    sequence(:order) { |n| n }
+    group { Current.group || association(:group) }
   end
 end

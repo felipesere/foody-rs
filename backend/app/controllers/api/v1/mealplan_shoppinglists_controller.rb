@@ -1,7 +1,7 @@
 class Api::V1::MealplanShoppinglistsController < ApplicationController
   def create
-    plan = Mealplan.find(params[:mealplan_id])
-    list = Shoppinglist.find(params[:id])
+    plan = Current.group.mealplans.find(params[:mealplan_id])
+    list = Current.group.shoppinglists.find(params[:id])
 
     already_attached = ShoppinglistQuantity
                        .joins(:shoppinglist_item)
@@ -18,7 +18,7 @@ class Api::V1::MealplanShoppinglistsController < ApplicationController
                          .uniq
 
     ActiveRecord::Base.transaction do
-      Recipe.where(id: recipes_to_add).includes(:recipe_ingredients).each do |recipe|
+      Current.group.recipes.where(id: recipes_to_add).includes(:recipe_ingredients).each do |recipe|
         recipe.recipe_ingredients.each do |ri|
           item = list.shoppinglist_items
                      .find_or_create_by!(ingredient_id: ri.ingredient_id)

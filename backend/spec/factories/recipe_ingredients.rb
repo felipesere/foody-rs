@@ -5,5 +5,6 @@ FactoryBot.define do
     unit  { "count" }
     value { 1.0 }
     text  { nil }
+    group { recipe.group }
   end
 end

@@ -1,4 +1,6 @@
 class RecipeIngredient < ApplicationRecord
+  include GroupScoped
+
   belongs_to :recipe
   belongs_to :ingredient
 

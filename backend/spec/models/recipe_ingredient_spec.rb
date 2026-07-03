@@ -32,6 +32,7 @@ RSpec.describe RecipeIngredient, type: :model do
       ri = RecipeIngredient.create!(
         recipe: recipe,
         ingredient: ingredient,
+        group: recipe.group,
         **RecipeIngredient.from_quantity_string("250g")
       )
 

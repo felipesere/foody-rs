@@ -1,6 +1,6 @@
 class Api::V1::ShoppinglistItemsController < ApplicationController
   def create
-    list = Shoppinglist.find(params[:shoppinglist_id])
+    list = Current.group.shoppinglists.find(params[:shoppinglist_id])
     item = list.shoppinglist_items.new(ingredient_id: params[:ingredient_id])
     item.shoppinglist_quantities.build(
       **ShoppinglistQuantity.from_quantity_string(params[:quantity].to_s)
@@ -14,8 +14,7 @@ class Api::V1::ShoppinglistItemsController < ApplicationController
   end
 
   def update
-    item = ShoppinglistItem.where(shoppinglist_id: params[:shoppinglist_id])
-                          .find(params[:id])
+    item = find_item
     if item.update(item_params)
       render json: Payloads.shoppinglist_item(item)
     else
@@ -24,13 +23,17 @@ class Api::V1::ShoppinglistItemsController < ApplicationController
   end
 
   def destroy
-    ShoppinglistItem.where(shoppinglist_id: params[:shoppinglist_id])
-                    .find(params[:id])
-                    .destroy
+    find_item.destroy
     head :no_content
   end
 
   private
+
+  def find_item
+    Current.group.shoppinglists
+           .find(params[:shoppinglist_id])
+           .shoppinglist_items.find(params[:id])
+  end
 
   def item_params
     params.permit(:in_basket, :note)

@@ -1,14 +1,14 @@
 class Api::V1::AislesController < ApplicationController
 
   def index
-    aisles = Aisle.all.order(order: :asc)
+    aisles = Current.group.aisles.order(order: :asc)
     render json: {
       aisles: aisles.map { |a| Payloads.aisle(a) }
     }
   end
 
   def create
-    aisle = Aisle.new(aisle_params)
+    aisle = Current.group.aisles.new(aisle_params)
     if aisle.save
       render json: Payloads.aisle(aisle), status: :created
     else
@@ -17,7 +17,7 @@ class Api::V1::AislesController < ApplicationController
   end
 
   def update
-    aisle = Aisle.find_by(id: params["id"])
+    aisle = Current.group.aisles.find_by(id: params["id"])
     if aisle.update(aisle_params)
       render json: Payloads.aisle(aisle), status: :ok
     else
@@ -26,7 +26,7 @@ class Api::V1::AislesController < ApplicationController
   end
 
   def destroy
-    @aisle = Aisle.find(params[:id])
+    @aisle = Current.group.aisles.find(params[:id])
     @aisle.destroy
 
     head :no_content

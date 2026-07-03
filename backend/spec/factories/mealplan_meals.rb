@@ -3,6 +3,7 @@ FactoryBot.define do
     mealplan
     is_cooked { false }
     section   { nil }
+    group { mealplan.group }
 
     # default to a recipe-backed meal
     recipe

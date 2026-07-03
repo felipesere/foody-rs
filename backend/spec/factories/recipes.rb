@@ -7,6 +7,7 @@ FactoryBot.define do
     tags    { [] }
     rating  { 0 }
     notes   { "" }
+    group { Current.group || association(:group) }
 
     trait :website do
       source { "website" }

@@ -4,5 +4,6 @@ FactoryBot.define do
     ingredient
     in_basket { false }
     note      { nil }
+    group { shoppinglist.group }
   end
 end

@@ -5,5 +5,6 @@ FactoryBot.define do
     value { 1.0 }
     text  { nil }
     recipe { nil }
+    group { shoppinglist_item.group }
   end
 end

@@ -1,4 +1,6 @@
 class Ingredient < ApplicationRecord
+  include GroupScoped
+
   belongs_to :aisle, optional: true
   belongs_to :storage, class_name: "StorageLocation", optional: true
 

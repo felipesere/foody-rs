@@ -9,7 +9,7 @@ RSpec.describe Ingredient, type: :model do
     end
 
     it "is valid with just a name" do
-      expect(Ingredient.new(name: "Flour")).to be_valid
+      expect(build(:ingredient, name: "Flour")).to be_valid
     end
   end
 end
