@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_25_120002) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_03_000003) do
   create_table "aisles", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name"
@@ -18,6 +18,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_25_120002) do
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_aisles_on_name", unique: true
     t.index ["order"], name: "index_aisles_on_order", unique: true
+  end
+
+  create_table "groups", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "ingredients", force: :cascade do |t|
@@ -76,6 +82,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_25_120002) do
     t.string "website_url"
   end
 
+  create_table "sessions", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["user_id"], name: "index_sessions_on_user_id"
+  end
+
   create_table "shoppinglist_items", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.boolean "in_basket", default: false, null: false
@@ -115,14 +128,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_25_120002) do
     t.index ["order"], name: "index_storage_locations_on_order", unique: true
   end
 
+  create_table "users", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "email", null: false
+    t.integer "group_id", null: false
+    t.string "name"
+    t.string "oidc_subject"
+    t.datetime "updated_at", null: false
+    t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["group_id"], name: "index_users_on_group_id"
+    t.index ["oidc_subject"], name: "index_users_on_oidc_subject", unique: true
+  end
+
   add_foreign_key "ingredients", "aisles"
   add_foreign_key "ingredients", "storage_locations", column: "storage_id"
   add_foreign_key "mealplan_meals", "mealplans"
   add_foreign_key "mealplan_meals", "recipes"
   add_foreign_key "recipe_ingredients", "ingredients"
   add_foreign_key "recipe_ingredients", "recipes"
+  add_foreign_key "sessions", "users"
   add_foreign_key "shoppinglist_items", "ingredients"
   add_foreign_key "shoppinglist_items", "shoppinglists"
   add_foreign_key "shoppinglist_quantities", "recipes"
   add_foreign_key "shoppinglist_quantities", "shoppinglist_items"
+  add_foreign_key "users", "groups"
 end
