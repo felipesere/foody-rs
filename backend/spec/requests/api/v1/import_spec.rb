@@ -179,5 +179,18 @@ RSpec.describe "Api::V1::Import", type: :request do
       expect(flour_item.created_at).to eq(Time.parse(item_early_ts))
       expect(flour_item.shoppinglist_quantities.map(&:created_at)).to contain_exactly(Time.parse(item_late_ts), Time.parse(item_early_ts))
     end
+
+    it "imports into the current group without touching another group's catalog" do
+      other = create(:group)
+      other_aisle = create(:aisle, name: "vegetable", order: 1, group: other)
+
+      post "/api/v1/import", params: payload.to_json, headers: { "Content-Type" => "application/json" }
+      expect(response).to have_http_status(:ok)
+
+      mine = Current.group.aisles.find_by(name: "vegetable")
+      expect(mine).to be_present
+      expect(mine.id).not_to eq(other_aisle.id)
+      expect(other.aisles.pluck(:name)).to eq(["vegetable"]) # untouched, still one
+    end
   end
 end

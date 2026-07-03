@@ -10,11 +10,11 @@ class Api::V1::ImportController < ApplicationController
       import_shoppinglists(payload["shoppinglists"], ingredients, recipes)
 
       {
-        aisles:        Aisle.count,
-        ingredients:   Ingredient.count,
-        recipes:       Recipe.count,
-        mealplans:     Mealplan.count,
-        shoppinglists: Shoppinglist.count
+        aisles:        Current.group.aisles.count,
+        ingredients:   Current.group.ingredients.count,
+        recipes:       Current.group.recipes.count,
+        mealplans:     Current.group.mealplans.count,
+        shoppinglists: Current.group.shoppinglists.count
       }
     end
 
@@ -50,7 +50,7 @@ class Api::V1::ImportController < ApplicationController
 
   def import_aisles(rows)
     Array(rows).each_with_object({}) do |attrs, map|
-      aisle = Aisle.find_or_initialize_by(name: attrs["name"])
+      aisle = Current.group.aisles.find_or_initialize_by(name: attrs["name"])
       aisle.order = attrs["order"]
       stamp(aisle, attrs["created_at"])
       aisle.save!
@@ -60,7 +60,7 @@ class Api::V1::ImportController < ApplicationController
 
   def import_ingredients(rows, aisles)
     Array(rows).each_with_object({}) do |attrs, map|
-      ingredient = Ingredient.find_or_initialize_by(name: attrs["name"])
+      ingredient = Current.group.ingredients.find_or_initialize_by(name: attrs["name"])
       ingredient.tags  = attrs["tags"] || []
       ingredient.aisle = aisles[attrs["aisle"]]
       stamp(ingredient, attrs["created_at"])
@@ -71,7 +71,7 @@ class Api::V1::ImportController < ApplicationController
 
   def import_recipes(rows, ingredients)
     Array(rows).each_with_object({}) do |attrs, map|
-      recipe = Recipe.find_or_initialize_by(name: attrs["name"])
+      recipe = Current.group.recipes.find_or_initialize_by(name: attrs["name"])
       book_title = attrs["book_title"]
       book_title = "No book" if attrs["source"] == "book" && book_title == ""
       recipe.assign_attributes(
@@ -90,7 +90,7 @@ class Api::V1::ImportController < ApplicationController
 
       Array(attrs["ingredients"]).each do |ri|
         ingredient = ingredients[ri["name"]] ||
-                     Ingredient.find_or_create_by!(name: ri["name"]).tap { |i| ingredients[i.name] = i }
+                     Current.group.ingredients.find_or_create_by!(name: ri["name"]).tap { |i| ingredients[i.name] = i }
         quantity = ri["quantity"] || {}
         recipe_ingredient = recipe.recipe_ingredients.find_or_initialize_by(ingredient: ingredient)
         recipe_ingredient.assign_attributes(
@@ -108,7 +108,7 @@ class Api::V1::ImportController < ApplicationController
 
   def import_mealplans(rows, recipes)
     Array(rows).each do |attrs|
-      plan = Mealplan.find_or_initialize_by(name: attrs["name"])
+      plan = Current.group.mealplans.find_or_initialize_by(name: attrs["name"])
       stamp(plan, attrs["created_at"])
       plan.save!
       plan.mealplan_meals.destroy_all
@@ -130,15 +130,15 @@ class Api::V1::ImportController < ApplicationController
 
   def import_shoppinglists(rows, ingredients, recipes)
     Array(rows).each do |attrs|
-      list = Shoppinglist.find_or_initialize_by(name: attrs["name"])
+      list = Current.group.shoppinglists.find_or_initialize_by(name: attrs["name"])
       stamp(list, attrs["created_at"])
       list.save!
       list.shoppinglist_items.destroy_all
 
       Array(attrs["items"]).group_by { |i| i["ingredient"] }.each do |ingredient_name, item_rows|
         ingredient = ingredients[ingredient_name] ||
-                     Ingredient.find_or_create_by!(name: ingredient_name)
-                              .tap { |i| ingredients[i.name] = i }
+                     Current.group.ingredients.find_or_create_by!(name: ingredient_name)
+                            .tap { |i| ingredients[i.name] = i }
 
         item_ts = item_rows.map { |r| r["created_at"] }.compact.min
         item = list.shoppinglist_items.create!(
