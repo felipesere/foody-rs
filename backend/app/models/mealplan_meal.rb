@@ -1,5 +1,6 @@
 class MealplanMeal < ApplicationRecord
   include GroupScoped
+  include UserAttributed
 
   belongs_to :mealplan
   belongs_to :recipe, optional: true

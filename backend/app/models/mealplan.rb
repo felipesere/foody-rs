@@ -1,5 +1,6 @@
 class Mealplan < ApplicationRecord
   include GroupScoped
+  include UserAttributed
 
   has_many :mealplan_meals, dependent: :destroy
 

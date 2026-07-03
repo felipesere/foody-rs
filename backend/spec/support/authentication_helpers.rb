@@ -5,12 +5,19 @@ module AuthenticationHelpers
   # user/group pass one in.
   #
   # It also sets Current in the test process so records built in the spec body
-  # (outside a request) are stamped with the signed-in user's group.
+  # (outside a request) are stamped with the signed-in user.
   def sign_in(user = nil)
     user ||= default_test_user
     post "/dev/login", params: { as: user.email }
     Current.session = user.sessions.order(:created_at).last
     user
+  end
+
+  # For specs that create records outside a request (model/unit specs): set an
+  # ambient Current, since real usage always writes on behalf of a signed-in
+  # user (GroupScoped / UserAttributed rely on it).
+  def as_default_user
+    Current.session = Session.create!(user: default_test_user)
   end
 
   def default_test_user
@@ -23,7 +30,13 @@ module AuthenticationHelpers
 end
 
 RSpec.configure do |config|
-  config.include AuthenticationHelpers, type: :request
+  config.include AuthenticationHelpers
+
+  config.before(:each) do |example|
+    as_default_user unless example.metadata[:type] == :request
+  end
 
   config.before(:each, type: :request) { sign_in }
+
+  config.after(:each) { Current.reset }
 end

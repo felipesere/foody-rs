@@ -21,9 +21,13 @@ RSpec.describe ShoppinglistItem, type: :model do
 
     it "enforces uniqueness at the DB level too" do
       item = create(:shoppinglist_item)
+      # validate: false skips the stamping callback, so set attribution by hand
+      # to leave the unique index as the only constraint under test.
       duplicate = build(:shoppinglist_item,
                         shoppinglist: item.shoppinglist,
-                        ingredient: item.ingredient)
+                        ingredient: item.ingredient,
+                        created_by: item.created_by,
+                        updated_by: item.updated_by)
 
       expect { duplicate.save!(validate: false) }
         .to raise_error(ActiveRecord::RecordNotUnique)

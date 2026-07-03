@@ -1,5 +1,6 @@
 class ShoppinglistItem < ApplicationRecord
   include GroupScoped
+  include UserAttributed
 
   belongs_to :shoppinglist
   belongs_to :ingredient

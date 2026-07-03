@@ -1,5 +1,6 @@
 class Recipe < ApplicationRecord
   include GroupScoped
+  include UserAttributed
 
   SOURCES = %w[book website].freeze
 

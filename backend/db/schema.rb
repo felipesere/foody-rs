@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_03_000004) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_03_000005) do
   create_table "aisles", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "group_id", null: false
@@ -43,6 +43,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_03_000004) do
 
   create_table "mealplan_meals", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.integer "created_by_id", null: false
     t.integer "group_id", null: false
     t.boolean "is_cooked", default: false, null: false
     t.integer "mealplan_id", null: false
@@ -50,17 +51,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_03_000004) do
     t.string "section"
     t.string "untracked_meal_name"
     t.datetime "updated_at", null: false
+    t.integer "updated_by_id", null: false
+    t.index ["created_by_id"], name: "index_mealplan_meals_on_created_by_id"
     t.index ["group_id"], name: "index_mealplan_meals_on_group_id"
     t.index ["mealplan_id"], name: "index_mealplan_meals_on_mealplan_id"
     t.index ["recipe_id"], name: "index_mealplan_meals_on_recipe_id"
+    t.index ["updated_by_id"], name: "index_mealplan_meals_on_updated_by_id"
   end
 
   create_table "mealplans", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.integer "created_by_id", null: false
     t.integer "group_id", null: false
     t.string "name", null: false
     t.datetime "updated_at", null: false
+    t.integer "updated_by_id", null: false
+    t.index ["created_by_id"], name: "index_mealplans_on_created_by_id"
     t.index ["group_id"], name: "index_mealplans_on_group_id"
+    t.index ["updated_by_id"], name: "index_mealplans_on_updated_by_id"
   end
 
   create_table "recipe_ingredients", force: :cascade do |t|
@@ -82,6 +90,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_03_000004) do
     t.integer "book_page"
     t.string "book_title"
     t.datetime "created_at", null: false
+    t.integer "created_by_id", null: false
     t.string "duration"
     t.integer "group_id", null: false
     t.string "name", null: false
@@ -90,8 +99,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_03_000004) do
     t.string "source", null: false
     t.json "tags", default: []
     t.datetime "updated_at", null: false
+    t.integer "updated_by_id", null: false
     t.string "website_url"
+    t.index ["created_by_id"], name: "index_recipes_on_created_by_id"
     t.index ["group_id"], name: "index_recipes_on_group_id"
+    t.index ["updated_by_id"], name: "index_recipes_on_updated_by_id"
   end
 
   create_table "sessions", force: :cascade do |t|
@@ -103,16 +115,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_03_000004) do
 
   create_table "shoppinglist_items", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.integer "created_by_id", null: false
     t.integer "group_id", null: false
     t.boolean "in_basket", default: false, null: false
     t.integer "ingredient_id", null: false
     t.text "note"
     t.integer "shoppinglist_id", null: false
     t.datetime "updated_at", null: false
+    t.integer "updated_by_id", null: false
+    t.index ["created_by_id"], name: "index_shoppinglist_items_on_created_by_id"
     t.index ["group_id"], name: "index_shoppinglist_items_on_group_id"
     t.index ["ingredient_id"], name: "index_shoppinglist_items_on_ingredient_id"
     t.index ["shoppinglist_id", "ingredient_id"], name: "index_shoppinglist_items_on_shoppinglist_id_and_ingredient_id", unique: true
     t.index ["shoppinglist_id"], name: "index_shoppinglist_items_on_shoppinglist_id"
+    t.index ["updated_by_id"], name: "index_shoppinglist_items_on_updated_by_id"
   end
 
   create_table "shoppinglist_quantities", force: :cascade do |t|
@@ -131,10 +147,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_03_000004) do
 
   create_table "shoppinglists", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.integer "created_by_id", null: false
     t.integer "group_id", null: false
     t.string "name", null: false
     t.datetime "updated_at", null: false
+    t.integer "updated_by_id", null: false
+    t.index ["created_by_id"], name: "index_shoppinglists_on_created_by_id"
     t.index ["group_id"], name: "index_shoppinglists_on_group_id"
+    t.index ["updated_by_id"], name: "index_shoppinglists_on_updated_by_id"
   end
 
   create_table "storage_locations", force: :cascade do |t|
@@ -167,19 +187,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_03_000004) do
   add_foreign_key "mealplan_meals", "groups"
   add_foreign_key "mealplan_meals", "mealplans"
   add_foreign_key "mealplan_meals", "recipes"
+  add_foreign_key "mealplan_meals", "users", column: "created_by_id"
+  add_foreign_key "mealplan_meals", "users", column: "updated_by_id"
   add_foreign_key "mealplans", "groups"
+  add_foreign_key "mealplans", "users", column: "created_by_id"
+  add_foreign_key "mealplans", "users", column: "updated_by_id"
   add_foreign_key "recipe_ingredients", "groups"
   add_foreign_key "recipe_ingredients", "ingredients"
   add_foreign_key "recipe_ingredients", "recipes"
   add_foreign_key "recipes", "groups"
+  add_foreign_key "recipes", "users", column: "created_by_id"
+  add_foreign_key "recipes", "users", column: "updated_by_id"
   add_foreign_key "sessions", "users"
   add_foreign_key "shoppinglist_items", "groups"
   add_foreign_key "shoppinglist_items", "ingredients"
   add_foreign_key "shoppinglist_items", "shoppinglists"
+  add_foreign_key "shoppinglist_items", "users", column: "created_by_id"
+  add_foreign_key "shoppinglist_items", "users", column: "updated_by_id"
   add_foreign_key "shoppinglist_quantities", "groups"
   add_foreign_key "shoppinglist_quantities", "recipes"
   add_foreign_key "shoppinglist_quantities", "shoppinglist_items"
   add_foreign_key "shoppinglists", "groups"
+  add_foreign_key "shoppinglists", "users", column: "created_by_id"
+  add_foreign_key "shoppinglists", "users", column: "updated_by_id"
   add_foreign_key "storage_locations", "groups"
   add_foreign_key "users", "groups"
 end

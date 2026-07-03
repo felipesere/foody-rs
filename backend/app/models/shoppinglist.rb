@@ -1,5 +1,6 @@
 class Shoppinglist < ApplicationRecord
   include GroupScoped
+  include UserAttributed
 
   has_many :shoppinglist_items, dependent: :destroy
   has_many :ingredients, through: :shoppinglist_items
