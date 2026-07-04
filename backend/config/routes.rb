@@ -60,6 +60,12 @@ Rails.application.routes.draw do
   # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check
 
-  # Defines the root path route ("/")
-  # root "posts#index"
+  # SPA fallback: serve the built Vite bundle (public/index.html) for any GET that
+  # isn't an API/auth/health path, so client-side routes like /recipes/5 deep-link.
+  # Static assets that exist in public/ are served by the static middleware before
+  # they ever reach this route.
+  get "*path", to: "spa#index", constraints: ->(request) {
+    !request.path.match?(%r{\A/(api|auth|dev|up|rails)(/|\z)})
+  }
+  root "spa#index"
 end

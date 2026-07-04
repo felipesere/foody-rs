@@ -9,3 +9,11 @@ frontend/playwright-report
 target
 **/.idea
 
+# Backend transient state — build context is the repo root, so backend/.dockerignore
+# does not apply. Never bake dev/test SQLite, logs, or tmp into the image.
+backend/storage
+backend/tmp
+backend/log
+backend/.env*
+backend/coverage
+

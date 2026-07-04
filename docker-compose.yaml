@@ -1,28 +1,48 @@
-services:
-  db:
-    image: cgr.dev/chainguard/postgres
-    restart: always
-    environment:
-      POSTGRES_USER: loco
-      POSTGRES_PASSWORD: loco
-      POSTGRES_DB: foody_development
-    ports:
-      - 5432:5432
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+# Single same-origin image: Rails (Thruster + Puma) serves the JSON API, the
+# Pocket ID OIDC endpoints, and the built Vite SPA out of public/. The database
+# is SQLite (primary + Solid Cache + Solid Queue), persisted on a volume — no
+# database container needed.
+#
+# Prereqs: a `.env` next to this file with, at minimum:
+#   RAILS_MASTER_KEY=<contents of backend/config/master.key>
+# and, to exercise real login, the Pocket ID values:
+#   OIDC_ISSUER=...  OIDC_CLIENT_ID=...  OIDC_CLIENT_SECRET=...
+#
+# Run:   docker compose up --build
+# Then:  http://localhost:8080
+#
+# First boot has zero users. Create the first Group + User with:
+#   docker compose exec app bin/rails 'foody:bootstrap[Sere Family,you@example.com,You]'
 
-  test_db:
-    image: cgr.dev/chainguard/postgres
-    restart: always
-    environment:
-      POSTGRES_USER: loco
-      POSTGRES_PASSWORD: loco
-      POSTGRES_DB: foody_test
-    ports:
-      - 5433:5432
+services:
+  init-storage:
+    image: busybox
+    user: root
     volumes:
-      - pgtestdata:/var/lib/postgresql/data
+      - storage:/app/storage
+    command: chown -R 1000:1000 /app/storage
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: foody
+    ports:
+      - "8080:80"
+    environment:
+      RAILS_MASTER_KEY: ${RAILS_MASTER_KEY} # ${RAILS_MASTER_KEY:?set RAILS_MASTER_KEY in .env (see backend/config/master.key)}
+      # Local smoke test is plain HTTP. In the cluster the ingress terminates
+      # TLS, so drop these two overrides there to get secure cookies + HSTS back.
+      RAILS_FORCE_SSL: "false"
+      RAILS_ASSUME_SSL: "false"
+      # Pocket ID (OIDC). The redirect URI must match what you register in Pocket
+      # ID and the origin you actually browse to.
+      OIDC_ISSUER: "https://pocketid.t.felipesere.com"
+      OIDC_CLIENT_ID: "7a6df2c8-68b6-4896-b862-2c665e5768a6"
+      OIDC_CLIENT_SECRET: "B8GxyLwNE5QbComy6HvtVAGcRd8l4B8G"
+      OIDC_REDIRECT_URI: ${OIDC_REDIRECT_URI:-http://localhost:8080/auth/callback}
+    volumes:
+      # Persist the SQLite databases across restarts.
+      - storage:/rails/storage
 
 volumes:
-  pgdata:
-  pgtestdata:
+  storage:
