@@ -9,7 +9,6 @@ import { FindIngredient } from "./findIngredient.tsx";
 import { Quantity } from "../../api/v1/shoppinglists.ts";
 
 export type SelectIngredientWithQuantityProps = {
-  token: string;
   onIngredient: (i: Ingredient, q: Quantity, raw: string) => void;
   className?: string;
 };
@@ -33,14 +32,13 @@ export function SelectIngredientWithQuantity(
     | undefined
   >(undefined);
 
-  const newIngredient = useCreateIngredient(props.token);
+  const newIngredient = useCreateIngredient();
 
   const ingredientRef = useRef<HTMLInputElement | null>(null);
 
   return (
     <div className={classnames(props.className, "flex flex-wrap gap-1ch")}>
       <FindIngredient
-        token={props.token}
         placeholder={"ingredient..."}
         onIngredient={(v) => {
           setSelectedIngredient(v);

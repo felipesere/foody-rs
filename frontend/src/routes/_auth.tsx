@@ -1,11 +1,13 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { meQueryOptions } from "../api/v1/session.ts";
 
 export const Route = createFileRoute("/_auth")({
-  // Before loading, authenticate the user via data in the query cache
-  // This will also happen during prefetching (e.g. hovering over links, etc.)
-  beforeLoad: ({ context, location }) => {
-    const token = context.token || "1";
-    if (!token) {
+  // Gate every authenticated route on a live Rails session: fetch /api/v1/me
+  // (cached in the query client). A 401 means no session, so bounce to login.
+  beforeLoad: async ({ context, location }) => {
+    try {
+      await context.queryClient.ensureQueryData(meQueryOptions());
+    } catch {
       throw redirect({
         to: "/login",
         search: {
@@ -13,8 +15,5 @@ export const Route = createFileRoute("/_auth")({
         },
       });
     }
-    return {
-      token,
-    };
   },
 });

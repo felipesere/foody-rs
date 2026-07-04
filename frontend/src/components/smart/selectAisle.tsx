@@ -9,14 +9,13 @@ import { InputWithButton } from "../inputWithButton.tsx";
 import { Popup } from "../popup.tsx";
 
 export function SelectAisle(props: {
-  token: string;
   ingredientId: Ingredient["id"];
   currentAisle: string | null;
   shoppinglistId?: Shoppinglist["id"];
 }) {
-  const aisles = useAisles(props.token);
-  const newAisle = useCreateAisle(props.token);
-  const editIngredient = useUpdateIngredient(props.token);
+  const aisles = useAisles();
+  const newAisle = useCreateAisle();
+  const editIngredient = useUpdateIngredient();
 
   if (!aisles.data || aisles.error) {
     return <p>Loading Aisles...</p>;

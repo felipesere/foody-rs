@@ -128,21 +128,20 @@ function applyChanges(
 }
 
 function RecipePage() {
-  const { token } = Route.useRouteContext();
   const navigate = useNavigate({ from: Route.fullPath });
 
   const { editing } = Route.useSearch();
   const { recipeId } = Route.useParams();
   const id = Number(recipeId);
 
-  const recipeData = useRecipe(token, id);
-  const ingredientData = useIngredients(token);
+  const recipeData = useRecipe(id);
+  const ingredientData = useIngredients();
 
-  const addMealToPlan = useAddMeal(token);
-  const addRecipe = useAddRecipe(token);
-  const updateRecipe = useUpdateRecipe(token);
-  const addIngredient = useAddRecipeIngredient(token);
-  const removeIngredient = useRemoveRecipeIngredient(token);
+  const addMealToPlan = useAddMeal();
+  const addRecipe = useAddRecipe();
+  const updateRecipe = useUpdateRecipe();
+  const addIngredient = useAddRecipeIngredient();
+  const removeIngredient = useRemoveRecipeIngredient();
 
   const [changes, setChanges] = useState<Change[]>([]);
 
@@ -238,7 +237,6 @@ function RecipePage() {
     <RecipeContext.Provider
       value={{
         editing: editing || false,
-        token,
       }}
     >
       <RecipeView

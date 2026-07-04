@@ -1,10 +1,16 @@
 import { useForm } from "@tanstack/react-form";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { z } from "zod";
 import { type Aisle, useAisles, useUpdateAisle } from "../api/v1/aisles.ts";
 import { type Ingredient, useMergeIngredients } from "../api/v1/ingredient.ts";
-import { useLogin, useLogout, useUser } from "../apis/user.ts";
+import {
+  login,
+  meQueryOptions,
+  type User,
+  useLogout,
+} from "../api/v1/session.ts";
 import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
@@ -21,34 +27,26 @@ export const Route = createFileRoute("/login")({
 });
 
 export function LoginPage() {
-  const { token } = Route.useRouteContext();
+  const me = useQuery(meQueryOptions());
   return (
     <div className="content-grid">
-      {token ? <UserDetails token={token} /> : <Login />}
+      {me.data ? <UserDetails user={me.data} /> : <Login />}
     </div>
   );
 }
 
-function UserDetails(props: { token: string }) {
-  const user = useUser(props.token);
+function UserDetails(props: { user: User }) {
   const logout = useLogout();
-
-  const greeting = user.data ? (
-    <p>
-      Hello, <span className={"capitalize"}>{user.data.name}</span>!
-    </p>
-  ) : (
-    <p>Hello!</p>
-  );
 
   return (
     <div className={"content-grid gap-4ch"}>
       <div>
-        {greeting}
+        <p>
+          Hello, <span className={"capitalize"}>{props.user.name}</span>!
+        </p>
         <button
-          disabled={!user.data}
           className={"px-2ch"}
-          type={"submit"}
+          type={"button"}
           onClick={async () => {
             await logout();
           }}
@@ -56,113 +54,30 @@ function UserDetails(props: { token: string }) {
           Sign out
         </button>
       </div>
-      <AdminPanel token={props.token} />
+      <AdminPanel />
     </div>
   );
 }
 
 function Login() {
-  const { redirect } = Route.useSearch();
-
-  const login = useLogin({ redirectTo: redirect });
-
-  const form = useForm({
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-    onSubmit: async ({ value }) => {
-      await login.mutateAsync(value);
-    },
-  });
   return (
-    <div className="content-grid">
+    <div className="content-grid space-y-1lh">
       <h3>Login</h3>
-      <form
-        className={"space-y-1lh"}
-        onSubmit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          void form.handleSubmit();
-        }}
+      <p>Sign in with your Pocket ID passkey.</p>
+      <button
+        className={"px-2ch"}
+        type={"button"}
+        id={"submit"}
+        onClick={() => login()}
       >
-        <form.Field
-          name="email"
-          validators={{
-            onBlur: z.email(),
-          }}
-          children={(emailField) => (
-            <div>
-              <label className={"block"} htmlFor={emailField.name}>
-                Username
-              </label>
-              <input
-                type={"text"}
-                className={
-                  "px-1ch py-0.5lh outline-0 border-black border-2 border-solid"
-                }
-                autoComplete={"username"}
-                name={emailField.name}
-                id={emailField.name}
-                value={emailField.state.value}
-                onBlur={emailField.handleBlur}
-                onChange={(e) => emailField.handleChange(e.target.value)}
-              />
-              {emailField.state.meta.errorMap.onBlur ? (
-                <em>
-                  {emailField.state.meta.errorMap.onBlur
-                    .map((error) => error.message)
-                    .join(", ")}
-                </em>
-              ) : null}
-            </div>
-          )}
-        />
-        <form.Field
-          name="password"
-          validators={{
-            onChange: (v) =>
-              v.value.length === 0 ? "Password missing" : undefined,
-          }}
-          children={(passwordField) => (
-            <div>
-              <label className={"block"} htmlFor={passwordField.name}>
-                Password
-              </label>
-              <input
-                type={"password"}
-                className={
-                  "px-1ch py-0.5lh outline-0 border-black border-2 border-solid"
-                }
-                autoComplete={"current-password"}
-                name={passwordField.name}
-                id={passwordField.name}
-                value={passwordField.state.value}
-                onChange={(e) => passwordField.handleChange(e.target.value)}
-              />
-            </div>
-          )}
-        />
-        <form.Subscribe
-          selector={(state) => [state.canSubmit, state.isPristine]}
-          children={([canSubmit, isPristine]) => (
-            <button
-              className={"px-2ch"}
-              type={"submit"}
-              id={"submit"}
-              disabled={!canSubmit || isPristine}
-            >
-              Sign In
-            </button>
-          )}
-        />
-      </form>
+        Sign in
+      </button>
     </div>
   );
 }
 
-function AdminPanel(props: { token: string }) {
-  const aisles = useAisles(props.token);
+function AdminPanel() {
+  const aisles = useAisles();
 
   if (!aisles.data) {
     return <p>Loading aisles...</p>;
@@ -171,15 +86,15 @@ function AdminPanel(props: { token: string }) {
   return (
     <div className={"flex flex-col gap-4ch"}>
       <Divider />
-      <EditAislesForm token={props.token} aisles={aisles.data.aisles} />
+      <EditAislesForm aisles={aisles.data.aisles} />
       <Divider />
-      <MergeIngredients token={props.token} />
+      <MergeIngredients />
     </div>
   );
 }
 
-function EditAislesForm(props: { token: string; aisles: Aisle[] }) {
-  const updateAisle = useUpdateAisle(props.token);
+function EditAislesForm(props: { aisles: Aisle[] }) {
+  const updateAisle = useUpdateAisle();
 
   const form = useForm({
     defaultValues: {
@@ -261,8 +176,8 @@ function EditAislesForm(props: { token: string; aisles: Aisle[] }) {
   );
 }
 
-function MergeIngredients(props: { token: string }) {
-  const mergeIngredients = useMergeIngredients(props.token);
+function MergeIngredients() {
+  const mergeIngredients = useMergeIngredients();
 
   const form = useForm({
     defaultValues: {
@@ -310,7 +225,6 @@ function MergeIngredients(props: { token: string }) {
                   <p>Ingredients to merge:</p>
                   <FindIngredient
                     placeholder={"ingredient to merge..."}
-                    token={props.token}
                     onIngredient={(i) => fieldApi.pushValue(i)}
                   />
                 </div>
@@ -340,7 +254,6 @@ function MergeIngredients(props: { token: string }) {
               {fieldApi.state.value === null ? (
                 <FindIngredient
                   placeholder={"merge into..."}
-                  token={props.token}
                   onIngredient={(i) => fieldApi.handleChange(i)}
                 />
               ) : (

@@ -1,7 +1,7 @@
 import * as v from "valibot";
 import { IngredientSchema, QuantitySchema } from "./shoppinglists.ts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { authed, useApiMutation } from "./index.ts";
+import { http, useApiMutation } from "./index.ts";
 import { toast } from "sonner";
 import { humanize } from "../../quantities.ts";
 import { TagsSchema } from "./ingredient.ts";
@@ -81,37 +81,37 @@ export type UnstoredRecipe = DistributiveOmit<Recipe, "id" | "ingredients"> & {
   ingredients: QuantifiedIngredient[];
 };
 
-export function useRecipes(token: string) {
+export function useRecipes() {
   return useQuery({
     queryKey: ["recipes"],
     queryFn: async () =>
-      v.parse(RecipesSchema, await authed(token).get("api/v1/recipes").json()),
+      v.parse(RecipesSchema, await http.get("api/v1/recipes").json()),
   });
 }
 
-export function useRecipe(token: string, id: number) {
+export function useRecipe(id: number) {
   return useQuery({
     queryKey: ["recipe", id],
     queryFn: async () =>
       v.parse(
         RecipeSchema,
-        await authed(token).get(`api/v1/recipes/${id}`).json(),
+        await http.get(`api/v1/recipes/${id}`).json(),
       ),
   });
 }
 
-export function useRecipeTags(token: string) {
+export function useRecipeTags() {
   return useQuery({
     queryKey: ["recipes_tags"],
     queryFn: async () =>
       v.parse(
         TagsSchema,
-        await authed(token).get("api/v1/recipes/tags").json(),
+        await http.get("api/v1/recipes/tags").json(),
       ),
   });
 }
 
-export function useCreateRecipe(token: string, navigate: (id: number) => void) {
+export function useCreateRecipe(navigate: (id: number) => void) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (vars: UnstoredRecipe) => {
@@ -135,7 +135,7 @@ export function useCreateRecipe(token: string, navigate: (id: number) => void) {
       }));
       return v.parse(
         RecipeSchema,
-        await authed(token)
+        await http
           .post("api/v1/recipes", { json: { recipe, ingredients } })
           .json(),
       );
@@ -186,14 +186,14 @@ export type RecipeUpdate = {
   source?: SourceInput;
 };
 
-export function useUpdateRecipe(token: string) {
+export function useUpdateRecipe() {
   return useApiMutation({
     mutationFn: async (vars: RecipeUpdate) => {
       const { recipeId, source, ...rest } = vars;
       const recipe = { ...rest, ...(source ? sourcePayload(source) : {}) };
       return v.parse(
         RecipeSchema,
-        await authed(token)
+        await http
           .put(`api/v1/recipes/${recipeId}`, { json: { recipe } })
           .json(),
       );
@@ -205,10 +205,10 @@ export function useUpdateRecipe(token: string) {
   });
 }
 
-export function useDeleteRecipe(token: string) {
+export function useDeleteRecipe() {
   return useApiMutation({
     mutationFn: (recipeId: number) =>
-      authed(token).delete(`api/v1/recipes/${recipeId}`),
+      http.delete(`api/v1/recipes/${recipeId}`),
     invalidates: (recipeId) => [["recipe", recipeId], ["recipes"]],
     onSuccess: (_data, recipeId) => {
       toast(`Deleted "${recipeId}"`);
@@ -216,24 +216,24 @@ export function useDeleteRecipe(token: string) {
   });
 }
 
-export function useAddRecipeIngredient(token: string) {
+export function useAddRecipeIngredient() {
   return useApiMutation({
     mutationFn: (vars: {
       recipeId: number;
       ingredient_id: number;
       quantity: string;
     }) =>
-      authed(token).post(`api/v1/recipes/${vars.recipeId}/ingredients`, {
+      http.post(`api/v1/recipes/${vars.recipeId}/ingredients`, {
         json: { ingredient_id: vars.ingredient_id, quantity: vars.quantity },
       }),
     invalidates: (vars) => [["recipe", vars.recipeId], ["recipes"]],
   });
 }
 
-export function useRemoveRecipeIngredient(token: string) {
+export function useRemoveRecipeIngredient() {
   return useApiMutation({
     mutationFn: (vars: { recipeId: number; ingredientId: number }) =>
-      authed(token).delete(
+      http.delete(
         `api/v1/recipes/${vars.recipeId}/ingredients/${vars.ingredientId}`,
       ),
     invalidates: (vars) => [["recipe", vars.recipeId], ["recipes"]],

@@ -38,12 +38,11 @@ export const Route = createFileRoute("/_auth/recipes/")({
 });
 
 export function RecipesPage() {
-  const { token } = Route.useRouteContext();
   const { search, massEditTags } = Route.useSearch();
-  const { data, isLoading, isError } = useRecipes(token);
+  const { data, isLoading, isError } = useRecipes();
   const navigate = useNavigate({ from: Route.path });
 
-  const allTags = useRecipeTags(token);
+  const allTags = useRecipeTags();
 
   if (isError) {
     return <p>Error</p>;
@@ -226,7 +225,7 @@ export function RecipesPage() {
         </FieldSet>
       </FieldSet>
       {massEditTags ? (
-        <MassEditTags token={token} recipes={recipes} />
+        <MassEditTags recipes={recipes} />
       ) : (
         <Overview recipes={recipes} />
       )}
@@ -283,12 +282,11 @@ type RecipeProps = {
 };
 
 function RecipeView(props: RecipeProps) {
-  const { token } = Route.useRouteContext();
   const [open, setOpen] = useState(false);
 
-  const deleteRecipe = useDeleteRecipe(token);
+  const deleteRecipe = useDeleteRecipe();
   const recipeId = props.recipe.id;
-  const changeRecipe = useUpdateRecipe(token);
+  const changeRecipe = useUpdateRecipe();
   const navigate = useNavigate({ from: "/recipes" });
 
   return (
@@ -355,7 +353,7 @@ function RecipeView(props: RecipeProps) {
         >
           Details
         </button>
-        <AddtoEither recipeId={recipeId} token={token} />
+        <AddtoEither recipeId={recipeId} />
         <button
           type="submit"
           className="px-2ch text-white bg-gray-700 shadow"
@@ -409,12 +407,12 @@ function maybeHostname(v: string): string {
   }
 }
 
-function MassEditTags(props: { token: string; recipes: Recipe[] }) {
+function MassEditTags(props: { recipes: Recipe[] }) {
   let recipes = props.recipes;
   const [newTags, setNewTags] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const changeRecipe = useUpdateRecipe(props.token);
+  const changeRecipe = useUpdateRecipe();
 
   let tags = recipes
     .flatMap((i) => i.tags)

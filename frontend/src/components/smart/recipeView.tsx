@@ -27,7 +27,6 @@ import { SelectIngredientWithQuantity } from "./selectIngredientWithQuantity.tsx
 
 export const RecipeContext = createContext({
   editing: false,
-  token: "",
 });
 
 type RecipeViewProps = {
@@ -49,11 +48,11 @@ type RecipeViewProps = {
 };
 
 export function RecipeView(props: RecipeViewProps) {
-  const { editing, token } = useContext(RecipeContext);
+  const { editing } = useContext(RecipeContext);
 
   const recipe = props.recipe;
 
-  const allRecipeTags = useRecipeTags(token);
+  const allRecipeTags = useRecipeTags();
 
   if (!allRecipeTags.data) {
     return null;
@@ -66,7 +65,6 @@ export function RecipeView(props: RecipeViewProps) {
         <div className={"flex flex-col gap-1ch"}>
           <Name value={recipe.name} onBlur={props.onSetName} />
           <ShowSource
-            token={token}
             recipe={recipe}
             onBlur={props.onSetSource}
           />
@@ -110,7 +108,6 @@ export function RecipeView(props: RecipeViewProps) {
         {props.onAddToShoppinglist && (
           <AddToShoppinglist
             label={"Add to Shoppinglist"}
-            token={token}
             onSelect={(shoppinglist) => {
               props.onAddToShoppinglist?.(shoppinglist.id);
             }}
@@ -119,7 +116,6 @@ export function RecipeView(props: RecipeViewProps) {
         {props.onAddToMealPlan && (
           <AddToMealPlan
             label={"Add to Mealplan"}
-            token={token}
             onSelect={(plan) => {
               props.onAddToMealPlan?.(plan.id);
             }}
@@ -179,7 +175,7 @@ function Ingredients(props: {
   onRemove: (name: IngredientInput["name"]) => void;
   onChangeQuantity: (name: IngredientInput["name"], quantity: string) => void;
 }) {
-  const { editing, token } = useContext(RecipeContext);
+  const { editing } = useContext(RecipeContext);
 
   const sections = orderByAisles(props.ingredients);
   return (
@@ -208,7 +204,6 @@ function Ingredients(props: {
       </ul>
       {editing && (
         <SelectIngredientWithQuantity
-          token={token}
           onIngredient={(ingredient, quantity) => {
             props.onIngredient(ingredient, humanize(quantity));
           }}
@@ -316,14 +311,13 @@ function IngredientView(props: IngredientViewProps) {
 }
 
 function BookSource(props: {
-  token: string;
   source: { page: number | null; title: string | null };
   onTitleChange: (title: string) => void;
   onPageChange: (page: number) => void;
   onBlur: () => void;
 }) {
-  const recipes = useRecipes(props.token);
-  // const recipes = useAllRecipes(props.token);
+  const recipes = useRecipes();
+  // const recipes = useAllRecipes();
   if (recipes.error || !recipes.data) {
     return <p>Loading...</p>;
   }
@@ -358,7 +352,6 @@ function BookSource(props: {
 
 // TODO: move this back into the normal show recipes
 function ShowSource(props: {
-  token: string;
   recipe: UnstoredRecipe;
   onBlur: (details: SourceDetails) => void;
 }) {
@@ -429,7 +422,6 @@ function ShowSource(props: {
         {sourceChoice === "book" && (
           <div className={"flex gap-2ch flex-row"}>
             <BookSource
-              token={props.token}
               source={source}
               onTitleChange={(title) =>
                 setSource((prev) => ({

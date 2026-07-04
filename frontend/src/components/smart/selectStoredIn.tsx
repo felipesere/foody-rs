@@ -11,13 +11,12 @@ import { Divider } from "../divider.tsx";
 import { Popup } from "../popup.tsx";
 
 export function SelectStoredIn(props: {
-  token: string;
   ingredientId: Ingredient["id"];
   currentStoredIn: string | null;
   shoppinglistId?: Shoppinglist["id"];
 }) {
-  const storages = useStorages(props.token);
-  const editIngredient = useUpdateIngredient(props.token);
+  const storages = useStorages();
+  const editIngredient = useUpdateIngredient();
 
   if (!storages.data || storages.error) {
     return <p>Loading...</p>;

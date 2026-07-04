@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import * as v from "valibot";
 import { AisleSchema } from "./aisles.ts";
-import { authed, useApiMutation } from "./index.ts";
+import { http, useApiMutation } from "./index.ts";
 import { StorageSchema } from "./storages.ts";
 
 export const IngredientSchema = v.strictObject({
@@ -23,40 +23,40 @@ export const IngredientsSchema = v.strictObject({
   ingredients: v.array(IngredientSchema),
 });
 
-export function useIngredients(token: string) {
+export function useIngredients() {
   return useQuery({
     queryKey: ["ingredients"],
     queryFn: async () =>
       v.parse(
         IngredientsSchema,
-        await authed(token).get("api/v1/ingredients").json(),
+        await http.get("api/v1/ingredients").json(),
       ),
   });
 }
 
-export function useIngredientTags(token: string) {
+export function useIngredientTags() {
   return useQuery({
     queryKey: ["tags"],
     queryFn: async () =>
       v.parse(
         TagsSchema,
-        await authed(token).get("api/v1/ingredients/tags").json(),
+        await http.get("api/v1/ingredients/tags").json(),
       ),
   });
 }
 
-export function useCreateIngredient(token: string) {
+export function useCreateIngredient() {
   return useApiMutation({
     mutationFn: async (vars: { name: string; tags: string[] }) =>
       v.parse(
         IngredientSchema,
-        await authed(token).post("api/v1/ingredients", { json: vars }).json(),
+        await http.post("api/v1/ingredients", { json: vars }).json(),
       ),
     invalidates: ["ingredients"],
   });
 }
 
-export function useUpdateIngredient(token: string) {
+export function useUpdateIngredient() {
   return useApiMutation({
     mutationFn: (vars: {
       ingredient_id: number;
@@ -66,14 +66,14 @@ export function useUpdateIngredient(token: string) {
         storage_id?: number | null;
       };
     }) =>
-      authed(token).put(`api/v1/ingredients/${vars.ingredient_id}`, {
+      http.put(`api/v1/ingredients/${vars.ingredient_id}`, {
         json: vars.fields,
       }),
     invalidates: ["ingredients"],
   });
 }
 
-export function useMergeIngredients(token: string) {
+export function useMergeIngredients() {
   return useApiMutation({
     // `replace` are folded into `target`, which survives. The backend repoints
     // every reference and deletes the sources, so recipes and shopping lists
@@ -84,7 +84,7 @@ export function useMergeIngredients(token: string) {
     }) =>
       v.parse(
         IngredientSchema,
-        await authed(token)
+        await http
           .post(`api/v1/ingredients/${vars.target}/merge`, {
             json: { source_ids: vars.replace },
           })

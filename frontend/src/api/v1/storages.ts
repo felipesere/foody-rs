@@ -1,6 +1,6 @@
 import * as v from "valibot";
 import { useQuery } from "@tanstack/react-query";
-import { authed, useApiMutation } from "./index.ts";
+import { http, useApiMutation } from "./index.ts";
 
 export const StorageSchema = v.strictObject({
   id: v.number(),
@@ -14,18 +14,18 @@ export const StoragesSchema = v.strictObject({
   storages: v.array(StorageSchema),
 });
 
-export function useStorages(token: string) {
+export function useStorages() {
   return useQuery({
     queryKey: ["storages"],
     queryFn: async () =>
-      v.parse(StoragesSchema, await authed(token).get("api/v1/storages").json()),
+      v.parse(StoragesSchema, await http.get("api/v1/storages").json()),
   });
 }
 
-export function useCreateStorage(token: string) {
+export function useCreateStorage() {
   return useApiMutation({
     mutationFn: (vars: { name: string }) =>
-      authed(token).post("api/v1/storages", { json: { aisle: vars } }),
+      http.post("api/v1/storages", { json: { aisle: vars } }),
     invalidates: ["storages"],
   });
 }

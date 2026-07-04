@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import * as v from "valibot";
 import { AisleSchema } from "./aisles.ts";
-import { authed, TimestampSchema, useApiMutation } from "./index.ts";
+import { http, TimestampSchema, useApiMutation } from "./index.ts";
 import { StorageSchema } from "./storages.ts";
 
 export const QuantitySchema = v.strictObject({
@@ -63,23 +63,23 @@ export const ShoppinglistsSchema = v.strictObject({
 
 const listKey = (shoppinglistId: number) => ["shoppinglist", shoppinglistId];
 
-export function useShoppinglists(token: string) {
+export function useShoppinglists() {
   return useQuery({
     queryKey: ["shoppinglists"],
     queryFn: async () =>
       v.parse(
         ShoppinglistsSchema,
-        await authed(token).get("api/v1/shoppinglists").json(),
+        await http.get("api/v1/shoppinglists").json(),
       ),
   });
 }
 
-export function useCreateShoppinglist(token: string) {
+export function useCreateShoppinglist() {
   return useApiMutation({
     mutationFn: async (vars: { name: string }) =>
       v.parse(
         ShoppinglistSchema,
-        await authed(token)
+        await http
           .post("api/v1/shoppinglists", { json: { name: vars.name } })
           .json(),
       ),
@@ -90,10 +90,10 @@ export function useCreateShoppinglist(token: string) {
   });
 }
 
-export function useRemoveShoppinglist(token: string) {
+export function useRemoveShoppinglist() {
   return useApiMutation({
     mutationFn: (vars: { id: number }) =>
-      authed(token).delete(`api/v1/shoppinglists/${vars.id}`),
+      http.delete(`api/v1/shoppinglists/${vars.id}`),
     invalidates: (vars) => [["shoppinglists"], listKey(vars.id)],
     onSuccess: (_data, vars) => {
       toast.success(`Removed shoppinglist ${vars.id}`);
@@ -101,7 +101,7 @@ export function useRemoveShoppinglist(token: string) {
   });
 }
 
-export function useShoppinglist(token: string, shoppinglistId: number) {
+export function useShoppinglist(shoppinglistId: number) {
   return useQuery({
     queryKey: listKey(shoppinglistId),
     refetchInterval: 2000, // ms
@@ -109,40 +109,40 @@ export function useShoppinglist(token: string, shoppinglistId: number) {
     queryFn: async () =>
       v.parse(
         ShoppinglistSchema,
-        await authed(token).get(`api/v1/shoppinglists/${shoppinglistId}`).json(),
+        await http.get(`api/v1/shoppinglists/${shoppinglistId}`).json(),
       ),
   });
 }
 
-export function useAddRecipe(token: string) {
+export function useAddRecipe() {
   return useApiMutation({
     mutationFn: (vars: { shoppinglistId: number; recipeId: number }) =>
-      authed(token).post(
+      http.post(
         `api/v1/shoppinglists/${vars.shoppinglistId}/recipes/${vars.recipeId}`,
       ),
     invalidates: (vars) => [listKey(vars.shoppinglistId)],
   });
 }
 
-export function useRemoveRecipe(token: string) {
+export function useRemoveRecipe() {
   return useApiMutation({
     mutationFn: (vars: { shoppinglistId: number; recipeId: number }) =>
-      authed(token).delete(
+      http.delete(
         `api/v1/shoppinglists/${vars.shoppinglistId}/recipes/${vars.recipeId}`,
       ),
     invalidates: (vars) => [listKey(vars.shoppinglistId)],
   });
 }
 
-export function useClearList(token: string) {
+export function useClearList() {
   return useApiMutation({
     mutationFn: (vars: { shoppinglistId: number }) =>
-      authed(token).post(`api/v1/shoppinglists/${vars.shoppinglistId}/clear`),
+      http.post(`api/v1/shoppinglists/${vars.shoppinglistId}/clear`),
     invalidates: (vars) => [listKey(vars.shoppinglistId)],
   });
 }
 
-export function useAddItem(token: string) {
+export function useAddItem() {
   return useApiMutation({
     mutationFn: async (vars: {
       shoppinglistId: number;
@@ -151,7 +151,7 @@ export function useAddItem(token: string) {
     }) =>
       v.parse(
         ShoppinglistItemSchema,
-        await authed(token)
+        await http
           .post(`api/v1/shoppinglists/${vars.shoppinglistId}/items`, {
             json: {
               ingredient_id: vars.ingredient_id,
@@ -164,17 +164,17 @@ export function useAddItem(token: string) {
   });
 }
 
-export function useDeleteItem(token: string) {
+export function useDeleteItem() {
   return useApiMutation({
     mutationFn: (vars: { shoppinglistId: number; item_id: number }) =>
-      authed(token).delete(
+      http.delete(
         `api/v1/shoppinglists/${vars.shoppinglistId}/items/${vars.item_id}`,
       ),
     invalidates: (vars) => [listKey(vars.shoppinglistId)],
   });
 }
 
-export function useUpdateQuantity(token: string) {
+export function useUpdateQuantity() {
   return useApiMutation({
     mutationFn: (vars: {
       shoppinglistId: number;
@@ -182,7 +182,7 @@ export function useUpdateQuantity(token: string) {
       quantity_id: number;
       quantity: string;
     }) =>
-      authed(token).put(
+      http.put(
         `api/v1/shoppinglists/${vars.shoppinglistId}/items/${vars.item_id}/quantities/${vars.quantity_id}`,
         { json: { quantity: vars.quantity } },
       ),
@@ -190,21 +190,21 @@ export function useUpdateQuantity(token: string) {
   });
 }
 
-export function useDeleteQuantity(token: string) {
+export function useDeleteQuantity() {
   return useApiMutation({
     mutationFn: (vars: {
       shoppinglistId: number;
       item_id: number;
       quantity_id: number;
     }) =>
-      authed(token).delete(
+      http.delete(
         `api/v1/shoppinglists/${vars.shoppinglistId}/items/${vars.item_id}/quantities/${vars.quantity_id}`,
       ),
     invalidates: (vars) => [listKey(vars.shoppinglistId)],
   });
 }
 
-export function useUpdateItem(token: string) {
+export function useUpdateItem() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (vars: {
@@ -212,7 +212,7 @@ export function useUpdateItem(token: string) {
       item_id: number;
       fields: { in_basket?: boolean; note?: string };
     }) => {
-      await authed(token).put(
+      await http.put(
         `api/v1/shoppinglists/${vars.shoppinglistId}/items/${vars.item_id}`,
         { json: vars.fields },
       );

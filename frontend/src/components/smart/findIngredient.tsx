@@ -3,7 +3,6 @@ import type { DropdownProps } from "../dropdown.tsx";
 import { Dropdown } from "../dropdown.tsx";
 
 type FindIngredientProps = {
-  token: string;
   placeholder: string;
   onIngredient: DropdownProps<Ingredient>["onSelectedItem"];
   onNewIngredient?: DropdownProps<Ingredient>["onNewItem"];
@@ -11,7 +10,7 @@ type FindIngredientProps = {
 };
 
 export function FindIngredient(props: FindIngredientProps) {
-  const ingredients = useIngredients(props.token);
+  const ingredients = useIngredients();
 
   if (!ingredients.data) {
     return null;

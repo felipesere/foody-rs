@@ -57,16 +57,15 @@ function GroupingLabel(v: Grouping): string {
 export function ShoppingPage() {
   const params = Route.useParams();
   const shoppinglistId = Number(params.shoppinglistId);
-  const { token } = Route.useRouteContext();
-  const shoppinglist = useShoppinglist(token, shoppinglistId);
-  const recipes = useRecipes(token);
-  const updateShoppinglist = useUpdateItem(token);
-  const addIngredient = useAddItem(token);
+  const shoppinglist = useShoppinglist(shoppinglistId);
+  const recipes = useRecipes();
+  const updateShoppinglist = useUpdateItem();
+  const addIngredient = useAddItem();
   const [grouping, setGrouping] = useState<Grouping>(Grouping.ByAisle);
   const [showProgressBar, setShowProgressBar] = useState(false);
-  const removeCheckedItems = useClearList(token);
+  const removeCheckedItems = useClearList();
 
-  const deleteRecipe = useRemoveRecipe(token);
+  const deleteRecipe = useRemoveRecipe();
 
   if (shoppinglist.isLoading || !recipes.data) {
     return <p>Loading</p>;
@@ -128,7 +127,6 @@ export function ShoppingPage() {
         <div className={"mb-1lh"}>
           <FieldSet legend={"Add ingredient"}>
             <SelectIngredientWithQuantity
-              token={token}
               onIngredient={(ingredient, _, raw) => {
                 // TODO: Do this better, consider accepting the param pre-parsed in the backend?
                 addIngredient.mutate({
@@ -210,7 +208,6 @@ export function ShoppingPage() {
             {section.items.map((item) => (
               <CompactIngredientView
                 key={item.ingredient.name}
-                token={token}
                 shoppinglistId={shoppinglistId}
                 item={item}
                 allRecipes={allRecipes}
@@ -252,13 +249,11 @@ function RecipeRow(props: { id: string; name: string; onDelete: () => void }) {
 }
 
 function CompactIngredientView({
-  token,
   item,
   shoppinglistId,
   onToggle,
   allRecipes,
 }: {
-  token: string;
   item: ShoppinglistItem;
   shoppinglistId: Shoppinglist["id"];
   allRecipes: Record<number, string>;
@@ -305,7 +300,6 @@ function CompactIngredientView({
           item={item}
           shoppinglistId={shoppinglistId}
           allRecipes={allRecipes}
-          token={token}
         />
       )}
     </li>
@@ -316,7 +310,6 @@ type EditIngredientProps = {
   item: ShoppinglistItem;
   shoppinglistId: Shoppinglist["id"];
   allRecipes: Record<number, string>;
-  token: string;
 };
 
 type Changes = {
@@ -371,13 +364,12 @@ function LinkToRecipe(props: { recipeId: Recipe["id"]; name: Recipe["name"] }) {
 
 function EditIngredient({
   item,
-  token,
   shoppinglistId,
   allRecipes,
 }: EditIngredientProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [newNote, setNewNote] = useState<string | undefined>(undefined);
-  const updateIngredient = useUpdateItem(token);
+  const updateIngredient = useUpdateItem();
 
   const [changes, setChanges] = useState<Changes>({
     removals: [],
@@ -386,10 +378,10 @@ function EditIngredient({
   const [modifiedIngredient, setModifiedIngredient] = useState(
     structuredClone(item),
   );
-  const deleteIngredient = useDeleteItem(token);
+  const deleteIngredient = useDeleteItem();
 
-  const removeQuantity = useDeleteQuantity(token);
-  const updateQuantity = useUpdateQuantity(token);
+  const removeQuantity = useDeleteQuantity();
+  const updateQuantity = useUpdateQuantity();
 
   function applyModifications(changesToIngredient: Changes) {
     for (const m of changesToIngredient.modifications) {
@@ -436,7 +428,6 @@ function EditIngredient({
         <>
           <div className={"flex flex-row gapx-2ch"}>
             <TagsAndAisle
-              token={token}
               ingredientId={item.ingredient.id}
               tags={item.ingredient.tags}
               aisle={item.ingredient.aisle?.name ?? null}
@@ -538,7 +529,6 @@ function EditIngredient({
 }
 
 function TagsAndAisle(props: {
-  token: string;
   ingredientId: Ingredient["id"];
   tags: string[];
   aisle: string | null;
@@ -550,12 +540,10 @@ function TagsAndAisle(props: {
       {props.isEditing && (
         <>
           <SelectTags
-            token={props.token}
             ingredientId={props.ingredientId}
             currentTags={props.tags}
           />
           <SelectAisle
-            token={props.token}
             ingredientId={props.ingredientId}
             currentAisle={props.aisle}
           />

@@ -14,13 +14,12 @@ export const Route = createFileRoute("/_auth/")({
 });
 
 export function ShoppingPage() {
-  const { token } = Route.useRouteContext();
-  // const data = useAllShoppinglists(token);
-  const data = useShoppinglists(token);
+  // const data = useAllShoppinglists();
+  const data = useShoppinglists();
 
   return (
     <div className="content-grid space-y-2lh">
-      <NewShoppinglist token={token} />
+      <NewShoppinglist />
       <ul className="grid max-w-md gap-x-1ch gap-y-1lh">
         {!data.data || data.isLoading
           ? "Loading"
@@ -29,15 +28,15 @@ export function ShoppingPage() {
                 (a, b) => b.last_updated.getTime() - a.last_updated.getTime(),
               )
               .map((list) => (
-                <Shoppinglist key={list.name} list={list} token={token} />
+                <Shoppinglist key={list.name} list={list} />
               ))}
       </ul>
     </div>
   );
 }
 
-function NewShoppinglist(props: { token: string }) {
-  const createNewShoppinglist = useCreateShoppinglist(props.token);
+function NewShoppinglist() {
+  const createNewShoppinglist = useCreateShoppinglist();
   const form = useForm({
     defaultValues: {
       name: "",
@@ -111,12 +110,10 @@ function FieldInfo({ field }: { field: AnyFieldApi }) {
 
 function Shoppinglist({
   list,
-  token,
 }: {
   list: { name: string; id: number };
-  token: string;
 }) {
-  const removeShoppinglist = useRemoveShoppinglist(token);
+  const removeShoppinglist = useRemoveShoppinglist();
   return (
     <li className="flex flex-row justify-between shadow border-black border-solid border-2 px-1ch py-0.5lh col-span-2">
       <Link

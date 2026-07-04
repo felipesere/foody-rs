@@ -4,7 +4,6 @@ import { Popup } from "../popup.tsx";
 type MealPlanIdentifier = Pick<Mealplan, "id" | "name">;
 
 export type Props = {
-  token: string;
   onSelect: (id: MealPlanIdentifier) => void;
   label?: string;
 };
@@ -17,7 +16,6 @@ export function AddToMealPlan(props: Props) {
       <Popup.OpenButton label={label} />
       <Popup.Pane>
         <PickMealplan
-          token={props.token}
           onSelect={(id) => {
             props.onSelect(id);
           }}
@@ -28,7 +26,7 @@ export function AddToMealPlan(props: Props) {
 }
 
 export function PickMealplan(props: Props) {
-  const { isLoading, data } = useMealplans(props.token);
+  const { isLoading, data } = useMealplans();
 
   if (isLoading || !data) {
     return <p>Loading...</p>;

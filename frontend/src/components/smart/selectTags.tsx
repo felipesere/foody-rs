@@ -7,13 +7,12 @@ import {
 } from "../../api/v1/ingredient.ts";
 
 export function SelectTags(props: {
-  token: string;
   ingredientId: Ingredient["id"];
   currentTags: string[];
   shoppinglistId?: Shoppinglist["id"];
 }) {
-  const tags = useIngredientTags(props.token);
-  const updateIngredient = useUpdateIngredient(props.token);
+  const tags = useIngredientTags();
+  const updateIngredient = useUpdateIngredient();
 
   console.log(tags);
 

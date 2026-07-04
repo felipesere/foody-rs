@@ -33,12 +33,11 @@ export const Route = createFileRoute("/_auth/mealplan")({
 });
 
 function MealPlanPage() {
-  const { token } = Route.useRouteContext();
   const search = Route.useSearch();
 
-  const all = useMealplans(token);
-  const recipes = useRecipes(token);
-  const remove = useDeleteMealplan(token);
+  const all = useMealplans();
+  const recipes = useRecipes();
+  const remove = useDeleteMealplan();
 
   if (all.isPending || recipes.isPending) {
     return "Loading...";
@@ -58,11 +57,10 @@ function MealPlanPage() {
         {/* left or top */}
         <div className={"space-y-2lh"}>
           <Toggle buttonLabel={"New Meal Plan"}>
-            <NewMealPlan token={token} />
+            <NewMealPlan />
           </Toggle>
           {selected && (
             <ViewMealPlan
-              token={token}
               mealPlan={selected}
               recipes={recipes.data.recipes}
             />
@@ -114,15 +112,14 @@ function MealPlanPage() {
 }
 
 function ViewMealPlan(props: {
-  token: string;
   mealPlan: Mealplan;
   recipes: Recipe[];
 }) {
-  const { mealPlan, token, recipes } = props;
+  const { mealPlan, recipes } = props;
 
-  const addMeal = useAddMeal(token);
-  const clearPlan = useClearMealplan(token);
-  const addToShoppinglist = useAddPlanToShoppinglist(token);
+  const addMeal = useAddMeal();
+  const clearPlan = useClearMealplan();
+  const addToShoppinglist = useAddPlanToShoppinglist();
 
   const sections = new Set(
     mealPlan.meals.map((meal) => meal.section).filter((s) => s !== null),
@@ -159,7 +156,6 @@ function ViewMealPlan(props: {
           />
           <AddToShoppinglist
             label={"Add to Shoppinglist"}
-            token={props.token}
             onSelect={(list) => {
               addToShoppinglist.mutate({
                 mealplanId: mealPlan.id,
@@ -168,7 +164,6 @@ function ViewMealPlan(props: {
             }}
           />
           <FindRecipe
-            token={props.token}
             placeholder={"Recipe or thing..."}
             onRecipe={(r) => {
               addMeal.mutate({
@@ -193,7 +188,6 @@ function ViewMealPlan(props: {
       </FieldSet>
       {unnamed.length > 0 && (
         <SectionOfMeals
-          token={token}
           mealPlanId={mealPlan.id}
           meals={unnamed}
           sections={sections}
@@ -207,7 +201,6 @@ function ViewMealPlan(props: {
         return (
           <SectionOfMeals
             key={title}
-            token={token}
             mealPlanId={mealPlan.id}
             meals={meals}
             sections={sections}
@@ -242,15 +235,14 @@ function NewSection(props: { onNewValue: (v: string) => void }) {
 }
 
 function SectionOfMeals(props: {
-  token: string;
   title?: string;
   mealPlanId: number;
   meals: Meal[];
   sections: Set<string>;
   recipes: Recipe[];
 }) {
-  const updateMeal = useUpdateMeal(props.token);
-  const deleteMeal = useDeleteMeal(props.token);
+  const updateMeal = useUpdateMeal();
+  const deleteMeal = useDeleteMeal();
 
   return (
     <div>
@@ -366,14 +358,13 @@ function MealLink(props: { details: Meal["details"]; allRecipes: Recipe[] }) {
 }
 
 type FindRecipeProps = {
-  token: string;
   placeholder: string;
   onRecipe: DropdownProps<Recipe>["onSelectedItem"];
   onNonRecipe: DropdownProps<Recipe>["onNewItem"];
 };
 
 export function FindRecipe(props: FindRecipeProps) {
-  const recipes = useRecipes(props.token);
+  const recipes = useRecipes();
 
   if (!recipes.data) {
     return null;
@@ -394,8 +385,8 @@ export function FindRecipe(props: FindRecipeProps) {
 
 // WARN: Stolen from `NewShoppinglist`
 // @ts-ignore We are bringingin this back in just a minute!
-function NewMealPlan(props: { token: string }) {
-  const createNewShoppinglist = useCreateMealplan(props.token);
+function NewMealPlan() {
+  const createNewShoppinglist = useCreateMealplan();
   const navigate = useNavigate({ from: "/mealplan" });
 
   const defaultName = new Date().toISOString().split("T")[0];

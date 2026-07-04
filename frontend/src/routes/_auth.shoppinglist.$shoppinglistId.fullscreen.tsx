@@ -34,10 +34,9 @@ export function FullscreenPage() {
   const params = Route.useParams();
   const shoppinglistId = Number(params.shoppinglistId);
   const { index } = Route.useSearch();
-  const { token } = Route.useRouteContext();
-  const shoppinglist = useShoppinglist(token, shoppinglistId);
-  const checkItem = useUpdateItem(token);
-  const deleteItem = useDeleteItem(token);
+  const shoppinglist = useShoppinglist(shoppinglistId);
+  const checkItem = useUpdateItem();
+  const deleteItem = useDeleteItem();
 
   const ingredients = shoppinglist.data?.ingredients || [];
   const safeIndex = Math.min(index, ingredients.length - 1);

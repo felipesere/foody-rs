@@ -13,7 +13,6 @@ export const Route = createFileRoute("/_auth/recipes/new")({
 });
 
 function NewRecipePage() {
-  const { token } = Route.useRouteContext();
 
   const [recipe, setRecipe] = useState<UnstoredRecipe>({
     kind: "recipe",
@@ -30,12 +29,12 @@ function NewRecipePage() {
   });
   const navigate = useNavigate({ from: "/recipes/new" });
 
-  const newRecipe = useCreateRecipe(token, (id) =>
+  const newRecipe = useCreateRecipe((id) =>
     navigate({ to: "/recipes/$recipeId", params: { recipeId: `${id}` } }),
   );
 
   return (
-    <RecipeContext.Provider value={{ editing: true, token }}>
+    <RecipeContext.Provider value={{ editing: true }}>
       <RecipeView
         onSave={() => {
           newRecipe.mutate(recipe);

@@ -68,11 +68,10 @@ function updateSearch(change: IngredientSearch["search"]) {
 }
 
 function IngredientsPage() {
-  const { token } = Route.useRouteContext();
   const { search, massEdit } = Route.useSearch();
   const navigate = useNavigate({ from: Route.path });
-  const ingredients = useIngredients(token);
-  const allTags = useIngredientTags(token);
+  const ingredients = useIngredients();
+  const allTags = useIngredientTags();
 
   if (!ingredients.data || !allTags.data) {
     return <p>Loading...</p>;
@@ -164,19 +163,19 @@ function IngredientsPage() {
         </FieldSet>
       </FieldSet>
       {massEdit === "tags" && (
-        <MassEditTags token={token} ingredients={filteredIngredients} />
+        <MassEditTags ingredients={filteredIngredients} />
       )}
       {massEdit === "storedIn" && (
-        <MassEditStoredIn token={token} ingredients={filteredIngredients} />
+        <MassEditStoredIn ingredients={filteredIngredients} />
       )}
       {massEdit === undefined && (
-        <Overview token={token} ingredients={filteredIngredients} />
+        <Overview ingredients={filteredIngredients} />
       )}
     </div>
   );
 }
 
-function Overview(props: { ingredients: Ingredient[]; token: string }) {
+function Overview(props: { ingredients: Ingredient[] }) {
   const sections = orderByTag(props.ingredients);
   sections.sort((a, b) => a.items.length - b.items.length);
 
@@ -193,7 +192,6 @@ function Overview(props: { ingredients: Ingredient[]; token: string }) {
                     key={ingredient.name}
                     ingredient={ingredient}
                     selected={false}
-                    token={props.token}
                     onClick={() => {}}
                   />
                 );
@@ -208,7 +206,6 @@ function Overview(props: { ingredients: Ingredient[]; token: string }) {
 
 type IngredientViewProps = {
   ingredient: Ingredient;
-  token: string;
   selected: boolean;
   onClick: () => void;
 };
@@ -220,7 +217,7 @@ function IngredientView(props: IngredientViewProps) {
 
   const [isDirty, setIsDirty] = useState(false);
   const anyTags = props.ingredient.tags.length > 0;
-  const addIngredient = useAddItem(props.token);
+  const addIngredient = useAddItem();
   return (
     <li
       className={classnames("px-1ch py-0.5lh border-solid border-2", {
@@ -253,7 +250,6 @@ function IngredientView(props: IngredientViewProps) {
           value={isDirty ? temporaryName : props.ingredient.name}
         />
         <AddToShoppinglist
-          token={props.token}
           onSelect={(shoppinglist) => {
             addIngredient.mutate({
               shoppinglistId: shoppinglist.id,
@@ -276,7 +272,6 @@ function IngredientView(props: IngredientViewProps) {
               : "None"}
             {edit && (
               <SelectTags
-                token={props.token}
                 ingredientId={props.ingredient.id}
                 currentTags={props.ingredient.tags}
               />
@@ -287,7 +282,6 @@ function IngredientView(props: IngredientViewProps) {
             <p>Aisle: {props.ingredient.aisle?.name || "None"} </p>
             {edit && (
               <SelectAisle
-                token={props.token}
                 ingredientId={props.ingredient.id}
                 currentAisle={props.ingredient.aisle?.name ?? null}
               />
@@ -298,7 +292,6 @@ function IngredientView(props: IngredientViewProps) {
           {/*  <p>Stored in: {props.ingredient.storage?.name || "None"} </p>*/}
           {/*  {edit && (*/}
           {/*    <SelectStoredIn*/}
-          {/*      token={props.token}*/}
           {/*      ingredientId={props.ingredient.id}*/}
           {/*      currentStoredIn={props.ingredient.stored_in?.name ?? null}*/}
           {/*    />*/}
@@ -322,12 +315,12 @@ function IngredientView(props: IngredientViewProps) {
   );
 }
 
-function MassEditTags(props: { token: string; ingredients: Ingredient[] }) {
+function MassEditTags(props: { ingredients: Ingredient[] }) {
   let ingredients = props.ingredients;
   const [newTags, setNewTags] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const editIngredient = useUpdateIngredient(props.token);
+  const editIngredient = useUpdateIngredient();
 
   let tags = ingredients
     .flatMap((i) => i.tags)
@@ -373,11 +366,11 @@ function MassEditTags(props: { token: string; ingredients: Ingredient[] }) {
   );
 }
 
-function MassEditStoredIn(props: { token: string; ingredients: Ingredient[] }) {
+function MassEditStoredIn(props: { ingredients: Ingredient[] }) {
   let ingredients = props.ingredients;
 
-  const knownStorageLocations = useStorages(props.token);
-  const editIngredient = useUpdateIngredient(props.token);
+  const knownStorageLocations = useStorages();
+  const editIngredient = useUpdateIngredient();
 
   if (!knownStorageLocations.data || knownStorageLocations.isLoading) {
     return "Loading";

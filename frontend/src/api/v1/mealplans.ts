@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import * as v from "valibot";
-import { authed, TimestampSchema, useApiMutation } from "./index.ts";
+import { http, TimestampSchema, useApiMutation } from "./index.ts";
 
 const FromRecipe = v.strictObject({
   kind: v.literal("from_recipe"),
@@ -42,13 +42,13 @@ export const MealplansSchema = v.strictObject({
   mealplans: v.array(MealplanSchema),
 });
 
-export function useMealplans(token: string) {
+export function useMealplans() {
   return useQuery({
     queryKey: ["mealplans"],
     queryFn: async () => {
       const parsed = v.parse(
         MealplansSchema,
-        await authed(token).get("api/v1/mealplans").json(),
+        await http.get("api/v1/mealplans").json(),
       );
       for (const plan of parsed.mealplans) {
         plan.meals.sort((a, b) => a.id - b.id);
@@ -58,12 +58,12 @@ export function useMealplans(token: string) {
   });
 }
 
-export function useCreateMealplan(token: string) {
+export function useCreateMealplan() {
   return useApiMutation({
     mutationFn: async (vars: { name: string; keepUncooked: boolean }) =>
       v.parse(
         MealplanSchema,
-        await authed(token)
+        await http
           .post("api/v1/mealplans", {
             json: { name: vars.name, keep_uncooked: vars.keepUncooked },
           })
@@ -73,30 +73,30 @@ export function useCreateMealplan(token: string) {
   });
 }
 
-export function useDeleteMealplan(token: string) {
+export function useDeleteMealplan() {
   return useApiMutation({
     mutationFn: (vars: { mealplanId: number }) =>
-      authed(token).delete(`api/v1/mealplans/${vars.mealplanId}`),
+      http.delete(`api/v1/mealplans/${vars.mealplanId}`),
     invalidates: ["mealplans"],
   });
 }
 
-export function useClearMealplan(token: string) {
+export function useClearMealplan() {
   return useApiMutation({
     mutationFn: (vars: { mealplanId: number }) =>
-      authed(token).post(`api/v1/mealplans/${vars.mealplanId}/clear`),
+      http.post(`api/v1/mealplans/${vars.mealplanId}/clear`),
     invalidates: ["mealplans"],
   });
 }
 
-export function useAddMeal(token: string) {
+export function useAddMeal() {
   return useApiMutation({
     mutationFn: (vars: {
       mealplanId: number;
       details: MealDetails;
       section?: string;
     }) =>
-      authed(token).post(`api/v1/mealplans/${vars.mealplanId}/meals`, {
+      http.post(`api/v1/mealplans/${vars.mealplanId}/meals`, {
         json: { details: vars.details, section: vars.section },
       }),
     invalidates: ["mealplans"],
@@ -110,14 +110,14 @@ export function useAddMeal(token: string) {
   });
 }
 
-export function useUpdateMeal(token: string) {
+export function useUpdateMeal() {
   return useApiMutation({
     mutationFn: (vars: {
       mealplanId: number;
       mealId: number;
       fields: { is_cooked?: boolean; section?: string };
     }) =>
-      authed(token).put(
+      http.put(
         `api/v1/mealplans/${vars.mealplanId}/meals/${vars.mealId}`,
         { json: vars.fields },
       ),
@@ -125,20 +125,20 @@ export function useUpdateMeal(token: string) {
   });
 }
 
-export function useDeleteMeal(token: string) {
+export function useDeleteMeal() {
   return useApiMutation({
     mutationFn: (vars: { mealplanId: number; mealId: number }) =>
-      authed(token).delete(
+      http.delete(
         `api/v1/mealplans/${vars.mealplanId}/meals/${vars.mealId}`,
       ),
     invalidates: ["mealplans"],
   });
 }
 
-export function useAddPlanToShoppinglist(token: string) {
+export function useAddPlanToShoppinglist() {
   return useApiMutation({
     mutationFn: (vars: { mealplanId: number; shoppinglistId: number }) =>
-      authed(token).post(
+      http.post(
         `api/v1/mealplans/${vars.mealplanId}/shoppinglists/${vars.shoppinglistId}`,
       ),
     invalidates: (vars) => [["mealplans"], ["shoppinglist", vars.shoppinglistId]],

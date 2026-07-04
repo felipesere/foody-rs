@@ -7,7 +7,6 @@ import { Popup } from "../popup.tsx";
 type ShoppinglistIdentifier = Pick<Shoppinglist, "id" | "name">;
 
 type Props = {
-  token: string;
   onSelect: (id: ShoppinglistIdentifier) => void;
   label?: string;
 };
@@ -23,7 +22,6 @@ export function AddToShoppinglist(props: Props) {
       />
       <Popup.Pane>
         <PickShoppinglist
-          token={props.token}
           onSelect={(id) => {
             props.onSelect(id);
           }}
@@ -34,7 +32,7 @@ export function AddToShoppinglist(props: Props) {
 }
 
 export function PickShoppinglist(props: Props) {
-  const { isLoading, data } = useShoppinglists(props.token);
+  const { isLoading, data } = useShoppinglists();
 
   if (isLoading || !data) {
     return <p>Loading...</p>;
