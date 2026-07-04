@@ -38,9 +38,21 @@ class Api::V1::IngredientsController < ApplicationController
     render json: { tags: Current.group.ingredients.all_tags }
   end
 
+  # POST /api/v1/ingredients/:id/merge — fold source_ids into :id (the survivor).
+  def merge
+    target = Current.group.ingredients.find(params[:id])
+    source_ingredients = Current.group.ingredients.where(id: merge_params)
+    target.merge!(source_ingredients)
+    render json: Payloads.ingredient(target.reload)
+  end
+
   private
 
   def ingredient_params
     params.require(:ingredient).permit(:name, :aisle_id, :storage_id, tags: [])
+  end
+
+  def merge_params
+    params.permit(source_ids: []).fetch(:source_ids, [])
   end
 end

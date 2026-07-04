@@ -9,6 +9,9 @@ Rails.application.routes.draw do
         collection do
           get :tags
         end
+        member do
+          post :merge
+        end
       end
       resources :recipes, only: [:index, :show, :create, :update, :destroy] do
         collection do

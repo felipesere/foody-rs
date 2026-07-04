@@ -82,6 +82,49 @@ RSpec.describe "Api::V1::Ingredients", type: :request do
     end
   end
 
+  describe "POST /:id/merge" do
+    it "folds source ingredients into the target and repoints references" do
+      target = create(:ingredient, name: "Scallions")
+      source = create(:ingredient, name: "Spring onions")
+
+      recipe = create(:recipe)
+      create(:recipe_ingredient, recipe: recipe, ingredient: source)
+      shoppinglist = create(:shoppinglist)
+      item = create(:shoppinglist_item, shoppinglist: shoppinglist, ingredient: source)
+
+      post "/api/v1/ingredients/#{target.id}/merge", params: { source_ids: [source.id] }, as: :json
+
+      expect(response).to have_http_status(:success)
+      expect(response.parsed_body).to include("id" => target.id, "name" => "Scallions")
+
+      expect(Ingredient.find_by(id: source.id)).to be_nil
+      expect(RecipeIngredient.find_by(recipe: recipe).ingredient_id).to eq(target.id)
+      expect(ShoppinglistItem.find_by(id: item.id).ingredient_id).to eq(target.id)
+    end
+
+    it "drops duplicate rows and moves quantities when the target is already present" do
+      target = create(:ingredient, name: "Scallions")
+      source = create(:ingredient, name: "Spring onions")
+
+      recipe = create(:recipe)
+      create(:recipe_ingredient, recipe: recipe, ingredient: target)
+      create(:recipe_ingredient, recipe: recipe, ingredient: source)
+
+      shoppinglist = create(:shoppinglist)
+      target_item = create(:shoppinglist_item, shoppinglist: shoppinglist, ingredient: target)
+      source_item = create(:shoppinglist_item, shoppinglist: shoppinglist, ingredient: source)
+      quantity = create(:shoppinglist_quantity, shoppinglist_item: source_item)
+
+      post "/api/v1/ingredients/#{target.id}/merge", params: { source_ids: [source.id] }, as: :json
+
+      expect(response).to have_http_status(:success)
+      expect(Ingredient.find_by(id: source.id)).to be_nil
+      expect(RecipeIngredient.where(recipe: recipe).pluck(:ingredient_id)).to eq([target.id])
+      expect(ShoppinglistItem.where(shoppinglist: shoppinglist).pluck(:ingredient_id)).to eq([target.id])
+      expect(quantity.reload.shoppinglist_item_id).to eq(target_item.id)
+    end
+  end
+
   describe "DELETE /:id" do
     it "deletes the ingredient" do
       ingredient = Ingredient.create!(name: "Apples", tags: ["fruit"])
