@@ -1,0 +1,10 @@
+{
+  "kind": "user",
+  "id": 1,
+  "name": "Charlotte",
+  "email": "charlotte@example.com",
+  "group": {
+    "id": 1,
+    "name": "Sere Family"
+  }
+}

@@ -1,6 +1,7 @@
 Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
+      get  "me",     to: "me#show"
       post "import", to: "import#create"
 
       resources :aisles, only: [:index, :create, :update, :destroy]

@@ -7,6 +7,19 @@ module Payloads
     time.utc.strftime(TIMESTAMP_FORMAT)
   end
 
+  def user(user)
+    {
+      kind:  "user",
+      id:    user.id,
+      name:  user.name,
+      email: user.email,
+      group: {
+        id:   user.group.id,
+        name: user.group.name
+      }
+    }
+  end
+
   def meal(meal)
     {
       kind:       "mealplan_meal",

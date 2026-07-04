@@ -13,21 +13,21 @@ export const TimestampSchema = v.pipe(
   v.transform((input) => new Date(input)),
 );
 
-const prefixUrl =
+/** Origin of the Rails backend. Same-origin in production (Rails serves the
+ * bundle); the Vite dev server runs on a different port. Exported for full-page
+ * auth redirects (e.g. `${apiBase}/auth/login`) that can't go through ky. */
+export const apiBase =
   import.meta.env.MODE === "development" || import.meta.env.MODE === "test"
     ? "http://localhost:3000"
-    : "/";
+    : "";
 
+// `credentials: "include"` sends the Rails session cookie on every request, so
+// authentication rides on the cookie rather than a bearer token. CORS in dev
+// allows credentials from the Vite origin (see backend config/initializers/cors.rb).
 export const http = ky.create({
-  prefixUrl,
+  prefixUrl: apiBase || "/",
+  credentials: "include",
 });
-
-/** A ky instance with the bearer token baked into every request. */
-export function authed(token: string) {
-  return http.extend({
-    headers: { Authorization: `Bearer ${token}` },
-  });
-}
 
 /**
  * useMutation with built-in query invalidation. Pass `invalidates` a query key
