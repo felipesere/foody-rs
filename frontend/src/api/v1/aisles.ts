@@ -26,6 +26,16 @@ export function useCreateAisle(token: string) {
   return useApiMutation({
     mutationFn: (vars: { name: string }) =>
       authed(token).post("api/v1/aisles", { json: { aisle: vars } }),
-    invalidates: ["mealplans"],
+    invalidates: ["aisles"],
+  });
+}
+
+export function useUpdateAisle(token: string) {
+  return useApiMutation({
+    mutationFn: (vars: { id: number; name: string; order: number }) =>
+      authed(token).put(`api/v1/aisles/${vars.id}`, {
+        json: { aisle: { name: vars.name, order: vars.order } },
+      }),
+    invalidates: ["aisles"],
   });
 }

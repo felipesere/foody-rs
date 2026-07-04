@@ -2,7 +2,7 @@ import { useForm } from "@tanstack/react-form";
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { z } from "zod";
-import { type Aisle, useAllAisles } from "../apis/aisles.ts";
+import { type Aisle, useAisles, useUpdateAisle } from "../api/v1/aisles.ts";
 import { type Ingredient, useMergeIngredients } from "../api/v1/ingredient.ts";
 import { useLogin, useLogout, useUser } from "../apis/user.ts";
 import { Button } from "../components/button.tsx";
@@ -162,7 +162,7 @@ function Login() {
 }
 
 function AdminPanel(props: { token: string }) {
-  const aisles = useAllAisles(props.token);
+  const aisles = useAisles(props.token);
 
   if (!aisles.data) {
     return <p>Loading aisles...</p>;
@@ -171,7 +171,7 @@ function AdminPanel(props: { token: string }) {
   return (
     <div className={"flex flex-col gap-4ch"}>
       <Divider />
-      <EditAislesForm token={props.token} aisles={aisles.data} />
+      <EditAislesForm token={props.token} aisles={aisles.data.aisles} />
       <Divider />
       <MergeIngredients token={props.token} />
     </div>
@@ -179,12 +179,23 @@ function AdminPanel(props: { token: string }) {
 }
 
 function EditAislesForm(props: { token: string; aisles: Aisle[] }) {
+  const updateAisle = useUpdateAisle(props.token);
+
   const form = useForm({
     defaultValues: {
       aisles: Object.values(props.aisles),
     },
-    onSubmit: ({ value: { aisles } }) => {
-      console.log(`About to submit ${JSON.stringify(aisles, null, 2)}`);
+    onSubmit: async ({ value: { aisles } }) => {
+      await Promise.all(
+        aisles.map((aisle) =>
+          updateAisle.mutateAsync({
+            id: aisle.id,
+            name: aisle.name,
+            order: aisle.order,
+          }),
+        ),
+      );
+      toast.success("Saved aisle order");
     },
   });
 
@@ -228,7 +239,6 @@ function EditAislesForm(props: { token: string; aisles: Aisle[] }) {
                             <input
                               type={"number"}
                               value={orderField.state.value as number}
-                              readOnly={true}
                               onChange={(e) => {
                                 orderField.handleChange(+e.target.value);
                               }}
@@ -245,16 +255,6 @@ function EditAislesForm(props: { token: string; aisles: Aisle[] }) {
         </table>
         <ButtonGroup>
           <Button label={"Save"} type={"submit"} />
-          <Button
-            label={"Add row"}
-            onClick={() =>
-              form.pushFieldValue("aisles", {
-                id: 1,
-                name: "",
-                order: 7,
-              })
-            }
-          />
         </ButtonGroup>
       </form>
     </div>
