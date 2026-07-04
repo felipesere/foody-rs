@@ -72,3 +72,29 @@ export function useUpdateIngredient(token: string) {
     invalidates: ["ingredients"],
   });
 }
+
+export function useMergeIngredients(token: string) {
+  return useApiMutation({
+    // `replace` are folded into `target`, which survives. The backend repoints
+    // every reference and deletes the sources, so recipes and shopping lists
+    // that mentioned a merged-away ingredient need re-fetching too.
+    mutationFn: async (vars: {
+      target: Ingredient["id"];
+      replace: Ingredient["id"][];
+    }) =>
+      v.parse(
+        IngredientSchema,
+        await authed(token)
+          .post(`api/v1/ingredients/${vars.target}/merge`, {
+            json: { source_ids: vars.replace },
+          })
+          .json(),
+      ),
+    invalidates: () => [
+      ["ingredients"],
+      ["recipes"],
+      ["recipe"],
+      ["shoppinglist"],
+    ],
+  });
+}

@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { z } from "zod";
 import { type Aisle, useAllAisles } from "../apis/aisles.ts";
-import { type Ingredient, useMergeIngredients } from "../apis/ingredients.ts";
+import { type Ingredient, useMergeIngredients } from "../api/v1/ingredient.ts";
 import { useLogin, useLogout, useUser } from "../apis/user.ts";
 import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
