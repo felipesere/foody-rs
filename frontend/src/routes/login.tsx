@@ -1,9 +1,11 @@
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { useRef } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { type Aisle, useAisles, useUpdateAisle } from "../api/v1/aisles.ts";
+import { importErrorMessage, useImport } from "../api/v1/import.ts";
 import { type Ingredient, useMergeIngredients } from "../api/v1/ingredient.ts";
 import {
   login,
@@ -89,6 +91,79 @@ function AdminPanel() {
       <EditAislesForm aisles={aisles.data.aisles} />
       <Divider />
       <MergeIngredients />
+      <Divider />
+      <ImportData />
+    </div>
+  );
+}
+
+function ImportData() {
+  const doImport = useImport();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const form = useForm({
+    defaultValues: {
+      file: null as File | null,
+    },
+    onSubmit: async ({ value: { file } }) => {
+      if (!file) return;
+      try {
+        const { imported } = await doImport.mutateAsync(file);
+        toast.success(
+          `Imported ${imported.aisles} aisles, ` +
+            `${imported.ingredients} ingredients, ` +
+            `${imported.recipes} recipes, ` +
+            `${imported.mealplans} meal plans, ` +
+            `${imported.shoppinglists} shopping lists`,
+        );
+        form.reset();
+        if (inputRef.current) inputRef.current.value = "";
+      } catch (err) {
+        toast.error(await importErrorMessage(err));
+      }
+    },
+  });
+
+  return (
+    <div>
+      <h2>Import data</h2>
+      <p>Upload a JSON export to add it to this group's data.</p>
+      <form
+        id={"import"}
+        className={"flex flex-col gap-2ch items-start mt-1lh"}
+        onSubmit={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          void form.handleSubmit();
+        }}
+      >
+        <form.Field
+          name={"file"}
+          children={(fieldApi) => (
+            <input
+              ref={inputRef}
+              id={"import-file"}
+              type={"file"}
+              accept={"application/json,.json"}
+              onChange={(e) =>
+                fieldApi.handleChange(e.target.files?.[0] ?? null)
+              }
+            />
+          )}
+        />
+        <form.Subscribe
+          selector={(state) => [state.values.file, state.isSubmitting]}
+          children={([file, isSubmitting]) => (
+            <ButtonGroup>
+              <Button
+                label={isSubmitting ? "Importing..." : "Import"}
+                type={"submit"}
+                disabled={!file || Boolean(isSubmitting)}
+              />
+            </ButtonGroup>
+          )}
+        />
+      </form>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 class Api::V1::ImportController < ApplicationController
   def create
-    payload = JSON.parse(request.body.read)
+    payload = JSON.parse(read_payload)
 
     summary = ActiveRecord::Base.transaction do
       aisles      = import_aisles(payload["aisles"])
@@ -26,6 +26,19 @@ class Api::V1::ImportController < ApplicationController
   end
 
   private
+
+  # Accept the dump either as an uploaded file (multipart `file` field) or as a
+  # raw JSON request body, so the admin panel can post a picked file directly.
+  # Only touch `params` for multipart requests — reading it forces Rails to
+  # parse the body as JSON params, which would blow up on a raw (and possibly
+  # malformed) JSON body before we get a chance to handle it ourselves.
+  def read_payload
+    if request.media_type == "multipart/form-data"
+      params[:file]&.read.to_s
+    else
+      request.body.read
+    end
+  end
 
   def import_error_message(e)
     record = e.record

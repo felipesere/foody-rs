@@ -180,6 +180,18 @@ RSpec.describe "Api::V1::Import", type: :request do
       expect(flour_item.shoppinglist_quantities.map(&:created_at)).to contain_exactly(Time.parse(item_late_ts), Time.parse(item_early_ts))
     end
 
+    it "accepts the dump as an uploaded JSON file" do
+      file = Rack::Test::UploadedFile.new(
+        StringIO.new(payload.to_json), "application/json", original_filename: "export.json"
+      )
+
+      post "/api/v1/import", params: { file: file }
+
+      expect(response).to have_http_status(:success)
+      expect(Aisle.count).to eq(2)
+      expect(Recipe.find_by(name: "Shortbread").recipe_ingredients.size).to eq(2)
+    end
+
     it "imports into the current group without touching another group's catalog" do
       other = create(:group)
       other_aisle = create(:aisle, name: "vegetable", order: 1, group: other)
