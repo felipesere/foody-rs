@@ -1,7 +1,7 @@
 import type { AnyFieldApi } from "@tanstack/react-form";
 import { useForm } from "@tanstack/react-form";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { z } from "zod";
+import * as v from "valibot";
 import { KebabMenu } from "../components/kebabMenu.tsx";
 import {
   useCreateShoppinglist,
@@ -27,9 +27,7 @@ export function ShoppingPage() {
               .sort(
                 (a, b) => b.last_updated.getTime() - a.last_updated.getTime(),
               )
-              .map((list) => (
-                <Shoppinglist key={list.name} list={list} />
-              ))}
+              .map((list) => <Shoppinglist key={list.name} list={list} />)}
       </ul>
     </div>
   );
@@ -59,7 +57,7 @@ function NewShoppinglist() {
       <form.Field
         name={"name"}
         validators={{
-          onBlur: z.string().min(1),
+          onBlur: v.pipe(v.string(), v.minLength(1)),
         }}
         children={(field) => (
           <>
@@ -108,11 +106,7 @@ function FieldInfo({ field }: { field: AnyFieldApi }) {
   );
 }
 
-function Shoppinglist({
-  list,
-}: {
-  list: { name: string; id: number };
-}) {
+function Shoppinglist({ list }: { list: { name: string; id: number } }) {
   const removeShoppinglist = useRemoveShoppinglist();
   return (
     <li className="flex flex-row justify-between shadow border-black border-solid border-2 px-1ch py-0.5lh col-span-2">

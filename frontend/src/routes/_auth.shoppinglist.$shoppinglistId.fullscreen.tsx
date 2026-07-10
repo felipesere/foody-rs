@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
-import { z } from "zod";
+import * as v from "valibot";
 import {
   useDeleteItem,
   useShoppinglist,
@@ -12,8 +12,8 @@ import {
 import { Button } from "../components/button.tsx";
 import { Progressbar } from "../components/progressbar.tsx";
 
-const fullscreenSearchSchema = z.object({
-  index: z.number().int().nonnegative().catch(0),
+const fullscreenSearchSchema = v.object({
+  index: v.fallback(v.pipe(v.number(), v.integer(), v.toMinValue(0)), 0),
 });
 
 export const Route = createFileRoute(

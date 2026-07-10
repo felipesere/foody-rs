@@ -2,7 +2,7 @@ import { type AnyFieldApi, useForm } from "@tanstack/react-form";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import classNames from "classnames";
 import { useState } from "react";
-import { z } from "zod";
+import * as v from "valibot";
 import {
   type Meal,
   type Mealplan,
@@ -23,8 +23,8 @@ import { KebabMenu } from "../components/kebabMenu.tsx";
 import { AddToShoppinglist } from "../components/smart/addToShoppinglist.tsx";
 import { Toggle } from "../components/toggle.tsx";
 
-const SelectedMealPlanSchema = z.object({
-  mealPlan: z.number().optional(),
+const SelectedMealPlanSchema = v.object({
+  mealPlan: v.optional(v.number()),
 });
 
 export const Route = createFileRoute("/_auth/mealplan")({
@@ -60,10 +60,7 @@ function MealPlanPage() {
             <NewMealPlan />
           </Toggle>
           {selected && (
-            <ViewMealPlan
-              mealPlan={selected}
-              recipes={recipes.data.recipes}
-            />
+            <ViewMealPlan mealPlan={selected} recipes={recipes.data.recipes} />
           )}
         </div>
         {/* right or bottom */}
@@ -111,10 +108,7 @@ function MealPlanPage() {
   );
 }
 
-function ViewMealPlan(props: {
-  mealPlan: Mealplan;
-  recipes: Recipe[];
-}) {
+function ViewMealPlan(props: { mealPlan: Mealplan; recipes: Recipe[] }) {
   const { mealPlan, recipes } = props;
 
   const addMeal = useAddMeal();
@@ -414,7 +408,7 @@ function NewMealPlan() {
         <form.Field
           name={"name"}
           validators={{
-            onBlur: z.string().min(1),
+            onBlur: v.pipe(v.string(), v.minLength(3)),
           }}
           children={(field) => (
             <>

@@ -3,9 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useRef } from "react";
 import { toast } from "sonner";
-import { z } from "zod";
 import { type Aisle, useAisles, useUpdateAisle } from "../api/v1/aisles.ts";
 import { importErrorMessage, useImport } from "../api/v1/import.ts";
+import * as v from "valibot";
 import { type Ingredient, useMergeIngredients } from "../api/v1/ingredient.ts";
 import {
   login,
@@ -19,8 +19,8 @@ import { Divider } from "../components/divider.tsx";
 import { Pill } from "../components/pill.tsx";
 import { FindIngredient } from "../components/smart/findIngredient.tsx";
 
-const RedirectAfterLoginSchema = z.object({
-  redirect: z.string().optional(),
+const RedirectAfterLoginSchema = v.object({
+  redirect: v.optional(v.string()),
 });
 
 export const Route = createFileRoute("/login")({

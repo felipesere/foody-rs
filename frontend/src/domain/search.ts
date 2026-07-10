@@ -1,13 +1,13 @@
-import { z } from "zod";
+import * as v from "valibot";
 import { Recipe } from "../api/v1/recipes.ts";
 
-export const RecipeSearchSchemaParams = z.object({
-  tags: z.array(z.string()).optional(),
-  books: z.array(z.string()).optional(),
-  terms: z.array(z.string()).optional(),
-  rating: z.number().optional(),
+export const RecipeSearchSchemaParams = v.object({
+  tags: v.optional(v.array(v.string())),
+  books: v.optional(v.array(v.string())),
+  terms: v.optional(v.array(v.string())),
+  rating: v.optional(v.number()),
 });
-export type RecipeSearchParams = z.infer<typeof RecipeSearchSchemaParams>;
+export type RecipeSearchParams = v.InferOutput<typeof RecipeSearchSchemaParams>;
 
 export function updateSearchParams(
   previous: RecipeSearchParams,

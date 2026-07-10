@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import classnames from "classnames";
 import { useRef, useState } from "react";
-import { z } from "zod";
+import * as v from "valibot";
 import {
   Recipe,
   RecipeIngredient,
@@ -27,9 +27,9 @@ import {
   updateSearchParams,
 } from "../../domain/search.ts";
 
-const recipeUrlParams = z.object({
-  search: RecipeSearchSchemaParams.optional(),
-  massEditTags: z.boolean().optional(),
+const recipeUrlParams = v.object({
+  search: v.optional(RecipeSearchSchemaParams),
+  massEditTags: v.optional(v.boolean()),
 });
 
 export const Route = createFileRoute("/_auth/recipes/")({
