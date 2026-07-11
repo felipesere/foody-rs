@@ -14,8 +14,6 @@ export function SelectTags(props: {
   const tags = useIngredientTags();
   const updateIngredient = useUpdateIngredient();
 
-  console.log(tags);
-
   if (!tags.data) {
     return <p>Loading...</p>;
   }

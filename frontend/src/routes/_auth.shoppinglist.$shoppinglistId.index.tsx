@@ -32,7 +32,6 @@ import { Toggle, ToggleButton } from "../components/toggle.tsx";
 import { orderByAisles } from "../domain/orderByAisle.ts";
 import { orderByRecipe, type Section } from "../domain/orderByRecipe.ts";
 import { combineQuantities, humanize, parse } from "../quantities.ts";
-import { Aisle } from "../api/v1/aisles.ts";
 
 export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId/")({
   component: ShoppingPage,
@@ -427,14 +426,7 @@ function EditIngredient({
       )}
       {item.ingredient.tags && (
         <>
-          <div className={"flex flex-row gapx-2ch"}>
-            <TagsAndAisle
-              ingredientId={item.ingredient.id}
-              tags={item.ingredient.tags}
-              aisle={item.ingredient.aisle ?? null}
-              isEditing={isEditing}
-            />
-          </div>
+          <Tags tags={item.ingredient.tags} />
           <Divider />
         </>
       )}
@@ -512,6 +504,14 @@ function EditIngredient({
         >
           Note
         </button>
+        <SelectTags
+          ingredientId={item.ingredient.id}
+          currentTags={item.ingredient.tags}
+        />
+        <SelectAisle
+          ingredientId={item.ingredient.id}
+          currentAisle={item.ingredient.aisle}
+        />
         <button
           type={"button"}
           className={"px-2ch bg-gray-700 text-white"}
@@ -525,31 +525,6 @@ function EditIngredient({
           Full edit
         </Link>
       </ButtonGroup>
-    </div>
-  );
-}
-
-function TagsAndAisle(props: {
-  ingredientId: Ingredient["id"];
-  tags: string[];
-  aisle: Aisle | null;
-  isEditing?: boolean;
-}) {
-  return (
-    <div className={"flex flex-row gapx-2ch"}>
-      <Tags tags={props.tags} />
-      {props.isEditing && (
-        <>
-          <SelectTags
-            ingredientId={props.ingredientId}
-            currentTags={props.tags}
-          />
-          <SelectAisle
-            ingredientId={props.ingredientId}
-            currentAisle={props.aisle}
-          />
-        </>
-      )}
     </div>
   );
 }
