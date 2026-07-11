@@ -168,9 +168,7 @@ function IngredientsPage() {
       {massEdit === "storedIn" && (
         <MassEditStoredIn ingredients={filteredIngredients} />
       )}
-      {massEdit === undefined && (
-        <Overview ingredients={filteredIngredients} />
-      )}
+      {massEdit === undefined && <Overview ingredients={filteredIngredients} />}
     </div>
   );
 }
@@ -283,7 +281,7 @@ function IngredientView(props: IngredientViewProps) {
             {edit && (
               <SelectAisle
                 ingredientId={props.ingredient.id}
-                currentAisle={props.ingredient.aisle?.name ?? null}
+                currentAisle={props.ingredient.aisle}
               />
             )}
           </div>

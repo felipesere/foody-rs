@@ -205,7 +205,11 @@ function RecipePage() {
           if (change.value.type === "add") {
             const { id: ingredient_id, quantity } = change.value;
             ingredientOps.push(() =>
-              addIngredient.mutateAsync({ recipeId: id, ingredient_id, quantity }),
+              addIngredient.mutateAsync({
+                recipeId: id,
+                ingredient_id,
+                quantity,
+              }),
             );
           } else {
             const ingredientId = change.value.ingredient;

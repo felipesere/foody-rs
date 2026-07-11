@@ -32,6 +32,7 @@ import { Toggle, ToggleButton } from "../components/toggle.tsx";
 import { orderByAisles } from "../domain/orderByAisle.ts";
 import { orderByRecipe, type Section } from "../domain/orderByRecipe.ts";
 import { combineQuantities, humanize, parse } from "../quantities.ts";
+import { Aisle } from "../api/v1/aisles.ts";
 
 export const Route = createFileRoute("/_auth/shoppinglist/$shoppinglistId/")({
   component: ShoppingPage,
@@ -430,7 +431,7 @@ function EditIngredient({
             <TagsAndAisle
               ingredientId={item.ingredient.id}
               tags={item.ingredient.tags}
-              aisle={item.ingredient.aisle?.name ?? null}
+              aisle={item.ingredient.aisle ?? null}
               isEditing={isEditing}
             />
           </div>
@@ -531,7 +532,7 @@ function EditIngredient({
 function TagsAndAisle(props: {
   ingredientId: Ingredient["id"];
   tags: string[];
-  aisle: string | null;
+  aisle: Aisle | null;
   isEditing?: boolean;
 }) {
   return (

@@ -1,5 +1,5 @@
 import { useForm } from "@tanstack/react-form";
-import { useAisles, useCreateAisle } from "../../api/v1/aisles.ts";
+import { Aisle, useAisles, useCreateAisle } from "../../api/v1/aisles.ts";
 import { Ingredient, useUpdateIngredient } from "../../api/v1/ingredient.ts";
 import { Shoppinglist } from "../../api/v1/shoppinglists.ts";
 import { Button } from "../button.tsx";
@@ -10,7 +10,7 @@ import { Popup } from "../popup.tsx";
 
 export function SelectAisle(props: {
   ingredientId: Ingredient["id"];
-  currentAisle: string | null;
+  currentAisle: Aisle | null;
   shoppinglistId?: Shoppinglist["id"];
 }) {
   const aisles = useAisles();
@@ -23,13 +23,14 @@ export function SelectAisle(props: {
 
   return (
     <InnerSelectAisle
-      items={aisles.data.aisles.map((a) => a.name)}
+      items={aisles.data.aisles}
       selected={props.currentAisle}
-      onItemsSelected={(item) => {
-        console.log(item);
+      onItemsSelected={(aisle) => {
         editIngredient.mutate({
           ingredient_id: props.ingredientId,
-          fields: {},
+          fields: {
+            aisle_id: aisle?.id,
+          },
         });
       }}
       onNewItem={(item) => {
@@ -64,7 +65,7 @@ function InnerSelectAisle(props: Props) {
                   children={(itemsField) => {
                     return itemsField.state.value.map((item, idx) => (
                       <form.Field
-                        key={item}
+                        key={item.id}
                         name={`items[${idx}]`}
                         children={() => {
                           const isChecked = item === selected;
@@ -120,9 +121,9 @@ function InnerSelectAisle(props: Props) {
 }
 
 type Props = {
-  items: string[];
-  selected: string | null;
-  onItemsSelected: (item: string | null) => void;
+  items: Aisle[];
+  selected: Aisle | null;
+  onItemsSelected: (item: Aisle | null) => void;
   onNewItem: (item: string) => void;
 };
 
@@ -131,23 +132,23 @@ function Choice({
   isChecked,
   onClick,
 }: {
-  item: string;
+  item: Aisle;
   isChecked: boolean;
   onClick: () => void;
 }) {
-  const [first, ...remaining] = item;
+  const [first, ...remaining] = item.name;
   return (
-    <li className={"flex flex-row gap-2ch"} key={item}>
+    <li className={"flex flex-row gap-2ch"} key={item.id}>
       <input
         type={"radio"}
         className={"bg-white shadow w-5 h-5"}
-        id={item}
-        key={item}
+        id={item.name}
+        key={item.id}
         checked={isChecked}
         onClick={onClick}
         readOnly={true}
       />
-      <label className={"no-colon"} htmlFor={item}>
+      <label className={"no-colon"} htmlFor={item.name}>
         <span className={"font-bold"}>{first}</span>
         {remaining.join("")}
       </label>

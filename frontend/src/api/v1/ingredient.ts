@@ -27,10 +27,7 @@ export function useIngredients() {
   return useQuery({
     queryKey: ["ingredients"],
     queryFn: async () =>
-      v.parse(
-        IngredientsSchema,
-        await http.get("api/v1/ingredients").json(),
-      ),
+      v.parse(IngredientsSchema, await http.get("api/v1/ingredients").json()),
   });
 }
 
@@ -38,10 +35,7 @@ export function useIngredientTags() {
   return useQuery({
     queryKey: ["tags"],
     queryFn: async () =>
-      v.parse(
-        TagsSchema,
-        await http.get("api/v1/ingredients/tags").json(),
-      ),
+      v.parse(TagsSchema, await http.get("api/v1/ingredients/tags").json()),
   });
 }
 
@@ -62,7 +56,7 @@ export function useUpdateIngredient() {
       ingredient_id: number;
       fields: {
         tags?: string[];
-        aisle_id?: number;
+        aisle_id?: number | null;
         storage_id?: number | null;
       };
     }) =>

@@ -64,10 +64,7 @@ export function RecipeView(props: RecipeViewProps) {
         {/* left or top */}
         <div className={"flex flex-col gap-1ch"}>
           <Name value={recipe.name} onBlur={props.onSetName} />
-          <ShowSource
-            recipe={recipe}
-            onBlur={props.onSetSource}
-          />
+          <ShowSource recipe={recipe} onBlur={props.onSetSource} />
           <div className={"flex flex-row gap-2ch"}>
             <p>Rating:</p>{" "}
             <Stars rating={recipe.rating || 0} setRating={props.onSetRating} />
