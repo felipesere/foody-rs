@@ -1,5 +1,5 @@
 import classnames from "classnames";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useEditable } from "use-editable";
 
 export function Editable(props: {
@@ -12,6 +12,8 @@ export function Editable(props: {
   const currentValueRef = useRef<HTMLParagraphElement | null>(null);
 
   useEditable(currentValueRef, setCurrentValue, { disabled: !props.isEditing });
+
+  // TEMP: useEffect removed to test whether it causes the typing bug.
 
   return (
     <p

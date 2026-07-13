@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import classnames from "classnames";
-import { Fragment, useState } from "react";
+import { Fragment, useRef, useState } from "react";
 import { Ingredient } from "../api/v1/ingredient.ts";
 import { Recipe, useRecipes } from "../api/v1/recipes.ts";
 import {
@@ -18,17 +18,14 @@ import {
   useUpdateQuantity,
 } from "../api/v1/shoppinglists.ts";
 import { Button } from "../components/button.tsx";
-import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { DeleteButton } from "../components/deleteButton.tsx";
 import { Divider } from "../components/divider.tsx";
 import { Editable } from "../components/editable.tsx";
 import { FieldSet } from "../components/fieldset.tsx";
-import { KebabMenu } from "../components/kebabMenu.tsx";
 import { Labeled } from "../components/Labeled.tsx";
 import { Progressbar } from "../components/progressbar.tsx";
 import { SelectAisle } from "../components/smart/selectAisle.tsx";
 import { SelectIngredientWithQuantity } from "../components/smart/selectIngredientWithQuantity.tsx";
-import { SelectTags } from "../components/smart/selectTags.tsx";
 import { Tags } from "../components/tags.tsx";
 import { Toggle, ToggleButton } from "../components/toggle.tsx";
 import { orderByAisles } from "../domain/orderByAisle.ts";
@@ -315,6 +312,7 @@ type EditIngredientProps = {
 };
 
 type Changes = {
+  note?: string;
   removals: Array<StoredQuantity["id"]>;
   modifications: Array<{ value: string; quantity: StoredQuantity["id"] }>;
 };
@@ -365,14 +363,15 @@ function LinkToRecipe(props: { recipeId: Recipe["id"] }) {
 
 function EditIngredient({ item, shoppinglistId }: EditIngredientProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [isEditingNote, setIsEditingNote] = useState(false);
-  const [newNote, setNewNote] = useState<string | undefined>(undefined);
   const updateIngredient = useUpdateItem();
+  const deleteItem = useDeleteItem();
 
-  const [changes, setChanges] = useState<Changes>({
-    removals: [],
-    modifications: [],
-  });
+  // Pending edits are collected in a ref rather than state: an `Editable` blur
+  // fires while focus is moving to the next field, and re-rendering here would
+  // let `use-editable` steal focus back to the field being left. The ref lets
+  // us record edits without a render; `modifiedIngredient` is only updated on
+  // discrete clicks (delete / Save / Cancel), where a render is harmless.
+  const changesRef = useRef<Changes>({ removals: [], modifications: [] });
   const [modifiedIngredient, setModifiedIngredient] = useState(
     structuredClone(item),
   );
@@ -380,7 +379,19 @@ function EditIngredient({ item, shoppinglistId }: EditIngredientProps) {
   const removeQuantity = useDeleteQuantity();
   const updateQuantity = useUpdateQuantity();
 
+  function resetChanges() {
+    changesRef.current = { removals: [], modifications: [] };
+  }
+
   function applyModifications(changesToIngredient: Changes) {
+    if (changesToIngredient.note !== undefined) {
+      updateIngredient.mutate({
+        shoppinglistId,
+        item_id: item.id,
+        fields: { note: changesToIngredient.note },
+      });
+    }
+
     for (const m of changesToIngredient.modifications) {
       updateQuantity.mutate({
         shoppinglistId,
@@ -408,10 +419,7 @@ function EditIngredient({ item, shoppinglistId }: EditIngredientProps) {
           quantity={quantity}
           editing={isEditing}
           onClick={() => {
-            setChanges((previous) => ({
-              ...previous,
-              removals: [...previous.removals, quantity.id],
-            }));
+            changesRef.current.removals.push(quantity.id);
             setModifiedIngredient((previous) => ({
               ...previous,
               quantities: previous.quantities.filter(
@@ -420,22 +428,15 @@ function EditIngredient({ item, shoppinglistId }: EditIngredientProps) {
             }));
           }}
           onBlur={(v) => {
-            setChanges((previous) => ({
-              ...previous,
-              modifications: [
-                ...previous.modifications,
-                { value: v, quantity: quantity.id },
-              ],
-            }));
-            setModifiedIngredient((previous) => ({
-              ...previous,
-              quantities: previous.quantities.map((q) => {
-                if (q.id === quantity.id) {
-                  return { ...q, ...parse(v) };
-                }
-                return q;
-              }),
-            }));
+            const { modifications } = changesRef.current;
+            const existing = modifications.find(
+              (m) => m.quantity === quantity.id,
+            );
+            if (existing) {
+              existing.value = v;
+            } else {
+              modifications.push({ value: v, quantity: quantity.id });
+            }
           }}
         />
       ))}
@@ -445,75 +446,71 @@ function EditIngredient({ item, shoppinglistId }: EditIngredientProps) {
           <Tags tags={item.ingredient.tags} />
         </>
       )}
-      {(item.note || newNote) && (
+      {(item.note || isEditing) && (
         <>
           <Divider />
           <div className={"flex flex-row gapx-2ch py-1lhch"}>
             <span>Note:</span>
             <Editable
-              isEditing={isEditingNote}
-              value={newNote || item.note || ""}
+              isEditing={isEditing}
+              value={modifiedIngredient.note || ""}
               onBlur={(v) => {
-                updateIngredient.mutate({
-                  shoppinglistId,
-                  item_id: item.id,
-                  fields: { note: v },
-                });
-                setIsEditingNote(false);
+                changesRef.current.note = v;
               }}
             />
           </div>
         </>
       )}
       <Divider />
-      <ButtonGroup>
-        <IngredientMenu
-          shoppinglistId={shoppinglistId}
-          ingredient={item.ingredient}
-          toggleEditNote={() => {
-            setIsEditingNote((v) => !v);
+      <div className={"flex flex-row gap-x-2ch py-1lhch"}>
+        <Button
+          label={isEditing ? "Save" : "Edit"}
+          onClick={() => {
+            if (isEditing) {
+              const pending = changesRef.current;
+              applyModifications(pending);
+              // Reflect the saved edits locally until the query refetches, so
+              // the row doesn't flash back to its old value on Save.
+              setModifiedIngredient((previous) => ({
+                ...previous,
+                note: pending.note ?? previous.note,
+                quantities: previous.quantities.map((q) => {
+                  const mod = pending.modifications.find(
+                    (m) => m.quantity === q.id,
+                  );
+                  return mod ? { ...q, ...parse(mod.value) } : q;
+                }),
+              }));
+            }
+            resetChanges();
+            setIsEditing((v) => !v);
           }}
         />
-      </ButtonGroup>
-    </div>
-  );
-}
-
-function IngredientMenu(props: {
-  shoppinglistId: Shoppinglist["id"];
-  ingredient: Ingredient;
-  toggleEditNote: () => void;
-}) {
-  const deleteIngredient = useDeleteItem();
-  return (
-    <KebabMenu label={"Edit"}>
-      <div className={"flex flex-col gap-1ch"}>
-        <KebabMenu.Button
-          value={"Set note"}
-          className={"text-left"}
-          onClick={props.toggleEditNote}
-        />
+        {isEditing && (
+          <Button
+            label={"Cancel"}
+            onClick={() => {
+              resetChanges();
+              setModifiedIngredient(structuredClone(item));
+              setIsEditing(false);
+            }}
+          />
+        )}
         <SelectAisle
-          ingredientId={props.ingredient.id}
-          currentAisle={props.ingredient.aisle}
+          ingredientId={item.ingredient.id}
+          currentAisle={item.ingredient.aisle}
         />
-        <SelectTags
-          ingredientId={props.ingredient.id}
-          currentTags={props.ingredient.tags}
-        />
-        <KebabMenu.Divider />
-        <KebabMenu.Button
-          value={"Delete"}
-          style={"dark"}
-          className={"text-left"}
+        <Button
+          dark
+          label={"Delete"}
           onClick={() => {
-            deleteIngredient.mutate({
-              shoppinglistId: props.shoppinglistId,
-              item_id: props.ingredient.id,
+            deleteItem.mutate({
+              shoppinglistId: shoppinglistId,
+              item_id: item.id,
             });
           }}
         />
       </div>
-    </KebabMenu>
+    </div>
   );
 }
