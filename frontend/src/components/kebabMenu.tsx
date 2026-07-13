@@ -2,12 +2,14 @@ import classnames from "classnames";
 import { type PropsWithChildren } from "react";
 import { Popup } from "./popup.tsx";
 
-interface KebabMenuProps {}
+interface KebabMenuProps {
+  label?: string;
+}
 export function KebabMenu(props: PropsWithChildren<KebabMenuProps>) {
   return (
     <Popup>
       <Popup.OpenButton
-        label={"≡"}
+        label={props.label || "≡"}
         className={"bg-transparent borderless font-extrabold hover:bg-gray-300"}
         type={"submit"}
         shadow={false}
@@ -30,8 +32,8 @@ export function Button({ onClick, value, className, style }: ButtonProps) {
     <button
       onClick={onClick}
       type="submit"
-      className={classnames("px-2ch", className, {
-        "text-white bg-gray-700": style === "dark",
+      className={classnames("px-1ch", className, {
+        dark: style === "dark",
       })}
     >
       {value}

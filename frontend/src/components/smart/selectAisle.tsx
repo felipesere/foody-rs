@@ -53,7 +53,7 @@ function InnerSelectAisle(props: Props) {
 
   return (
     <Popup>
-      <Popup.OpenButton label={"Select Aisle"} />
+      <Popup.OpenButton label={"Select aisle"} />
       <Popup.Pane>
         <ol className={"space-y-1lh max-h-96 overflow-scroll"}>
           <form.Subscribe

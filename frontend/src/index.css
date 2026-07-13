@@ -203,6 +203,12 @@ input[type="button"]:disabled {
   cursor: not-allowed;
 }
 
+button.dark,
+input[type="button"].dark {
+  color: white;
+  background-color: #33363b;
+}
+
 label:not(.no-colon)::after {
   content: ": ";
 }

@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import classnames from "classnames";
 import { Fragment, useState } from "react";
@@ -22,6 +23,7 @@ import { DeleteButton } from "../components/deleteButton.tsx";
 import { Divider } from "../components/divider.tsx";
 import { Editable } from "../components/editable.tsx";
 import { FieldSet } from "../components/fieldset.tsx";
+import { KebabMenu } from "../components/kebabMenu.tsx";
 import { Labeled } from "../components/Labeled.tsx";
 import { Progressbar } from "../components/progressbar.tsx";
 import { SelectAisle } from "../components/smart/selectAisle.tsx";
@@ -321,7 +323,6 @@ function RecipeAndQuantity(props: {
   editing: boolean;
   onClick: () => void;
   quantity: StoredQuantity;
-  allRecipes: Record<number, string>;
   onBlur: (v: string) => void;
 }) {
   return (
@@ -331,10 +332,7 @@ function RecipeAndQuantity(props: {
       ) : null}
       <p className="flex-shrink-0 min-w-0 max-w-[85%] overflow-hidden whitespace-nowrap">
         {props.quantity.recipe_id ? (
-          <LinkToRecipe
-            recipeId={props.quantity.recipe_id}
-            name={props.allRecipes[props.quantity.recipe_id] || "Manual"}
-          />
+          <LinkToRecipe recipeId={props.quantity.recipe_id} />
         ) : (
           "Manual"
         )}
@@ -351,23 +349,23 @@ function RecipeAndQuantity(props: {
   );
 }
 
-function LinkToRecipe(props: { recipeId: Recipe["id"]; name: Recipe["name"] }) {
+function LinkToRecipe(props: { recipeId: Recipe["id"] }) {
+  let q = useQueryClient();
+  let data = q.getQueryData<{ recipes: Recipe[] }>(["recipes"])?.recipes || [];
+  let recipe = data.find((r) => r.id === props.recipeId);
+  if (!recipe) {
+    return null;
+  }
   return (
-    <Link
-      to={"/recipes/$recipeId"}
-      params={{ recipeId: props.recipeId.toString() }}
-    >
-      {props.name}
+    <Link to={"/recipes/$recipeId"} params={{ recipeId: recipe.id.toString() }}>
+      {recipe.name}
     </Link>
   );
 }
 
-function EditIngredient({
-  item,
-  shoppinglistId,
-  allRecipes,
-}: EditIngredientProps) {
+function EditIngredient({ item, shoppinglistId }: EditIngredientProps) {
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingNote, setIsEditingNote] = useState(false);
   const [newNote, setNewNote] = useState<string | undefined>(undefined);
   const updateIngredient = useUpdateItem();
 
@@ -378,7 +376,6 @@ function EditIngredient({
   const [modifiedIngredient, setModifiedIngredient] = useState(
     structuredClone(item),
   );
-  const deleteIngredient = useDeleteItem();
 
   const removeQuantity = useDeleteQuantity();
   const updateQuantity = useUpdateQuantity();
@@ -405,36 +402,10 @@ function EditIngredient({
   return (
     <div className="max-w-full overflow-hidden">
       <Divider />
-      {(item.note || newNote) && (
-        <>
-          <div className={"flex flex-row gapx-2ch py-1lhch"}>
-            <span>Note:</span>
-            <Editable
-              isEditing={isEditing}
-              value={newNote || item.note || ""}
-              onBlur={(v) => {
-                updateIngredient.mutate({
-                  shoppinglistId,
-                  item_id: item.id,
-                  fields: { note: v },
-                });
-              }}
-            />
-          </div>
-          <Divider />
-        </>
-      )}
-      {item.ingredient.tags && (
-        <>
-          <Tags tags={item.ingredient.tags} />
-          <Divider />
-        </>
-      )}
       {modifiedIngredient.quantities.map((quantity) => (
         <RecipeAndQuantity
           key={quantity.id}
           quantity={quantity}
-          allRecipes={allRecipes}
           editing={isEditing}
           onClick={() => {
             setChanges((previous) => ({
@@ -468,63 +439,81 @@ function EditIngredient({
           }}
         />
       ))}
+      {item.ingredient.tags && (
+        <>
+          <Divider />
+          <Tags tags={item.ingredient.tags} />
+        </>
+      )}
+      {(item.note || newNote) && (
+        <>
+          <Divider />
+          <div className={"flex flex-row gapx-2ch py-1lhch"}>
+            <span>Note:</span>
+            <Editable
+              isEditing={isEditingNote}
+              value={newNote || item.note || ""}
+              onBlur={(v) => {
+                updateIngredient.mutate({
+                  shoppinglistId,
+                  item_id: item.id,
+                  fields: { note: v },
+                });
+                setIsEditingNote(false);
+              }}
+            />
+          </div>
+        </>
+      )}
       <Divider />
       <ButtonGroup>
-        <button
-          type={"button"}
-          className={"px-2ch"}
-          disabled={!isEditing}
-          onClick={() => {
-            setModifiedIngredient(structuredClone(item));
-            setChanges({ removals: [], modifications: [] });
-            setIsEditing(false);
+        <IngredientMenu
+          shoppinglistId={shoppinglistId}
+          ingredient={item.ingredient}
+          toggleEditNote={() => {
+            setIsEditingNote((v) => !v);
           }}
-        >
-          Cancel
-        </button>
-        <button
-          type={"button"}
-          className={"px-2ch"}
-          onClick={() => {
-            if (isEditing) {
-              applyModifications(changes);
-            }
-            setIsEditing((b) => !b);
-          }}
-        >
-          {isEditing ? "Save" : "Edit"}
-        </button>
-        <button
-          type={"button"}
-          className={"px-2ch"}
-          disabled={item.note !== null}
-          onClick={() => {
-            setNewNote("...");
-          }}
-        >
-          Note
-        </button>
-        <SelectTags
-          ingredientId={item.ingredient.id}
-          currentTags={item.ingredient.tags}
         />
-        <SelectAisle
-          ingredientId={item.ingredient.id}
-          currentAisle={item.ingredient.aisle}
-        />
-        <button
-          type={"button"}
-          className={"px-2ch bg-gray-700 text-white"}
-          onClick={() =>
-            deleteIngredient.mutate({ shoppinglistId, item_id: item.id })
-          }
-        >
-          Delete
-        </button>
-        <Link className={"underline"} from={Route.fullPath} to={"/ingredients"}>
-          Full edit
-        </Link>
       </ButtonGroup>
     </div>
+  );
+}
+
+function IngredientMenu(props: {
+  shoppinglistId: Shoppinglist["id"];
+  ingredient: Ingredient;
+  toggleEditNote: () => void;
+}) {
+  const deleteIngredient = useDeleteItem();
+  return (
+    <KebabMenu label={"Edit"}>
+      <div className={"flex flex-col gap-1ch"}>
+        <KebabMenu.Button
+          value={"Set note"}
+          className={"text-left"}
+          onClick={props.toggleEditNote}
+        />
+        <SelectAisle
+          ingredientId={props.ingredient.id}
+          currentAisle={props.ingredient.aisle}
+        />
+        <SelectTags
+          ingredientId={props.ingredient.id}
+          currentTags={props.ingredient.tags}
+        />
+        <KebabMenu.Divider />
+        <KebabMenu.Button
+          value={"Delete"}
+          style={"dark"}
+          className={"text-left"}
+          onClick={() => {
+            deleteIngredient.mutate({
+              shoppinglistId: props.shoppinglistId,
+              item_id: props.ingredient.id,
+            });
+          }}
+        />
+      </div>
+    </KebabMenu>
   );
 }

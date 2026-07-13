@@ -41,12 +41,9 @@ export function ToggleButton(props: ToggleButtonProps) {
   return (
     <div
       onClick={props.onToggle}
-      className={classnames(
-        "max-w-1ch mx-1ch transition-transform ease-linear",
-        {
-          "rotate-90": props.open,
-        },
-      )}
+      className={classnames("ml-1ch transition-transform ease-linear", {
+        "rotate-90": props.open,
+      })}
     >
       {TOGGLE_MENU}
     </div>

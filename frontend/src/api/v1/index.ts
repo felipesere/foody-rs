@@ -47,9 +47,7 @@ export function useApiMutation<TVars, TData = unknown>(
       const vars = args[2];
       if (invalidates) {
         const keys =
-          typeof invalidates === "function"
-            ? invalidates(vars)
-            : [invalidates];
+          typeof invalidates === "function" ? invalidates(vars) : [invalidates];
         await Promise.all(
           keys.map((queryKey) => queryClient.invalidateQueries({ queryKey })),
         );

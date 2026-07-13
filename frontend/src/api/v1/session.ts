@@ -21,7 +21,8 @@ export type User = v.InferOutput<typeof UserSchema>;
 export function meQueryOptions() {
   return queryOptions({
     queryKey: ["me"],
-    queryFn: async () => v.parse(UserSchema, await http.get("api/v1/me").json()),
+    queryFn: async () =>
+      v.parse(UserSchema, await http.get("api/v1/me").json()),
     retry: false,
     staleTime: 5 * 60 * 1000,
   });
@@ -30,7 +31,13 @@ export function meQueryOptions() {
 /** Full-page redirect into the Pocket ID login flow. Rails sets the session
  * cookie on callback and redirects back to the app. */
 export function login() {
-  window.location.href = `${apiBase}/auth/login`;
+  import.meta.env.MODE === "development" || import.meta.env.MODE === "test"
+    ? http.post("dev/login", {
+        json: {
+          as: "felipe@example.com",
+        },
+      })
+    : (window.location.href = `${apiBase}/auth/login`);
 }
 
 /** Drops the Rails session, forgets the cached user, and returns to /login. */
