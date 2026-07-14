@@ -209,6 +209,47 @@ input[type="button"].dark {
   background-color: #33363b;
 }
 
+/*
+  Text fields, selects and textareas. Kept on the monospace grid: a crisp 2px
+  black border (no radius), the mono font inherited from the body, and a
+  block-style shadow on focus that echoes `.shadow` used on buttons.
+  Inspired by https://owickstrom.github.io/the-monospace-web/#forms
+ */
+input[type="text"],
+input[type="search"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="url"],
+input[type="tel"],
+input:not([type]),
+textarea {
+  font: inherit;
+  color: inherit;
+  background-color: white;
+  border: 2px solid black;
+  border-radius: 0;
+  padding: 0 1ch;
+  min-height: var(--line-height);
+  appearance: none;
+}
+
+textarea {
+  padding: calc(var(--line-height) * 0.25) 1ch;
+  min-height: calc(var(--line-height) * 3);
+}
+
+input:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  box-shadow: 3px 3px 0 0 #868e96;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #868e96;
+}
+
 label:not(.no-colon)::after {
   content: ": ";
 }

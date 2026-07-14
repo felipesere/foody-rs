@@ -51,7 +51,6 @@ export function SelectIngredientWithQuantity(
         ref={ingredientRef}
       />
       <input
-        className={"border-gray-500 border-solid border-2"}
         type={"text"}
         name={"new_quantity"}
         data-testid="new-quantity"

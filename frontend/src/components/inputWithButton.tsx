@@ -13,9 +13,7 @@ export function InputWithButton(props: Props) {
     <div className={"flex flex-row"}>
       <input
         ref={ref}
-        className={
-          " bg-white border-black border-solid border-y-2 border-l-2 px-2ch"
-        }
+        className={"border-r-0 px-2ch"}
         type={"text"}
         placeholder={props.placeholder}
       />

@@ -15,18 +15,24 @@ export function Editable(props: {
   placeholder?: string;
 }) {
   if (!props.isEditing) {
+    // Transparent border + matching padding so switching to the input doesn't
+    // nudge the layout (the input's real border/padding come from index.css).
     return (
-      <p className={classnames("min-w-4", props.className)}>{props.value}</p>
+      <p
+        className={classnames(
+          "min-w-4 border-2 border-transparent px-1ch",
+          props.className,
+        )}
+      >
+        {props.value}
+      </p>
     );
   }
 
   return (
     <input
       type="text"
-      className={classnames(
-        "min-w-4 bg-white px-1ch outline-dashed outline-2 outline-yellow-400",
-        props.className,
-      )}
+      className={classnames("min-w-4", props.className)}
       defaultValue={props.value}
       placeholder={props.placeholder}
       onKeyDown={(e) => {
