@@ -338,6 +338,7 @@ function RecipeAndQuantity(props: {
       <span className="flex-grow border-b-[3px] border-dotted border-gray-600 min-w-1ch self-end mb-[0.3em]" />
       <span className={"flex-shrink-0 whitespace-nowrap"}>
         <Editable
+          className={"w-24 text-right"}
           isEditing={props.editing}
           value={humanize(props.quantity)}
           onBlur={props.onBlur}
@@ -366,11 +367,11 @@ function EditIngredient({ item, shoppinglistId }: EditIngredientProps) {
   const updateIngredient = useUpdateItem();
   const deleteItem = useDeleteItem();
 
-  // Pending edits are collected in a ref rather than state: an `Editable` blur
-  // fires while focus is moving to the next field, and re-rendering here would
-  // let `use-editable` steal focus back to the field being left. The ref lets
-  // us record edits without a render; `modifiedIngredient` is only updated on
-  // discrete clicks (delete / Save / Cancel), where a render is harmless.
+  // The Editable inputs are uncontrolled, so they own their draft while editing
+  // and only report the committed value on blur. We collect those into a ref so
+  // typing/blurring doesn't re-render this component; `modifiedIngredient` is
+  // updated only on the discrete clicks (delete / Save / Cancel) that change
+  // what's shown.
   const changesRef = useRef<Changes>({ removals: [], modifications: [] });
   const [modifiedIngredient, setModifiedIngredient] = useState(
     structuredClone(item),
@@ -452,6 +453,8 @@ function EditIngredient({ item, shoppinglistId }: EditIngredientProps) {
           <div className={"flex flex-row gapx-2ch py-1lhch"}>
             <span>Note:</span>
             <Editable
+              className={"flex-grow"}
+              placeholder={"Add a note…"}
               isEditing={isEditing}
               value={modifiedIngredient.note || ""}
               onBlur={(v) => {
