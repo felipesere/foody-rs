@@ -328,7 +328,7 @@ function RecipeAndQuantity(props: {
       {props.editing ? (
         <DeleteButton className={"text-red-700"} onClick={props.onClick} />
       ) : null}
-      <p className="flex-shrink-0 min-w-0 max-w-[85%] overflow-hidden whitespace-nowrap">
+      <p className="min-w-0 flex-shrink overflow-hidden text-ellipsis whitespace-nowrap">
         {props.quantity.recipe_id ? (
           <LinkToRecipe recipeId={props.quantity.recipe_id} />
         ) : (
@@ -465,7 +465,7 @@ function EditIngredient({ item, shoppinglistId }: EditIngredientProps) {
         </>
       )}
       <Divider />
-      <div className={"flex flex-row gap-x-2ch py-1lhch"}>
+      <div className={"grid grid-cols-2 gap-2ch py-1lhch sm:grid-cols-4"}>
         <Button
           label={isEditing ? "Save" : "Edit"}
           onClick={() => {
