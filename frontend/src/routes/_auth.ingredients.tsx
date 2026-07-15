@@ -218,10 +218,13 @@ function IngredientView(props: IngredientViewProps) {
   const addIngredient = useAddItem();
   return (
     <li
-      className={classnames("px-1ch py-0.5lh border-solid border-2", {
-        "border-black": !props.selected,
-        "border-yellow-400": props.selected,
-      })}
+      className={classnames(
+        "px-1ch py-0.5lh border-solid border-2 break-inside-avoid",
+        {
+          "border-black": !props.selected,
+          "border-yellow-400": props.selected,
+        },
+      )}
     >
       <div
         onClick={props.onClick}
