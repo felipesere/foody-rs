@@ -17,6 +17,7 @@ vendor
 
 # Ignore storage (uploaded files in development and any SQLite databases).
 /storage/*
+!/storage/.keep
 
 # Ignore key files for decrypting credentials and more.
 /config/*.key

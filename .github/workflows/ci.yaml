@@ -1,111 +1,89 @@
 name: CI
+
 on:
   push:
     branches:
       - main
   pull_request:
 
-env:
-  RUST_TOOLCHAIN: stable
+# Cancel superseded runs on the same ref (e.g. new pushes to a PR).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  rust_fmt:
-    name: Check Style
+  backend:
+    name: Backend (RSpec)
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      RAILS_ENV: test
+      # Boot Rails without needing config/master.key in CI.
+      SECRET_KEY_BASE_DUMMY: "1"
     steps:
-      - name: Checkout the code
-        uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@v4
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
         with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
-      - name: Run cargo fmt
-        run: cargo fmt --all -- --check
+          working-directory: backend
+          # Ruby version comes from backend/.ruby-version
+          bundler-cache: true
+      - name: Prepare test database
+        run: bin/rails db:test:prepare
+      - name: Run tests
+        run: bundle exec rspec
 
-  rust_lint:
-    name: Run Clippy
+  backend_lint:
+    name: Backend (Standard)
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-
+    defaults:
+      run:
+        working-directory: backend
     steps:
-      - name: Checkout the code
-        uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@v4
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
         with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
-      - name: Setup Rust cache
-        uses: Swatinem/rust-cache@v2
-      - name: Run clippy
-        run: cargo clippy --all-features -- -D warnings -W clippy::nursery -W rust-2018-idioms
+          working-directory: backend
+          bundler-cache: true
+      - name: Lint
+        run: bundle exec standardrb
 
-  rust_test:
-    name: Run Tests
+  frontend:
+    name: Frontend (typecheck + tests)
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-    
-    services:
-      redis:
-        image: redis
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - "6379:6379"
-      postgres:
-        image: postgres
-        env:
-          POSTGRES_DB: postgress_test
-          POSTGRES_USER: postgress
-          POSTGRES_PASSWORD: postgress
-        ports:
-          - "5432:5432"
-        # Set health checks to wait until postgres has started
-        options: --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
+    defaults:
+      run:
+        working-directory: frontend
     steps:
-      - name: Checkout the code
-        uses: actions/checkout@v4
-      # build the frontend
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '21'
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
       - name: Install dependencies
         run: npm ci
-        working-directory: ./frontend
+      - name: Typecheck
+        run: npm run tsc
       - name: Build
-        run: npm run build
-        working-directory: ./frontend
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: ${{ env.RUST_TOOLCHAIN }}
-      - name: Setup Rust cache
-        uses: Swatinem/rust-cache@v2
-      - run: cargo test --all-features --all
-        env:
-          REDIS_URL: redis://localhost:${{job.services.redis.ports[6379]}}
-          DATABASE_URL: postgres://postgress:postgress@localhost:5432/postgress_test
-  ts_lint:
-    name: Run Biome check
+        run: npm run vite build
+      - name: Run tests
+        run: npm run test
+
+  frontend_lint:
+    name: Frontend (Biome format + lint)
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Biome
+      - uses: actions/checkout@v4
+      - name: Set up Biome
         uses: biomejs/setup-biome@v2
         with:
-          version: latest
-      - name: Run Biome
+          # Keep in sync with @biomejs/biome in frontend/package.json
+          version: 2.3.10
+      # `biome ci` runs the formatter check, linter, and import sorting.
+      - name: Format check + lint
         run: biome ci .
-        working-directory: ./frontend
+        working-directory: frontend
