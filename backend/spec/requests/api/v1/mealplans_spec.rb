@@ -1,4 +1,4 @@
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe "Api::V1::Mealplans", type: :request do
   describe "GET /api/v1/mealplans" do
@@ -32,26 +32,26 @@ RSpec.describe "Api::V1::Mealplans", type: :request do
 
   describe "POST /api/v1/mealplans" do
     it "creates a plan" do
-      post "/api/v1/mealplans", params: { name: "Next week" }, as: :json
+      post "/api/v1/mealplans", params: {name: "Next week"}, as: :json
       expect(response).to have_http_status(:created)
       expect(response.parsed_body).to include("name" => "Next week", "meals" => [])
     end
 
     it "with keep_uncooked carries uncooked meals from the previous plan" do
       previous = create(:mealplan, name: "Old", created_at: 1.day.ago)
-      recipe   = create(:recipe, name: "Pasta")
+      recipe = create(:recipe, name: "Pasta")
       create(:mealplan_meal, mealplan: previous, recipe: recipe, is_cooked: false)
       create(:mealplan_meal, :untracked, mealplan: previous, untracked_meal_name: "Done", is_cooked: true)
 
-      post "/api/v1/mealplans", params: { name: "New", keep_uncooked: true }, as: :json
+      post "/api/v1/mealplans", params: {name: "New", keep_uncooked: true}, as: :json
 
       expect(response).to have_http_status(:created)
       details = response.parsed_body["meals"].map { |m| m["details"] }
-      expect(details).to eq([{ "kind" => "from_recipe", "id" => recipe.id }])
+      expect(details).to eq([{"kind" => "from_recipe", "id" => recipe.id}])
     end
 
     it "returns 422 when name is blank" do
-      post "/api/v1/mealplans", params: { name: "" }, as: :json
+      post "/api/v1/mealplans", params: {name: ""}, as: :json
       expect(response).to have_http_status(:unprocessable_content)
     end
   end
@@ -64,7 +64,7 @@ RSpec.describe "Api::V1::Mealplans", type: :request do
       expect {
         delete "/api/v1/mealplans/#{plan.id}"
       }.to change(Mealplan, :count).by(-1)
-       .and change(MealplanMeal, :count).by(-1)
+        .and change(MealplanMeal, :count).by(-1)
 
       expect(response).to have_http_status(:no_content)
     end

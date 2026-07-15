@@ -1,4 +1,4 @@
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe "Api::V1::MealplanShoppinglists", type: :request do
   let(:plan) { create(:mealplan) }
@@ -7,7 +7,7 @@ RSpec.describe "Api::V1::MealplanShoppinglists", type: :request do
   describe "POST /api/v1/mealplans/:id/shoppinglists/:id" do
     it "adds uncooked recipe ingredients to the list" do
       recipe = create(:recipe)
-      flour  = create(:ingredient, name: "Flour")
+      flour = create(:ingredient, name: "Flour")
       create(:recipe_ingredient, recipe: recipe, ingredient: flour, unit: "gram", value: 500)
       create(:mealplan_meal, mealplan: plan, recipe: recipe, is_cooked: false)
 
@@ -20,7 +20,7 @@ RSpec.describe "Api::V1::MealplanShoppinglists", type: :request do
 
     it "skips recipes that already have ingredients on the list" do
       recipe = create(:recipe)
-      flour  = create(:ingredient, name: "Flour")
+      flour = create(:ingredient, name: "Flour")
       create(:recipe_ingredient, recipe: recipe, ingredient: flour, unit: "gram", value: 500)
       create(:mealplan_meal, mealplan: plan, recipe: recipe, is_cooked: false)
 
@@ -34,7 +34,7 @@ RSpec.describe "Api::V1::MealplanShoppinglists", type: :request do
 
     it "skips cooked meals" do
       recipe = create(:recipe)
-      flour  = create(:ingredient, name: "Flour")
+      flour = create(:ingredient, name: "Flour")
       create(:recipe_ingredient, recipe: recipe, ingredient: flour, unit: "gram", value: 500)
       create(:mealplan_meal, mealplan: plan, recipe: recipe, is_cooked: true)
 

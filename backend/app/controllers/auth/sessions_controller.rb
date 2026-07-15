@@ -28,11 +28,11 @@ module Auth
       start_new_session_for(user_for(claims))
       redirect_to "/"
     rescue InvalidState
-      render json: { error: "invalid state" }, status: :bad_request
+      render json: {error: "invalid state"}, status: :bad_request
     rescue UnprovisionedUser
-      render json: { error: "not provisioned" }, status: :forbidden
+      render json: {error: "not provisioned"}, status: :forbidden
     rescue Oidc::Error, JWT::DecodeError
-      render json: { error: "authentication failed" }, status: :unauthorized
+      render json: {error: "authentication failed"}, status: :unauthorized
     end
 
     # DELETE /auth/session

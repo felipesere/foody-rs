@@ -1,5 +1,4 @@
 class Api::V1::AislesController < ApplicationController
-
   def index
     aisles = Current.group.aisles.order(order: :asc)
     render json: {
@@ -12,7 +11,7 @@ class Api::V1::AislesController < ApplicationController
     if aisle.save
       render json: Payloads.aisle(aisle), status: :created
     else
-      render json: { errors: aisle.errors.full_messages }, status: :unprocessable_content
+      render json: {errors: aisle.errors.full_messages}, status: :unprocessable_content
     end
   end
 

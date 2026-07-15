@@ -6,9 +6,9 @@ class ShoppinglistSerializer
 
   def as_json(*)
     base = {
-      kind:         "shoppinglist",
-      id:           @shoppinglist.id,
-      name:         @shoppinglist.name,
+      kind: "shoppinglist",
+      id: @shoppinglist.id,
+      name: @shoppinglist.name,
       last_updated: @shoppinglist.updated_at.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
     }
     return base if @minimal

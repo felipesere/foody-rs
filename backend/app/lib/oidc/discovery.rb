@@ -26,7 +26,7 @@ module Oidc
 
     def document
       @document ||= begin
-        url = "#{@issuer.to_s.chomp('/')}/.well-known/openid-configuration"
+        url = "#{@issuer.to_s.chomp("/")}/.well-known/openid-configuration"
         response = Faraday.get(url)
         raise Error, "OIDC discovery failed (#{response.status})" unless response.success?
 

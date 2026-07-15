@@ -6,11 +6,11 @@ RSpec.describe "User attribution", type: :request do
     creator = Current.user
 
     post "/api/v1/recipes",
-         params: {
-           recipe: { name: "Stew", source: "book", book_title: "B", book_page: 1 },
-           ingredients: []
-         },
-         as: :json
+      params: {
+        recipe: {name: "Stew", source: "book", book_title: "B", book_page: 1},
+        ingredients: []
+      },
+      as: :json
     expect(response).to have_http_status(:created)
 
     recipe = Recipe.find(response.parsed_body["id"])
@@ -21,8 +21,8 @@ RSpec.describe "User attribution", type: :request do
     sign_in(editor)
 
     put "/api/v1/recipes/#{recipe.id}",
-        params: { recipe: { name: "Better Stew" } },
-        as: :json
+      params: {recipe: {name: "Better Stew"}},
+      as: :json
     expect(response).to have_http_status(:ok)
 
     recipe.reload
@@ -36,8 +36,8 @@ RSpec.describe "User attribution", type: :request do
     ingredient = create(:ingredient)
 
     post "/api/v1/shoppinglists/#{list.id}/items",
-         params: { ingredient_id: ingredient.id, quantity: "1x" },
-         as: :json
+      params: {ingredient_id: ingredient.id, quantity: "1x"},
+      as: :json
     expect(response).to have_http_status(:created)
 
     expect(list.shoppinglist_items.sole.created_by).to eq(actor)

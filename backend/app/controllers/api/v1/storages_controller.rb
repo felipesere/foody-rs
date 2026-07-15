@@ -1,5 +1,4 @@
 class Api::V1::StoragesController < ApplicationController
-
   def index
     storages = Current.group.storage_locations.order(order: :asc)
     render json: {
@@ -12,7 +11,7 @@ class Api::V1::StoragesController < ApplicationController
     if storage.save
       render json: Payloads.storage(storage), status: :created
     else
-      render json: { errors: storage.errors.full_messages }, status: :unprocessable_content
+      render json: {errors: storage.errors.full_messages}, status: :unprocessable_content
     end
   end
 

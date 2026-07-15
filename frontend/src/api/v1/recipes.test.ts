@@ -2,8 +2,8 @@ import * as v from "valibot";
 import { expect, test } from "vitest";
 import recipesFixture from "../../../test-fixtures/api/v1/recipes/show.json";
 import websiteRecipesFixture from "../../../test-fixtures/api/v1/recipes/show--website.json";
-import { RecipeSchema } from "./recipes.ts";
 import { printIssues } from "./index.ts";
+import { RecipeSchema } from "./recipes.ts";
 
 test("show recipe schema", () => {
   let outcome = v.safeParse(RecipeSchema, recipesFixture);

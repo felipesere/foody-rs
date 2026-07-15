@@ -1,11 +1,11 @@
 class Quantity
   CANONICAL = {
-    "kg"   => "kilogram",
-    "g"    => "gram",
-    "ml"   => "millilitre",
-    "l"    => "litre",
+    "kg" => "kilogram",
+    "g" => "gram",
+    "ml" => "millilitre",
+    "l" => "litre",
     "tbsp" => "tablespoon",
-    "tsp"  => "teaspoon",
+    "tsp" => "teaspoon",
     "cups" => "cup"
   }.freeze
 
@@ -40,7 +40,7 @@ class Quantity
   end
 
   def to_attributes
-    { unit: unit, value: value, text: text }
+    {unit: unit, value: value, text: text}
   end
 
   def ==(other)

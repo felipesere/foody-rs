@@ -34,7 +34,7 @@ module Oidc
         response = Faraday.get(jwks_uri)
         raise Error, "JWKS fetch failed (#{response.status})" unless response.success?
 
-        { keys: JSON.parse(response.body).fetch("keys") }
+        {keys: JSON.parse(response.body).fetch("keys")}
       end
     end
   end

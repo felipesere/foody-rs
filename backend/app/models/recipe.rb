@@ -8,12 +8,12 @@ class Recipe < ApplicationRecord
   has_many :ingredients, through: :recipe_ingredients
 
   validates :name, presence: true
-  validates :source, inclusion: { in: SOURCES }
+  validates :source, inclusion: {in: SOURCES}
   validates :book_title, :book_page, presence: true, if: -> { source == "book" }
   validates :website_url, presence: true, if: -> { source == "website" }
 
   scope :with_full_ingredients,
-        -> { includes(recipe_ingredients: { ingredient: :aisle }) }
+    -> { includes(recipe_ingredients: {ingredient: :aisle}) }
 
   def self.all_tags
     pluck(:tags).flatten.uniq

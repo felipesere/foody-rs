@@ -16,7 +16,7 @@ RSpec.describe "Group scoping", type: :request do
     get "/api/v1/recipes/#{theirs.id}"
     expect(response).to have_http_status(:not_found)
 
-    put "/api/v1/recipes/#{theirs.id}", params: { recipe: { name: "hijacked" } }, as: :json
+    put "/api/v1/recipes/#{theirs.id}", params: {recipe: {name: "hijacked"}}, as: :json
     expect(response).to have_http_status(:not_found)
     expect(theirs.reload.name).to eq("Their Stew")
 

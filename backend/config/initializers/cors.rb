@@ -9,9 +9,9 @@ if Rails.env.development?
       origins "http://localhost:5173"
 
       resource "*",
-        headers:     :any,
+        headers: :any,
         credentials: true,
-        methods:     [:get, :post, :put, :delete, :options, :head]
+        methods: [:get, :post, :put, :delete, :options, :head]
     end
   end
 end

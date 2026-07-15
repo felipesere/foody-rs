@@ -8,5 +8,5 @@ class Shoppinglist < ApplicationRecord
   validates :name, presence: true
 
   scope :with_full_items,
-        -> { includes(shoppinglist_items: [{ ingredient: :aisle }, :shoppinglist_quantities]) }
+    -> { includes(shoppinglist_items: [{ingredient: :aisle}, :shoppinglist_quantities]) }
 end

@@ -1,10 +1,10 @@
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe "Api::V1::Aisles", type: :request do
   describe "GET /" do
     it "returns all aisles" do
-      aisle1 = Aisle.create!(name: "Aisle 1", order: 3)
-      aisle2 = Aisle.create!(name: "Aisle 2", order: 1)
+      Aisle.create!(name: "Aisle 1", order: 3)
+      Aisle.create!(name: "Aisle 2", order: 1)
 
       get "/api/v1/aisles"
 
@@ -14,9 +14,9 @@ RSpec.describe "Api::V1::Aisles", type: :request do
 
   describe "POST /" do
     it "creates a new aisle" do
-      post "/api/v1/aisles", params: { name: "Frozen", order: 2 }, as: :json
+      post "/api/v1/aisles", params: {name: "Frozen", order: 2}, as: :json
       expect(response).to have_http_status(:success)
-      post "/api/v1/aisles", params: { name: "Veg", order: 1 }, as: :json
+      post "/api/v1/aisles", params: {name: "Veg", order: 1}, as: :json
       expect(response).to have_http_status(:success)
 
       get "/api/v1/aisles"
@@ -27,7 +27,7 @@ RSpec.describe "Api::V1::Aisles", type: :request do
 
   describe "POST / without order" do
     it "defaults to 1 when no aisles exist yet" do
-      post "/api/v1/aisles", params: { aisle: { name: "Frozen" } }, as: :json
+      post "/api/v1/aisles", params: {aisle: {name: "Frozen"}}, as: :json
       expect(response).to have_http_status(:success)
       expect(response.parsed_body).to include("name" => "Frozen", "order" => 1)
     end
@@ -36,7 +36,7 @@ RSpec.describe "Api::V1::Aisles", type: :request do
       Aisle.create!(name: "A", order: 3)
       Aisle.create!(name: "B", order: 7)
 
-      post "/api/v1/aisles", params: { aisle: { name: "C" } }, as: :json
+      post "/api/v1/aisles", params: {aisle: {name: "C"}}, as: :json
       expect(response).to have_http_status(:success)
       expect(response.parsed_body).to include("name" => "C", "order" => 8)
     end
@@ -46,7 +46,7 @@ RSpec.describe "Api::V1::Aisles", type: :request do
     it "updates an aisle" do
       aisle = Aisle.create!(name: "X", order: 1)
 
-      put "/api/v1/aisles/#{aisle.id}", params: { name: "frozen" }, as: :json
+      put "/api/v1/aisles/#{aisle.id}", params: {name: "frozen"}, as: :json
       expect(response).to have_http_status(:success)
 
       aisle.reload

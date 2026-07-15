@@ -1,16 +1,17 @@
 import classNames from "classnames";
 import { createContext, useCallback, useContext, useState } from "react";
+import type { Mealplan } from "../../api/v1/mealplans.ts";
 import {
   type SourceDetails,
+  UnstoredRecipe,
   useRecipes,
   useRecipeTags,
-  UnstoredRecipe,
 } from "../../api/v1/recipes.ts";
-import type { Mealplan } from "../../api/v1/mealplans.ts";
 import type { Shoppinglist } from "../../api/v1/shoppinglists.ts";
 
 /** The ingredient shape carried by an unstored recipe's ingredient list. */
 type IngredientInput = UnstoredRecipe["ingredients"][number]["ingredient"];
+
 import { orderByAisles } from "../../domain/orderByAisle.ts";
 import { humanize } from "../../quantities.ts";
 import { Button } from "../button.tsx";

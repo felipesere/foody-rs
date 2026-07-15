@@ -1,4 +1,4 @@
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe "Api::V1::ShoppinglistItems", type: :request do
   describe "POST /api/v1/shoppinglists/:id/items" do
@@ -7,8 +7,8 @@ RSpec.describe "Api::V1::ShoppinglistItems", type: :request do
       flour = create(:ingredient, name: "Flour")
 
       post "/api/v1/shoppinglists/#{list.id}/items",
-           params: { ingredient_id: flour.id, quantity: "250g" },
-           as: :json
+        params: {ingredient_id: flour.id, quantity: "250g"},
+        as: :json
 
       expect(response).to have_http_status(:created)
       item = list.shoppinglist_items.find_by(ingredient: flour)
@@ -21,8 +21,8 @@ RSpec.describe "Api::V1::ShoppinglistItems", type: :request do
       create(:shoppinglist_item, shoppinglist: list, ingredient: flour)
 
       post "/api/v1/shoppinglists/#{list.id}/items",
-           params: { ingredient_id: flour.id, quantity: "100g" },
-           as: :json
+        params: {ingredient_id: flour.id, quantity: "100g"},
+        as: :json
 
       expect(response).to have_http_status(:unprocessable_content)
     end
@@ -34,8 +34,8 @@ RSpec.describe "Api::V1::ShoppinglistItems", type: :request do
       item = create(:shoppinglist_item, shoppinglist: list)
 
       put "/api/v1/shoppinglists/#{list.id}/items/#{item.id}",
-          params: { in_basket: true, note: "organic" },
-          as: :json
+        params: {in_basket: true, note: "organic"},
+        as: :json
 
       expect(response).to have_http_status(:success)
       item.reload
@@ -53,7 +53,7 @@ RSpec.describe "Api::V1::ShoppinglistItems", type: :request do
       expect {
         delete "/api/v1/shoppinglists/#{list.id}/items/#{item.id}"
       }.to change(ShoppinglistItem, :count).by(-1)
-       .and change(ShoppinglistQuantity, :count).by(-1)
+        .and change(ShoppinglistQuantity, :count).by(-1)
 
       expect(response).to have_http_status(:no_content)
     end

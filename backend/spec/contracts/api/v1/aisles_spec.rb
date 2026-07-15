@@ -8,8 +8,8 @@ RSpec.describe "api/v1/aisles contract", type: :request do
 
   it "matches aisles/index.json" do
     create(:aisle, name: "Produce", order: 1)
-    create(:aisle, name: "Bakery",  order: 2)
-    create(:aisle, name: "Dairy",   order: 3)
+    create(:aisle, name: "Bakery", order: 2)
+    create(:aisle, name: "Dairy", order: 3)
 
     get "/api/v1/aisles"
 

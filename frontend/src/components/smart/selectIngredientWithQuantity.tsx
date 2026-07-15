@@ -4,9 +4,9 @@ import {
   type Ingredient,
   useCreateIngredient,
 } from "../../api/v1/ingredient.ts";
+import { Quantity } from "../../api/v1/shoppinglists.ts";
 import { parse } from "../../quantities.ts";
 import { FindIngredient } from "./findIngredient.tsx";
-import { Quantity } from "../../api/v1/shoppinglists.ts";
 
 export type SelectIngredientWithQuantityProps = {
   onIngredient: (i: Ingredient, q: Quantity, raw: string) => void;

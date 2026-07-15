@@ -5,7 +5,7 @@ class RecipeIngredient < ApplicationRecord
   belongs_to :ingredient
 
   validates :unit, presence: true
-  validates :ingredient_id, uniqueness: { scope: :recipe_id }
+  validates :ingredient_id, uniqueness: {scope: :recipe_id}
 
   def self.from_quantity_string(raw)
     Quantity.parse(raw).to_attributes

@@ -8,7 +8,7 @@ module AuthenticationHelpers
   # (outside a request) are stamped with the signed-in user.
   def sign_in(user = nil)
     user ||= default_test_user
-    post "/dev/login", params: { as: user.email }
+    post "/dev/login", params: {as: user.email}
     Current.session = user.sessions.order(:created_at).last
     user
   end

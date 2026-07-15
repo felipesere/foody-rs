@@ -28,7 +28,7 @@ module Authentication
   end
 
   def request_authentication
-    render json: { error: "unauthorized" }, status: :unauthorized
+    render json: {error: "unauthorized"}, status: :unauthorized
   end
 
   def start_new_session_for(user)
@@ -37,7 +37,7 @@ module Authentication
       cookies.signed.permanent[:session_id] = {
         value: session.id,
         httponly: true,
-        same_site: :lax,
+        same_site: :lax
       }
     end
   end

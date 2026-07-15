@@ -117,10 +117,9 @@ export function useUpdateMeal() {
       mealId: number;
       fields: { is_cooked?: boolean; section?: string };
     }) =>
-      http.put(
-        `api/v1/mealplans/${vars.mealplanId}/meals/${vars.mealId}`,
-        { json: vars.fields },
-      ),
+      http.put(`api/v1/mealplans/${vars.mealplanId}/meals/${vars.mealId}`, {
+        json: vars.fields,
+      }),
     invalidates: ["mealplans"],
   });
 }
@@ -128,9 +127,7 @@ export function useUpdateMeal() {
 export function useDeleteMeal() {
   return useApiMutation({
     mutationFn: (vars: { mealplanId: number; mealId: number }) =>
-      http.delete(
-        `api/v1/mealplans/${vars.mealplanId}/meals/${vars.mealId}`,
-      ),
+      http.delete(`api/v1/mealplans/${vars.mealplanId}/meals/${vars.mealId}`),
     invalidates: ["mealplans"],
   });
 }
@@ -141,7 +138,10 @@ export function useAddPlanToShoppinglist() {
       http.post(
         `api/v1/mealplans/${vars.mealplanId}/shoppinglists/${vars.shoppinglistId}`,
       ),
-    invalidates: (vars) => [["mealplans"], ["shoppinglist", vars.shoppinglistId]],
+    invalidates: (vars) => [
+      ["mealplans"],
+      ["shoppinglist", vars.shoppinglistId],
+    ],
     onSuccess: (_data, vars) => {
       toast.info(`Added ${vars.mealplanId} to ${vars.shoppinglistId}`);
     },

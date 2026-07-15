@@ -1,7 +1,7 @@
 class Api::V1::RecipesController < ApplicationController
   def index
     recipes = Current.group.recipes.with_full_ingredients.order(created_at: :desc, id: :desc)
-    render json: { recipes: recipes.map { |r| RecipeSerializer.new(r).as_json } }
+    render json: {recipes: recipes.map { |r| RecipeSerializer.new(r).as_json }}
   end
 
   def show
@@ -16,7 +16,7 @@ class Api::V1::RecipesController < ApplicationController
     if recipe.save
       render json: RecipeSerializer.new(recipe).as_json, status: :created
     else
-      render json: { errors: recipe.errors.full_messages }, status: :unprocessable_content
+      render json: {errors: recipe.errors.full_messages}, status: :unprocessable_content
     end
   end
 
@@ -25,7 +25,7 @@ class Api::V1::RecipesController < ApplicationController
     if recipe.update(recipe_params)
       render json: RecipeSerializer.new(recipe.reload).as_json
     else
-      render json: { errors: recipe.errors.full_messages }, status: :unprocessable_content
+      render json: {errors: recipe.errors.full_messages}, status: :unprocessable_content
     end
   end
 
@@ -35,7 +35,7 @@ class Api::V1::RecipesController < ApplicationController
   end
 
   def tags
-    render json: { tags: Current.group.recipes.all_tags }
+    render json: {tags: Current.group.recipes.all_tags}
   end
 
   private

@@ -1,10 +1,10 @@
-import * as v from "valibot";
-import { IngredientSchema, QuantitySchema } from "./shoppinglists.ts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { http, useApiMutation } from "./index.ts";
 import { toast } from "sonner";
+import * as v from "valibot";
 import { humanize } from "../../quantities.ts";
+import { http, useApiMutation } from "./index.ts";
 import { TagsSchema } from "./ingredient.ts";
+import { IngredientSchema, QuantitySchema } from "./shoppinglists.ts";
 
 const RecipeIngredientSchema = v.strictObject({
   kind: v.literal("recipe_ingredient"),
@@ -93,10 +93,7 @@ export function useRecipe(id: number) {
   return useQuery({
     queryKey: ["recipe", id],
     queryFn: async () =>
-      v.parse(
-        RecipeSchema,
-        await http.get(`api/v1/recipes/${id}`).json(),
-      ),
+      v.parse(RecipeSchema, await http.get(`api/v1/recipes/${id}`).json()),
   });
 }
 
@@ -104,10 +101,7 @@ export function useRecipeTags() {
   return useQuery({
     queryKey: ["recipes_tags"],
     queryFn: async () =>
-      v.parse(
-        TagsSchema,
-        await http.get("api/v1/recipes/tags").json(),
-      ),
+      v.parse(TagsSchema, await http.get("api/v1/recipes/tags").json()),
   });
 }
 
@@ -207,8 +201,7 @@ export function useUpdateRecipe() {
 
 export function useDeleteRecipe() {
   return useApiMutation({
-    mutationFn: (recipeId: number) =>
-      http.delete(`api/v1/recipes/${recipeId}`),
+    mutationFn: (recipeId: number) => http.delete(`api/v1/recipes/${recipeId}`),
     invalidates: (recipeId) => [["recipe", recipeId], ["recipes"]],
     onSuccess: (_data, recipeId) => {
       toast(`Deleted "${recipeId}"`);

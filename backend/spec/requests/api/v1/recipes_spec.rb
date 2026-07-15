@@ -1,4 +1,4 @@
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe "Api::V1::Recipes", type: :request do
   describe "GET /api/v1/recipes" do
@@ -49,21 +49,21 @@ RSpec.describe "Api::V1::Recipes", type: :request do
       apples = create(:ingredient, name: "Apples")
 
       post "/api/v1/recipes",
-           params: {
-             recipe: {
-               name: "Apple Pie",
-               source: "book",
-               book_title: "Joy of Cooking",
-               book_page: 12,
-               tags: ["dessert"],
-               rating: 5,
-               notes: "Tasty"
-             },
-             ingredients: [
-               { ingredient_id: apples.id, quantity: "500g" }
-             ]
-           },
-           as: :json
+        params: {
+          recipe: {
+            name: "Apple Pie",
+            source: "book",
+            book_title: "Joy of Cooking",
+            book_page: 12,
+            tags: ["dessert"],
+            rating: 5,
+            notes: "Tasty"
+          },
+          ingredients: [
+            {ingredient_id: apples.id, quantity: "500g"}
+          ]
+        },
+        as: :json
 
       expect(response).to have_http_status(:created)
       body = response.parsed_body
@@ -73,14 +73,14 @@ RSpec.describe "Api::V1::Recipes", type: :request do
 
     it "creates a website recipe" do
       post "/api/v1/recipes",
-           params: {
-             recipe: {
-               name: "Online One",
-               source: "website",
-               website_url: "https://example.com/r"
-             }
-           },
-           as: :json
+        params: {
+          recipe: {
+            name: "Online One",
+            source: "website",
+            website_url: "https://example.com/r"
+          }
+        },
+        as: :json
 
       expect(response).to have_http_status(:created)
       expect(response.parsed_body).to include("url" => "https://example.com/r", "title" => nil, "page" => nil)
@@ -88,8 +88,8 @@ RSpec.describe "Api::V1::Recipes", type: :request do
 
     it "returns 422 with errors when invalid" do
       post "/api/v1/recipes",
-           params: { recipe: { name: "", source: "book" } },
-           as: :json
+        params: {recipe: {name: "", source: "book"}},
+        as: :json
 
       expect(response).to have_http_status(:unprocessable_content)
       expect(response.parsed_body["errors"]).to be_present
@@ -101,8 +101,8 @@ RSpec.describe "Api::V1::Recipes", type: :request do
       recipe = create(:recipe, name: "Old", notes: "")
 
       put "/api/v1/recipes/#{recipe.id}",
-          params: { recipe: { name: "New", notes: "yum", tags: ["a", "b"] } },
-          as: :json
+        params: {recipe: {name: "New", notes: "yum", tags: ["a", "b"]}},
+        as: :json
 
       expect(response).to have_http_status(:success)
       body = response.parsed_body
@@ -118,7 +118,7 @@ RSpec.describe "Api::V1::Recipes", type: :request do
       expect {
         delete "/api/v1/recipes/#{recipe.id}"
       }.to change(Recipe, :count).by(-1)
-       .and change(RecipeIngredient, :count).by(-1)
+        .and change(RecipeIngredient, :count).by(-1)
 
       expect(response).to have_http_status(:no_content)
     end

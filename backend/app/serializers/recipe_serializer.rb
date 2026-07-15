@@ -5,16 +5,16 @@ class RecipeSerializer
 
   def as_json(*)
     {
-      kind:     "recipe",
-      id:       @recipe.id,
-      name:     @recipe.name,
-      source:   @recipe.source,
-      url:      @recipe.website_url,
-      title:    @recipe.book_title,
-      page:     @recipe.book_page,
-      tags:     @recipe.tags,
-      rating:   @recipe.rating,
-      notes:    @recipe.notes,
+      kind: "recipe",
+      id: @recipe.id,
+      name: @recipe.name,
+      source: @recipe.source,
+      url: @recipe.website_url,
+      title: @recipe.book_title,
+      page: @recipe.book_page,
+      tags: @recipe.tags,
+      rating: @recipe.rating,
+      notes: @recipe.notes,
       duration: @recipe.duration,
       ingredients: sorted_recipe_ingredients.map { |ri| ingredient_with_quantity(ri) }
     }
@@ -28,14 +28,14 @@ class RecipeSerializer
 
   def ingredient_with_quantity(recipe_ingredient)
     {
-      kind:       "recipe_ingredient",
-      id:         recipe_ingredient.id,
+      kind: "recipe_ingredient",
+      id: recipe_ingredient.id,
       ingredient: Payloads.ingredient(recipe_ingredient.ingredient),
       quantities: [
         {
-          unit:  recipe_ingredient.unit,
+          unit: recipe_ingredient.unit,
           value: recipe_ingredient.value,
-          text:  recipe_ingredient.text
+          text: recipe_ingredient.text
         }
       ]
     }

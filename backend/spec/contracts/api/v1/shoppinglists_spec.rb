@@ -9,34 +9,30 @@ RSpec.describe "api/v1/shoppinglists contract", type: :request do
   it "matches shoppinglists/show.json" do
     aisle = create(:aisle, name: "Produce", order: 1)
     apples = create(:ingredient, name: "Apples", aisle: aisle, tags: ["fruit"])
-    flour  = create(:ingredient, name: "Flour",  aisle: aisle, tags: [])
+    flour = create(:ingredient, name: "Flour", aisle: aisle, tags: [])
     recipe = create(:recipe, name: "Apple Pie")
 
     list = create(:shoppinglist, name: "Saturday shop")
 
     apple_item = create(:shoppinglist_item,
       shoppinglist: list,
-      ingredient:   apples,
-      in_basket:    false,
-      note:         "ripe ones"
-    )
+      ingredient: apples,
+      in_basket: false,
+      note: "ripe ones")
     create(:shoppinglist_quantity,
       shoppinglist_item: apple_item,
-      unit:              "gram",
-      value:             500.0,
-      recipe:            recipe
-    )
+      unit: "gram",
+      value: 500.0,
+      recipe: recipe)
 
     flour_item = create(:shoppinglist_item,
       shoppinglist: list,
-      ingredient:   flour,
-      in_basket:    true
-    )
+      ingredient: flour,
+      in_basket: true)
     create(:shoppinglist_quantity,
       shoppinglist_item: flour_item,
-      unit:              "gram",
-      value:             300.0
-    )
+      unit: "gram",
+      value: 300.0)
 
     get "/api/v1/shoppinglists/#{list.id}"
 

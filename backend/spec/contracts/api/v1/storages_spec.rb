@@ -7,9 +7,9 @@ RSpec.describe "api/v1/storages contract", type: :request do
   around { |example| travel_to(Time.zone.local(2026, 1, 1, 12, 0, 0)) { example.run } }
 
   it "matches storages/index.json" do
-    create(:storage_location, name: "Fridge",  order: 1)
+    create(:storage_location, name: "Fridge", order: 1)
     create(:storage_location, name: "Freezer", order: 2)
-    create(:storage_location, name: "Pantry",  order: 3)
+    create(:storage_location, name: "Pantry", order: 3)
 
     get "/api/v1/storages"
 

@@ -11,7 +11,7 @@ class MealplanMeal < ApplicationRecord
 
   def exactly_one_source
     has_recipe = recipe.present?
-    has_name   = untracked_meal_name.present?
+    has_name = untracked_meal_name.present?
     if has_recipe == has_name
       errors.add(:base, "must have either a recipe or an untracked_meal_name, not both")
     end

@@ -16,7 +16,7 @@ RSpec.describe "Auth::Sessions (OIDC)", type: :request do
 
     stub_request(:get, "#{issuer}/.well-known/openid-configuration").to_return(
       status: 200,
-      headers: { "Content-Type" => "application/json" },
+      headers: {"Content-Type" => "application/json"},
       body: {
         issuer: issuer,
         authorization_endpoint: "#{issuer}/authorize",
@@ -27,8 +27,8 @@ RSpec.describe "Auth::Sessions (OIDC)", type: :request do
     )
     stub_request(:get, "#{issuer}/jwks").to_return(
       status: 200,
-      headers: { "Content-Type" => "application/json" },
-      body: { keys: [jwk.export] }.to_json
+      headers: {"Content-Type" => "application/json"},
+      body: {keys: [jwk.export]}.to_json
     )
   end
 
@@ -39,15 +39,15 @@ RSpec.describe "Auth::Sessions (OIDC)", type: :request do
         aud: aud, iss: iss,
         iat: Time.now.to_i, exp: 1.hour.from_now.to_i
       },
-      key, "RS256", { kid: kid }
+      key, "RS256", {kid: kid}
     )
   end
 
   def stub_token(token)
     stub_request(:post, "#{issuer}/token").to_return(
       status: 200,
-      headers: { "Content-Type" => "application/json" },
-      body: { id_token: token, token_type: "Bearer" }.to_json
+      headers: {"Content-Type" => "application/json"},
+      body: {id_token: token, token_type: "Bearer"}.to_json
     )
   end
 
@@ -73,7 +73,7 @@ RSpec.describe "Auth::Sessions (OIDC)", type: :request do
       stub_token(id_token(sub: "sub-123", email: user.email))
 
       state = start_login
-      get "/auth/callback", params: { code: "abc", state: state }
+      get "/auth/callback", params: {code: "abc", state: state}
 
       expect(response).to redirect_to("/")
       expect(user.sessions.count).to eq(1)
@@ -84,7 +84,7 @@ RSpec.describe "Auth::Sessions (OIDC)", type: :request do
       stub_token(id_token(sub: "fresh-sub", email: "charlotte@example.com"))
 
       state = start_login
-      get "/auth/callback", params: { code: "abc", state: state }
+      get "/auth/callback", params: {code: "abc", state: state}
 
       expect(response).to redirect_to("/")
       expect(user.reload.oidc_subject).to eq("fresh-sub")
@@ -94,14 +94,14 @@ RSpec.describe "Auth::Sessions (OIDC)", type: :request do
       stub_token(id_token(sub: "who", email: "stranger@example.com"))
 
       state = start_login
-      get "/auth/callback", params: { code: "abc", state: state }
+      get "/auth/callback", params: {code: "abc", state: state}
 
       expect(response).to have_http_status(:forbidden)
     end
 
     it "rejects a mismatched state with 400" do
       start_login
-      get "/auth/callback", params: { code: "abc", state: "not-the-state" }
+      get "/auth/callback", params: {code: "abc", state: "not-the-state"}
 
       expect(response).to have_http_status(:bad_request)
     end
@@ -111,7 +111,7 @@ RSpec.describe "Auth::Sessions (OIDC)", type: :request do
       stub_token(id_token(sub: "s", email: "x@example.com", key: other_key))
 
       state = start_login
-      get "/auth/callback", params: { code: "abc", state: state }
+      get "/auth/callback", params: {code: "abc", state: state}
 
       expect(response).to have_http_status(:unauthorized)
     end

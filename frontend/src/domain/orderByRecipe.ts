@@ -11,10 +11,7 @@ export type Section<Item = ShoppinglistItem> = {
 
 export function orderByRecipe(
   items: ShoppinglistItem[],
-  recipeNames: Record<
-    NonNullable<StoredQuantity["recipe_id"]>,
-    Recipe["name"]
-  >,
+  recipeNames: Record<NonNullable<StoredQuantity["recipe_id"]>, Recipe["name"]>,
 ): Section[] {
   const ingredientsByRecipe: Record<
     NonNullable<StoredQuantity["id"]>,

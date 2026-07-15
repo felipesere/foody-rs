@@ -50,7 +50,7 @@ module Oidc
         aud: config.client_id, verify_aud: true
       )
 
-      { sub: payload.fetch("sub"), email: payload["email"], name: payload["name"] }
+      {sub: payload.fetch("sub"), email: payload["email"], name: payload["name"]}
     end
 
     def discovery

@@ -11,17 +11,15 @@ RSpec.describe "api/v1/mealplans contract", type: :request do
     plan = create(:mealplan, name: "Week 1")
 
     create(:mealplan_meal,
-      mealplan:  plan,
-      recipe:    recipe,
-      section:   "dinner",
-      is_cooked: false
-    )
+      mealplan: plan,
+      recipe: recipe,
+      section: "dinner",
+      is_cooked: false)
     create(:mealplan_meal, :untracked,
-      mealplan:            plan,
+      mealplan: plan,
       untracked_meal_name: "Leftovers",
-      section:             "lunch",
-      is_cooked:           true
-    )
+      section: "lunch",
+      is_cooked: true)
 
     get "/api/v1/mealplans/#{plan.id}"
 

@@ -1,7 +1,7 @@
 class Api::V1::MealplansController < ApplicationController
   def index
     plans = Current.group.mealplans.with_full_meals.order(created_at: :desc, id: :desc)
-    render json: { mealplans: plans.map { |p| MealplanSerializer.new(p).as_json } }
+    render json: {mealplans: plans.map { |p| MealplanSerializer.new(p).as_json }}
   end
 
   def show
@@ -19,7 +19,7 @@ class Api::V1::MealplansController < ApplicationController
 
     render json: MealplanSerializer.new(plan.reload).as_json, status: :created
   rescue ActiveRecord::RecordInvalid => e
-    render json: { errors: e.record.errors.full_messages }, status: :unprocessable_content
+    render json: {errors: e.record.errors.full_messages}, status: :unprocessable_content
   end
 
   def destroy
@@ -41,10 +41,10 @@ class Api::V1::MealplansController < ApplicationController
 
     previous.mealplan_meals.where(is_cooked: false).each do |meal|
       plan.mealplan_meals.create!(
-        recipe_id:           meal.recipe_id,
+        recipe_id: meal.recipe_id,
         untracked_meal_name: meal.untracked_meal_name,
-        section:             meal.section,
-        is_cooked:           false
+        section: meal.section,
+        is_cooked: false
       )
     end
   end

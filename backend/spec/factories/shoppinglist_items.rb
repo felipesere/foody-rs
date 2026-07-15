@@ -3,7 +3,7 @@ FactoryBot.define do
     shoppinglist
     ingredient
     in_basket { false }
-    note      { nil }
+    note { nil }
     group { shoppinglist.group }
   end
 end

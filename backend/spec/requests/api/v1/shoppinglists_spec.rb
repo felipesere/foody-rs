@@ -1,4 +1,4 @@
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe "Api::V1::Shoppinglists", type: :request do
   describe "GET /api/v1/shoppinglists" do
@@ -38,14 +38,14 @@ RSpec.describe "Api::V1::Shoppinglists", type: :request do
 
   describe "POST /api/v1/shoppinglists" do
     it "creates a new list" do
-      post "/api/v1/shoppinglists", params: { name: "Groceries" }, as: :json
+      post "/api/v1/shoppinglists", params: {name: "Groceries"}, as: :json
 
       expect(response).to have_http_status(:created)
       expect(response.parsed_body).to include("name" => "Groceries")
     end
 
     it "returns 422 when invalid" do
-      post "/api/v1/shoppinglists", params: { name: "" }, as: :json
+      post "/api/v1/shoppinglists", params: {name: ""}, as: :json
       expect(response).to have_http_status(:unprocessable_content)
     end
   end
@@ -58,7 +58,7 @@ RSpec.describe "Api::V1::Shoppinglists", type: :request do
       expect {
         delete "/api/v1/shoppinglists/#{list.id}"
       }.to change(Shoppinglist, :count).by(-1)
-       .and change(ShoppinglistItem, :count).by(-1)
+        .and change(ShoppinglistItem, :count).by(-1)
 
       expect(response).to have_http_status(:no_content)
     end

@@ -1,4 +1,4 @@
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe "Api::V1::ShoppinglistQuantities", type: :request do
   let(:list) { create(:shoppinglist) }
@@ -7,8 +7,8 @@ RSpec.describe "Api::V1::ShoppinglistQuantities", type: :request do
   describe "POST /api/v1/shoppinglists/:id/items/:item_id/quantities" do
     it "adds another parsed quantity to an existing item" do
       post "/api/v1/shoppinglists/#{list.id}/items/#{item.id}/quantities",
-           params: { quantity: "1 cup" },
-           as: :json
+        params: {quantity: "1 cup"},
+        as: :json
 
       expect(response).to have_http_status(:created)
       expect(item.shoppinglist_quantities.last.unit).to eq("cup")
@@ -16,8 +16,8 @@ RSpec.describe "Api::V1::ShoppinglistQuantities", type: :request do
 
     it "stores unparseable quantities as arbitrary text" do
       post "/api/v1/shoppinglists/#{list.id}/items/#{item.id}/quantities",
-           params: { quantity: "a pinch" },
-           as: :json
+        params: {quantity: "a pinch"},
+        as: :json
 
       expect(response).to have_http_status(:created)
       last = item.shoppinglist_quantities.last
@@ -31,8 +31,8 @@ RSpec.describe "Api::V1::ShoppinglistQuantities", type: :request do
       quantity = create(:shoppinglist_quantity, shoppinglist_item: item, unit: "count", value: 1)
 
       put "/api/v1/shoppinglists/#{list.id}/items/#{item.id}/quantities/#{quantity.id}",
-          params: { quantity: "500g" },
-          as: :json
+        params: {quantity: "500g"},
+        as: :json
 
       expect(response).to have_http_status(:success)
       quantity.reload

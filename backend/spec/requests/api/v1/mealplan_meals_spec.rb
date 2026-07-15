@@ -1,4 +1,4 @@
-require 'rails_helper'
+require "rails_helper"
 
 RSpec.describe "Api::V1::MealplanMeals", type: :request do
   let(:plan) { create(:mealplan) }
@@ -8,8 +8,8 @@ RSpec.describe "Api::V1::MealplanMeals", type: :request do
       recipe = create(:recipe, name: "Soup")
 
       post "/api/v1/mealplans/#{plan.id}/meals",
-           params: { details: { kind: "from_recipe", id: recipe.id }, section: "Mon" },
-           as: :json
+        params: {details: {kind: "from_recipe", id: recipe.id}, section: "Mon"},
+        as: :json
 
       expect(response).to have_http_status(:created)
       meal = plan.mealplan_meals.last
@@ -24,8 +24,8 @@ RSpec.describe "Api::V1::MealplanMeals", type: :request do
 
     it "adds an untracked meal" do
       post "/api/v1/mealplans/#{plan.id}/meals",
-           params: { details: { kind: "untracked", name: "Leftovers" } },
-           as: :json
+        params: {details: {kind: "untracked", name: "Leftovers"}},
+        as: :json
 
       expect(response).to have_http_status(:created)
       meal = plan.mealplan_meals.last
@@ -48,8 +48,8 @@ RSpec.describe "Api::V1::MealplanMeals", type: :request do
       meal = create(:mealplan_meal, mealplan: plan)
 
       put "/api/v1/mealplans/#{plan.id}/meals/#{meal.id}",
-          params: { is_cooked: true },
-          as: :json
+        params: {is_cooked: true},
+        as: :json
 
       expect(response).to have_http_status(:success)
       expect(meal.reload.is_cooked).to be true
@@ -59,8 +59,8 @@ RSpec.describe "Api::V1::MealplanMeals", type: :request do
       meal = create(:mealplan_meal, mealplan: plan)
 
       put "/api/v1/mealplans/#{plan.id}/meals/#{meal.id}",
-          params: { section: "Tue" },
-          as: :json
+        params: {section: "Tue"},
+        as: :json
 
       expect(response).to have_http_status(:success)
       expect(meal.reload.section).to eq("Tue")

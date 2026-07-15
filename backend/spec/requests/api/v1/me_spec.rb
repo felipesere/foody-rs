@@ -7,9 +7,9 @@ RSpec.describe "Api::V1::Me", type: :request do
 
       expect(response).to have_http_status(:success)
       expect(response.parsed_body).to match(
-        "kind"  => "user",
-        "id"    => Integer,
-        "name"  => "Test User",
+        "kind" => "user",
+        "id" => Integer,
+        "name" => "Test User",
         "email" => "test@example.com",
         "group" => a_hash_including("name" => "Test Group")
       )

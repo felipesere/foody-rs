@@ -1,10 +1,10 @@
-import type { Shoppinglist } from "../../api/v1/shoppinglists.ts";
-import { MultiSelect } from "../multiselect.tsx";
 import {
+  Ingredient,
   useIngredientTags,
   useUpdateIngredient,
-  Ingredient,
 } from "../../api/v1/ingredient.ts";
+import type { Shoppinglist } from "../../api/v1/shoppinglists.ts";
+import { MultiSelect } from "../multiselect.tsx";
 
 export function SelectTags(props: {
   ingredientId: Ingredient["id"];

@@ -2,9 +2,9 @@ FactoryBot.define do
   factory :recipe_ingredient do
     recipe
     ingredient
-    unit  { "count" }
+    unit { "count" }
     value { 1.0 }
-    text  { nil }
+    text { nil }
     group { recipe.group }
   end
 end

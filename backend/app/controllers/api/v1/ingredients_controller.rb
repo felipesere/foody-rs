@@ -16,7 +16,7 @@ class Api::V1::IngredientsController < ApplicationController
     if ingredient.save
       render json: Payloads.ingredient(ingredient), status: :created
     else
-      render json: { errors: ingredient.errors.full_messages }, status: :unprocessable_content
+      render json: {errors: ingredient.errors.full_messages}, status: :unprocessable_content
     end
   end
 
@@ -35,7 +35,7 @@ class Api::V1::IngredientsController < ApplicationController
   end
 
   def tags
-    render json: { tags: Current.group.ingredients.all_tags }
+    render json: {tags: Current.group.ingredients.all_tags}
   end
 
   # POST /api/v1/ingredients/:id/merge — fold source_ids into :id (the survivor).

@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { useState } from "react";
-import { useCreateRecipe, UnstoredRecipe } from "../../api/v1/recipes.ts";
+import { UnstoredRecipe, useCreateRecipe } from "../../api/v1/recipes.ts";
 import {
   RecipeContext,
   RecipeView,
@@ -13,7 +13,6 @@ export const Route = createFileRoute("/_auth/recipes/new")({
 });
 
 function NewRecipePage() {
-
   const [recipe, setRecipe] = useState<UnstoredRecipe>({
     kind: "recipe",
     ingredients: [],

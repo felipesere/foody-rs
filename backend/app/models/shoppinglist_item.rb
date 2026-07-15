@@ -6,5 +6,5 @@ class ShoppinglistItem < ApplicationRecord
   belongs_to :ingredient
   has_many :shoppinglist_quantities, dependent: :destroy
 
-  validates :ingredient_id, uniqueness: { scope: :shoppinglist_id }
+  validates :ingredient_id, uniqueness: {scope: :shoppinglist_id}
 end

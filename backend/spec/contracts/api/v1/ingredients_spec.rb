@@ -9,7 +9,7 @@ RSpec.describe "api/v1/ingredients contract", type: :request do
   it "matches ingredients/index.json" do
     aisle = create(:aisle, name: "Produce", order: 1)
     create(:ingredient, name: "Apples", aisle: aisle, tags: ["fruit"])
-    create(:ingredient, name: "Flour",  aisle: aisle, tags: [])
+    create(:ingredient, name: "Flour", aisle: aisle, tags: [])
 
     get "/api/v1/ingredients"
 
