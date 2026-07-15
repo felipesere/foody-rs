@@ -142,7 +142,6 @@ function ViewMealPlan(props: { mealPlan: Mealplan; recipes: Recipe[] }) {
       >
         <div className={"flex flex-wrap gap-1ch"}>
           <Button
-            classNames={"whitespace-nowrap flex-shrink"}
             label={"Clear"}
             onClick={() => {
               clearPlan.mutate({ mealplanId: mealPlan.id });

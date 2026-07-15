@@ -19,7 +19,7 @@ export function Button(props: ButtonProps) {
       className={classnames(
         className,
         classNames,
-        "px-1ch min-h-1lh w-full text-black bg-gray-300",
+        "px-1ch min-h-1lh text-black bg-gray-300",
         {
           shadow: useShadow,
           dark: dark,
