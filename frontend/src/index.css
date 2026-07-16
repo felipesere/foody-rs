@@ -280,6 +280,37 @@ label:not(.no-colon)::after {
     calc(var(--density) * -0.5px);
 }
 
+/*
+  A proper bordered grid table in the monospace-web style: every cell has a
+  crisp 2px border, cells sit on the character grid via ch/line-height padding,
+  headers are bold and left-aligned.
+  Inspired by https://owickstrom.github.io/the-monospace-web/#tables
+ */
+.grid-table {
+  border-collapse: collapse;
+}
+
+.grid-table th,
+.grid-table td {
+  border: 2px solid black;
+  padding: calc((var(--line-height) - 2px) / 2) calc(1ch - 1px);
+  line-height: var(--line-height);
+  vertical-align: middle;
+  text-align: left;
+}
+
+.grid-table th {
+  font-weight: 700;
+}
+
+/*
+  A cell that hosts an interactive control (click-to-edit field, buttons) drops
+  its own padding so the control fills the cell and provides its own spacing.
+ */
+.grid-table td.cell-control {
+  padding: 0;
+}
+
 .striped-bg {
   background: repeating-linear-gradient(
     135deg,

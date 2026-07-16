@@ -1,7 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import * as v from "valibot";
 import { type Aisle, useAisles, useUpdateAisle } from "../api/v1/aisles.ts";
@@ -16,6 +16,7 @@ import {
 import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
+import { Editable } from "../components/editable.tsx";
 import { Pill } from "../components/pill.tsx";
 import { FindIngredient } from "../components/smart/findIngredient.tsx";
 
@@ -171,13 +172,42 @@ function ImportData() {
 function EditAislesForm(props: { aisles: Aisle[] }) {
   const updateAisle = useUpdateAisle();
 
-  const form = useForm({
-    defaultValues: {
-      aisles: Object.values(props.aisles),
-    },
-    onSubmit: async ({ value: { aisles } }) => {
+  const [rows, setRows] = useState<Aisle[]>(() =>
+    [...props.aisles].sort((a, b) => a.order - b.order),
+  );
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const setOrder = (id: number, order: number) => {
+    setRows((current) =>
+      current
+        .map((row) => (row.id === id ? { ...row, order } : row))
+        .sort((a, b) => a.order - b.order),
+    );
+  };
+
+  // Move a row up/down by swapping its order value with its neighbour's, then
+  // re-sorting so the row visibly changes place.
+  const move = (index: number, direction: -1 | 1) => {
+    setRows((current) => {
+      const target = index + direction;
+      if (target < 0 || target >= current.length) {
+        return current;
+      }
+      const next = [...current];
+      const a = next[index];
+      const b = next[target];
+      next[index] = { ...a, order: b.order };
+      next[target] = { ...b, order: a.order };
+      return next.sort((x, y) => x.order - y.order);
+    });
+  };
+
+  const save = async () => {
+    setSaving(true);
+    try {
       await Promise.all(
-        aisles.map((aisle) =>
+        rows.map((aisle) =>
           updateAisle.mutateAsync({
             id: aisle.id,
             name: aisle.name,
@@ -186,8 +216,10 @@ function EditAislesForm(props: { aisles: Aisle[] }) {
         ),
       );
       toast.success("Saved aisle order");
-    },
-  });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div>
@@ -199,52 +231,65 @@ function EditAislesForm(props: { aisles: Aisle[] }) {
         onSubmit={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          void form.handleSubmit();
+          void save();
         }}
       >
-        <table className={"table-auto border-collapse mt-1lh"}>
+        <table className={"grid-table w-fit mt-1lh"}>
           <thead>
             <tr>
-              <th className={"pr-4ch text-left border-black border-r-2"}>
-                Name
-              </th>
-              <th className={"px-4ch text-left"}>Order</th>
+              <th>Name</th>
+              <th>Order</th>
+              <th>Move</th>
             </tr>
           </thead>
           <tbody>
-            <form.Field
-              name={"aisles"}
-              mode={"array"}
-              children={(aislesField) => {
-                return aislesField.state.value.map((aisle, idx) => {
-                  return (
-                    <tr key={aisle.name}>
-                      <td className={"pr-4ch border-black border-r-2"}>
-                        {aisle.name}
-                      </td>
-                      <td className={"px-4ch"}>
-                        <form.Field
-                          name={`aisles[${idx}].order`}
-                          children={(orderField) => (
-                            <input
-                              type={"number"}
-                              value={orderField.state.value as number}
-                              onChange={(e) => {
-                                orderField.handleChange(+e.target.value);
-                              }}
-                            />
-                          )}
-                        />
-                      </td>
-                    </tr>
-                  );
-                });
-              }}
-            />
+            {rows.map((aisle, index) => (
+              <tr key={aisle.id}>
+                <td>{aisle.name}</td>
+                <td
+                  className={"cell-control cursor-text"}
+                  onClick={() => setEditingId(aisle.id)}
+                >
+                  <Editable
+                    isEditing={editingId === aisle.id}
+                    value={String(aisle.order)}
+                    onBlur={(value) => {
+                      const parsed = Number.parseInt(value, 10);
+                      if (!Number.isNaN(parsed)) {
+                        setOrder(aisle.id, parsed);
+                      }
+                      setEditingId(null);
+                    }}
+                  />
+                </td>
+                <td className={"cell-control"}>
+                  <div className={"flex flex-row gap-1ch p-0.5lh"}>
+                    <Button
+                      label={"↑"}
+                      type={"button"}
+                      shadow={false}
+                      disabled={index === 0}
+                      onClick={() => move(index, -1)}
+                    />
+                    <Button
+                      label={"↓"}
+                      type={"button"}
+                      shadow={false}
+                      disabled={index === rows.length - 1}
+                      onClick={() => move(index, 1)}
+                    />
+                  </div>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
         <ButtonGroup>
-          <Button label={"Save"} type={"submit"} />
+          <Button
+            label={saving ? "Saving..." : "Save"}
+            type={"submit"}
+            disabled={saving}
+          />
         </ButtonGroup>
       </form>
     </div>
