@@ -4,7 +4,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import * as v from "valibot";
-import { type Aisle, useAisles, useUpdateAisle } from "../api/v1/aisles.ts";
+import { type Aisle, useAisles, useReorderAisles } from "../api/v1/aisles.ts";
 import { importErrorMessage, useImport } from "../api/v1/import.ts";
 import { type Ingredient, useMergeIngredients } from "../api/v1/ingredient.ts";
 import {
@@ -42,7 +42,7 @@ function UserDetails(props: { user: User }) {
   const logout = useLogout();
 
   return (
-    <div className={"content-grid gap-4ch"}>
+    <>
       <div>
         <p>
           Hello, <span className={"capitalize"}>{props.user.name}</span>!
@@ -58,7 +58,7 @@ function UserDetails(props: { user: User }) {
         </button>
       </div>
       <AdminPanel />
-    </div>
+    </>
   );
 }
 
@@ -170,13 +170,16 @@ function ImportData() {
 }
 
 function EditAislesForm(props: { aisles: Aisle[] }) {
-  const updateAisle = useUpdateAisle();
+  const reorderAisles = useReorderAisles();
 
-  const [rows, setRows] = useState<Aisle[]>(() =>
-    [...props.aisles].sort((a, b) => a.order - b.order),
-  );
+  const sorted = () => [...props.aisles].sort((a, b) => a.order - b.order);
+
+  const [rows, setRows] = useState<Aisle[]>(sorted);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  // Flipped on the first edit; gates Save/Cancel and resets when we sync with
+  // the server (a successful save) or the user discards their changes.
+  const [dirty, setDirty] = useState(false);
 
   const setOrder = (id: number, order: number) => {
     setRows((current) =>
@@ -184,6 +187,7 @@ function EditAislesForm(props: { aisles: Aisle[] }) {
         .map((row) => (row.id === id ? { ...row, order } : row))
         .sort((a, b) => a.order - b.order),
     );
+    setDirty(true);
   };
 
   // Move a row up/down by swapping its order value with its neighbour's, then
@@ -201,20 +205,22 @@ function EditAislesForm(props: { aisles: Aisle[] }) {
       next[target] = { ...b, order: a.order };
       return next.sort((x, y) => x.order - y.order);
     });
+    setDirty(true);
+  };
+
+  const cancel = () => {
+    setRows(sorted());
+    setEditingId(null);
+    setDirty(false);
   };
 
   const save = async () => {
     setSaving(true);
     try {
-      await Promise.all(
-        rows.map((aisle) =>
-          updateAisle.mutateAsync({
-            id: aisle.id,
-            name: aisle.name,
-            order: aisle.order,
-          }),
-        ),
+      await reorderAisles.mutateAsync(
+        rows.map((aisle) => ({ id: aisle.id, order: aisle.order })),
       );
+      setDirty(false);
       toast.success("Saved aisle order");
     } finally {
       setSaving(false);
@@ -288,7 +294,14 @@ function EditAislesForm(props: { aisles: Aisle[] }) {
           <Button
             label={saving ? "Saving..." : "Save"}
             type={"submit"}
-            disabled={saving}
+            disabled={saving || !dirty}
+          />
+          <Button
+            label={"Cancel"}
+            type={"button"}
+            shadow={false}
+            disabled={saving || !dirty}
+            onClick={cancel}
           />
         </ButtonGroup>
       </form>

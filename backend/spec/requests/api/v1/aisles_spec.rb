@@ -54,6 +54,55 @@ RSpec.describe "Api::V1::Aisles", type: :request do
     end
   end
 
+  describe "PUT /reorder" do
+    it "swaps two aisles' orders despite the unique index" do
+      a = Aisle.create!(name: "A", order: 1)
+      b = Aisle.create!(name: "B", order: 2)
+
+      put "/api/v1/aisles/reorder", params: {aisles: [{id: a.id, order: 2}, {id: b.id, order: 1}]}, as: :json
+
+      expect(response).to have_http_status(:success)
+      expect(a.reload.order).to eq(2)
+      expect(b.reload.order).to eq(1)
+    end
+
+    it "honours the exact order values from the client, gaps included" do
+      a = Aisle.create!(name: "A", order: 1)
+      b = Aisle.create!(name: "B", order: 2)
+
+      put "/api/v1/aisles/reorder", params: {aisles: [{id: a.id, order: 10}, {id: b.id, order: 5}]}, as: :json
+
+      expect(response).to have_http_status(:success)
+      expect(a.reload.order).to eq(10)
+      expect(b.reload.order).to eq(5)
+      expect(response.parsed_body["aisles"]).to eq([
+        {"id" => b.id, "name" => "B", "order" => 5},
+        {"id" => a.id, "name" => "A", "order" => 10}
+      ])
+    end
+
+    it "rejects a list that does not cover every aisle" do
+      a = Aisle.create!(name: "A", order: 1)
+      Aisle.create!(name: "B", order: 2)
+
+      put "/api/v1/aisles/reorder", params: {aisles: [{id: a.id, order: 1}]}, as: :json
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(a.reload.order).to eq(1)
+    end
+
+    it "rejects duplicate order values" do
+      a = Aisle.create!(name: "A", order: 1)
+      b = Aisle.create!(name: "B", order: 2)
+
+      put "/api/v1/aisles/reorder", params: {aisles: [{id: a.id, order: 3}, {id: b.id, order: 3}]}, as: :json
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(a.reload.order).to eq(1)
+      expect(b.reload.order).to eq(2)
+    end
+  end
+
   describe "DELETE /:id" do
     it "deletes an aisle" do
       aisle = Aisle.create!(name: "X", order: 1)

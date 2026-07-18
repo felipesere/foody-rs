@@ -39,3 +39,11 @@ export function useUpdateAisle() {
     invalidates: ["aisles"],
   });
 }
+
+export function useReorderAisles() {
+  return useApiMutation({
+    mutationFn: (aisles: { id: Aisle["id"]; order: Aisle["order"] }[]) =>
+      http.put("api/v1/aisles/reorder", { json: { aisles } }),
+    invalidates: ["aisles"],
+  });
+}
