@@ -1,0 +1,22 @@
+default:
+  @just --list
+
+lint:
+  npx biome check --write .
+  npx biome check .
+  npm run tsc
+
+fmt:
+  npm run fmt
+
+test: lint
+  npm run test
+
+dev: install
+  npm run dev
+
+build: install
+  npm run build
+
+install:
+  npm install
