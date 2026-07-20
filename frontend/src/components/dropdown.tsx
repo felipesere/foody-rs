@@ -1,15 +1,7 @@
 import classNames from "classnames";
 import Fuse from "fuse.js";
-import type { ChangeEvent, CSSProperties, ReactNode } from "react";
-import {
-  type ForwardedRef,
-  forwardRef,
-  useId,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import type { ChangeEvent, CSSProperties, ReactNode, Ref } from "react";
+import { useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 interface Named {
   name: string;
@@ -21,17 +13,10 @@ export interface DropdownProps<T extends Named> {
   onNewItem?: (value: string) => void;
   onBlur?: () => void;
   placeholder: string;
-  ref?: ForwardedRef<HTMLInputElement>;
+  ref?: Ref<HTMLInputElement>;
 }
 
-export const Dropdown = forwardRef(InnerDropdown) as <T extends Named>(
-  props: DropdownProps<T>,
-) => ReturnType<typeof InnerDropdown>;
-
-function InnerDropdown<T extends Named>(
-  props: DropdownProps<T>,
-  ref: ForwardedRef<HTMLInputElement>,
-) {
+export function Dropdown<T extends Named>({ ref, ...props }: DropdownProps<T>) {
   const [open, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -88,31 +73,21 @@ function InnerDropdown<T extends Named>(
     setActiveIndex(null);
   }
 
-  function selectItem(item: T) {
-    setQuery(item.name);
+  // Resolve an option index (an item, or the "new item" row when the index is
+  // out of the items range / null) and report it. Clicks refocus the input so
+  // the user can keep typing; keyboard commits must not, so Tab can move away.
+  function choose(index: number | null, refocus: boolean) {
     close();
-    props.onSelectedItem(item);
-    inputRef.current?.focus();
-  }
-
-  function createItem() {
-    close();
-    props.onNewItem?.(query);
-    inputRef.current?.focus();
-  }
-
-  // Commit the currently highlighted option via the keyboard. Unlike the click
-  // handlers this must not steal focus back, so Tab can still move away.
-  function commit() {
-    setIsOpen(false);
-    if (activeIndex !== null && activeIndex < items.length) {
-      const item = items[activeIndex];
+    if (index !== null && index < items.length) {
+      const item = items[index];
       setQuery(item.name);
       props.onSelectedItem(item);
     } else {
       props.onNewItem?.(query);
     }
-    setActiveIndex(null);
+    if (refocus) {
+      inputRef.current?.focus();
+    }
   }
 
   function onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
@@ -135,10 +110,10 @@ function InnerDropdown<T extends Named>(
       case "Enter":
         event.preventDefault();
         event.stopPropagation();
-        commit();
+        choose(activeIndex, false);
         return;
       case "Tab":
-        commit();
+        choose(activeIndex, false);
         return;
       default:
         return;
@@ -189,7 +164,7 @@ function InnerDropdown<T extends Named>(
               <Item
                 key={item.name}
                 active={activeIndex === idx}
-                onClick={() => selectItem(item)}
+                onClick={() => choose(idx, true)}
                 onBlur={handleBlur}
               >
                 {item.name}
@@ -198,7 +173,7 @@ function InnerDropdown<T extends Named>(
             {showNewItem && (
               <NewItem
                 active={activeIndex === items.length}
-                onClick={createItem}
+                onClick={() => choose(items.length, true)}
                 onBlur={handleBlur}
               >
                 {query}
