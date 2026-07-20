@@ -1,0 +1,65 @@
+{
+  "kind": "recipe",
+  "id": 1,
+  "name": "Apple Pie",
+  "source": "book",
+  "url": null,
+  "title": "Joy of Cooking",
+  "page": 42,
+  "tags": [
+    "dessert"
+  ],
+  "rating": 4,
+  "notes": "Family favourite",
+  "duration": "60",
+  "ingredients": [
+    {
+      "kind": "recipe_ingredient",
+      "id": 1,
+      "ingredient": {
+        "kind": "ingredient",
+        "id": 1,
+        "name": "Apples",
+        "tags": [
+          "fruit"
+        ],
+        "aisle": {
+          "id": 1,
+          "name": "Produce",
+          "order": 1
+        },
+        "storage": null
+      },
+      "quantities": [
+        {
+          "unit": "gram",
+          "value": 500.0,
+          "text": null
+        }
+      ]
+    },
+    {
+      "kind": "recipe_ingredient",
+      "id": 2,
+      "ingredient": {
+        "kind": "ingredient",
+        "id": 2,
+        "name": "Flour",
+        "tags": [],
+        "aisle": {
+          "id": 1,
+          "name": "Produce",
+          "order": 1
+        },
+        "storage": null
+      },
+      "quantities": [
+        {
+          "unit": "gram",
+          "value": 300.0,
+          "text": "sifted"
+        }
+      ]
+    }
+  ]
+}

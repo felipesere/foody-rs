@@ -1,13 +1,13 @@
-import { z } from "zod";
-import type { Recipe } from "../apis/recipes.ts";
+import * as v from "valibot";
+import { Recipe } from "../api/v1/recipes.ts";
 
-export const RecipeSearchSchemaParams = z.object({
-  tags: z.array(z.string()).optional(),
-  books: z.array(z.string()).optional(),
-  terms: z.array(z.string()).optional(),
-  rating: z.number().optional(),
+export const RecipeSearchSchemaParams = v.object({
+  tags: v.optional(v.array(v.string())),
+  books: v.optional(v.array(v.string())),
+  terms: v.optional(v.array(v.string())),
+  rating: v.optional(v.number()),
 });
-export type RecipeSearchParams = z.infer<typeof RecipeSearchSchemaParams>;
+export type RecipeSearchParams = v.InferOutput<typeof RecipeSearchSchemaParams>;
 
 export function updateSearchParams(
   previous: RecipeSearchParams,
@@ -91,20 +91,21 @@ export function filterRecipes(
   }
 
   function booksMatch(recipe: Recipe) {
-    if (params.books) {
-      const books = params.books || [];
-      if (books.length > 0 && recipe.source === "website") {
-        return false;
+    if (params.books && params.books.length > 0) {
+      const books = params.books;
+      switch (recipe.source) {
+        case "book":
+          return books.some((b) => recipe.title === b);
+        case "website":
+          return false;
       }
-
-      return books.some((b) => recipe.title === b);
     }
 
     return true;
   }
 
   function ratingsMatch(recipe: Recipe) {
-    if (params.rating) {
+    if (params.rating && recipe.rating) {
       let rating = params.rating;
       return recipe.rating >= rating;
     }

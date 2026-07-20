@@ -8,15 +8,15 @@ import {
 import classnames from "classnames";
 import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { z } from "zod";
+import * as v from "valibot";
 import {
-  addIngredientToShoppinglist,
-  type Ingredient,
-  useAllIngredients,
-  useAllIngredientTags,
-  useEditIngredient,
-} from "../apis/ingredients.ts";
-import { type Storage, useAllStorages } from "../apis/storage.ts";
+  Ingredient,
+  useIngredients,
+  useIngredientTags,
+  useUpdateIngredient,
+} from "../api/v1/ingredient.ts";
+import { useAddItem } from "../api/v1/shoppinglists.ts";
+import { type Storage, useStorages } from "../api/v1/storages.ts";
 import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
@@ -25,23 +25,22 @@ import { MultiSelect } from "../components/multiselect.tsx";
 import { ResizingInput } from "../components/resizeableInput.tsx";
 import { AddToShoppinglist } from "../components/smart/addToShoppinglist.tsx";
 import { SelectAisle } from "../components/smart/selectAisle.tsx";
-import { SelectStoredIn } from "../components/smart/selectStoredIn.tsx";
 import { SelectTags } from "../components/smart/selectTags.tsx";
 import { TagsTable } from "../components/tags.tsx";
 import { ToggleButton } from "../components/toggle.tsx";
 import { orderByTag } from "../domain/orderByTag.ts";
 
-const ingredientSearchSchema = z.object({
-  search: z
-    .object({
-      tags: z.array(z.string()).optional(),
-      aisle: z.array(z.string()).optional(),
-    })
-    .optional(),
-  massEdit: z.union([z.literal("tags"), z.literal("storedIn")]).optional(),
+const ingredientSearchSchema = v.object({
+  search: v.optional(
+    v.object({
+      tags: v.optional(v.array(v.string())),
+      aisle: v.optional(v.array(v.string())),
+    }),
+  ),
+  massEdit: v.optional(v.union([v.literal("tags"), v.literal("storedIn")])),
 });
 
-type IngredientSearch = z.infer<typeof ingredientSearchSchema>;
+type IngredientSearch = v.InferOutput<typeof ingredientSearchSchema>;
 
 export const Route = createFileRoute("/_auth/ingredients")({
   component: IngredientsPage,
@@ -69,34 +68,37 @@ function updateSearch(change: IngredientSearch["search"]) {
 }
 
 function IngredientsPage() {
-  const { token } = Route.useRouteContext();
   const { search, massEdit } = Route.useSearch();
   const navigate = useNavigate({ from: Route.path });
-  const ingredients = useAllIngredients(token);
-  const allTags = useAllIngredientTags(token);
+  const ingredients = useIngredients();
+  const allTags = useIngredientTags();
 
   if (!ingredients.data || !allTags.data) {
     return <p>Loading...</p>;
   }
 
   const allAisles = new Set(
-    ingredients.data.filter((i) => i.aisle).map((i) => i.aisle!.name),
+    ingredients.data.ingredients
+      .filter((i) => i.aisle)
+      .map((i) => i.aisle!.name),
   );
 
   // TODO: Extract into function
-  const filteredIngredients = ingredients.data.filter((ingredient) => {
-    if (search?.tags) {
-      if (!search.tags.some((tag) => ingredient.tags.includes(tag))) {
-        return false;
+  const filteredIngredients = ingredients.data.ingredients.filter(
+    (ingredient) => {
+      if (search?.tags) {
+        if (!search.tags.some((tag) => ingredient.tags.includes(tag))) {
+          return false;
+        }
       }
-    }
-    if (search?.aisle && ingredient.aisle) {
-      if (!search.aisle.includes(ingredient.aisle.name)) {
-        return false;
+      if (search?.aisle && ingredient.aisle) {
+        if (!search.aisle.includes(ingredient.aisle.name)) {
+          return false;
+        }
       }
-    }
-    return true;
-  });
+      return true;
+    },
+  );
 
   return (
     <div className="content-grid">
@@ -135,7 +137,7 @@ function IngredientsPage() {
           <MultiSelect
             label={"Select tags"}
             selected={search?.tags || []}
-            items={allTags.data}
+            items={allTags.data.tags}
             onItemsSelected={(items) => {
               navigate({
                 to: ".",
@@ -161,19 +163,17 @@ function IngredientsPage() {
         </FieldSet>
       </FieldSet>
       {massEdit === "tags" && (
-        <MassEditTags token={token} ingredients={filteredIngredients} />
+        <MassEditTags ingredients={filteredIngredients} />
       )}
       {massEdit === "storedIn" && (
-        <MassEditStoredIn token={token} ingredients={filteredIngredients} />
+        <MassEditStoredIn ingredients={filteredIngredients} />
       )}
-      {massEdit === undefined && (
-        <Overview token={token} ingredients={filteredIngredients} />
-      )}
+      {massEdit === undefined && <Overview ingredients={filteredIngredients} />}
     </div>
   );
 }
 
-function Overview(props: { ingredients: Ingredient[]; token: string }) {
+function Overview(props: { ingredients: Ingredient[] }) {
   const sections = orderByTag(props.ingredients);
   sections.sort((a, b) => a.items.length - b.items.length);
 
@@ -190,7 +190,6 @@ function Overview(props: { ingredients: Ingredient[]; token: string }) {
                     key={ingredient.name}
                     ingredient={ingredient}
                     selected={false}
-                    token={props.token}
                     onClick={() => {}}
                   />
                 );
@@ -205,7 +204,6 @@ function Overview(props: { ingredients: Ingredient[]; token: string }) {
 
 type IngredientViewProps = {
   ingredient: Ingredient;
-  token: string;
   selected: boolean;
   onClick: () => void;
 };
@@ -217,13 +215,16 @@ function IngredientView(props: IngredientViewProps) {
 
   const [isDirty, setIsDirty] = useState(false);
   const anyTags = props.ingredient.tags.length > 0;
-  const addIngredient = addIngredientToShoppinglist(props.token);
+  const addIngredient = useAddItem();
   return (
     <li
-      className={classnames("px-1ch py-0.5lh border-solid border-2", {
-        "border-black": !props.selected,
-        "border-yellow-400": props.selected,
-      })}
+      className={classnames(
+        "px-1ch py-0.5lh border-solid border-2 break-inside-avoid",
+        {
+          "border-black": !props.selected,
+          "border-yellow-400": props.selected,
+        },
+      )}
     >
       <div
         onClick={props.onClick}
@@ -250,17 +251,11 @@ function IngredientView(props: IngredientViewProps) {
           value={isDirty ? temporaryName : props.ingredient.name}
         />
         <AddToShoppinglist
-          token={props.token}
           onSelect={(shoppinglist) => {
             addIngredient.mutate({
               shoppinglistId: shoppinglist.id,
-              ingredient: props.ingredient.name,
-              quantity: [
-                {
-                  unit: "count",
-                  value: 1,
-                },
-              ],
+              ingredient_id: props.ingredient.id,
+              quantity: "1x", // TODO
             });
             toast(
               `Added "${props.ingredient.name}" to shoppinglist "${shoppinglist.name}"`,
@@ -278,7 +273,6 @@ function IngredientView(props: IngredientViewProps) {
               : "None"}
             {edit && (
               <SelectTags
-                token={props.token}
                 ingredientId={props.ingredient.id}
                 currentTags={props.ingredient.tags}
               />
@@ -289,24 +283,22 @@ function IngredientView(props: IngredientViewProps) {
             <p>Aisle: {props.ingredient.aisle?.name || "None"} </p>
             {edit && (
               <SelectAisle
-                token={props.token}
                 ingredientId={props.ingredient.id}
-                currentAisle={props.ingredient.aisle?.name ?? null}
+                currentAisle={props.ingredient.aisle}
               />
             )}
           </div>
           <Divider />
-          <div className={"flex flex-row justify-between"}>
-            <p>Stored in: {props.ingredient.stored_in?.name || "None"} </p>
-            {edit && (
-              <SelectStoredIn
-                token={props.token}
-                ingredientId={props.ingredient.id}
-                currentStoredIn={props.ingredient.stored_in?.name ?? null}
-              />
-            )}
-          </div>
-          <Divider />
+          {/*<div className={"flex flex-row justify-between"}>*/}
+          {/*  <p>Stored in: {props.ingredient.storage?.name || "None"} </p>*/}
+          {/*  {edit && (*/}
+          {/*    <SelectStoredIn*/}
+          {/*      ingredientId={props.ingredient.id}*/}
+          {/*      currentStoredIn={props.ingredient.stored_in?.name ?? null}*/}
+          {/*    />*/}
+          {/*  )}*/}
+          {/*</div>*/}
+          {/*<Divider />*/}
           <ButtonGroup>
             <Button
               label={"Edit"}
@@ -324,12 +316,12 @@ function IngredientView(props: IngredientViewProps) {
   );
 }
 
-function MassEditTags(props: { token: string; ingredients: Ingredient[] }) {
+function MassEditTags(props: { ingredients: Ingredient[] }) {
   let ingredients = props.ingredients;
   const [newTags, setNewTags] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const editIngredient = useEditIngredient(props.token);
+  const editIngredient = useUpdateIngredient();
 
   let tags = ingredients
     .flatMap((i) => i.tags)
@@ -364,8 +356,10 @@ function MassEditTags(props: { token: string; ingredients: Ingredient[] }) {
         knownTags={Array.from(knownTags.values())}
         toggleTags={(id, tags) => {
           editIngredient.mutate({
-            id,
-            changes: [{ type: "tags", value: tags }],
+            ingredient_id: id,
+            fields: {
+              tags,
+            },
           });
         }}
       />
@@ -373,17 +367,17 @@ function MassEditTags(props: { token: string; ingredients: Ingredient[] }) {
   );
 }
 
-function MassEditStoredIn(props: { token: string; ingredients: Ingredient[] }) {
+function MassEditStoredIn(props: { ingredients: Ingredient[] }) {
   let ingredients = props.ingredients;
 
-  const knownStorageLocations = useAllStorages(props.token);
-  const editIngredient = useEditIngredient(props.token);
+  const knownStorageLocations = useStorages();
+  const editIngredient = useUpdateIngredient();
 
   if (!knownStorageLocations.data || knownStorageLocations.isLoading) {
     return "Loading";
   }
 
-  let storageLocations = knownStorageLocations.data.sort(
+  let storageLocations = knownStorageLocations.data.storages.sort(
     (a, b) => a?.name.localeCompare(b?.name || "") || 0,
   );
 
@@ -395,8 +389,10 @@ function MassEditStoredIn(props: { token: string; ingredients: Ingredient[] }) {
         knownStorageLocations={storageLocations}
         toggleStorageLocation={(ingredient, storedIn) => {
           editIngredient.mutate({
-            id: ingredient,
-            changes: [{ type: "storedin", value: storedIn }],
+            ingredient_id: ingredient,
+            fields: {
+              storage_id: storedIn,
+            },
           });
         }}
       />
@@ -428,12 +424,12 @@ export function StoredInTable(props: {
           <td className={"px-2ch py-1lh"}>{cell.row.original.name}</td>
         ),
       }),
-      helper.accessor("stored_in.name", {
+      helper.accessor("storage.name", {
         header: "Stored In",
         cell: (cell) => {
           const ingredient = cell.row.original;
           let togglableStorageLocations = knownStorageLocations.map((s) => {
-            const isStoredIn = ingredient.stored_in?.id === s.id;
+            const isStoredIn = ingredient.storage?.id === s.id;
             const color = isStoredIn ? `text-black` : `text-gray-400`;
             const newStorageId = isStoredIn ? null : s.id;
 
@@ -447,11 +443,11 @@ export function StoredInTable(props: {
             );
           });
           let ownStorageLocation =
-            ingredient.stored_in === null ? (
+            ingredient === null ? (
               ""
             ) : (
               <span className={`bg-white border-2 px-2ch mr-2ch`}>
-                {ingredient.stored_in.name}
+                {ingredient.storage?.name}
               </span>
             );
           return (

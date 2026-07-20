@@ -1,9 +1,8 @@
-import type { Recipe } from "../apis/recipes.ts";
+import type { Recipe } from "../api/v1/recipes.ts";
 import type {
-  Quantity,
   ShoppinglistItem,
-  ShoppinglistQuantity,
-} from "../apis/shoppinglists.ts";
+  StoredQuantity,
+} from "../api/v1/shoppinglists.ts";
 
 export type Section<Item = ShoppinglistItem> = {
   name: string;
@@ -12,13 +11,10 @@ export type Section<Item = ShoppinglistItem> = {
 
 export function orderByRecipe(
   items: ShoppinglistItem[],
-  recipeNames: Record<
-    NonNullable<ShoppinglistQuantity["recipe_id"]>,
-    Recipe["name"]
-  >,
+  recipeNames: Record<NonNullable<StoredQuantity["recipe_id"]>, Recipe["name"]>,
 ): Section[] {
   const ingredientsByRecipe: Record<
-    NonNullable<Quantity["id"]>,
+    NonNullable<StoredQuantity["id"]>,
     ShoppinglistItem[]
   > = {};
   const noRecipe: ShoppinglistItem[] = [];

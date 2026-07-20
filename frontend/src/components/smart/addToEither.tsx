@@ -1,6 +1,7 @@
 import { toast } from "sonner";
-import { useAddRecipeToMealplan } from "../../apis/mealplans.ts";
-import { addRecipeToShoppinglist, Recipe } from "../../apis/recipes.ts";
+import { useAddMeal } from "../../api/v1/mealplans.ts";
+import type { Recipe } from "../../api/v1/recipes.ts";
+import { useAddRecipe } from "../../api/v1/shoppinglists.ts";
 import { Divider } from "../divider.tsx";
 import { Popup } from "../popup.tsx";
 import { PickMealplan } from "./addToMealplan.tsx";
@@ -8,13 +9,12 @@ import { PickShoppinglist } from "./addToShoppinglist.tsx";
 
 type Props = {
   recipeId: Recipe["id"];
-  token: string;
 };
 
 export function AddtoEither(props: Props) {
   const recipeId = props.recipeId;
-  const addRecipe = addRecipeToShoppinglist(props.token);
-  const addMealToPlan = useAddRecipeToMealplan(props.token);
+  const addRecipe = useAddRecipe();
+  const addMealToPlan = useAddMeal();
 
   const label = "Add";
 
@@ -27,7 +27,6 @@ export function AddtoEither(props: Props) {
       <Popup.Pane>
         <p className={"pb-1lh font-bold"}>Shoppinglist</p>
         <PickShoppinglist
-          token={props.token}
           onSelect={(shoppinglist) => {
             addRecipe.mutate({ shoppinglistId: shoppinglist.id, recipeId });
             toast.success(
@@ -38,12 +37,11 @@ export function AddtoEither(props: Props) {
         <Divider />
         <p className={"pb-1lh font-bold"}>Mealplans</p>
         <PickMealplan
-          token={props.token}
           onSelect={(mealPlan) => {
             addMealToPlan.mutate({
-              mealPlan: mealPlan.id,
+              mealplanId: mealPlan.id,
               details: {
-                type: "from_recipe",
+                kind: "from_recipe",
                 id: props.recipeId,
               },
             });

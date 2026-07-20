@@ -5,10 +5,11 @@ export type ButtonProps = ButtonHTMLAttributes<never> & {
   label: string;
   classNames?: Record<string, boolean> | string;
   shadow?: boolean;
+  dark?: boolean;
 };
 
 export function Button(props: ButtonProps) {
-  const { className, classNames, label, shadow, ...restProps } = props;
+  const { className, classNames, label, shadow, dark, ...restProps } = props;
 
   const useShadow = shadow ?? true;
 
@@ -21,6 +22,7 @@ export function Button(props: ButtonProps) {
         "px-1ch min-h-1lh text-black bg-gray-300",
         {
           shadow: useShadow,
+          dark: dark,
         },
       )}
     >

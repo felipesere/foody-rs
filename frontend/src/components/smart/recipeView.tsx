@@ -1,18 +1,17 @@
 import classNames from "classnames";
 import { createContext, useCallback, useContext, useState } from "react";
-import type {
-  Ingredient,
-  Ingredient as OnlyIngredient,
-} from "../../apis/ingredients.ts";
-import type { MealPlan } from "../../apis/mealplans.ts";
+import type { Mealplan } from "../../api/v1/mealplans.ts";
 import {
-  type Source,
-  type UnstoredIngredient,
-  type UnstoredRecipe,
-  useAllRecipes,
+  type SourceDetails,
+  UnstoredRecipe,
+  useRecipes,
   useRecipeTags,
-} from "../../apis/recipes.ts";
-import type { Shoppinglist } from "../../apis/shoppinglists.ts";
+} from "../../api/v1/recipes.ts";
+import type { Shoppinglist } from "../../api/v1/shoppinglists.ts";
+
+/** The ingredient shape carried by an unstored recipe's ingredient list. */
+type IngredientInput = UnstoredRecipe["ingredients"][number]["ingredient"];
+
 import { orderByAisles } from "../../domain/orderByAisle.ts";
 import { humanize } from "../../quantities.ts";
 import { Button } from "../button.tsx";
@@ -29,7 +28,6 @@ import { SelectIngredientWithQuantity } from "./selectIngredientWithQuantity.tsx
 
 export const RecipeContext = createContext({
   editing: false,
-  token: "",
 });
 
 type RecipeViewProps = {
@@ -37,25 +35,25 @@ type RecipeViewProps = {
   onSave: (isEditing: boolean) => void;
   onCancel: () => void;
   onSetName: (name: string) => void;
-  onSetSource: (source: Source) => void;
+  onSetSource: (source: SourceDetails) => void;
   onSetRating: (rating: number) => void;
   onSetTags: (tags: string[]) => void;
   // TODO: string here sucks...
-  onAddedIngredient: (ingredient: OnlyIngredient, quantity: string) => void;
-  onRemoveIngredient: (name: Ingredient["name"]) => void;
-  onChangeQuantity: (name: Ingredient["name"], quantity: string) => void;
+  onAddedIngredient: (ingredient: IngredientInput, quantity: string) => void;
+  onRemoveIngredient: (name: IngredientInput["name"]) => void;
+  onChangeQuantity: (name: IngredientInput["name"], quantity: string) => void;
   onSetNote: (notes: string) => void;
   onSetDuration: (duration: string) => void;
   onAddToShoppinglist?: (shoppinglistId: Shoppinglist["id"]) => void;
-  onAddToMealPlan?: (mealplanId: MealPlan["id"]) => void;
+  onAddToMealPlan?: (mealplanId: Mealplan["id"]) => void;
 };
 
 export function RecipeView(props: RecipeViewProps) {
-  const { editing, token } = useContext(RecipeContext);
+  const { editing } = useContext(RecipeContext);
 
   const recipe = props.recipe;
 
-  const allRecipeTags = useRecipeTags(token);
+  const allRecipeTags = useRecipeTags();
 
   if (!allRecipeTags.data) {
     return null;
@@ -67,14 +65,10 @@ export function RecipeView(props: RecipeViewProps) {
         {/* left or top */}
         <div className={"flex flex-col gap-1ch"}>
           <Name value={recipe.name} onBlur={props.onSetName} />
-          <ShowSource
-            token={token}
-            recipe={recipe}
-            onBlur={props.onSetSource}
-          />
+          <ShowSource recipe={recipe} onBlur={props.onSetSource} />
           <div className={"flex flex-row gap-2ch"}>
             <p>Rating:</p>{" "}
-            <Stars rating={recipe.rating} setRating={props.onSetRating} />
+            <Stars rating={recipe.rating || 0} setRating={props.onSetRating} />
           </div>
           <EditableTag
             tags={recipe.tags}
@@ -94,9 +88,11 @@ export function RecipeView(props: RecipeViewProps) {
             onChangeQuantity={props.onChangeQuantity}
           />
         </div>
-        <div className={"divider"}>
-          <Notes value={recipe.notes} onBlur={props.onSetNote} />
-        </div>
+        {recipe.notes ? (
+          <div className={"divider"}>
+            <Notes value={recipe.notes} onBlur={props.onSetNote} />
+          </div>
+        ) : null}
       </div>
       <Divider />
       <ButtonGroup>
@@ -110,7 +106,6 @@ export function RecipeView(props: RecipeViewProps) {
         {props.onAddToShoppinglist && (
           <AddToShoppinglist
             label={"Add to Shoppinglist"}
-            token={token}
             onSelect={(shoppinglist) => {
               props.onAddToShoppinglist?.(shoppinglist.id);
             }}
@@ -119,7 +114,6 @@ export function RecipeView(props: RecipeViewProps) {
         {props.onAddToMealPlan && (
           <AddToMealPlan
             label={"Add to Mealplan"}
-            token={token}
             onSelect={(plan) => {
               props.onAddToMealPlan?.(plan.id);
             }}
@@ -175,14 +169,11 @@ function Notes(props: { value: string; onBlur: (v: string) => void }) {
 
 function Ingredients(props: {
   ingredients: UnstoredRecipe["ingredients"];
-  onIngredient: (i: OnlyIngredient, quantity: string) => void;
-  onRemove: (name: UnstoredIngredient["ingredient"]["name"]) => void;
-  onChangeQuantity: (
-    name: UnstoredIngredient["ingredient"]["name"],
-    quantity: string,
-  ) => void;
+  onIngredient: (i: IngredientInput, quantity: string) => void;
+  onRemove: (name: IngredientInput["name"]) => void;
+  onChangeQuantity: (name: IngredientInput["name"], quantity: string) => void;
 }) {
-  const { editing, token } = useContext(RecipeContext);
+  const { editing } = useContext(RecipeContext);
 
   const sections = orderByAisles(props.ingredients);
   return (
@@ -193,7 +184,7 @@ function Ingredients(props: {
           return (
             <ul key={name}>
               {ingredients.items.map((ingredient) => {
-                const quantity = humanize(ingredient.quantity[0]);
+                const quantity = humanize(ingredient.quantities[0]);
                 const name = ingredient.ingredient.name;
                 return (
                   <IngredientView
@@ -211,7 +202,6 @@ function Ingredients(props: {
       </ul>
       {editing && (
         <SelectIngredientWithQuantity
-          token={token}
           onIngredient={(ingredient, quantity) => {
             props.onIngredient(ingredient, humanize(quantity));
           }}
@@ -285,7 +275,7 @@ export function Stars(props: {
 }
 
 type IngredientViewProps = {
-  ingredient: UnstoredIngredient["ingredient"]["name"];
+  ingredient: IngredientInput["name"];
   quantity: string;
   onRemove: () => void;
   onChangeQuantity: (quantity: string) => void;
@@ -319,19 +309,19 @@ function IngredientView(props: IngredientViewProps) {
 }
 
 function BookSource(props: {
-  token: string;
   source: { page: number | null; title: string | null };
   onTitleChange: (title: string) => void;
   onPageChange: (page: number) => void;
   onBlur: () => void;
 }) {
-  const recipes = useAllRecipes(props.token);
+  const recipes = useRecipes();
+  // const recipes = useAllRecipes();
   if (recipes.error || !recipes.data) {
     return <p>Loading...</p>;
   }
 
   const names = recipes.data.recipes.flatMap((recipe) =>
-    recipe.title ? [recipe.title] : [],
+    recipe.name ? [recipe.name] : [],
   );
   const uniqueNames = [...new Set(names)];
 
@@ -360,17 +350,17 @@ function BookSource(props: {
 
 // TODO: move this back into the normal show recipes
 function ShowSource(props: {
-  token: string;
   recipe: UnstoredRecipe;
-  onBlur: (details: Source) => void;
+  onBlur: (details: SourceDetails) => void;
 }) {
+  const recipe = props.recipe;
   const { editing } = useContext(RecipeContext);
-  const [sourceChoice, setSourceChoice] = useState(props.recipe.source);
+  const [sourceChoice, setSourceChoice] = useState(recipe.source);
 
   const [source, setSource] = useState({
-    url: props.recipe.url,
-    page: props.recipe.page,
-    title: props.recipe.title,
+    url: recipe.source === "website" ? recipe.url : null,
+    page: recipe.source === "book" ? recipe.page : null,
+    title: recipe.source == "book" ? recipe.title : null,
   });
 
   const bubbleUpToParent = useCallback(() => {
@@ -430,7 +420,6 @@ function ShowSource(props: {
         {sourceChoice === "book" && (
           <div className={"flex gap-2ch flex-row"}>
             <BookSource
-              token={props.token}
               source={source}
               onTitleChange={(title) =>
                 setSource((prev) => ({

@@ -203,6 +203,53 @@ input[type="button"]:disabled {
   cursor: not-allowed;
 }
 
+button.dark,
+input[type="button"].dark {
+  color: white;
+  background-color: #33363b;
+}
+
+/*
+  Text fields, selects and textareas. Kept on the monospace grid: a crisp 2px
+  black border (no radius), the mono font inherited from the body, and a
+  block-style shadow on focus that echoes `.shadow` used on buttons.
+  Inspired by https://owickstrom.github.io/the-monospace-web/#forms
+ */
+input[type="text"],
+input[type="search"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="url"],
+input[type="tel"],
+input:not([type]),
+textarea {
+  font: inherit;
+  color: inherit;
+  background-color: white;
+  border: 2px solid black;
+  border-radius: 0;
+  padding: 0 1ch;
+  min-height: var(--line-height);
+  appearance: none;
+}
+
+textarea {
+  padding: calc(var(--line-height) * 0.25) 1ch;
+  min-height: calc(var(--line-height) * 3);
+}
+
+input:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  box-shadow: 3px 3px 0 0 #868e96;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #868e96;
+}
+
 label:not(.no-colon)::after {
   content: ": ";
 }
@@ -231,6 +278,37 @@ label:not(.no-colon)::after {
   background-size: calc(var(--density) * 1px) calc(var(--density) * 1px);
   background-position: calc(var(--density) * -0.5px)
     calc(var(--density) * -0.5px);
+}
+
+/*
+  A proper bordered grid table in the monospace-web style: every cell has a
+  crisp 2px border, cells sit on the character grid via ch/line-height padding,
+  headers are bold and left-aligned.
+  Inspired by https://owickstrom.github.io/the-monospace-web/#tables
+ */
+.grid-table {
+  border-collapse: collapse;
+}
+
+.grid-table th,
+.grid-table td {
+  border: 2px solid black;
+  padding: calc((var(--line-height) - 2px) / 2) calc(1ch - 1px);
+  line-height: var(--line-height);
+  vertical-align: middle;
+  text-align: left;
+}
+
+.grid-table th {
+  font-weight: 700;
+}
+
+/*
+  A cell that hosts an interactive control (click-to-edit field, buttons) drops
+  its own padding so the control fills the cell and provides its own spacing.
+ */
+.grid-table td.cell-control {
+  padding: 0;
 }
 
 .striped-bg {

@@ -1,24 +1,26 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { z } from "zod";
-import { type Ingredient, useAllIngredients } from "../../apis/ingredients.ts";
-import { useAddRecipeToMealplan } from "../../apis/mealplans.ts";
+import * as v from "valibot";
+import { type Ingredient, useIngredients } from "../../api/v1/ingredient.ts";
+import { useAddMeal } from "../../api/v1/mealplans.ts";
 import {
-  addRecipeToShoppinglist,
-  type Change,
   type Recipe,
-  type Source,
-  useChangeRecipe,
+  type RecipeUpdate,
+  type UnstoredRecipe,
+  useAddRecipeIngredient,
   useRecipe,
-} from "../../apis/recipes.ts";
+  useRemoveRecipeIngredient,
+  useUpdateRecipe,
+} from "../../api/v1/recipes.ts";
+import { useAddRecipe } from "../../api/v1/shoppinglists.ts";
 import {
   RecipeContext,
   RecipeView,
 } from "../../components/smart/recipeView.tsx";
 import { parse } from "../../quantities.ts";
 
-const RecipeSearch = z.object({
-  editing: z.boolean().optional(),
+const RecipeSearch = v.object({
+  editing: v.optional(v.boolean()),
 });
 
 export const Route = createFileRoute("/_auth/recipes/$recipeId")({
@@ -26,21 +28,122 @@ export const Route = createFileRoute("/_auth/recipes/$recipeId")({
   validateSearch: RecipeSearch,
 });
 
+// Local edit-accumulator model: edits are collected client-side so we can
+// preview them, then flushed to the v1 endpoints on save.
+type Change =
+  | { type: "name"; value: string }
+  | { type: "tags"; value: string[] }
+  | { type: "notes"; value: string }
+  | { type: "duration"; value: string }
+  | { type: "rating"; value: number }
+  | {
+      type: "source";
+      value:
+        | { type: "book"; title: string; page: number }
+        | { type: "website"; url: string };
+    }
+  | {
+      type: "ingredients";
+      value:
+        | { type: "add"; id: number; quantity: string }
+        | { type: "remove"; ingredient: number };
+    };
+
+function toUnstored(recipe: Recipe): UnstoredRecipe {
+  const { ingredients, ...rest } = recipe;
+  return {
+    ...rest,
+    ingredients: ingredients.map((ri) => ({
+      ingredient: ri.ingredient,
+      quantities: ri.quantities,
+    })),
+  };
+}
+
+function applyChanges(
+  changes: Change[],
+  base: UnstoredRecipe,
+  knownIngredients: Ingredient[],
+): UnstoredRecipe {
+  let copy = structuredClone(base);
+  for (const change of changes) {
+    switch (change.type) {
+      case "name":
+        copy.name = change.value;
+        break;
+      case "tags":
+        copy.tags = change.value;
+        break;
+      case "notes":
+        copy.notes = change.value;
+        break;
+      case "duration":
+        copy.duration = change.value;
+        break;
+      case "rating":
+        copy.rating = change.value;
+        break;
+      case "source":
+        copy =
+          change.value.type === "website"
+            ? {
+                ...copy,
+                source: "website",
+                url: change.value.url,
+                title: null,
+                page: null,
+              }
+            : {
+                ...copy,
+                source: "book",
+                title: change.value.title,
+                page: change.value.page,
+                url: null,
+              };
+        break;
+      case "ingredients":
+        if (change.value.type === "remove") {
+          const id = change.value.ingredient;
+          copy = {
+            ...copy,
+            ingredients: copy.ingredients.filter((i) => i.ingredient.id !== id),
+          };
+        } else {
+          const add = change.value;
+          const ingredient = knownIngredients.find((i) => i.id === add.id);
+          if (ingredient) {
+            copy = {
+              ...copy,
+              ingredients: [
+                ...copy.ingredients,
+                { ingredient, quantities: [parse(add.quantity)] },
+              ],
+            };
+          }
+        }
+        break;
+    }
+  }
+  return copy;
+}
+
 function RecipePage() {
-  const { token } = Route.useRouteContext();
   const navigate = useNavigate({ from: Route.fullPath });
 
   const { editing } = Route.useSearch();
   const { recipeId } = Route.useParams();
   const id = Number(recipeId);
 
-  const recipeData = useRecipe(token, id);
-  const ingredientData = useAllIngredients(token);
+  const recipeData = useRecipe(id);
+  const ingredientData = useIngredients();
 
-  const addMealToPlan = useAddRecipeToMealplan(token);
-  const addRecipe = addRecipeToShoppinglist(token);
+  const addMealToPlan = useAddMeal();
+  const addRecipe = useAddRecipe();
+  const updateRecipe = useUpdateRecipe();
+  const addIngredient = useAddRecipeIngredient();
+  const removeIngredient = useRemoveRecipeIngredient();
+
   const [changes, setChanges] = useState<Change[]>([]);
-  const submitChanges = useChangeRecipe(token, id);
 
   // TODO: needs to be lower inside of layout... but we will get there
   if (recipeData.isLoading || ingredientData.isLoading) {
@@ -51,110 +154,99 @@ function RecipePage() {
     return <p>Error</p>;
   }
 
-  function applyChanges(
-    changes: Change[],
-    recipe: Recipe,
-    knownIngredients: Ingredient[],
-  ): Recipe {
-    const copy = structuredClone(recipe);
+  const knownIngredients = ingredientData.data.ingredients;
+  const recipe = applyChanges(
+    changes,
+    toUnstored(recipeData.data),
+    knownIngredients,
+  );
+
+  // Translate the accumulated changes into v1 calls: field edits collapse into
+  // a single recipe PUT, ingredient edits become add/remove calls.
+  async function flushChanges() {
+    const update: RecipeUpdate = { recipeId: id };
+    let hasFieldChange = false;
+    const ingredientOps: Array<() => Promise<unknown>> = [];
+
     for (const change of changes) {
       switch (change.type) {
         case "name":
-          copy.name = change.value;
+          update.name = change.value;
+          hasFieldChange = true;
           break;
         case "tags":
-          copy.tags = change.value;
+          update.tags = change.value;
+          hasFieldChange = true;
           break;
         case "notes":
-          copy.notes = change.value;
+          update.notes = change.value;
+          hasFieldChange = true;
           break;
-        case "source":
-          switch (change.value.type) {
-            case "website":
-              copy.source = "website";
-              copy.url = change.value.url;
-              copy.page = null;
-              copy.title = null;
-              break;
-            case "book":
-              copy.source = "book";
-              copy.url = null;
-              copy.page = change.value.page;
-              copy.title = change.value.title;
-              break;
-          }
+        case "duration":
+          update.duration = change.value;
+          hasFieldChange = true;
           break;
         case "rating":
-          copy.rating = change.value;
+          update.rating = change.value;
+          hasFieldChange = true;
+          break;
+        case "source":
+          update.source =
+            change.value.type === "book"
+              ? {
+                  source: "book",
+                  title: change.value.title,
+                  page: change.value.page,
+                }
+              : { source: "website", url: change.value.url };
+          hasFieldChange = true;
           break;
         case "ingredients":
-          switch (change.value.type) {
-            case "remove":
-              {
-                const id = change.value.ingredient;
-                copy.ingredients = copy.ingredients.filter(
-                  (i) => i.ingredient.id !== id,
-                );
-              }
-              break;
-            case "add":
-              {
-                const id = change.value.id;
-                const quantity = change.value.quantity;
-                const ingredient = knownIngredients.find((i) => i.id === id);
-                if (ingredient) {
-                  copy.ingredients = [
-                    ...copy.ingredients,
-                    {
-                      ingredient,
-                      quantity: [{ ...parse(quantity), id: 1 }], // TODO: meh... non-stored quantity?
-                    },
-                  ];
-                }
-              }
-              break;
-            case "set":
-              {
-                for (const i of change.value.ingredients) {
-                  const id = i.id;
-                  const quantity = i.quantity;
-                  const ingredient = knownIngredients.find((i) => i.id === id);
-                  if (ingredient) {
-                    copy.ingredients = [
-                      ...copy.ingredients,
-                      {
-                        ingredient,
-                        quantity: [{ ...parse(quantity), id: 1 }], // TODO: meh... non-stored quantity?
-                      },
-                    ];
-                  }
-                }
-              }
-              break;
+          if (change.value.type === "add") {
+            const { id: ingredient_id, quantity } = change.value;
+            ingredientOps.push(() =>
+              addIngredient.mutateAsync({
+                recipeId: id,
+                ingredient_id,
+                quantity,
+              }),
+            );
+          } else {
+            const ingredientId = change.value.ingredient;
+            ingredientOps.push(() =>
+              removeIngredient.mutateAsync({ recipeId: id, ingredientId }),
+            );
           }
           break;
       }
     }
-    return copy;
+
+    if (hasFieldChange) {
+      await updateRecipe.mutateAsync(update);
+    }
+    for (const op of ingredientOps) {
+      await op();
+    }
   }
 
-  const recipe = applyChanges(changes, recipeData.data, ingredientData.data);
+  async function handleSave() {
+    if (changes.length > 0 && editing) {
+      await flushChanges();
+      setChanges([]);
+    }
+    await navigate({ search: { editing: !editing } });
+  }
 
   return (
     <RecipeContext.Provider
       value={{
         editing: editing || false,
-        token,
       }}
     >
       <RecipeView
         recipe={recipe}
         onSave={() => {
-          if (changes.length > 0 && editing) {
-            submitChanges.mutate({ changes });
-            setChanges([]);
-          }
-          navigate({ search: { editing: !editing } });
+          void handleSave();
         }}
         onCancel={() => {
           setChanges([]);
@@ -163,7 +255,7 @@ function RecipePage() {
         onSetName={(name) => {
           setChanges((prev) => [...prev, { type: "name", value: name }]);
         }}
-        onSetSource={(source: Source) => {
+        onSetSource={(source) => {
           if (source.source === "book") {
             setChanges((prev) => [
               ...prev,
@@ -171,21 +263,17 @@ function RecipePage() {
                 type: "source",
                 value: {
                   type: "book",
-                  // biome-ignore lint/style/noNonNullAssertion: We know we are a `book` from the source check above
-                  title: source.title!,
-                  // biome-ignore lint/style/noNonNullAssertion: We know we are a `book` from the source check above
-                  page: source.page!,
+                  title: source.title,
+                  page: source.page,
                 },
               },
             ]);
-          }
-          if (source.source === "website") {
+          } else {
             setChanges((prev) => [
               ...prev,
               {
                 type: "source",
-                // biome-ignore lint/style/noNonNullAssertion: We know we are a `book` from the source check above
-                value: { type: "website", url: source.url! },
+                value: { type: "website", url: source.url },
               },
             ]);
           }
@@ -232,17 +320,17 @@ function RecipePage() {
             ]);
           }
         }}
-        onAddToMealPlan={(id) => {
+        onAddToMealPlan={(mealplanId) => {
           addMealToPlan.mutate({
-            mealPlan: id,
+            mealplanId,
             details: {
-              type: "from_recipe",
-              id: recipe.id,
+              kind: "from_recipe",
+              id,
             },
           });
         }}
-        onAddToShoppinglist={(id) => {
-          addRecipe.mutate({ recipeId: recipe.id, shoppinglistId: id });
+        onAddToShoppinglist={(shoppinglistId) => {
+          addRecipe.mutate({ recipeId: id, shoppinglistId });
         }}
         onChangeQuantity={(name, quantity) => {
           const ing = recipe.ingredients.find(

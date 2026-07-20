@@ -1,4 +1,4 @@
-import type { Quantity } from "./apis/recipes.ts";
+import { Quantity } from "./api/v1/shoppinglists.ts";
 
 export function humanize(quantity: Quantity): string {
   if (quantity.text) {
@@ -46,6 +46,7 @@ export function parse(raw: string): Quantity {
     return {
       unit: "arbitrary",
       text: raw,
+      value: null,
     };
   }
   const groups = matches.groups;
@@ -59,6 +60,7 @@ export function parse(raw: string): Quantity {
     return {
       value,
       unit: "count",
+      text: null,
     };
   }
   const properUnit = canonical(unit);
@@ -67,12 +69,14 @@ export function parse(raw: string): Quantity {
     return {
       unit: "arbitrary",
       text: raw,
+      value: null,
     };
   }
 
   return {
     value,
     unit: properUnit,
+    text: null,
   };
 }
 

@@ -1,7 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import React, { Suspense } from "react";
-import { loadToken } from "../apis/user.ts";
 import { Navbar } from "../navbar.tsx";
 
 type Context = {
@@ -9,13 +8,6 @@ type Context = {
 };
 
 export const Route = createRootRouteWithContext<Context>()({
-  beforeLoad: () => {
-    const maybeToken = loadToken();
-
-    return {
-      token: maybeToken,
-    };
-  },
   component: () => {
     return (
       <>

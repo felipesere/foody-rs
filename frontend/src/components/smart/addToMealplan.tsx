@@ -1,11 +1,9 @@
-import { useAllMealPlans } from "../../apis/mealplans.ts";
-import type { Shoppinglist } from "../../apis/shoppinglists.ts";
+import { type Mealplan, useMealplans } from "../../api/v1/mealplans.ts";
 import { Popup } from "../popup.tsx";
 
-type MealPlanIdentifier = Pick<Shoppinglist, "id" | "name">;
+type MealPlanIdentifier = Pick<Mealplan, "id" | "name">;
 
 export type Props = {
-  token: string;
   onSelect: (id: MealPlanIdentifier) => void;
   label?: string;
 };
@@ -18,7 +16,6 @@ export function AddToMealPlan(props: Props) {
       <Popup.OpenButton label={label} />
       <Popup.Pane>
         <PickMealplan
-          token={props.token}
           onSelect={(id) => {
             props.onSelect(id);
           }}
@@ -29,13 +26,13 @@ export function AddToMealPlan(props: Props) {
 }
 
 export function PickMealplan(props: Props) {
-  const { isLoading, data } = useAllMealPlans(props.token);
+  const { isLoading, data } = useMealplans();
 
   if (isLoading || !data) {
     return <p>Loading...</p>;
   }
 
-  const meal_plans = data.meal_plans.slice(0, 5);
+  const meal_plans = data.mealplans.slice(0, 5);
 
   return (
     <ol className={"space-y-1lh"}>

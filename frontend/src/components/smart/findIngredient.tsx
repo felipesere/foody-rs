@@ -1,9 +1,8 @@
-import { type Ingredient, useAllIngredients } from "../../apis/ingredients.ts";
+import { type Ingredient, useIngredients } from "../../api/v1/ingredient.ts";
 import type { DropdownProps } from "../dropdown.tsx";
 import { Dropdown } from "../dropdown.tsx";
 
 type FindIngredientProps = {
-  token: string;
   placeholder: string;
   onIngredient: DropdownProps<Ingredient>["onSelectedItem"];
   onNewIngredient?: DropdownProps<Ingredient>["onNewItem"];
@@ -11,7 +10,7 @@ type FindIngredientProps = {
 };
 
 export function FindIngredient(props: FindIngredientProps) {
-  const ingredients = useAllIngredients(props.token);
+  const ingredients = useIngredients();
 
   if (!ingredients.data) {
     return null;
@@ -25,7 +24,7 @@ export function FindIngredient(props: FindIngredientProps) {
   return (
     <Dropdown
       placeholder={props.placeholder}
-      items={ingredients.data}
+      items={ingredients.data.ingredients}
       dropdownClassnames={"border-gray-500 border-solid border-2"}
       onSelectedItem={props.onIngredient}
       {...extraProps}

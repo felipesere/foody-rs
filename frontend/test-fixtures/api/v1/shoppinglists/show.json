@@ -1,0 +1,64 @@
+{
+  "kind": "shoppinglist",
+  "id": 1,
+  "name": "Saturday shop",
+  "last_updated": "2026-01-01T12:00:00Z",
+  "ingredients": [
+    {
+      "kind": "shoppinglist_item",
+      "id": 1,
+      "ingredient": {
+        "kind": "ingredient",
+        "id": 1,
+        "name": "Apples",
+        "tags": [
+          "fruit"
+        ],
+        "aisle": {
+          "id": 1,
+          "name": "Produce",
+          "order": 1
+        },
+        "storage": null
+      },
+      "quantities": [
+        {
+          "id": 1,
+          "unit": "gram",
+          "value": 500.0,
+          "text": null,
+          "recipe_id": 1
+        }
+      ],
+      "note": "ripe ones",
+      "in_basket": false
+    },
+    {
+      "kind": "shoppinglist_item",
+      "id": 2,
+      "ingredient": {
+        "kind": "ingredient",
+        "id": 2,
+        "name": "Flour",
+        "tags": [],
+        "aisle": {
+          "id": 1,
+          "name": "Produce",
+          "order": 1
+        },
+        "storage": null
+      },
+      "quantities": [
+        {
+          "id": 2,
+          "unit": "gram",
+          "value": 300.0,
+          "text": null,
+          "recipe_id": null
+        }
+      ],
+      "note": null,
+      "in_basket": true
+    }
+  ]
+}

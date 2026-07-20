@@ -1,0 +1,19 @@
+{
+  "aisles": [
+    {
+      "id": 1,
+      "name": "Produce",
+      "order": 1
+    },
+    {
+      "id": 2,
+      "name": "Bakery",
+      "order": 2
+    },
+    {
+      "id": 3,
+      "name": "Dairy",
+      "order": 3
+    }
+  ]
+}

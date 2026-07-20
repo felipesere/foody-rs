@@ -1,18 +1,27 @@
 import { useForm } from "@tanstack/react-form";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { z } from "zod";
-import { type Aisle, useAllAisles } from "../apis/aisles.ts";
-import { type Ingredient, useMergeIngredients } from "../apis/ingredients.ts";
-import { useLogin, useLogout, useUser } from "../apis/user.ts";
+import * as v from "valibot";
+import { type Aisle, useAisles, useReorderAisles } from "../api/v1/aisles.ts";
+import { importErrorMessage, useImport } from "../api/v1/import.ts";
+import { type Ingredient, useMergeIngredients } from "../api/v1/ingredient.ts";
+import {
+  login,
+  meQueryOptions,
+  type User,
+  useLogout,
+} from "../api/v1/session.ts";
 import { Button } from "../components/button.tsx";
 import { ButtonGroup } from "../components/buttonGroup.tsx";
 import { Divider } from "../components/divider.tsx";
+import { Editable } from "../components/editable.tsx";
 import { Pill } from "../components/pill.tsx";
 import { FindIngredient } from "../components/smart/findIngredient.tsx";
 
-const RedirectAfterLoginSchema = z.object({
-  redirect: z.string().optional(),
+const RedirectAfterLoginSchema = v.object({
+  redirect: v.optional(v.string()),
 });
 
 export const Route = createFileRoute("/login")({
@@ -21,34 +30,26 @@ export const Route = createFileRoute("/login")({
 });
 
 export function LoginPage() {
-  const { token } = Route.useRouteContext();
+  const me = useQuery(meQueryOptions());
   return (
     <div className="content-grid">
-      {token ? <UserDetails token={token} /> : <Login />}
+      {me.data ? <UserDetails user={me.data} /> : <Login />}
     </div>
   );
 }
 
-function UserDetails(props: { token: string }) {
-  const user = useUser(props.token);
+function UserDetails(props: { user: User }) {
   const logout = useLogout();
 
-  const greeting = user.data ? (
-    <p>
-      Hello, <span className={"capitalize"}>{user.data.name}</span>!
-    </p>
-  ) : (
-    <p>Hello!</p>
-  );
-
   return (
-    <div className={"content-grid gap-4ch"}>
+    <>
       <div>
-        {greeting}
+        <p>
+          Hello, <span className={"capitalize"}>{props.user.name}</span>!
+        </p>
         <button
-          disabled={!user.data}
           className={"px-2ch"}
-          type={"submit"}
+          type={"button"}
           onClick={async () => {
             await logout();
           }}
@@ -56,113 +57,30 @@ function UserDetails(props: { token: string }) {
           Sign out
         </button>
       </div>
-      <AdminPanel token={props.token} />
-    </div>
+      <AdminPanel />
+    </>
   );
 }
 
 function Login() {
-  const { redirect } = Route.useSearch();
-
-  const login = useLogin({ redirectTo: redirect });
-
-  const form = useForm({
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-    onSubmit: async ({ value }) => {
-      await login.mutateAsync(value);
-    },
-  });
   return (
-    <div className="content-grid">
+    <div className="content-grid space-y-1lh">
       <h3>Login</h3>
-      <form
-        className={"space-y-1lh"}
-        onSubmit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          void form.handleSubmit();
-        }}
+      <p>Sign in with your Pocket ID passkey.</p>
+      <button
+        className={"px-2ch"}
+        type={"button"}
+        id={"submit"}
+        onClick={() => login()}
       >
-        <form.Field
-          name="email"
-          validators={{
-            onBlur: z.email(),
-          }}
-          children={(emailField) => (
-            <div>
-              <label className={"block"} htmlFor={emailField.name}>
-                Username
-              </label>
-              <input
-                type={"text"}
-                className={
-                  "px-1ch py-0.5lh outline-0 border-black border-2 border-solid"
-                }
-                autoComplete={"username"}
-                name={emailField.name}
-                id={emailField.name}
-                value={emailField.state.value}
-                onBlur={emailField.handleBlur}
-                onChange={(e) => emailField.handleChange(e.target.value)}
-              />
-              {emailField.state.meta.errorMap.onBlur ? (
-                <em>
-                  {emailField.state.meta.errorMap.onBlur
-                    .map((error) => error.message)
-                    .join(", ")}
-                </em>
-              ) : null}
-            </div>
-          )}
-        />
-        <form.Field
-          name="password"
-          validators={{
-            onChange: (v) =>
-              v.value.length === 0 ? "Password missing" : undefined,
-          }}
-          children={(passwordField) => (
-            <div>
-              <label className={"block"} htmlFor={passwordField.name}>
-                Password
-              </label>
-              <input
-                type={"password"}
-                className={
-                  "px-1ch py-0.5lh outline-0 border-black border-2 border-solid"
-                }
-                autoComplete={"current-password"}
-                name={passwordField.name}
-                id={passwordField.name}
-                value={passwordField.state.value}
-                onChange={(e) => passwordField.handleChange(e.target.value)}
-              />
-            </div>
-          )}
-        />
-        <form.Subscribe
-          selector={(state) => [state.canSubmit, state.isPristine]}
-          children={([canSubmit, isPristine]) => (
-            <button
-              className={"px-2ch"}
-              type={"submit"}
-              id={"submit"}
-              disabled={!canSubmit || isPristine}
-            >
-              Sign In
-            </button>
-          )}
-        />
-      </form>
+        Sign in
+      </button>
     </div>
   );
 }
 
-function AdminPanel(props: { token: string }) {
-  const aisles = useAllAisles(props.token);
+function AdminPanel() {
+  const aisles = useAisles();
 
   if (!aisles.data) {
     return <p>Loading aisles...</p>;
@@ -171,22 +89,143 @@ function AdminPanel(props: { token: string }) {
   return (
     <div className={"flex flex-col gap-4ch"}>
       <Divider />
-      <EditAislesForm token={props.token} aisles={aisles.data} />
+      <EditAislesForm aisles={aisles.data.aisles} />
       <Divider />
-      <MergeIngredients token={props.token} />
+      <MergeIngredients />
+      <Divider />
+      <ImportData />
     </div>
   );
 }
 
-function EditAislesForm(props: { token: string; aisles: Aisle[] }) {
+function ImportData() {
+  const doImport = useImport();
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const form = useForm({
     defaultValues: {
-      aisles: Object.values(props.aisles),
+      file: null as File | null,
     },
-    onSubmit: ({ value: { aisles } }) => {
-      console.log(`About to submit ${JSON.stringify(aisles, null, 2)}`);
+    onSubmit: async ({ value: { file } }) => {
+      if (!file) return;
+      try {
+        const { imported } = await doImport.mutateAsync(file);
+        toast.success(
+          `Imported ${imported.aisles} aisles, ` +
+            `${imported.ingredients} ingredients, ` +
+            `${imported.recipes} recipes, ` +
+            `${imported.mealplans} meal plans, ` +
+            `${imported.shoppinglists} shopping lists`,
+        );
+        form.reset();
+        if (inputRef.current) inputRef.current.value = "";
+      } catch (err) {
+        toast.error(await importErrorMessage(err));
+      }
     },
   });
+
+  return (
+    <div>
+      <h2>Import data</h2>
+      <p>Upload a JSON export to add it to this group's data.</p>
+      <form
+        id={"import"}
+        className={"flex flex-col gap-2ch items-start mt-1lh"}
+        onSubmit={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          void form.handleSubmit();
+        }}
+      >
+        <form.Field
+          name={"file"}
+          children={(fieldApi) => (
+            <input
+              ref={inputRef}
+              id={"import-file"}
+              type={"file"}
+              accept={"application/json,.json"}
+              onChange={(e) =>
+                fieldApi.handleChange(e.target.files?.[0] ?? null)
+              }
+            />
+          )}
+        />
+        <form.Subscribe
+          selector={(state) => [state.values.file, state.isSubmitting]}
+          children={([file, isSubmitting]) => (
+            <ButtonGroup>
+              <Button
+                label={isSubmitting ? "Importing..." : "Import"}
+                type={"submit"}
+                disabled={!file || Boolean(isSubmitting)}
+              />
+            </ButtonGroup>
+          )}
+        />
+      </form>
+    </div>
+  );
+}
+
+function EditAislesForm(props: { aisles: Aisle[] }) {
+  const reorderAisles = useReorderAisles();
+
+  const sorted = () => [...props.aisles].sort((a, b) => a.order - b.order);
+
+  const [rows, setRows] = useState<Aisle[]>(sorted);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [saving, setSaving] = useState(false);
+  // Flipped on the first edit; gates Save/Cancel and resets when we sync with
+  // the server (a successful save) or the user discards their changes.
+  const [dirty, setDirty] = useState(false);
+
+  const setOrder = (id: number, order: number) => {
+    setRows((current) =>
+      current
+        .map((row) => (row.id === id ? { ...row, order } : row))
+        .sort((a, b) => a.order - b.order),
+    );
+    setDirty(true);
+  };
+
+  // Move a row up/down by swapping its order value with its neighbour's, then
+  // re-sorting so the row visibly changes place.
+  const move = (index: number, direction: -1 | 1) => {
+    setRows((current) => {
+      const target = index + direction;
+      if (target < 0 || target >= current.length) {
+        return current;
+      }
+      const next = [...current];
+      const a = next[index];
+      const b = next[target];
+      next[index] = { ...a, order: b.order };
+      next[target] = { ...b, order: a.order };
+      return next.sort((x, y) => x.order - y.order);
+    });
+    setDirty(true);
+  };
+
+  const cancel = () => {
+    setRows(sorted());
+    setEditingId(null);
+    setDirty(false);
+  };
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await reorderAisles.mutateAsync(
+        rows.map((aisle) => ({ id: aisle.id, order: aisle.order })),
+      );
+      setDirty(false);
+      toast.success("Saved aisle order");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div>
@@ -198,62 +237,71 @@ function EditAislesForm(props: { token: string; aisles: Aisle[] }) {
         onSubmit={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          void form.handleSubmit();
+          void save();
         }}
       >
-        <table className={"table-auto border-collapse mt-1lh"}>
+        <table className={"grid-table w-fit mt-1lh"}>
           <thead>
             <tr>
-              <th className={"pr-4ch text-left border-black border-r-2"}>
-                Name
-              </th>
-              <th className={"px-4ch text-left"}>Order</th>
+              <th>Name</th>
+              <th>Order</th>
+              <th>Move</th>
             </tr>
           </thead>
           <tbody>
-            <form.Field
-              name={"aisles"}
-              mode={"array"}
-              children={(aislesField) => {
-                return aislesField.state.value.map((aisle, idx) => {
-                  return (
-                    <tr key={aisle.name}>
-                      <td className={"pr-4ch border-black border-r-2"}>
-                        {aisle.name}
-                      </td>
-                      <td className={"px-4ch"}>
-                        <form.Field
-                          name={`aisles[${idx}].order`}
-                          children={(orderField) => (
-                            <input
-                              type={"number"}
-                              value={orderField.state.value as number}
-                              readOnly={true}
-                              onChange={(e) => {
-                                orderField.handleChange(+e.target.value);
-                              }}
-                            />
-                          )}
-                        />
-                      </td>
-                    </tr>
-                  );
-                });
-              }}
-            />
+            {rows.map((aisle, index) => (
+              <tr key={aisle.id}>
+                <td>{aisle.name}</td>
+                <td
+                  className={"cell-control cursor-text"}
+                  onClick={() => setEditingId(aisle.id)}
+                >
+                  <Editable
+                    isEditing={editingId === aisle.id}
+                    value={String(aisle.order)}
+                    onBlur={(value) => {
+                      const parsed = Number.parseInt(value, 10);
+                      if (!Number.isNaN(parsed)) {
+                        setOrder(aisle.id, parsed);
+                      }
+                      setEditingId(null);
+                    }}
+                  />
+                </td>
+                <td className={"cell-control"}>
+                  <div className={"flex flex-row gap-1ch p-0.5lh"}>
+                    <Button
+                      label={"↑"}
+                      type={"button"}
+                      shadow={false}
+                      disabled={index === 0}
+                      onClick={() => move(index, -1)}
+                    />
+                    <Button
+                      label={"↓"}
+                      type={"button"}
+                      shadow={false}
+                      disabled={index === rows.length - 1}
+                      onClick={() => move(index, 1)}
+                    />
+                  </div>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
         <ButtonGroup>
-          <Button label={"Save"} type={"submit"} />
           <Button
-            label={"Add row"}
-            onClick={() =>
-              form.pushFieldValue("aisles", {
-                id: 1,
-                name: "",
-                order: 7,
-              })
-            }
+            label={saving ? "Saving..." : "Save"}
+            type={"submit"}
+            disabled={saving || !dirty}
+          />
+          <Button
+            label={"Cancel"}
+            type={"button"}
+            shadow={false}
+            disabled={saving || !dirty}
+            onClick={cancel}
           />
         </ButtonGroup>
       </form>
@@ -261,8 +309,8 @@ function EditAislesForm(props: { token: string; aisles: Aisle[] }) {
   );
 }
 
-function MergeIngredients(props: { token: string }) {
-  const mergeIngredients = useMergeIngredients(props.token);
+function MergeIngredients() {
+  const mergeIngredients = useMergeIngredients();
 
   const form = useForm({
     defaultValues: {
@@ -310,7 +358,6 @@ function MergeIngredients(props: { token: string }) {
                   <p>Ingredients to merge:</p>
                   <FindIngredient
                     placeholder={"ingredient to merge..."}
-                    token={props.token}
                     onIngredient={(i) => fieldApi.pushValue(i)}
                   />
                 </div>
@@ -340,7 +387,6 @@ function MergeIngredients(props: { token: string }) {
               {fieldApi.state.value === null ? (
                 <FindIngredient
                   placeholder={"merge into..."}
-                  token={props.token}
                   onIngredient={(i) => fieldApi.handleChange(i)}
                 />
               ) : (

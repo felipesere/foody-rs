@@ -1,0 +1,19 @@
+{
+  "storages": [
+    {
+      "id": 1,
+      "name": "Fridge",
+      "order": 1
+    },
+    {
+      "id": 2,
+      "name": "Freezer",
+      "order": 2
+    },
+    {
+      "id": 3,
+      "name": "Pantry",
+      "order": 3
+    }
+  ]
+}

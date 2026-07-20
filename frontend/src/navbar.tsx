@@ -1,9 +1,9 @@
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { useUser } from "./apis/user.ts";
-import { Route as RootRoute } from "./routes/__root.tsx";
+import { meQueryOptions } from "./api/v1/session.ts";
 
 export function Navbar() {
-  const { token } = RootRoute.useRouteContext();
+  const me = useQuery(meQueryOptions());
 
   return (
     <nav className="content-grid py-1lh border-solid border-black border-b-2 dotted-bg">
@@ -21,20 +21,11 @@ export function Navbar() {
           <NavLink name={"Recipes"} to={"/recipes"} />
         </li>
         <li>
-          {token ? (
-            <UserOrLogin token={token} />
-          ) : (
-            <NavLink name={"Login"} to={"/login"} />
-          )}
+          <NavLink name={me.data ? me.data.name : "Login"} to={"/login"} />
         </li>
       </ul>
     </nav>
   );
-}
-
-function UserOrLogin(props: { token: string }) {
-  const user = useUser(props.token);
-  return <NavLink name={user.data ? user.data.name : "Login"} to={"/login"} />;
 }
 
 function NavLink(props: {

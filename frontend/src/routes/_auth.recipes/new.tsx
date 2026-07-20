@@ -1,11 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { useState } from "react";
-import {
-  type Source,
-  type UnstoredRecipe,
-  useCreateRecipe,
-} from "../../apis/recipes.ts";
+import { UnstoredRecipe, useCreateRecipe } from "../../api/v1/recipes.ts";
 import {
   RecipeContext,
   RecipeView,
@@ -17,9 +13,8 @@ export const Route = createFileRoute("/_auth/recipes/new")({
 });
 
 function NewRecipePage() {
-  const { token } = Route.useRouteContext();
-
   const [recipe, setRecipe] = useState<UnstoredRecipe>({
+    kind: "recipe",
     ingredients: [],
     name: "",
     source: "book",
@@ -33,12 +28,12 @@ function NewRecipePage() {
   });
   const navigate = useNavigate({ from: "/recipes/new" });
 
-  const newRecipe = useCreateRecipe(token, (id) =>
+  const newRecipe = useCreateRecipe((id) =>
     navigate({ to: "/recipes/$recipeId", params: { recipeId: `${id}` } }),
   );
 
   return (
-    <RecipeContext.Provider value={{ editing: true, token }}>
+    <RecipeContext.Provider value={{ editing: true }}>
       <RecipeView
         onSave={() => {
           newRecipe.mutate(recipe);
@@ -46,7 +41,7 @@ function NewRecipePage() {
         onCancel={() => navigate({ to: "/recipes" })}
         recipe={recipe}
         onSetName={(name) => setRecipe((prev) => ({ ...prev, name }))}
-        onSetSource={(source: Source) => {
+        onSetSource={(source) => {
           if (source.source === "book") {
             setRecipe((prev) => ({
               ...prev,
@@ -79,7 +74,7 @@ function NewRecipePage() {
               ...prev.ingredients,
               {
                 ingredient,
-                quantity: [parse(quantity)],
+                quantities: [parse(quantity)],
               },
             ],
           }));
@@ -98,7 +93,7 @@ function NewRecipePage() {
             ingredients: prev.ingredients.map((i) => {
               if (i.ingredient.name === name) {
                 const q = parse(quantity);
-                return { ...i, quantity: [q] };
+                return { ...i, quantities: [q] };
               }
               return i;
             }),

@@ -1,4 +1,4 @@
-import type { Aisle } from "../apis/ingredients.ts";
+import type { Aisle } from "../api/v1/aisles.ts";
 
 interface Item {
   ingredient: {

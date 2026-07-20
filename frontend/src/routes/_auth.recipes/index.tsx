@@ -1,16 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import classnames from "classnames";
 import { useRef, useState } from "react";
-import { z } from "zod";
+import * as v from "valibot";
 import {
-  type IngredientWithQuantity,
-  type Recipe,
-  type Source,
-  useAllRecipes,
-  useChangeRecipe,
+  Recipe,
+  RecipeIngredient,
   useDeleteRecipe,
+  useRecipes,
   useRecipeTags,
-} from "../../apis/recipes.ts";
+  useUpdateRecipe,
+} from "../../api/v1/recipes.ts";
 import searchIcon from "../../assets/search.png";
 import { Button } from "../../components/button.tsx";
 import { ButtonGroup } from "../../components/buttonGroup.tsx";
@@ -28,9 +27,9 @@ import {
   updateSearchParams,
 } from "../../domain/search.ts";
 
-const recipeUrlParams = z.object({
-  search: RecipeSearchSchemaParams.optional(),
-  massEditTags: z.boolean().optional(),
+const recipeUrlParams = v.object({
+  search: v.optional(RecipeSearchSchemaParams),
+  massEditTags: v.optional(v.boolean()),
 });
 
 export const Route = createFileRoute("/_auth/recipes/")({
@@ -39,12 +38,12 @@ export const Route = createFileRoute("/_auth/recipes/")({
 });
 
 export function RecipesPage() {
-  const { token } = Route.useRouteContext();
   const { search, massEditTags } = Route.useSearch();
-  const { data, isLoading, isError } = useAllRecipes(token);
+  const { data, isLoading, isError } = useRecipes();
   const navigate = useNavigate({ from: Route.path });
 
-  const allTags = useRecipeTags(token);
+  const allTags = useRecipeTags();
+
   if (isError) {
     return <p>Error</p>;
   }
@@ -226,7 +225,7 @@ export function RecipesPage() {
         </FieldSet>
       </FieldSet>
       {massEditTags ? (
-        <MassEditTags token={token} recipes={recipes} />
+        <MassEditTags recipes={recipes} />
       ) : (
         <Overview recipes={recipes} />
       )}
@@ -283,11 +282,11 @@ type RecipeProps = {
 };
 
 function RecipeView(props: RecipeProps) {
-  const { token } = Route.useRouteContext();
   const [open, setOpen] = useState(false);
-  const deleteRecipe = useDeleteRecipe(token);
+
+  const deleteRecipe = useDeleteRecipe();
   const recipeId = props.recipe.id;
-  const changeRecipe = useChangeRecipe(token, recipeId);
+  const changeRecipe = useUpdateRecipe();
   const navigate = useNavigate({ from: "/recipes" });
 
   return (
@@ -295,9 +294,12 @@ function RecipeView(props: RecipeProps) {
       <p className="font-black uppercase tracking-wider">{props.recipe.name}</p>
       <ShowSource details={props.recipe} />
       <Stars
-        rating={props.recipe.rating}
+        rating={props.recipe.rating || 0}
         setRating={(n) =>
-          changeRecipe.mutate({ changes: [{ type: "rating", value: n }] })
+          changeRecipe.mutate({
+            recipeId,
+            rating: n,
+          })
         }
       />
       {props.recipe.duration && <p>⏲ {props.recipe.duration}</p>}
@@ -351,7 +353,7 @@ function RecipeView(props: RecipeProps) {
         >
           Details
         </button>
-        <AddtoEither recipeId={recipeId} token={token} />
+        <AddtoEither recipeId={recipeId} />
         <button
           type="submit"
           className="px-2ch text-white bg-gray-700 shadow"
@@ -364,11 +366,8 @@ function RecipeView(props: RecipeProps) {
   );
 }
 
-function IngredientView({
-  ingredient: { ingredient, quantity },
-}: {
-  ingredient: IngredientWithQuantity;
-}) {
+function IngredientView(props: { ingredient: RecipeIngredient }) {
+  const { ingredient, quantities } = props.ingredient;
   return (
     <li className="flex flex-row justify-between">
       <p className="font-light text-gray-700 whitespace-nowrap overflow-hidden overflow-ellipsis">
@@ -376,13 +375,13 @@ function IngredientView({
       </p>
       <DottedLine />
       <p className="text-light" style={{ flex: "none" }}>
-        {quantity[0].value} {quantity[0].unit}
+        {quantities[0].value} {quantities[0].unit}
       </p>
     </li>
   );
 }
 
-function ShowSource(props: { details: Source }) {
+function ShowSource(props: { details: Recipe }) {
   switch (props.details.source) {
     case "website":
       return (
@@ -408,12 +407,12 @@ function maybeHostname(v: string): string {
   }
 }
 
-function MassEditTags(props: { token: string; recipes: Recipe[] }) {
+function MassEditTags(props: { recipes: Recipe[] }) {
   let recipes = props.recipes;
   const [newTags, setNewTags] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const changeRecipe = useChangeRecipe(props.token);
+  const changeRecipe = useUpdateRecipe();
 
   let tags = recipes
     .flatMap((i) => i.tags)
@@ -449,7 +448,7 @@ function MassEditTags(props: { token: string; recipes: Recipe[] }) {
         knownTags={Array.from(knownTags.values())}
         toggleTags={(id, tags) =>
           changeRecipe.mutate({
-            changes: [{ type: "tags", value: tags }],
+            tags,
             recipeId: id,
           })
         }

@@ -2,15 +2,14 @@ import classnames from "classnames";
 import { useRef, useState } from "react";
 import {
   type Ingredient,
-  useCreateNewIngredient,
-} from "../../apis/ingredients.ts";
-import type { Quantity } from "../../apis/recipes.ts";
+  useCreateIngredient,
+} from "../../api/v1/ingredient.ts";
+import { Quantity } from "../../api/v1/shoppinglists.ts";
 import { parse } from "../../quantities.ts";
 import { FindIngredient } from "./findIngredient.tsx";
 
 export type SelectIngredientWithQuantityProps = {
-  token: string;
-  onIngredient: (i: Ingredient, q: Quantity) => void;
+  onIngredient: (i: Ingredient, q: Quantity, raw: string) => void;
   className?: string;
 };
 
@@ -33,14 +32,13 @@ export function SelectIngredientWithQuantity(
     | undefined
   >(undefined);
 
-  const newIngredient = useCreateNewIngredient(props.token);
+  const newIngredient = useCreateIngredient();
 
   const ingredientRef = useRef<HTMLInputElement | null>(null);
 
   return (
     <div className={classnames(props.className, "flex flex-wrap gap-1ch")}>
       <FindIngredient
-        token={props.token}
         placeholder={"ingredient..."}
         onIngredient={(v) => {
           setSelectedIngredient(v);
@@ -53,7 +51,6 @@ export function SelectIngredientWithQuantity(
         ref={ingredientRef}
       />
       <input
-        className={"border-gray-500 border-solid border-2"}
         type={"text"}
         name={"new_quantity"}
         data-testid="new-quantity"
@@ -78,7 +75,11 @@ export function SelectIngredientWithQuantity(
           }
 
           if (selectedIngredient) {
-            props.onIngredient(selectedIngredient, quantity.quantity);
+            props.onIngredient(
+              selectedIngredient,
+              quantity.quantity,
+              quantity.raw,
+            );
           }
 
           if (newIngredientName) {
@@ -88,7 +89,7 @@ export function SelectIngredientWithQuantity(
                 tags: [],
               })
               .then((ingredient) => {
-                props.onIngredient(ingredient, quantity.quantity);
+                props.onIngredient(ingredient, quantity.quantity, quantity.raw);
               });
           }
 
