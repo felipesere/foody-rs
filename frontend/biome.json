@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.10/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.4/schema.json",
   "files": {
     "includes": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.css", "!**/*.gen.ts"]
   },
@@ -10,7 +10,7 @@
     "enabled": true,
     "includes": ["!**/*.test.tsx"],
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "correctness": {
         "noChildrenProp": "off"
       },

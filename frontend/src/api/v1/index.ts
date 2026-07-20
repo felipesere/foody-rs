@@ -25,7 +25,7 @@ export const apiBase =
 // authentication rides on the cookie rather than a bearer token. CORS in dev
 // allows credentials from the Vite origin (see backend config/initializers/cors.rb).
 export const http = ky.create({
-  prefixUrl: apiBase || "/",
+  prefix: apiBase || "/",
   credentials: "include",
 });
 
