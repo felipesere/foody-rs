@@ -1,35 +1,15 @@
-import {
-  autoUpdate,
-  FloatingFocusManager,
-  FloatingPortal,
-  offset,
-  size,
-  useDismiss,
-  useFloating,
-  useId,
-  useInteractions,
-  useListNavigation,
-  useMergeRefs,
-  useRole,
-} from "@floating-ui/react";
 import classNames from "classnames";
 import Fuse from "fuse.js";
-import type { ChangeEvent, HTMLProps, ReactNode } from "react";
+import type { ChangeEvent, CSSProperties, ReactNode } from "react";
 import {
   type ForwardedRef,
   forwardRef,
+  useId,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-
-const matchWidth = size({
-  apply({ rects, elements }) {
-    Object.assign(elements.floating.style, {
-      width: `${rects.reference.width}px`,
-    });
-  },
-});
 
 interface Named {
   name: string;
@@ -56,7 +36,12 @@ function InnerDropdown<T extends Named>(
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-  const listRef = useRef<Array<HTMLElement | null>>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+
+  // A unique CSS anchor name links the input to its floating list so the
+  // browser can position one against the other via CSS Anchor Positioning.
+  const anchorName = `--dd-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
 
   const searchIndex = useMemo(() => {
     return new Fuse(props.items, {
@@ -67,34 +52,96 @@ function InnerDropdown<T extends Named>(
   }, [props.items]);
 
   const items = searchIndex.search(query).map((r) => r.item);
-  const { refs, floatingStyles, context } = useFloating<HTMLElement>({
-    whileElementsMounted: autoUpdate,
-    open,
-    onOpenChange: setIsOpen,
-    middleware: [matchWidth, offset(3)],
-  });
+  const showNewItem = Boolean(query) && Boolean(props.onNewItem);
+  const optionCount = items.length + (showNewItem ? 1 : 0);
 
-  const role = useRole(context);
-  const dismiss = useDismiss(context);
-  const listNav = useListNavigation(context, {
-    listRef,
-    activeIndex,
-    onNavigate: setActiveIndex,
-    virtual: true,
-    loop: true,
-  });
+  // Move the floating list into the top layer once it is mounted. Guarded so
+  // it is a no-op in environments without the Popover API (e.g. jsdom).
+  useLayoutEffect(() => {
+    if (open) {
+      try {
+        popoverRef.current?.showPopover?.();
+      } catch {
+        // already shown / not connected — nothing to do
+      }
+    }
+  }, [open]);
 
-  const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions(
-    [role, dismiss, listNav],
-  );
+  function setInputRef(node: HTMLInputElement | null) {
+    inputRef.current = node;
+    if (typeof ref === "function") {
+      ref(node);
+    } else if (ref) {
+      ref.current = node;
+    }
+  }
 
   function onChange(event: ChangeEvent<HTMLInputElement>) {
     const value = event.target.value;
     setQuery(value);
-    if (value.length > 2) {
-      setIsOpen(true);
+    setActiveIndex(null);
+    setIsOpen(value.length > 2);
+  }
+
+  function close() {
+    setIsOpen(false);
+    setActiveIndex(null);
+  }
+
+  function selectItem(item: T) {
+    setQuery(item.name);
+    close();
+    props.onSelectedItem(item);
+    inputRef.current?.focus();
+  }
+
+  function createItem() {
+    close();
+    props.onNewItem?.(query);
+    inputRef.current?.focus();
+  }
+
+  // Commit the currently highlighted option via the keyboard. Unlike the click
+  // handlers this must not steal focus back, so Tab can still move away.
+  function commit() {
+    setIsOpen(false);
+    if (activeIndex !== null && activeIndex < items.length) {
+      const item = items[activeIndex];
+      setQuery(item.name);
+      props.onSelectedItem(item);
     } else {
-      setIsOpen(false);
+      props.onNewItem?.(query);
+    }
+    setActiveIndex(null);
+  }
+
+  function onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    switch (event.key) {
+      case "ArrowDown":
+        if (!open || optionCount === 0) return;
+        event.preventDefault();
+        setActiveIndex((i) => (i === null ? 0 : (i + 1) % optionCount));
+        return;
+      case "ArrowUp":
+        if (!open || optionCount === 0) return;
+        event.preventDefault();
+        setActiveIndex((i) =>
+          i === null ? optionCount - 1 : (i - 1 + optionCount) % optionCount,
+        );
+        return;
+      case "Escape":
+        close();
+        return;
+      case "Enter":
+        event.preventDefault();
+        event.stopPropagation();
+        commit();
+        return;
+      case "Tab":
+        commit();
+        return;
+      default:
+        return;
     }
   }
 
@@ -102,104 +149,64 @@ function InnerDropdown<T extends Named>(
     props.onBlur?.();
   }
 
-  const mergedRefs = useMergeRefs([refs.setReference, ref]);
-
   return (
     <>
       <input
-        {...getReferenceProps({
-          className: props.dropdownClassnames || "",
-          ref: mergedRefs,
-          onChange,
-          onBlur: handleBlur,
-          value: query,
-          placeholder: props.placeholder,
-          "aria-autocomplete": "list",
-          onKeyDown(event) {
-            switch (event.key) {
-              case "Enter":
-                event.preventDefault();
-                event.stopPropagation();
-                break;
-              case "Tab":
-                break;
-              default:
-                return;
-            }
-
-            setIsOpen(false);
-            // Not 100% sure about this...
-            if (activeIndex === null) {
-              props.onNewItem?.(query);
-              return;
-            }
-            if (items[activeIndex]) {
-              const item = items[activeIndex];
-              setQuery(item.name);
-              props.onSelectedItem(item);
-            } else {
-              props.onNewItem?.(query);
-            }
-          },
-        })}
+        ref={setInputRef}
+        className={props.dropdownClassnames || ""}
+        style={{ anchorName } as unknown as CSSProperties}
+        value={query}
+        placeholder={props.placeholder}
+        onChange={onChange}
+        onBlur={handleBlur}
+        onKeyDown={onKeyDown}
       />
-      <FloatingPortal>
-        {open && (
-          <FloatingFocusManager
-            context={context}
-            initialFocus={-1}
-            modal={false}
-          >
-            <div
-              ref={refs.setFloating}
-              style={floatingStyles}
-              {...getFloatingProps({
-                className: "z-30 bg-white border-solid border-black border-2",
-              })}
-            >
-              <ul>
-                {items.map((item, idx) => (
-                  <Item
-                    {...getItemProps({
-                      ref(node) {
-                        listRef.current[idx] = node;
-                      },
-                      onClick() {
-                        setQuery(item.name);
-                        setIsOpen(false);
-                        props.onSelectedItem(item);
-                        refs.domReference.current?.focus();
-                      },
-                      onBlur: handleBlur,
-                    })}
-                    key={item.name}
-                    active={activeIndex === idx}
-                  >
-                    {item.name}
-                  </Item>
-                ))}
-                {query && props.onNewItem && (
-                  <NewItem
-                    ref={(node) => {
-                      listRef.current[items.length] = node;
-                    }}
-                    active={activeIndex === items.length}
-                    onClick={() => {
-                      setQuery(query);
-                      setIsOpen(false);
-                      props.onNewItem?.(query);
-                      refs.domReference.current?.focus();
-                    }}
-                    onBlur={handleBlur}
-                  >
-                    {query}
-                  </NewItem>
-                )}
-              </ul>
-            </div>
-          </FloatingFocusManager>
-        )}
-      </FloatingPortal>
+      {open && (
+        <div
+          ref={popoverRef}
+          popover="auto"
+          onToggle={(event) => {
+            // Sync React state when the browser light-dismisses (click-away /
+            // Escape) the popover.
+            if ((event as unknown as ToggleEvent).newState === "closed") {
+              close();
+            }
+          }}
+          className="z-30 bg-white border-solid border-black border-2"
+          style={
+            {
+              position: "fixed",
+              positionAnchor: anchorName,
+              top: `calc(anchor(bottom) + 3px)`,
+              left: `anchor(left)`,
+              width: `anchor-size(width)`,
+              margin: 0,
+            } as unknown as CSSProperties
+          }
+        >
+          <ul>
+            {items.map((item, idx) => (
+              <Item
+                key={item.name}
+                active={activeIndex === idx}
+                onClick={() => selectItem(item)}
+                onBlur={handleBlur}
+              >
+                {item.name}
+              </Item>
+            ))}
+            {showNewItem && (
+              <NewItem
+                active={activeIndex === items.length}
+                onClick={createItem}
+                onBlur={handleBlur}
+              >
+                {query}
+              </NewItem>
+            )}
+          </ul>
+        </div>
+      )}
     </>
   );
 }
@@ -207,56 +214,39 @@ function InnerDropdown<T extends Named>(
 interface ItemProps {
   children: ReactNode;
   active: boolean;
+  onClick: () => void;
+  onBlur: () => void;
 }
 
-const NewItem = forwardRef<HTMLLIElement, ItemProps & HTMLProps<HTMLLIElement>>(
-  ({ children, active, ...rest }, ref) => {
-    const id = useId();
-    return (
-      <li
-        ref={ref}
-        id={id}
-        aria-selected={active}
-        {...rest}
-        style={{
-          ...rest.style,
-        }}
-        className={"px-1ch py-0.5lh striped-bg text-yellow-500 cursor-default"}
-      >
-        <div
-          className={classNames(
-            "px-1ch py-0.5lh text-black hover:bg-gray-300",
-            {
-              "bg-white": !active,
-              "bg-gray-300": active,
-            },
-          )}
-        >
-          {children}
-        </div>
-      </li>
-    );
-  },
-);
-const Item = forwardRef<HTMLLIElement, ItemProps & HTMLProps<HTMLLIElement>>(
-  ({ children, active, ...rest }, ref) => {
-    const id = useId();
-    return (
-      <li
-        ref={ref}
-        id={id}
-        aria-selected={active}
-        {...rest}
-        style={rest.style}
-        className={classNames(
-          "px-2ch py-1lh hover:bg-gray-300 cursor-default",
-          {
-            "bg-gray-300": active,
-          },
-        )}
+function NewItem({ children, active, onClick, onBlur }: ItemProps) {
+  return (
+    <li
+      onClick={onClick}
+      onBlur={onBlur}
+      className={"px-1ch py-0.5lh striped-bg text-yellow-500 cursor-default"}
+    >
+      <div
+        className={classNames("px-1ch py-0.5lh text-black hover:bg-gray-300", {
+          "bg-white": !active,
+          "bg-gray-300": active,
+        })}
       >
         {children}
-      </li>
-    );
-  },
-);
+      </div>
+    </li>
+  );
+}
+
+function Item({ children, active, onClick, onBlur }: ItemProps) {
+  return (
+    <li
+      onClick={onClick}
+      onBlur={onBlur}
+      className={classNames("px-2ch py-1lh hover:bg-gray-300 cursor-default", {
+        "bg-gray-300": active,
+      })}
+    >
+      {children}
+    </li>
+  );
+}

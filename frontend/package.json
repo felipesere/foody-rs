@@ -14,7 +14,6 @@
     "test": "NODE_OPTIONS='--no-deprecation' vitest run"
   },
   "dependencies": {
-    "@floating-ui/react": "^0.27.16",
     "@tailwindcss/vite": "^4.1.17",
     "@tanstack/query-sync-storage-persister": "^5.90.12",
     "@tanstack/react-form": "^1.25.0",
