@@ -69,7 +69,7 @@ function updateSearch(change: IngredientSearch["search"]) {
 
 function IngredientsPage() {
   const { search, massEdit } = Route.useSearch();
-  const navigate = useNavigate({ from: Route.path });
+  const navigate = useNavigate({ from: Route.fullPath });
   const ingredients = useIngredients();
   const allTags = useIngredientTags();
 

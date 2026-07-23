@@ -41,7 +41,7 @@ export function FullscreenPage() {
   const ingredients = shoppinglist.data?.ingredients || [];
   const safeIndex = Math.min(index, ingredients.length - 1);
   const currentIngredient = ingredients[safeIndex];
-  const navigate = useNavigate({ from: Route.path });
+  const navigate = useNavigate({ from: Route.fullPath });
   const next = safeIndex + 1;
   const isLast = next >= ingredients.length;
 

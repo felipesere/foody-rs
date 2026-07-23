@@ -9,24 +9,24 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthRouteImport } from './routes/_auth'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthIndexRouteImport } from './routes/_auth.index'
-import { Route as AuthMealplanRouteImport } from './routes/_auth.mealplan'
 import { Route as AuthIngredientsRouteImport } from './routes/_auth.ingredients'
+import { Route as AuthMealplanRouteImport } from './routes/_auth.mealplan'
 import { Route as AuthRecipesIndexRouteImport } from './routes/_auth.recipes/index'
-import { Route as AuthRecipesNewRouteImport } from './routes/_auth.recipes/new'
 import { Route as AuthRecipesRecipeIdRouteImport } from './routes/_auth.recipes/$recipeId'
+import { Route as AuthRecipesNewRouteImport } from './routes/_auth.recipes/new'
 import { Route as AuthShoppinglistShoppinglistIdIndexRouteImport } from './routes/_auth.shoppinglist.$shoppinglistId.index'
 import { Route as AuthShoppinglistShoppinglistIdFullscreenRouteImport } from './routes/_auth.shoppinglist.$shoppinglistId.fullscreen'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/_auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/_auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthIndexRoute = AuthIndexRouteImport.update({
@@ -34,14 +34,14 @@ const AuthIndexRoute = AuthIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthRoute,
 } as any)
-const AuthMealplanRoute = AuthMealplanRouteImport.update({
-  id: '/mealplan',
-  path: '/mealplan',
-  getParentRoute: () => AuthRoute,
-} as any)
 const AuthIngredientsRoute = AuthIngredientsRouteImport.update({
   id: '/ingredients',
   path: '/ingredients',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthMealplanRoute = AuthMealplanRouteImport.update({
+  id: '/mealplan',
+  path: '/mealplan',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthRecipesIndexRoute = AuthRecipesIndexRouteImport.update({
@@ -49,14 +49,14 @@ const AuthRecipesIndexRoute = AuthRecipesIndexRouteImport.update({
   path: '/recipes/',
   getParentRoute: () => AuthRoute,
 } as any)
-const AuthRecipesNewRoute = AuthRecipesNewRouteImport.update({
-  id: '/recipes/new',
-  path: '/recipes/new',
-  getParentRoute: () => AuthRoute,
-} as any)
 const AuthRecipesRecipeIdRoute = AuthRecipesRecipeIdRouteImport.update({
   id: '/recipes/$recipeId',
   path: '/recipes/$recipeId',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthRecipesNewRoute = AuthRecipesNewRouteImport.update({
+  id: '/recipes/new',
+  path: '/recipes/new',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthShoppinglistShoppinglistIdIndexRoute =
@@ -73,15 +73,15 @@ const AuthShoppinglistShoppinglistIdFullscreenRoute =
   } as any)
 
 export interface FileRoutesByFullPath {
+  '/': typeof AuthIndexRoute
   '/login': typeof LoginRoute
   '/ingredients': typeof AuthIngredientsRoute
   '/mealplan': typeof AuthMealplanRoute
-  '/': typeof AuthIndexRoute
   '/recipes/$recipeId': typeof AuthRecipesRecipeIdRoute
   '/recipes/new': typeof AuthRecipesNewRoute
-  '/recipes': typeof AuthRecipesIndexRoute
+  '/recipes/': typeof AuthRecipesIndexRoute
   '/shoppinglist/$shoppinglistId/fullscreen': typeof AuthShoppinglistShoppinglistIdFullscreenRoute
-  '/shoppinglist/$shoppinglistId': typeof AuthShoppinglistShoppinglistIdIndexRoute
+  '/shoppinglist/$shoppinglistId/': typeof AuthShoppinglistShoppinglistIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -110,15 +110,15 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/'
     | '/login'
     | '/ingredients'
     | '/mealplan'
-    | '/'
     | '/recipes/$recipeId'
     | '/recipes/new'
-    | '/recipes'
+    | '/recipes/'
     | '/shoppinglist/$shoppinglistId/fullscreen'
-    | '/shoppinglist/$shoppinglistId'
+    | '/shoppinglist/$shoppinglistId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -151,18 +151,18 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/_auth': {
+      id: '/_auth'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_auth': {
-      id: '/_auth'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_auth/': {
@@ -172,13 +172,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthIndexRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/mealplan': {
-      id: '/_auth/mealplan'
-      path: '/mealplan'
-      fullPath: '/mealplan'
-      preLoaderRoute: typeof AuthMealplanRouteImport
-      parentRoute: typeof AuthRoute
-    }
     '/_auth/ingredients': {
       id: '/_auth/ingredients'
       path: '/ingredients'
@@ -186,18 +179,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthIngredientsRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/mealplan': {
+      id: '/_auth/mealplan'
+      path: '/mealplan'
+      fullPath: '/mealplan'
+      preLoaderRoute: typeof AuthMealplanRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/recipes/': {
       id: '/_auth/recipes/'
       path: '/recipes'
-      fullPath: '/recipes'
+      fullPath: '/recipes/'
       preLoaderRoute: typeof AuthRecipesIndexRouteImport
-      parentRoute: typeof AuthRoute
-    }
-    '/_auth/recipes/new': {
-      id: '/_auth/recipes/new'
-      path: '/recipes/new'
-      fullPath: '/recipes/new'
-      preLoaderRoute: typeof AuthRecipesNewRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/recipes/$recipeId': {
@@ -207,10 +200,17 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRecipesRecipeIdRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/recipes/new': {
+      id: '/_auth/recipes/new'
+      path: '/recipes/new'
+      fullPath: '/recipes/new'
+      preLoaderRoute: typeof AuthRecipesNewRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/shoppinglist/$shoppinglistId/': {
       id: '/_auth/shoppinglist/$shoppinglistId/'
       path: '/shoppinglist/$shoppinglistId'
-      fullPath: '/shoppinglist/$shoppinglistId'
+      fullPath: '/shoppinglist/$shoppinglistId/'
       preLoaderRoute: typeof AuthShoppinglistShoppinglistIdIndexRouteImport
       parentRoute: typeof AuthRoute
     }

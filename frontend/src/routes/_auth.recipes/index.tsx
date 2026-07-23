@@ -40,7 +40,7 @@ export const Route = createFileRoute("/_auth/recipes/")({
 export function RecipesPage() {
   const { search, massEditTags } = Route.useSearch();
   const { data, isLoading, isError } = useRecipes();
-  const navigate = useNavigate({ from: Route.path });
+  const navigate = useNavigate({ from: Route.fullPath });
 
   const allTags = useRecipeTags();
 
@@ -287,7 +287,7 @@ function RecipeView(props: RecipeProps) {
   const deleteRecipe = useDeleteRecipe();
   const recipeId = props.recipe.id;
   const changeRecipe = useUpdateRecipe();
-  const navigate = useNavigate({ from: "/recipes" });
+  const navigate = useNavigate({ from: "/recipes/" });
 
   return (
     <li className="px-1ch py-1lh border-black border-solid border-2">
