@@ -47,7 +47,7 @@
     "@types/react-dom": "^19",
     "@types/react-speech-recognition": "^3",
     "@vitejs/plugin-react": "^6",
-    "jsdom": "^29",
+    "jsdom": "^30",
     "msw": "^2",
     "typescript": "^7",
     "vite": "^8",
