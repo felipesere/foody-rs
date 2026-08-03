@@ -105,9 +105,8 @@ export function filterRecipes(
   }
 
   function ratingsMatch(recipe: Recipe) {
-    if (params.rating && recipe.rating) {
-      let rating = params.rating;
-      return recipe.rating >= rating;
+    if (params.rating) {
+      return (recipe.rating ?? 0) >= params.rating;
     }
     return true;
   }

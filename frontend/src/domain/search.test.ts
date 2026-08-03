@@ -137,3 +137,17 @@ test("ratings at least as good", () => {
   const remaining = filterRecipes(recipes, { rating: 5 });
   expect(remaining.map((r) => r.name)).toEqual(["tartiflette"]);
 });
+
+test("ratings at least as good, lower threshold", () => {
+  const remaining = filterRecipes(recipes, { rating: 3 });
+  expect(remaining.map((r) => r.name)).toEqual(["tartiflette", "blurb"]);
+});
+
+test("unrated recipes are excluded when filtering by rating", () => {
+  const withUnrated: Recipe[] = [
+    ...recipes,
+    { ...recipes[0], id: 3, name: "unrated", rating: null },
+  ];
+  const remaining = filterRecipes(withUnrated, { rating: 3 });
+  expect(remaining.map((r) => r.name)).toEqual(["tartiflette", "blurb"]);
+});
