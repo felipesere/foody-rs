@@ -3,6 +3,7 @@ Rails.application.routes.draw do
     namespace :v1 do
       get "me", to: "me#show"
       post "import", to: "import#create"
+      get "export", to: "export#show"
 
       resources :aisles, only: [:index, :create, :update, :destroy] do
         collection do

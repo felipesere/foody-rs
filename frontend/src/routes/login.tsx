@@ -1,10 +1,11 @@
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import * as v from "valibot";
 import { type Aisle, useAisles, useReorderAisles } from "../api/v1/aisles.ts";
+import { exportFilename, useExport } from "../api/v1/export.ts";
 import { importErrorMessage, useImport } from "../api/v1/import.ts";
 import { type Ingredient, useMergeIngredients } from "../api/v1/ingredient.ts";
 import {
@@ -94,6 +95,65 @@ function AdminPanel() {
       <MergeIngredients />
       <Divider />
       <ImportData />
+      <Divider />
+      <ExportData />
+    </div>
+  );
+}
+
+function ExportData() {
+  const doExport = useExport();
+  const linkRef = useRef<HTMLAnchorElement>(null);
+  const [download, setDownload] = useState<{
+    url: string;
+    filename: string;
+  } | null>(null);
+
+  // Saving a file needs a real anchor, so the link lives in JSX and we click it
+  // once its blob URL is rendered. The URL is released when it's replaced by a
+  // later export or the panel goes away.
+  useEffect(() => {
+    if (!download) return;
+    linkRef.current?.click();
+    return () => URL.revokeObjectURL(download.url);
+  }, [download]);
+
+  const startExport = async () => {
+    try {
+      const blob = await doExport.mutateAsync();
+      setDownload({
+        url: URL.createObjectURL(blob),
+        filename: exportFilename(),
+      });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Export failed");
+    }
+  };
+
+  return (
+    <div>
+      <h2>Export data</h2>
+      <p>
+        Download this group's data as a JSON file you can import again later.
+      </p>
+      <div className={"mt-1lh"}>
+        <ButtonGroup>
+          <Button
+            label={doExport.isPending ? "Exporting..." : "Export"}
+            type={"button"}
+            disabled={doExport.isPending}
+            onClick={startExport}
+          />
+        </ButtonGroup>
+      </div>
+      <a
+        ref={linkRef}
+        className={"hidden"}
+        href={download?.url}
+        download={download?.filename}
+      >
+        Download export
+      </a>
     </div>
   );
 }
